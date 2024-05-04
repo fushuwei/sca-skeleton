@@ -12,4 +12,21 @@
         <java.version>17</java.version>
     </properties>
 
+    <modules>
+        <module>sca-skeleton-dependencies</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Cloud Alibaba (SCA) Skeleton -->
+            <dependency>
+                <groupId>com.itangsoft.skeleton</groupId>
+                <artifactId>sca-skeleton-dependencies</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 </project>
