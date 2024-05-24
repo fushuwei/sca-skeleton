@@ -12,4 +12,8 @@
     <artifactId>sca-skeleton-modules</artifactId>
     <packaging>pom</packaging>
 
+    <modules>
+        <module>sca-skeleton-system</module>
+    </modules>
+
 </project>
