@@ -43,6 +43,13 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <!-- SCA Skeleton Framework -->
+            <dependency>
+                <groupId>com.itangsoft.skeleton</groupId>
+                <artifactId>sca-skeleton-starter-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
