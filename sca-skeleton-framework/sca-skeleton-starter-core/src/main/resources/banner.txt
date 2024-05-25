@@ -1,1 +1,2 @@
-正在启动服务...
+
+${AnsiColor.GREEN}正在启动 ${AnsiColor.BLUE}zyzxt-project-management:${AnsiColor.RED}${spring.profiles.active}  ${AnsiColor.BRIGHT_WHITE}Application Version: ${project.version} ${spring-boot.formatted-version}
