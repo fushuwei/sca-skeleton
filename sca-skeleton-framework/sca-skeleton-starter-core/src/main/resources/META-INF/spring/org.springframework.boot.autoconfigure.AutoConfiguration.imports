@@ -1,1 +1,2 @@
 com.itangsoft.skeleton.starter.core.runner.StartupDoneApplicationRunner
+com.itangsoft.skeleton.starter.core.autoconfigure.WebMvcAutoConfiguration
