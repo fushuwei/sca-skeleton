@@ -5,8 +5,6 @@
     debug: true表示打印logback内部日志信息, 实时查看logback运行状态
 -->
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
-    <!-- 静默 logback 内部日志 -->
-    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
     <!-- 定义日志文件路径 -->
     <springProperty scope="context" name="LOG_PATH" source="logging.file.path" defaultValue="./logs"/>
     <!-- 定义日志文件名称 -->
@@ -32,16 +30,17 @@
     <appender name="DEBUG_ROLLING_FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!-- 指定日志文件的名称 -->
         <file>${LOG_PATH}/${LOG_NAME}-debug.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <!-- 滚动时产生的文件, %d{yyyy-MM-dd}: 按天进行日志滚动, %i: 当文件大小超过maxFileSize时, 按照i进行文件滚动 -->
             <fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/${LOG_NAME}-debug-%i.log</fileNamePattern>
+            <!-- 当日志文件超过100MB指定的大小是, 根据上面提到的%i进行日志文件滚动 -->
+            <maxFileSize>100MB</maxFileSize>
             <!-- 控制保留的归档文件的最大数量, 超出数量就删除旧文件 -->
             <maxHistory>100</maxHistory>
-            <!-- 当日志文件超过100MB指定的大小是, 根据上面提到的%i进行日志文件滚动 -->
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>100MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
+            <!-- 所有的日志文件最大1G, 超过就会删除旧的日志 -->
+            <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
+        <!-- 日志输出格式 -->
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] - [%-5level] [%logger{50} : %line] - %msg%n</pattern>
             <charset>utf-8</charset>
@@ -58,16 +57,17 @@
     <appender name="INFO_ROLLING_FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!-- 指定日志文件的名称 -->
         <file>${LOG_PATH}/${LOG_NAME}-info.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <!-- 滚动时产生的文件, %d{yyyy-MM-dd}: 按天进行日志滚动, %i: 当文件大小超过maxFileSize时, 按照i进行文件滚动 -->
             <fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/${LOG_NAME}-info-%i.log</fileNamePattern>
+            <!-- 当日志文件超过100MB指定的大小是, 根据上面提到的%i进行日志文件滚动 -->
+            <maxFileSize>100MB</maxFileSize>
             <!-- 控制保留的归档文件的最大数量, 超出数量就删除旧文件 -->
             <maxHistory>100</maxHistory>
-            <!-- 当日志文件超过100MB指定的大小是, 根据上面提到的%i进行日志文件滚动 -->
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>100MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
+            <!-- 所有的日志文件最大1G, 超过就会删除旧的日志 -->
+            <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
+        <!-- 日志输出格式 -->
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] - [%-5level] [%logger{50} : %line] - %msg%n</pattern>
             <charset>utf-8</charset>
@@ -84,16 +84,17 @@
     <appender name="WARN_ROLLING_FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!-- 指定日志文件的名称 -->
         <file>${LOG_PATH}/${LOG_NAME}-warn.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <!-- 滚动时产生的文件, %d{yyyy-MM-dd}: 按天进行日志滚动, %i: 当文件大小超过maxFileSize时, 按照i进行文件滚动 -->
             <fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/${LOG_NAME}-warn-%i.log</fileNamePattern>
+            <!-- 当日志文件超过100MB指定的大小是, 根据上面提到的%i进行日志文件滚动 -->
+            <maxFileSize>100MB</maxFileSize>
             <!-- 控制保留的归档文件的最大数量, 超出数量就删除旧文件 -->
             <maxHistory>100</maxHistory>
-            <!-- 当日志文件超过100MB指定的大小是, 根据上面提到的%i进行日志文件滚动 -->
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>100MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
+            <!-- 所有的日志文件最大1G, 超过就会删除旧的日志 -->
+            <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
+        <!-- 日志输出格式 -->
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] - [%-5level] [%logger{50} : %line] - %msg%n</pattern>
             <charset>utf-8</charset>
@@ -110,16 +111,17 @@
     <appender name="ERROR_ROLLING_FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!-- 指定日志文件的名称 -->
         <file>${LOG_PATH}/${LOG_NAME}-error.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <!-- 滚动时产生的文件, %d{yyyy-MM-dd}: 按天进行日志滚动, %i: 当文件大小超过maxFileSize时, 按照i进行文件滚动 -->
             <fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/${LOG_NAME}-error-%i.log</fileNamePattern>
+            <!-- 当日志文件超过100MB指定的大小是, 根据上面提到的%i进行日志文件滚动 -->
+            <maxFileSize>100MB</maxFileSize>
             <!-- 控制保留的归档文件的最大数量, 超出数量就删除旧文件 -->
             <maxHistory>100</maxHistory>
-            <!-- 当日志文件超过100MB指定的大小是, 根据上面提到的%i进行日志文件滚动 -->
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>100MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
+            <!-- 所有的日志文件最大1G, 超过就会删除旧的日志 -->
+            <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
+        <!-- 日志输出格式 -->
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] - [%-5level] [%logger{50} : %line] - %msg%n</pattern>
             <charset>utf-8</charset>
