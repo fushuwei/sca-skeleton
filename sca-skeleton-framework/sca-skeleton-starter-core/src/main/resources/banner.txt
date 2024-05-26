@@ -1,2 +1,2 @@
 
-${AnsiColor.GREEN}正在启动 ${AnsiColor.BLUE}zyzxt-project-management:${AnsiColor.RED}${spring.profiles.active}  ${AnsiColor.BRIGHT_WHITE}Application Version: ${project.version} ${spring-boot.formatted-version}
+${AnsiColor.GREEN}正在启动 ${AnsiColor.BLUE}${spring.application.name} :: ${AnsiColor.RED}${spring.profiles.active} ${AnsiColor.BRIGHT_WHITE}:: ${project.version}
