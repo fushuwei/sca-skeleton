@@ -17,6 +17,7 @@
     <modules>
         <module>sca-skeleton-dependencies</module>
         <module>sca-skeleton-framework</module>
+        <module>sca-skeleton-middleware</module>
         <module>sca-skeleton-modules</module>
     </modules>
 
