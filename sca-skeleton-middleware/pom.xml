@@ -12,4 +12,8 @@
     <artifactId>sca-skeleton-middleware</artifactId>
     <packaging>pom</packaging>
 
+    <modules>
+        <module>sca-skeleton-nacos</module>
+    </modules>
+
 </project>
