@@ -1,2 +1,6 @@
-com.itangsoft.skeleton.starter.core.runner.StartupDoneApplicationRunner
+com.itangsoft.skeleton.starter.core.autoconfigure.JacksonAutoConfiguration
+com.itangsoft.skeleton.starter.core.autoconfigure.RedisTemplateAutoConfiguration
+com.itangsoft.skeleton.starter.core.autoconfigure.RestTemplateAutoConfiguration
+com.itangsoft.skeleton.starter.core.autoconfigure.TaskExecutorAutoConfiguration
 com.itangsoft.skeleton.starter.core.autoconfigure.WebMvcAutoConfiguration
+com.itangsoft.skeleton.starter.core.runner.StartupDoneApplicationRunner

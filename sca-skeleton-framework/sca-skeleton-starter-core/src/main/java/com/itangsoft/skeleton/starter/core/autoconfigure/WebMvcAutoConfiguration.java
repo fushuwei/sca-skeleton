@@ -1,17 +1,16 @@
 package com.itangsoft.skeleton.starter.core.autoconfigure;
 
-import com.itangsoft.skeleton.starter.core.interceptor.DefaultLocaleChangeInterceptor;
-import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.web.WebProperties;
+import cn.hutool.core.date.DatePattern;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.NonNull;
-import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.format.FormatterRegistry;
+import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
-import java.util.Locale;
+import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET;
 
 /**
  * WebMvc自动配置类
@@ -19,50 +18,32 @@ import java.util.Locale;
  * @author fushuwei
  */
 @Configuration
-@AutoConfigureBefore({org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration.class})
-public class WebMvcAutoConfiguration {
+@ConditionalOnWebApplication(type = SERVLET)
+public class WebMvcAutoConfiguration implements WebMvcConfigurer {
 
     /**
-     * Web属性配置
+     * 增加GET请求参数中时间类型转换 {@link com.itangsoft.skeleton.starter.core.jackson.DefaultSimpleModule}
      *
-     * @return WebProperties
+     * @param registry 格式化程序注册表
      */
-    @Bean
-    public WebProperties webProperties() {
-        WebProperties webProperties = new WebProperties();
-        webProperties.setLocale(Locale.SIMPLIFIED_CHINESE);
-        return webProperties;
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        DateTimeFormatterRegistrar registrar = new DateTimeFormatterRegistrar();
+        registrar.setTimeFormatter(DatePattern.NORM_TIME_FORMATTER);
+        registrar.setDateFormatter(DatePattern.NORM_DATE_FORMATTER);
+        registrar.setDateTimeFormatter(DatePattern.NORM_DATETIME_FORMATTER);
+        registrar.registerFormatters(registry);
     }
 
     /**
-     * 国际化区域设置解析器
+     * 系统国际化文件配置
      *
-     * @return LocaleResolver
+     * @return MessageSource
      */
     @Bean
-    public LocaleResolver localeResolver() {
-        SessionLocaleResolver localeResolver = new SessionLocaleResolver();
-        localeResolver.setDefaultLocale(Locale.SIMPLIFIED_CHINESE);
-        return localeResolver;
-    }
-
-    /**
-     * WebMvc配置
-     *
-     * @return WebMvcConfigurer
-     */
-    @Bean
-    public WebMvcConfigurer webMvcConfigurer() {
-        return new WebMvcConfigurer() {
-            /**
-             * 配置拦截器
-             *
-             * @param registry 拦截器注册表
-             */
-            @Override
-            public void addInterceptors(@NonNull InterceptorRegistry registry) {
-                registry.addInterceptor(new DefaultLocaleChangeInterceptor());
-            }
-        };
+    public MessageSource messageSource() {
+        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasename("classpath:i18n/messages");
+        return messageSource;
     }
 }

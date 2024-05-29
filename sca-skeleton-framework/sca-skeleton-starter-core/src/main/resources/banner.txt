@@ -1,2 +1,2 @@
 
-${AnsiColor.GREEN}正在启动 ${AnsiColor.BLUE}${spring.application.name} :: ${AnsiColor.RED}${spring.profiles.active} ${AnsiColor.BRIGHT_WHITE}:: ${project.version}
+${AnsiColor.GREEN}正在启动 ${AnsiColor.BLUE}${spring.application.name} :: ${AnsiColor.RED}${spring.profiles.active} ${AnsiColor.BRIGHT_WHITE}:: ${project.version}${AnsiColor.DEFAULT}
