@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.itangsoft.skeleton</groupId>
         <artifactId>sca-skeleton-framework</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>sca-skeleton-starter-core</artifactId>
