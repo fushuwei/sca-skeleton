@@ -44,29 +44,31 @@ alwaysApply: true
 
 - 仓库初始化默认包含以下目录（可按需扩展）：
   - `sca-skeleton-backend/`：后端聚合根目录
-  - `sca-skeleton-frontend/`：前端聚合根目录
+  - `sca-skeleton-frontend/`：前端工程根目录（初始化阶段按普通目录管理）
   - `deploy/`：部署、环境、运维相关资产
   - `scripts/`：仓库级脚本
 - 根目录应保留 `README.md` 作为全仓入口说明。
 - 根目录应保留 `.gitignore` 用于统一忽略策略。
+- 根目录应保留 `.editorconfig` 作为全仓编辑器规范。
+- 根目录应保留 `package.json`，用于在仓库根执行前端相关命令转发（通过 `pnpm --dir` 指向 `sca-skeleton-frontend/`）。
 - 每个子工程根目录应保留独立 `README.md`。
-- 后端工程根目录应保留 `lombok.config` 与 `.editorconfig`。
+- 后端工程根目录应保留 `lombok.config`。
 
 ## 仓库整体目录结构（初始化基线）
 
 - 目录结构参考如下：
   - `sca-skeleton/`
   - `├── pom.xml`
+  - `├── package.json`
+  - `├── .editorconfig`
   - `├── .gitignore`
   - `├── README.md`
   - `├── sca-skeleton-backend/`
   - `│   ├── README.md`
   - `│   ├── lombok.config`
-  - `│   ├── .editorconfig`
   - `│   ├── pom.xml`
   - `├── sca-skeleton-frontend/`
   - `│   ├── README.md`
-  - `│   ├── pom.xml`
   - `│   ├── package.json`
   - `│   ├── turbo.json`
   - `│   ├── pnpm-workspace.yaml`
@@ -99,7 +101,6 @@ alwaysApply: true
 
     <modules>
         <module>sca-skeleton-backend</module>
-        <module>sca-skeleton-frontend</module>
     </modules>
 
     <properties>
@@ -108,8 +109,15 @@ alwaysApply: true
 </project>
 ```
 
-- 若初始化阶段暂不纳入某子工程到 Maven 聚合，可临时留空 `modules` 或仅保留已纳入模块；但需在根 `README.md` 明确说明原因与补齐计划。
+- `sca-skeleton-frontend/` 在当前基线下不作为 Maven 模块，不在根 `pom.xml` 的 `modules` 中声明。
 - 未经用户明确确认，不得擅自变更根 `groupId`、`artifactId` 以及 `packaging` 的基线约束。
+
+## 根仓库 package.json 基线规范（强制）
+
+- 仓库初始化时，根目录必须提供 `package.json`，用于统一承载仓库级前端命令入口。
+- 根 `package.json` 的脚本应通过 `pnpm --dir ./sca-skeleton-frontend` 转发到前端工程目录执行。
+- 示例：`"dev": "pnpm --dir ./sca-skeleton-frontend dev"`。
+- 实际脚本项（如 `dev`、`build`、`test`、`lint`）可待前端工程明确后补充；未明确前不得臆造业务相关命令。
 
 ## 根目录职责边界（强制）
 
