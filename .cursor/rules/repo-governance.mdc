@@ -47,7 +47,6 @@ alwaysApply: true
   - `sca-skeleton-frontend/`：前端聚合根目录
   - `deploy/`：部署、环境、运维相关资产
   - `scripts/`：仓库级脚本
-  - `.cursor/rules/`：根仓库规则
 - 根目录应保留 `README.md` 作为全仓入口说明。
 - 根目录应保留 `.gitignore` 用于统一忽略策略。
 - 每个子工程根目录应保留独立 `README.md`。
@@ -65,12 +64,6 @@ alwaysApply: true
   - `│   ├── lombok.config`
   - `│   ├── .editorconfig`
   - `│   ├── pom.xml`
-  - `│   ├── sca-skeleton-auth/`
-  - `│   │   └── pom.xml`
-  - `│   ├── sca-skeleton-gateway/`
-  - `│   │   └── pom.xml`
-  - `│   └── sca-skeleton-system/`
-  - `│       └── pom.xml`
   - `├── sca-skeleton-frontend/`
   - `│   ├── README.md`
   - `│   ├── pom.xml`
@@ -81,8 +74,6 @@ alwaysApply: true
   - `│   └── packages/`
   - `├── deploy/`
   - `├── scripts/`
-  - `└── .cursor/`
-  - `    └── rules/`
 - 上述结构为根仓库级约束基线，允许按专题新增子目录，但不得破坏前后端主边界。
 
 ## 根目录职责边界（强制）
