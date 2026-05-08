@@ -17,9 +17,64 @@
     <name>SCA Skeleton Backend :: Dependencies</name>
     <description>SCA Skeleton unified dependency management BOM</description>
 
+    <properties>
+        <spring-boot.version>4.0.6</spring-boot.version>
+        <spring-cloud.version>2025.1.1</spring-cloud.version>
+        <spring-cloud-alibaba.version>2025.1.0.0</spring-cloud-alibaba.version>
+        <mybatis-plus.version>3.5.16</mybatis-plus.version>
+        <redisson.version>4.3.0</redisson.version>
+        <easy-captcha.version>2.2.5</easy-captcha.version>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
-            <!-- Versions are centralized here in follow-up iterations. -->
+            <!-- Spring Boot -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring Cloud -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring Cloud Alibaba -->
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- MyBatis-Plus -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <!-- Redisson -->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
+
+            <!-- EasyCaptcha -->
+            <dependency>
+                <groupId>com.pig4cloud.plugin</groupId>
+                <artifactId>easy-captcha</artifactId>
+                <version>${easy-captcha.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
