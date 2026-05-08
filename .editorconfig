@@ -8,5 +8,24 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
 
+# IntelliJ IDEA 配置
+ij_any_line_comment_at_first_column = false
+ij_any_line_comment_add_space = true
+ij_any_line_comment_add_space_on_reformat = true
+ij_any_block_comment_at_first_column = false
+ij_any_block_comment_add_space = true
+ij_java_class_count_to_use_import_on_demand = 999
+ij_java_names_count_to_use_import_on_demand = 999
+ij_formatter_tags_enabled = true
+
 [*.md]
 trim_trailing_whitespace = false
+
+[*.properties]
+ij_properties_keep_blank_lines = true
+
+[{*.yml, *.yaml}]
+indent_size = 2
+
+[{*.txt, *.log}]
+insert_final_newline = false
