@@ -39,6 +39,7 @@ alwaysApply: true
 - 需要兼容校验时，必须记录兼容依据链接（官方兼容矩阵、发布说明或迁移指南）。
 - 各技术栈具体版本号应在 `sca-skeleton-dependencies` 中显式锁定，禁止在业务子模块分散锁版本。
 - 若上游 BOM（如 `spring-boot-dependencies`）已管理某组件版本，禁止在本项目 BOM 中重复导入同组件 BOM 或重复声明同一版本锚点。
+- 技术栈主版本发生变化时，必须同步核验对应 starter/artifact 命名与兼容工件，不得沿用旧主版本工件名。
 
 ## 依赖引入准入
 
