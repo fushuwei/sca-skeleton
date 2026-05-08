@@ -1,0 +1,84 @@
+# Admin 端 Vben 风格基础设施提示词
+
+你是资深前端架构师，请在当前 Monorepo 中仅针对 `apps/admin` 补充一套简洁、主流、可落地的 Vben 风格前端基础设施。只做工程能力建设，不做业务页面开发。
+
+风格基线（必须遵循）：
+- 以 `https://github.com/vbenjs/vue-vben-admin` 的最新稳定实现风格为基线，优先对齐其最新版本在后台布局组织、路由组织、权限组织上的主流做法
+- 视觉与布局参考 `www.vben.pro` 的最新演示风格（强调后台中台风格、信息密度与模块化布局）
+
+UI 框架约束（必须遵循）：
+- `apps/admin` 统一使用 Quasar（使用最新稳定版；若已有版本号输入，则先联网核对后以最新稳定版为准）
+- 全局使用“直角风格”：输入框、卡片、弹窗、列表等组件统一去除圆角（`border-radius: 0`）
+- 按钮风格分层：
+  - 文字按钮（文本主操作类按钮）默认使用直角风格（`border-radius: 0`）
+  - icon 按钮不做全局圆角强制，允许在具体场景规则中单独定义（例如顶部导航图标按钮）
+- 全局样式需提供按钮形态白名单类（如 `btn-shape-exempt`），用于受规则批准的局部圆角按钮
+- 不允许无规则地局部回退样式；如需例外，必须在对应场景规则中显式声明
+
+图标与 Material Symbols（全站约定）：
+- Admin 统一采用 **Material Symbols**，当前 **`main.ts` 引入 Rounded 字体包**，图标名统一使用 **`sym_r_`** 前缀（与 Quasar `material-symbols-rounded` 类对应）；另可选用 **`sym_o_` Outlined、`sym_s_` Sharp**（需各自引入 extras 字体 CSS）；Legacy **Material Icons**（非 Symbols）不作为主图标体系
+- 全站默认可变轴在 **`apps/admin/src/styles/material-symbols-axes.scss`** 中通过 **`font-variation-settings`** 约定：`**FILL` 为 `0`**（线框/非填充，避免仅依赖字体包内建默认的填充观感），并配合 **`wght` 400、`GRAD` 0、`opsz` 24**；该样式文件须在 `@quasar/extras` 对应 Material Symbols 字体 CSS **之后**引入（当前见 **`apps/admin/src/main.ts`**）
+- 已对 `.material-symbols-rounded` / `.material-symbols-outlined` / `.material-symbols-sharp` 一并写入，便于日后混用多种 Symbols 变体时轴一致；若某组件需要实心图标，仅在局部覆写 **`FILL` 为 `1`**
+
+正文字体（全站 JetBrains Mono + OPPO Sans，自托管）：
+- **`public/fonts/`**：**`JetBrains_Mono/`** 下为官方 **`JetBrainsMono`** release（如 **`JetBrainsMono-2.304.zip`**）内 **`fonts/webfonts/`** 的 **`JetBrainsMono-{Regular,Medium,Bold}.woff2`** 及根目录 **`OFL.txt`**；**`OPPO_Sans_4.0/`** 下为官方 **`OPPO_Sans_4.0.zip`** 内 **`OPPO Sans 4.0.ttf`** 及 **`OPPO Sans 4.0 License Notice.txt`**
+- **字体栈**：**`$typography-font-family` / `html`** 等为 **`JetBrains Mono`**（拉丁优先）、**`OPPO Sans`**（中文缺字回退）、再 **`PingFang SC`** 等系统回退；JetBrains Mono 不含 CJK，由浏览器自动落到 OPPO Sans
+- **`apps/admin/src/styles/fonts-web.scss`**：**`@font-face`**（OPPO Sans + JetBrains Mono）；**`main.ts`** 在 **`app-typography.scss` 之前**引入
+- **`apps/admin/src/styles/quasar.variables.scss`**：**`$typography-font-family`**；**`app-typography.scss`** 同步 **`html`**；登录页 **`--md-ref-typeface-brand` / `--md-ref-typeface-plain`** 与此栈一致
+
+目标范围（必须完成）：
+
+1) 标准化目录布局（仅 admin）  
+- 为 `apps/admin` 统一目录结构：`layouts`、`views`、`stores`、`apis`  
+- 给出每个目录的职责说明，并提供最小可运行示例文件  
+- 结构应可复制到其他端，但本阶段仅在 admin 落地
+
+2) 鉴权与路由基础设施（仅 admin）  
+- 设计并实现基础鉴权流：登录态存储、路由守卫、未登录跳转、登出清理  
+- 增加动态路由机制：支持根据后端返回的菜单/权限数据动态注册路由  
+- 提供静态白名单路由（如登录页、404）与受保护路由的分层方案  
+- 给出最小 Mock 数据或示例接口，确保本地可演示流程
+
+3) 请求封装（API Layer，仅 admin）  
+- 基于 `axios` 封装统一请求实例（超时、baseURL、请求/响应拦截器）  
+- 统一错误处理、业务码处理、Token 注入与失效处理  
+- 在 `apis` 目录中提供模块化 API 示例（如 auth/user）
+
+4) 环境变量分层（dev/test/prod，仅 admin）  
+- 设计并创建 `development`、`test`、`production` 三套环境变量文件  
+- 统一环境变量命名规范（`VITE_` 前缀）与读取方式  
+- 在请求封装中接入不同环境的 API 基地址  
+- 说明本地开发、测试、生产构建时的生效规则
+
+5) 壳层滚动与 overscroll 橡皮筋抑制（仅 admin）  
+面向 **`AdminLayout` + 全局样式**，减少 Chrome / Safari（含触控板）上整页与分区「橡皮筋」过度滚动，避免空白区域把 layout 整块拽动；**横向与纵向须同时处理**。与规则 **「03」** 分工：**「03」** 管布局与侧栏组件结构，**本节**管滚动分层与 `overscroll-behavior` 约定。
+
+**须保持的结论**  
+- **纵向**：在 **`html`、`body`** 上使用 **`overscroll-behavior-y: none`**，压住传到 **document** 的纵向橡皮筋；若仅在 `#app` 使用 `contain` 而省略 `html/body` 的纵向 `none`，整页上下拖动往往会重新出现橡皮筋。  
+- **横向**：在 **`html`、`body`、`#app`、`.q-layout`** 上使用 **`overscroll-behavior-x: none`**；**`body`** 另加 **`overflow-x: hidden`**，减轻 Safari 整页横向拖出空白与 Chrome 主区横滑牵连外层。  
+- **壳层缓冲**：**`#app`、`.q-layout`** 可保留 **`overscroll-behavior-y: contain`**（与文档级 `none` 叠加），减少滚动链异常；具体「谁在滚」以各分区滚动容器为准。  
+- **实现入口**：全局样式 **`apps/admin/src/styles/layout-overscroll.scss`**，在 **`apps/admin/src/main.ts`** 中于 **`app-typography.scss` 之后**引入。
+
+**`AdminLayout.vue` 内需同步维护**  
+- **`.page-content`**（主纵向滚动）：**`overscroll-behavior-y: none`**，**`overscroll-behavior-x: contain`**；**`overflow-x: auto` + `overflow-y: auto`**。  
+- **Tab 条**：**`.tab-shell`** 使用 **`overflow-x: hidden`**；**`.main-tabs` 内 `.q-tabs__content`** 使用 **`overscroll-behavior-x: contain`**，避免 Tab 横滑把位移传给外层。  
+- **左侧抽屉与 `q-scroll-area`**：Quasar **`QDrawer`** 会给 **`.q-drawer__content`** 加 **`.scroll`（`overflow: auto`）**，与内层 **`q-scroll-area`** 叠加形成**双滚动层**，须对 **`left-drawer` + `.q-drawer__content`** 使用 **`overflow: hidden !important`** + **纵向 flex**，**仅让 `q-scroll-area` 滚动**；侧栏 **`.q-scrollarea__container.scroll`** 使用 **`overscroll-behavior-y: none`**、**`touch-action: pan-y`**；**`.left-menu-scroll`** 使用 **`flex: 1`、`min-height: 0`**。
+
+**踩坑摘要（改动或排查时对照）**  
+- **只改纵向、不改横向**：全局若仅写 **`overscroll-behavior-y`**，Chrome 主区 / Tab **横向**橡皮筋仍可能出现。  
+- **`contain` 替代不了文档级纵向 `none`**：去掉 **`html/body` 的 `overscroll-behavior-y: none`**、仅靠 **`#app` 的 `contain`**，整页纵向橡皮筋易在两浏览器复发；维持 **`html` + `body` 纵向 `none`**，并与 **`.page-content`、侧栏内层** 的 **`none`** 分层组合。  
+- **Safari 侧栏「滑一下卡住」**：多与 **双层滚动**、手势继承有关；优先 **抽屉外层不滚动 + 单层 `q-scroll-area`**；侧栏内层如需可在 **`none` 与 `contain` 之间微调**，但**不要轻易去掉 `html/body` 纵向 `none`**。  
+- **`body { overflow-x: hidden }` 与登录页**：若登录页出现横向裁切特例，再考虑按路由拆分样式；默认与壳层一致。
+
+实现约束：
+- 技术栈延续当前项目，不引入非必要框架
+- 代码以“最小实现 + 易扩展”为原则，避免过度设计
+- 保持 TypeScript 严格类型与清晰边界
+- 给出关键文件清单、完整变更说明与启动验证步骤
+- 本阶段只改 `apps/admin`，`apps/portal` 不做改动
+
+验收标准：
+- `apps/admin` 能正常启动
+- 鉴权守卫与动态路由示例可运行
+- 请求封装可根据环境变量切换 baseURL
+- 目录结构清晰，后续可按同构方式复制到 `portal`

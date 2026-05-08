@@ -1,0 +1,142 @@
+# Admin 主页面布局规则（03）
+
+你是资深前端架构师，请在 `apps/admin` 中实现后台主页面布局（仅布局与交互骨架，不扩展业务逻辑），并严格遵循以下要求：
+
+1) 整体布局分区
+- 页面由顶部、左侧导航、中间主区域、右侧抽屉、底部状态栏组成
+- 顶部与底部宽度均为浏览器 100%
+
+2) 顶部（Header）
+- 背景色：`#009688`
+- 高度：`64px`
+- 左侧展示 logo 与系统文字
+- logo：静态文件置于 `apps/admin/public/images/logo.png`，运行时路径 `/images/logo.png`（同源，非外链）
+- logo 尺寸：`44px * 44px`
+- logo 后文案固定为：`数据中台管理系统`
+- favicon：`apps/admin/public/images/favicon.ico`，`index.html` 引用 `/images/favicon.ico`
+- 右侧图标顺序：全局搜索、消息通知、全局回收站、国际化翻译、亮/黑主题、系统设置、个人头像
+- 图标风格：Material Symbols（优先 **Rounded**、`sym_r_`）、Material Design 3；**全站图标可变轴与 Symbols 约定见规则「02」**，本节不再重复
+- 顶部右侧操作图标统一使用 MD3 默认圆形图标按钮
+- 图标按钮尺寸：`40px * 40px`
+- 图标按钮 hover 态需提供 Google 系产品常见的圆形灰色状态层反馈（state layer）
+- 各图标之间保持约 `4px` 间距，避免图标贴连
+- 本节顶部 icon 按钮样式为 `02` 中按钮直角规则的场景化例外，允许圆角/圆形表现
+- 顶部头像胶囊按钮需使用全局白名单类（如 `btn-shape-exempt`）声明形态例外，禁止通过堆叠提权样式实现
+- **右侧抽屉入口**：**全局搜索、消息通知、全局回收站、系统设置**等仍为圆形图标按钮 + **`openRightDrawer`**；**国际化、亮/暗主题**不在此列（见下两条）
+- **国际化（布局侧）**：**`sym_r_translate`** 圆形 **`40×40`** 按钮，**内嵌 `q-menu`（非抽屉）**；**`anchor="bottom middle"`**、**`self="top middle"`**，纵向 offset 与头像胶囊下拉一致（menu 顶边与 Header 底边 **`64px`** 对齐，实现上推荐与 **`userPillMenuOffset`** 同款：**`(TOP_HEADER_HEIGHT_PX - 图标按钮高 40) / 2`**）。菜单 **`dense`**，最小宽约 **`220px`**；两项横向为 **国旗 emoji 列 + 文案**：**🇺🇸 English (US)**、**🇨🇳 简体中文**（国旗区 **`font-size` 约 `20px`**、**`min-width` 约 `32px`**）；当前选中项右侧 **`sym_r_check`**（符号约 **`18px`**）
+- **亮/暗主题（布局侧）**：单独圆形按钮 **`40×40`**，**默认 Light**；**图标表示点击后将进入的模式（非当前模式）**：**明亮主题下显示 `sym_r_dark_mode`**（意为切入黑暗），**黑暗主题下显示 `sym_r_light_mode`**（意为回到明亮）；点击 **`$q.dark.toggle()`**，不再打开右侧抽屉；壳层在 **`body.body--dark`** 下须配套深色样式覆盖（见 **`apps/admin/src/styles/admin-layout-dark.scss`** 与「04」）；持久化见 **「04」**
+- 个人头像区与用户名需做成一体化圆角长条（胶囊/椭圆）视觉
+- 胶囊控件尺寸建议：高度 `40px`，圆角 `999px`，左侧头像圆尺寸约 `32px`
+- 头像控件结构要求：左侧为圆形头像区（优先文字 avatar，默认显示用户名首字符，支持中文或字母；空值回退 `U`），右侧为用户名文本，二者在同一椭圆胶囊容器内
+- 胶囊标签仍展示用户名（与头像一体）；点击后出现下拉框：菜单顶边与 Header 底边平齐（与栏高 `64px` 衔接，无悬在半栏中的空隙）；顶部为头部信息区，横向排列——左侧圆形文字头像，右侧两行文案依次为「真实姓名」「邮箱」，主次通过自定义字号/字重/颜色区分；其下为菜单项：个人中心、修改密码、退出登录
+
+3) 左侧导航面板（Sidebar）
+- **宽度**：**`q-drawer`** 绑定 **`leftDrawerWidth`**；默认 **`300px`**；可拖拽调整 **`300px`～`450px`**（常量 **`LEFT_DRAWER_WIDTH_MIN` / `LEFT_DRAWER_WIDTH_MAX`**）。面板**右侧**竖向热区 **`left-drawer-resize-handle`**（宽约 **`6px`**，`position: absolute` **`right: 0`**，**`z-index`** 高于滚动内容），悬停 **`cursor: ew-resize`**；**`mousedown`** 后在 **`window`** 上监听 **`mousemove` / `mouseup`** 更新宽度并 **`clamp`**，拖拽中 **`document.body`** 临时 **`user-select: none`**
+- 顶部 `toolbar`：宽度 100%，高度 `44px`，背景色 **`#f5f5f5`**（与下方菜单区形成轻微层级区分），内容不溢出（`overflow: hidden` + `box-sizing`）
+- toolbar 左侧：**`sym_r_explore`**（Explore，**`q-icon`** + **`left-toolbar-brand-icon`**，根节点 **`font-size: 20px !important`** 压全局 **`24px`**）+ 文案 **`系统导航`**（**`left-toolbar-title`**：**`14px`**、**`font-weight: 600`**），外层 **`left-toolbar-brand`**（**`flex`**、**`min-width: 0`**，与右侧按钮区间距 **`8px`**）；图标与文案间距 **`5px`**（**`margin-left`**）
+- toolbar 右侧依次：展开（Rounded：`expand`）、收缩（`compress`）、搜索（`search`），Quasar 前缀如 `sym_r_expand` / `sym_r_compress` / `sym_r_search`；三枚操作钮为圆形、`32px` 边长、之间**不加**额外 `gap`（紧密排列）
+- 侧栏 toolbar 内 Material Symbols 字号用 `20px` 并加 `!important`，以压过项目里对 `.material-symbols-rounded` 的 `24px !important` 等全局规则，保证与栏高协调
+- 侧栏图标按钮 hover 与顶部 Header 圆形图标一致：`rgba(128, 128, 128, 0.28)` 状态层、`border-radius: 50%`
+- 展开/折叠：通过前端 JS 控制所有手风琴项
+- 点击搜索图标进入搜索态：原「系统导航 + Explore + 三图标」隐藏；工具栏内为 **搜索输入框与 Close 并排**：输入框 **`flex` 占剩余宽度**（不占满整条 toolbar，右侧预留关闭按钮），关闭使用 **`sym_r_close`**，点击关闭搜索并清空关键字；进入时有自右向左滑入动效（水平 `translate` 过渡，实现上建议用 **`translate3d`** 以利于合成层）；仍支持 **`ESC`** 关闭
+- **侧栏搜索态 — WebKit / Safari 等浏览器的常见通病与实现约定**（后续改动侧栏搜索时应延续，避免仅在本机 Chrome 自测通过）：
+  - **勿在滑入动画进行中立刻 `focus()` 输入框**：父级或自身正在做 `transform` 过渡时立刻聚焦复杂表单控件（如 Quasar `outlined` 输入框），WebKit 上易出现明显卡顿；应在 Vue `<Transition>` 的 **`after-enter`**（或与过渡结束等价时机）后再调用 `focus()`。
+  - **关闭按钮易「第一次点击无效」**：输入框聚焦时，Safari / WebKit 上 blur 与 `click` 的顺序可能导致第一次点关闭被吃掉；关闭按钮在保留 **`@click`**（供键盘等无障碍激活）的同时，宜增加 **`@pointerdown.prevent`** 触发同一套关闭逻辑，且关闭函数应对重复调用**幂等**。
+  - **默认 toolbar 与搜索态互斥**：切换时优先使用 **`v-if`**，避免长期仅用 `v-show` 留下 `display:none` 节点与搜索层叠带来的命中/层叠边缘问题。
+- toolbar 下方为手风琴菜单区：每个手风琴表示一个功能模块（如数据源中心、数据开发）；**进入主界面时手风琴默认为全部收缩**，由 toolbar 的展开/收缩按钮统一控制
+- **不包含「工作台」手风琴**：控制台 `/dashboard` 由 **`routes.ts` 下 Root 的静态子路由**（`name: ModuleWorkbench`）挂载，侧栏通过 **`ModuleWorkbench` 排除规则**不展示该顶级模块；登录后默认跳转与 Tab 行为不变
+- **侧栏顶级模块顺序（实现须保证）**：数据源中心 → **数据资产** → **数据开发** → 其余业务模块 → **系统管理居末**；对接后端菜单时以 `AdminLayout` 内排序/过滤逻辑对齐（演示数据见 `apis/mock/auth.ts` 的 `DEMO_MENUS`）
+- 手风琴标题左侧需有 **模块图标**（与菜单数据中的图标字段一致，Material Symbols Rounded）
+- 手风琴右侧展开指示：使用 Quasar **`dense-toggle`** 即可切换为图标集里的 **`denseIcon`**（小号三角展开符，见 Quasar `QExpansionItem` 对 `expansionIcon` 的计算）。**勿**为「只要三角箭头」而给 **`QExpansionItem` 加 `dense`**：`dense` 会传给表头 **`QItem`**，触发 **`.q-item--dense`（`min-height: 32px`、更扁的内边距）**，整行手风琴会变矮；`dense-toggle` 只改右侧展开图标，不改变行高
+- 手风琴所在 **`q-list`（含 `.q-list--padding`）侧栏内边距一律为 `0`**，与栏宽对齐
+- 手风琴内为 **树状菜单**（可多级）；菜单数据来自鉴权侧 **树形结构**（非仅扁平列表），动态路由仅注册带 `component` 的叶子节点
+- 支持多个手风琴同时展开（不是互斥单开）
+- **手风琴视觉（标题行）**
+  - 默认标题行背景 **`#fff`**，底部分隔线 **`rgba(0,0,0,0.06)`**；`min-height` 约 **`44px`**，内边距与栏宽对齐
+  - 标题字号 **`14px`**，字重 **`500`**；标题行 **左侧模块图标**（**`.q-item__section--avatar .q-icon`**）字号 **`20px !important`**
+  - 表头 **`q-item`**：**`padding-left: 18px`**（与 **`padding: 6px 10px 6px 18px`** 一致），使左侧模块图标距栏左缘由整条表头内边距控制，**勿**在 **`q-item__section--avatar`** 上再叠一层 `padding-left`
+  - 左侧模块图标列（`q-item__section--avatar`）：**`min-width: 46px`**
+  - 悬停：背景 **`#E5F2F0`**（与 Header **`#009688`** 同系的浅雾青，比中性灰更有品牌呼应）
+  - 展开：标题行背景 **`#e5f2f0`**（与悬停同系、整块高亮，便于识别当前展开模块）；**`:hover`** 时 **`#d8ebe8`**；字重与默认同为 **`500`**
+  - 若当前路由落在该模块树下：标题行增加 **`box-shadow: inset 4px 0 0 #009688`** 左侧强调条即可；**勿**再叠加深背景色——展开时标题行背景仍与「仅展开」、树下选中行一致（**`#e5f2f0`** / hover **`#d8ebe8`**），避免选中子菜单后标题与树行色差割裂
+- **手风琴内容区（树容器）**：**不设单独背景色**（`transparent`），与列表整体一致
+- **侧栏树的数据展示**：使用 **`@repo/ui`** 通用组件 **`FolderTree`**（不限于菜单；菜单路由树是当前场景之一）
+  - **`FolderTree`** 基于 Quasar **`QTree`**：`default-header` 自定义行；**隐藏**原生 **`.q-tree__arrow`**；分支左侧为可点文件夹按钮（**收起 `sym_r_folder` / 展开 `sym_r_folder_open`**，可由 **`folder-closed-icon` / `folder-open-icon`** 覆盖）；**叶子**在同一列展示 **`leaf-icon`**（默认 **`sym_r_nest_eco_leaf`**（Material **`nest_eco_leaf`**）；传空字符串则仅占位无图标），列宽与分支一致（**`24px + 8px` 右边距**）
+  - **根层对齐**：Quasar 对 **`.q-tree > .q-tree__node--child`** 的 header 默认 **`padding-left:24px`**，**`node--parent`** 无此项，会导致系统管理等模块下**首层文件夹与首层叶子**左缘错位；**`FolderTree`** 内用 **`.folder-tree.q-tree > :deep(.q-tree__node > .q-tree__node-header)`** 设 **`padding-left:12px !important`**，与壳层常见 **`8px 12px`** 行内边距一致
+  - **`FolderTree`** **`inheritAttrs: false`**，其余 **`QTree`** API（**`nodes`**、**`node-key`**、**`selected` / `update:selected`**、**`no-connectors`** 等）均透传；依赖 **`quasar`**、**`vue`**（见 **`packages/ui/package.json`** `peerDependencies`）
+  - **勿**使用 `dense`：行高以约 **`40px`**（节点 header `min-height` + 垂直 `padding`）为主，节点文案字号 **`14px`**；行内 **文件夹 / 叶子 / 节点前置图标**（**`.folder-tree__folder-icon`**、**`.folder-tree__leaf-icon`**、**`.folder-tree__node-icon`**）均为 **`20px !important`**
+  - **节点纵向间距**：`.q-tree .q-tree__node` 的 **`padding-bottom: 0`**（与 Quasar 默认底部分隔去掉，避免菜单行松散）
+  - 子级缩进：`q-tree__children` **`padding-left` 约 `18px`**（层级整体右移）
+  - **行高亮左右留白**：根层 **`q-tree > .q-tree__node > .q-tree__node-header`** **`margin-left: 12px`**；所有 **`q-tree__node-header`** **`margin-right: 12px`**；hover 背景 **`rgba(0, 0, 0, 0.04)`**
+  - **多级与一级高亮条同宽**：设每层累积缩进为 **`I`**（每层 **`18px`**），嵌套 header 使用 **`margin-left: calc(12px - I)`**、**`width: calc(100% + I - 24px)`**（**`24px = 2 × 12px`** 双侧 gutter），嵌套深时用多级选择器展开到 4～5 层
+  - **选中态选择器**：Quasar 将 **`q-tree__node--selected`** 加在 **`q-tree__node-header` 自身**，须写 **`.q-tree__node-header.q-tree__node--selected`**，**不得**误用 **`.q-tree__node--selected > .q-tree__node-header`**；背景可用 **`!important`** 避免与组件默认层叠冲突
+  - 节点圆角约 **`8px`**；选中：背景 **`#E5F2F0`**，文案 **`#00796b`**、`font-weight: 600`；选中行 hover：**`#d8ebe8`**
+  - **`QTree` 选中绑定**：仅当当前路由 **`name` 落在侧栏菜单树内**时才传入具体 `selected` 键；**工作台**等不在树中时 **`selected` 须为 `null`（不得省略或为 `undefined`），否则 Quasar 判定未启用选择模式，**叶子节点不可点、路由与 Tab 不会更新**
+  - 手风琴「含当前路由」左侧竖条与树选中同源（仅当路由落在该模块树下时亮起）
+
+4) 中间主区域（Main）
+- 使用多 Tab 页形态；**切换 Tab 时不得整页刷新**，正文区使用 **`keep-alive`** + **`<router-view>`** 保活
+- **Tab 栏容器（`.tab-shell`）**
+  - 宽度 **`100%`**，高度 **`44px`**（**`min-height: 44px`**），背景 **`#f5f5f5`**，底部分隔线与侧栏 toolbar 一致 **`#ececec`**
+  - **`box-sizing: border-box`**，**`overflow: hidden`**，避免栏内纵向/视觉溢出；横向溢出由 **`q-tabs`** 内部 **`.q-tabs__content`** 承担滚动
+  - 栏内 **`flex` 横排**：可选的左右滚动控件 + **`q-tabs`**（**`flex: 1`**、**`min-width: 0`**），保证中间区域可压缩并出现横向滚动
+- **页签顺序与固定项**
+  - **首个 Tab 固定为「工作台」**（路径 **`/dashboard`**，`name: ModuleWorkbench`）：**永远排在列表第一位**，**不可关闭**（实现上不得从访问列表移除；若后续增加关闭交互，工作台除外）
+  - 其余 Tab 按访问顺序追加在后方；每次规范化列表时需 **`normalizeVisitedTabs`**：**工作台唯一且始终在索引 0**
+- **页签文案与图标**
+  - 标题优先 **`route.meta.title`**；缺失时对 **`/dashboard`** 回退 **`工作台`**，否则 **`未命名页面`**
+  - **图标须对应当前菜单项（叶子）**：动态路由注册时通过 **`getIconForMenuRouteName(menus, routeName)`**（**`utils/menu-tree.ts`**）写入 **`meta.icon`**——**仅使用该路由对应菜单节点自身的 `icon`**，**不**使用手风琴顶级模块图标；无 **`icon`** 时用兜底 **`sym_r_nest_eco_leaf`**（Material **`nest_eco_leaf`**）；工作台使用静态路由 **`meta.icon`**（如 **`sym_r_dashboard`**）
+  - **可关闭 Tab**：除固定工作台外，每个 Tab 标题区域右侧有 **`sym_r_close`** 小按钮，**`@click.stop`** 关闭该 Tab；若关闭的是当前路由，则切换到**左侧相邻** Tab（通常包含回到工作台）
+  - Tab 打开时写入 **`visitedTabs`** 的 **`icon`** 与上述规则一致；**`q-tab`** 使用 **`inline-label`** 展示 **图标 + 标题**，图标与标题间距适中（不宜过大）
+- **选中态**
+  - 当前选中 Tab 需明显高亮：背景推荐 **`#e5f2f0`**（或与主题 **`#009688`** 同系的浅雾青），字色可与侧栏树选中协调（如 **`#00796b`**），字重略加重
+  - **底部指示条高度 `3px`**（ Quasar **`.q-tab__indicator`**），颜色与主题主色一致或 **`primary`**
+- **横向溢出与滚动箭头（自定义 UI）**
+  - **勿依赖 Quasar `outside-arrows` / `mobile-arrows`** 作为最终方案：内置箭头易与 **`44px`** 栏高、**`dense`** Tab 垂直对齐不一致；项目内用 **`tab-shell` 两侧原生 `button`（或等价控件）** + **`q-icon`**（如 **`sym_r_chevron_left` / `sym_r_chevron_right`**），**`flex` 垂直居中**，宽度建议约 **`36px`**，与 **`q-tabs` 同级并列**
+  - **隐藏** Quasar 内置 **`.q-tabs__arrow`**（**`display: none`**），滚动仍操作 **`q-tabs` 内部 `.q-tabs__content`** 的 **`scrollLeft`**
+  - **仅当内容溢出**（**`scrollWidth > clientWidth`**）时渲染两侧按钮；根据 **`scrollLeft`** 与可滚动余量分别 **禁用左/右**（视觉上 **`opacity` 降低 + `:disabled`**），避免无效点击
+  - 点击 **`scrollBy`**（建议 **`smooth`**）滚动一整步；监听 **`scroll`** 与 **`ResizeObserver`**（栏宽、Tab 数量变化）更新溢出与箭头可用态
+  - 箭头 **`@click.stop`**，避免事件冒泡至 **`main-page-stack`** 等与右侧抽屉收起逻辑冲突导致「点击无响应」
+- **`q-tabs` 行为**
+  - **`align="left"`**，**`dense`**，**`no-caps`**；可设 **`active-color` / `active-bg-color`** 与选中态一致
+  - **`breakpoint`**：须显式 **`:breakpoint="0"`**（或等价地永不触发窄屏阈值）。Quasar **`QTabs`** 默认 **`breakpoint="600"`**：当 **`q-tabs` 根容器宽度小于 600px** 且 **`scrollable === false`**（例如仅一个 Tab、总宽度未溢出）时，会把对齐改为 **`justify`**，并在样式里给 **`.q-tab`** 加 **`flex: 1 1 auto`**，导致**单个 Tab 被拉满整条 Tab 栏**。左侧导航 + 右侧固定且最大化等场景下中间区宽度易低于 **600px**，必须关掉该逻辑以保持「页签仅包裹文案宽度」的预期
+
+5) 右侧抽屉（Right Drawer）
+- 默认隐藏
+- **宽度**：绑定 **`rightDrawerWidth`**；默认 **`430px`**（**`RIGHT_DRAWER_WIDTH_MIN`**）；可拖拽 **`430px`～`1000px`**。抽屉**左侧**竖向热区 **`right-drawer-resize-handle`**（与 **`right-drawer-stack` 并列**，同在 **`q-drawer` 默认槽内**，避免落在 **`overflow: hidden`** 的 stack 内难以命中）；**`:deep(aside.right-drawer .q-drawer__content)`** 设 **`position: relative`** + **`flex` 纵列**，作为手柄 **`absolute`** 参照；热区宽约 **`6px`**；拖拽使用 **`pointerdown`** + **`window`** 上 **`pointermove` / `pointerup` / `pointercancel`**（**`capture: true`**），避免指针移出窄条后中断；结束拖拽后短时 **`suppressRightDrawerCloseUntil`**，防止 **`pointerup` 落在主区** 触发 **`closeRightDrawerOnMainClick`**；悬停 **`cursor: ew-resize`**（向左拖增宽、向右拖减宽）
+- 当前阶段实现常规占位抽屉即可，后续再补细节
+- **顶栏**：打开后抽屉顶部增加 **`right-drawer-toolbar`**（宽度 **`100%`**，高度 **`44px`** / **`min-height: 44px`**，背景 **`#f5f5f5`**，底部分隔线与左侧 **`left-toolbar`** 一致 **`#ececec`**）；**`overflow: hidden`** + **`box-sizing: border-box`** + 水平 **`padding: 0 8px`**；左侧 **`q-icon`**（**`size="20px"`** + 类名 **`right-drawer-toolbar-icon`**；Webfont 时 **`.material-symbols-rounded` 在 `q-icon` 根节点**，须在该类上 **`font-size: 20px !important`**，勿仅用 **`:deep`** 找子节点）为**当前入口按钮同一 Material 图标**，紧邻 **`5px`**（**`margin-left`**）后为标题（**`right-drawer-toolbar-title`**：**`14px`** / **`font-weight: 500`**，**`ellipsis`** 单行省略）；右侧 **`right-drawer-toolbar-trailing`** 内 **`row` + `no-wrap`**，按钮 **`gap` 约 `4px`**，均为圆形 **`q-btn`**（**`flat` `round` `dense`**，类名 **`right-drawer-toolbar-action-btn`**，**`32×32`**、符号 **`20px !important`**、hover 状态层与侧栏 **`left-toolbar-action-btn`** 一致），**自左向右**依次为：
+  - **固定侧栏**：浮动态图标 **`sym_r_keep`**（Material **Keep**），**`aria-label`**「固定侧栏」；固定进布局态图标 **`sym_r_keep_off`**（**Keep Off**），**`aria-label`**「取消固定侧栏」；点击 **`toggleRightDrawerPinned`** 切换（实现见下「固定 / 浮动」）
+  - **最小化宽度**：**`sym_r_check_indeterminate_small`** → **`rightDrawerWidthToMin`**
+  - **最大化宽度**：**`sym_r_check_box_outline_blank`** → **`rightDrawerWidthToMax`**
+  - **关闭**：**`sym_r_close`** → **`closeRightDrawer`**
+- **`openRightDrawer(title, icon)`** 同时写入 **`activeRightDrawerTitle`** / **`activeRightDrawerIcon`**；**`closeRightDrawer`** 关闭抽屉
+- **固定 / 浮动（挤压主区 vs overlay）— 需求提示词（实现约束）**
+  - **默认**：右侧抽屉为 **浮动 overlay**：覆盖在主内容之上，不占 **`q-layout`** 流式宽度。
+  - **固定**：抽屉改为 **参与布局**：关闭 Quasar **`QDrawer`** 的 **`overlay`**（例如 **`rightDrawerPinned === true`** 时 **`:overlay="!rightDrawerPinned"`**），侧栏占用 **`rightDrawerWidth`**，**中间主区域水平方向被挤压变窄**（与左侧 **`q-drawer`** 推开主区的语义一致，只是在右侧）。
+  - **工具栏交互**：在「最小化」按钮**左侧**放置上述固定切换钮；**浮动**时显示 **Keep**（意为「固定到布局」）；**已固定**时显示 **Keep Off**（意为「恢复浮动」）；再次点击还原默认浮动行为。
+  - **状态**：使用响应式布尔（如 **`rightDrawerPinned`**），语义为「true = 固定进布局 / false = overlay 浮动」。
+  - **点击主区收起**：仅在 **浮动（overlay）** 时生效——**`closeRightDrawerOnMainClick`** 须在 **`rightDrawerPinned`** 为真时 **直接 return**，否则用户无法在固定模式下正常点击 Tab 与正文；保留 **`suppressRightDrawerCloseUntil`** 等与拖拽释放相关的防抖逻辑。
+- **正文区**：**`right-drawer-body`** **`flex: 1`**、**`min-height: 0`**、**`overflow: auto`**；外壳 **`right-drawer-stack`** + **`:deep(aside.right-drawer)`** 关闭 **`aside`** 外层滚动，避免顶栏被卷走（与左侧抽屉 **`FolderTree`** 区处理方式一致）
+- **点击中间主区收起（补充）**：Quasar **`QDrawer`** 在桌面宽度下 **`overlay`** 模式**不渲染**可点的 **`q-drawer__backdrop`**（backdrop 仅在 **`belowBreakpoint`** 时出现），因此须在 **`AdminLayout`** 中间主区（**`q-page`** 内 Tab 条 + **`.page-content`** 外包一层 **`main-page-stack`**）绑定 **`@click`**，在 **`rightDrawerOpen`** 为真且 **非固定模式** 时调用 **`closeRightDrawer`**；顶栏、左侧导航、底栏不在该区域内，点击不收起
+
+6) 底部状态栏（Footer）
+- **结构**：`q-footer` + `q-toolbar`；全宽；与中间主区之间可有顶部分隔（如 Quasar **`bordered`**）
+- **高度**：栏与 **`q-toolbar`** 的 **`min-height` 均为 `40px`**（较早期 `30px` 略增高，便于触控与图标留白）
+- **背景**：**`#f5f5f5`**（**`.bottom-footer`**、**`.bottom-toolbar`** 一致）
+- **前景与对比度**：栏内默认字色 **`rgba(0, 0, 0, 0.87)`**，避免继承布局/主题后出现浅底浅字；左侧切换钮单独 **`color: rgba(0, 0, 0, 0.87) !important`**（类名 **`bottom-drawer-toggle`**），因 **`q-btn` 扁平态可能被主题覆盖；Material Symbols 图标走 **`currentColor`**
+- **左侧**：一枚圆形 **`q-btn`**（**`flat` `round` `dense`**），点击切换 **`leftDrawerOpen`**（与左侧 **`q-drawer`** 联动）
+  - 导航**展开**（抽屉打开）：图标 **`sym_r_left_panel_close`**（Left Panel Close）
+  - 导航**收起**（抽屉关闭）：图标 **`sym_r_left_panel_open`**（Left Panel Open）
+  - 图标字号 **`20px`**（对 **`.q-icon.material-symbols-rounded`** 等 **`!important`**，与侧栏 toolbar 图标压全局 **`24px`** 的思路一致）
+- **中间**：固定文案 **`软件版本：1.0.0`**（类名 **`bottom-toolbar-meta`**）；字号 **`12px`**，字重 **`500`**，字色 **`rgba(0, 0, 0, 0.65)`**，**`line-height: 1.2`**；与左右控件并存时用 **`bottom-toolbar--footer-grid`**（三列 **`auto 1fr auto`**）保证文案视觉居中
+- **右侧**：圆形 **`q-btn`**（**`flat` `round` `dense`**），自左向右依次为 **Database**（**`sym_r_database`**）、**History**（**`sym_r_history`**）；容器类名 **`bottom-toolbar-footer-actions`**，图标按钮与左侧切换钮共用 **`20px`** 符号字号规则（**`bottom-footer-icon-btn`** 与 **`bottom-drawer-toggle`** 并列选择器）；按钮间距约 **`4px`**；点击调用与 Header 一致的 **`openRightDrawer`**，标题分别为 **`Database`**、**`History`**，打开 **`side="right"`** 的 **`q-drawer`**
+- **内边距**：**`q-toolbar`** 水平 **`padding: 0 8px`**
+
+实现约束：
+- **`@repo/ui`** 提供通用 **`FolderTree`**（**`packages/ui`**）；**`apps/admin`** 侧栏路由菜单树为该组件的一种用法
+- **`@repo/ui` 命名**：**组件名**用**领域能力**命名（**`FolderTree`** = 文件夹形态分支 + 树），**勿**绑定单一页面场景（**勿**在通用控件名中植入 Menu / Sidebar 等壳层语境）、**勿**用 **`Repo*`** 等与 npm scope 混淆的前缀；**根 CSS 类名**与组件一致，kebab-case（**`folder-tree`**），子块 **`folder-tree__*`**
+- 其余后台壳层仍在 **`apps/admin`** 范围内改动
+- 以最小可运行实现为原则，不做过度封装
+- 保持现有技术栈与项目风格一致
+- **壳层滚动与禁用横向/纵向 overscroll 橡皮筋**：见规则 **「02」** 第 **5）节**（`layout-overscroll.scss`、`AdminLayout.vue` 内 `.page-content`、Tab 条、侧栏 `q-scroll-area` 与 `q-drawer__content` 分层）
