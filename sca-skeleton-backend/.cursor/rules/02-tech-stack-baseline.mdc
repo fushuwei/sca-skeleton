@@ -21,6 +21,8 @@ alwaysApply: true
 - Redis：缓存与高频读写加速基线；统一使用“最新可用稳定版”。
 - Redisson：分布式锁与分布式结构化能力基线；统一使用“与 Redis 兼容的最新可用稳定版”。
 - Nacos：服务注册与配置中心基线；统一使用“最新可用稳定版”。
+- 全局 ID 生成基线统一使用字符串形态 UUID，统一采用去掉连字符（`-`）的 32 位小写格式，禁止使用自增 ID 与雪花 ID。
+- UUID 生成实现统一使用 `UuidUtils.nextSimpleStr()`，禁止 `UUID.randomUUID().toString()` 原样入库。
 
 ## 版本治理策略
 
