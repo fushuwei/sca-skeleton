@@ -6,22 +6,20 @@
 
     <parent>
         <groupId>io.github.fushuwei</groupId>
-        <artifactId>sca-skeleton</artifactId>
+        <artifactId>sca-skeleton-backend</artifactId>
         <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>sca-skeleton-backend</artifactId>
+    <artifactId>sca-skeleton-dependencies</artifactId>
     <packaging>pom</packaging>
 
-    <name>SCA Skeleton Backend</name>
-    <description>SCA Skeleton Backend Project</description>
+    <name>SCA Skeleton Backend :: Dependencies</name>
+    <description>SCA Skeleton unified dependency management BOM</description>
 
-    <modules>
-        <module>sca-skeleton-dependencies</module>
-        <module>sca-skeleton-gateway</module>
-        <module>sca-skeleton-auth</module>
-        <module>sca-skeleton-system</module>
-        <module>sca-skeleton-starters</module>
-    </modules>
+    <dependencyManagement>
+        <dependencies>
+            <!-- Versions are centralized here in follow-up iterations. -->
+        </dependencies>
+    </dependencyManagement>
 </project>
