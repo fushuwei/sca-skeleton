@@ -76,6 +76,41 @@ alwaysApply: true
   - `├── scripts/`
 - 上述结构为根仓库级约束基线，允许按专题新增子目录，但不得破坏前后端主边界。
 
+## 根仓库 pom.xml 基线规范（强制）
+
+- 仓库初始化时，根目录必须提供聚合 `pom.xml`，其 `packaging` 必须为 `pom`。
+- 根 `pom.xml` 用于聚合构建与统一版本治理，不得承载业务实现代码。
+- 根 `pom.xml` 建议基线如下（可在不破坏语义前提下扩展）：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.github.fushuwei</groupId>
+    <artifactId>sca-skeleton</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+
+    <name>SCA Skeleton</name>
+    <description>SCA Skeleton Project</description>
+
+    <modules>
+        <module>sca-skeleton-backend</module>
+        <module>sca-skeleton-frontend</module>
+    </modules>
+
+    <properties>
+        <revision>1.0.0</revision>
+    </properties>
+</project>
+```
+
+- 若初始化阶段暂不纳入某子工程到 Maven 聚合，可临时留空 `modules` 或仅保留已纳入模块；但需在根 `README.md` 明确说明原因与补齐计划。
+- 未经用户明确确认，不得擅自变更根 `groupId`、`artifactId` 以及 `packaging` 的基线约束。
+
 ## 根目录职责边界（强制）
 
 - 根目录可包含：仓库说明文档、统一脚本、CI 配置、聚合构建入口、部署与运维资产、规则文件。
