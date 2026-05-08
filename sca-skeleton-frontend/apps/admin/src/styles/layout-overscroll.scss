@@ -1,0 +1,25 @@
+// 管理后台滚动：抑制橡皮筋与滚动链。
+// - 横向：html/body/#app/.q-layout 统一 overscroll-behavior-x: none；body 再 overflow-x:hidden。
+// - 纵向：必须在 html、body 上设 overscroll-behavior-y: none，才能压住传到 document 的橡皮筋；
+//   #app/.q-layout 仍用 contain 作为壳层，避免少数场景下滚动链异常；具体滚动条容器见 AdminLayout（page-content、侧栏 q-scroll-area）。
+
+html {
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+}
+
+body {
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+}
+
+#app {
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+}
+
+.q-layout {
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+}

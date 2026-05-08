@@ -1,0 +1,32 @@
+{
+  "name": "sca-skeleton-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.2",
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "dev:admin": "turbo run dev --filter=@apps/admin",
+    "dev:portal": "turbo run dev --filter=@apps/portal",
+    "build": "turbo run build",
+    "build:admin": "turbo run build --filter=@apps/admin",
+    "build:portal": "turbo run build --filter=@apps/portal",
+    "lint": "turbo run lint",
+    "lint:admin": "turbo run lint --filter=@apps/admin",
+    "lint:portal": "turbo run lint --filter=@apps/portal",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@vitejs/plugin-vue": "6.0.6",
+    "@vue/test-utils": "2.4.9",
+    "eslint": "10.2.1",
+    "eslint-plugin-vue": "^10.4.0",
+    "globals": "^16.4.0",
+    "prettier": "3.8.3",
+    "turbo": "2.9.6",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.46.2",
+    "vitest": "4.1.5",
+    "vue-tsc": "^3.1.1"
+  }
+}

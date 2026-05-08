@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico" />
+    <title>Admin</title>
+    <style>
+      body {
+        margin: 0;
+      }
+
+      #app-loading {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #fff;
+        z-index: 9999;
+      }
+
+      .loader {
+        width: fit-content;
+        font-size: 40px;
+        font-family: monospace;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #0000;
+        -webkit-text-stroke: 1px #000;
+        background:
+          linear-gradient(90deg, #0000 33%, #000 0 67%, #0000 0) 100% / 300% 100%
+          no-repeat text;
+        animation: l12 4s steps(14) infinite;
+      }
+
+      .loader::before {
+        content: "Loading";
+      }
+
+      @keyframes l12 {
+        to {
+          background-position: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="app-loading">
+      <div class="loader"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

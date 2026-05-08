@@ -1,0 +1,260 @@
+/**
+ * AdminLayout（`.admin-shell`）在 `body.body--dark` 下的颜色覆盖。
+ * 壳层大量样式为浅色硬编码，仅靠 Quasar Dark 不足以消除「一半亮一半暗」问题。
+ *
+ * 下拉菜单 teleport 到 body 时，依赖组件上的 `class` / `content-class`（见 AdminLayout.vue）。
+ */
+
+.body--dark .admin-shell {
+  /*
+   * 顶栏：`AdminLayout` scoped 写死 `#009688`，深色模式下须显式覆盖，
+   * 否则整栏仍为明亮品牌色，视觉上「未进黑暗模式」。
+   */
+  .top-header {
+    background: linear-gradient(120deg, #052f2b 0%, #063d38 45%, #084a44 100%) !important;
+    color: rgba(255, 255, 255, 0.95);
+    border-bottom-color: rgba(255, 255, 255, 0.14) !important;
+  }
+
+  .top-header.q-header--bordered {
+    border-bottom-width: 1px;
+  }
+
+  .top-brand-text {
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  .q-page-container {
+    background: #121212;
+  }
+
+  .page-content {
+    background: #121212;
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .main-page {
+    background: #121212;
+  }
+
+  .tab-shell {
+    background: #252525;
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .main-tabs {
+    background: #252525;
+  }
+
+  .main-tabs .q-tab--inactive {
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .main-tabs .q-tab--active:not(.disabled) {
+    background-color: rgba(0, 150, 136, 0.28) !important;
+    color: #b2dfdb !important;
+  }
+
+  .tab-scroll-arrow {
+    background: #252525;
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .tab-scroll-arrow:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .left-drawer .q-drawer__content {
+    background: #1e1e1e;
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .left-toolbar,
+  .left-toolbar-search-layer {
+    background: #2a2a2a;
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .left-toolbar-brand-icon,
+  .left-toolbar-title,
+  .left-toolbar-action-btn {
+    color: rgba(255, 255, 255, 0.87) !important;
+  }
+
+  .left-toolbar-search-input .q-field__control,
+  .left-toolbar-search-input .q-field__native,
+  .left-toolbar-search-input .q-field__marginal {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .left-toolbar-search-input .q-field__control::before {
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+
+  .left-menu-expansion {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .left-menu-expansion .q-item {
+    background: #1e1e1e;
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .left-menu-expansion .q-item:hover {
+    background: rgba(0, 150, 136, 0.22);
+  }
+
+  .left-menu-expansion.q-expansion-item--expanded .q-expansion-item__container > .q-item {
+    background: rgba(0, 150, 136, 0.24) !important;
+  }
+
+  .left-menu-expansion.q-expansion-item--expanded .q-expansion-item__container > .q-item:hover {
+    background: rgba(0, 150, 136, 0.32) !important;
+  }
+
+  .left-menu-expansion .q-tree {
+    color: rgba(255, 255, 255, 0.58);
+  }
+
+  .left-menu-expansion .q-tree__node-header-content {
+    color: rgba(255, 255, 255, 0.82);
+  }
+
+  .left-menu-expansion .q-tree__node-header:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .left-menu-expansion .q-tree__node-header.q-tree__node--selected {
+    background: rgba(0, 150, 136, 0.28) !important;
+  }
+
+  .left-menu-expansion .q-tree__node-header.q-tree__node--selected .q-tree__node-header-content {
+    color: #b2dfdb;
+  }
+
+  .left-menu-expansion .q-tree__node-header.q-tree__node--selected:hover {
+    background: rgba(0, 150, 136, 0.36) !important;
+  }
+
+  .folder-tree__leaf-icon {
+    opacity: 0.55 !important;
+  }
+
+  .right-drawer .q-drawer__content {
+    background: #1e1e1e;
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .right-drawer-toolbar {
+    background: #2a2a2a;
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .right-drawer-toolbar-icon,
+  .right-drawer-toolbar-title,
+  .right-drawer-toolbar-action-btn {
+    color: rgba(255, 255, 255, 0.87) !important;
+  }
+
+  .right-drawer-placeholder {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .bottom-footer,
+  .bottom-toolbar {
+    background: #252525;
+    color: rgba(255, 255, 255, 0.87);
+    border-top-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .bottom-toolbar-meta {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .bottom-drawer-toggle,
+  .bottom-footer-icon-btn {
+    color: rgba(255, 255, 255, 0.87) !important;
+  }
+
+  .page-content .q-card {
+    background: #1e1e1e !important;
+    color: rgba(255, 255, 255, 0.87);
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .page-content .q-card .text-h6,
+  .page-content .q-card .text-body2 {
+    color: rgba(255, 255, 255, 0.87);
+  }
+}
+
+.body--dark .workbench-page {
+  .workbench-metric,
+  .q-card:not(.workbench-hero) {
+    background: #1e1e1e !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .text-grey-7,
+  .text-grey-6,
+  .text-grey-5 {
+    color: rgba(255, 255, 255, 0.55) !important;
+  }
+
+  .workbench-shortcut-btn {
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .workbench-shortcut-btn:hover {
+    background: rgba(0, 150, 136, 0.22);
+  }
+
+  .workbench-feed {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .workbench-tip {
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .workbench-tip.bg-grey-2 {
+    background: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .workbench-tip.text-grey-9 {
+    color: rgba(255, 255, 255, 0.87) !important;
+  }
+
+  .q-item__label--caption {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+}
+
+.body--dark .placeholder-page {
+  color: rgba(255, 255, 255, 0.87);
+
+  .text-grey-7 {
+    color: rgba(255, 255, 255, 0.55) !important;
+  }
+}
+
+.body--dark .admin-locale-q-menu,
+.body--dark .admin-user-q-menu {
+  background: #2d2d2d;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .admin-user-q-menu .user-menu-realname {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.body--dark .admin-user-q-menu .user-menu-email {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.body--dark .admin-locale-q-menu .top-locale-check {
+  color: #80cbc4;
+}

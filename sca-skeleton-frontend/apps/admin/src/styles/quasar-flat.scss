@@ -1,0 +1,16 @@
+:root { // 定义全局根选择器。
+  --q-border-radius: 0px; // 将 Quasar 运行时边角变量强制为 0。
+} // 结束根选择器。
+
+.q-btn:not(.q-btn--round):not(.btn-shape-exempt), // 选择 Quasar 非圆形且非形态豁免按钮并保持直角风格。
+.q-field__control, // 选择 Quasar 输入框控制区域。
+.q-card, // 选择 Quasar 卡片组件。
+.q-dialog__inner > div, // 选择 Quasar 弹窗主体容器。
+.q-menu, // 选择 Quasar 菜单容器。
+.q-chip, // 选择 Quasar 标签组件。
+.q-banner, // 选择 Quasar 提示横幅。
+.q-list, // 选择 Quasar 列表容器。
+.q-item, // 选择 Quasar 列表项。
+.q-table__container { // 选择 Quasar 表格容器。
+  border-radius: 0 !important; // 强制所有核心组件保持直角风格。
+} // 结束组件圆角覆盖。
