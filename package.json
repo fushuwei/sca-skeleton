@@ -1,0 +1,7 @@
+{
+  "name": "sca-skeleton",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --dir ./sca-skeleton-frontend dev"
+  }
+}

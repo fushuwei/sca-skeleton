@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# logs
+*.log
+
+# IDE
+.idea/
+.vscode/
+
+# node
+node_modules/
+pnpm-lock.yaml
+
+# build
+target/
+dist/
+build/
