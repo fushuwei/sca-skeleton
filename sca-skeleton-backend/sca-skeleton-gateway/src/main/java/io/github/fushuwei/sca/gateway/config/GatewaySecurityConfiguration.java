@@ -23,9 +23,9 @@ public class GatewaySecurityConfiguration {
         http.authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/health", "/actuator/info").permitAll()
                         .pathMatchers(
-                                "/api/v1/auth/**",
                                 "/oauth2/**",
                                 "/.well-known/**",
+                                "/login/**",
                                 "/userinfo")
                         .permitAll()
                         .anyExchange()

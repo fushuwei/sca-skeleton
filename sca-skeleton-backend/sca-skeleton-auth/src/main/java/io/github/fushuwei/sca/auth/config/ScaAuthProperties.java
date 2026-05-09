@@ -18,6 +18,4 @@ public class ScaAuthProperties {
     private long accessTokenTtlSeconds = 3600;
     // 刷新令牌有效期秒。
     private long refreshTokenTtlSeconds = 604800;
-    // 验证码缓存秒。
-    private long captchaTtlSeconds = 120;
 }

@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 9999
 
 spring:
   application:
@@ -17,11 +17,7 @@ spring:
             - id: sca-auth-protocol
               uri: http://127.0.0.1:9000
               predicates:
-                - Path=/oauth2/**,/.well-known/**,/userinfo
-            - id: sca-auth-api
-              uri: http://127.0.0.1:9000
-              predicates:
-                - Path=/api/**
+                - Path=/oauth2/**,/.well-known/**,/userinfo,/login/**
 
 management:
   endpoints:
