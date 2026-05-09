@@ -6,9 +6,9 @@
 
     <parent>
         <groupId>io.github.fushuwei</groupId>
-        <artifactId>sca-skeleton-backend</artifactId>
+        <artifactId>sca-skeleton</artifactId>
         <version>${revision}</version>
-        <relativePath>../pom.xml</relativePath>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>sca-skeleton-dependencies</artifactId>
@@ -23,7 +23,6 @@
         <spring-cloud-alibaba.version>2025.1.0.0</spring-cloud-alibaba.version>
         <mybatis-plus.version>3.5.16</mybatis-plus.version>
         <redisson.version>4.3.0</redisson.version>
-        <easy-captcha.version>2.2.5</easy-captcha.version>
     </properties>
 
     <dependencyManagement>
@@ -69,12 +68,6 @@
                 <version>${redisson.version}</version>
             </dependency>
 
-            <!-- EasyCaptcha -->
-            <dependency>
-                <groupId>com.pig4cloud.plugin</groupId>
-                <artifactId>easy-captcha</artifactId>
-                <version>${easy-captcha.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

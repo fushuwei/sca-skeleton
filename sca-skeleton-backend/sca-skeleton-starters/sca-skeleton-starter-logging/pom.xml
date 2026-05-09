@@ -16,4 +16,25 @@
 
     <name>SCA Skeleton Backend :: Starter :: Logging</name>
     <description>Logging reusable components</description>
+
+    <dependencies>
+        <!-- Starter Core（UuidUtils 等） -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- Spring Boot -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- Spring Cloud Gateway（可选，用于网关侧链路过滤器编译） -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
 </project>

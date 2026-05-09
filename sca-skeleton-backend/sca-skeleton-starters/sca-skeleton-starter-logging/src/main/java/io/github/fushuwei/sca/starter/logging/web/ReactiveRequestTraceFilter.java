@@ -20,13 +20,10 @@ public class ReactiveRequestTraceFilter implements GlobalFilter, Ordered {
     // 为响应式请求补齐 traceId。
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        // 获取上游透传的 traceId。
-        String traceId = exchange.getRequest().getHeaders().getFirst(TRACE_ID_HEADER);
-        // 当没有 traceId 时生成统一 ID。
-        if (traceId == null || traceId.isBlank()) {
-            // 生成新的 traceId 值。
-            traceId = UuidUtils.nextSimpleStr();
-        }
+        // 获取上游透传的 traceId，缺省时生成，使用 final 便于在 lambda 中捕获。
+        String incoming = exchange.getRequest().getHeaders().getFirst(TRACE_ID_HEADER);
+        final String traceId =
+                (incoming == null || incoming.isBlank()) ? UuidUtils.nextSimpleStr() : incoming;
         // 将 traceId 注入请求头传递到下游服务。
         ServerWebExchange mutatedExchange = exchange.mutate()
                 .request(builder -> builder.header(TRACE_ID_HEADER, traceId))

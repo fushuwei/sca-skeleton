@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: sca-skeleton-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://127.0.0.1:9000
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: sca-auth-protocol
+              uri: http://127.0.0.1:9000
+              predicates:
+                - Path=/oauth2/**,/.well-known/**,/userinfo
+            - id: sca-auth-api
+              uri: http://127.0.0.1:9000
+              predicates:
+                - Path=/api/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
