@@ -22,5 +22,8 @@
         <module>sca-skeleton-starter-web</module>
         <module>sca-skeleton-starter-logging</module>
         <module>sca-skeleton-starter-captcha</module>
+        <module>sca-skeleton-starter-redis</module>
+        <module>sca-skeleton-starter-mybatis-plus</module>
+        <module>sca-skeleton-starter-feign</module>
     </modules>
 </project>
