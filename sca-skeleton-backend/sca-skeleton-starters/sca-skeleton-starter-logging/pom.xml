@@ -26,7 +26,7 @@
         <!-- Spring AOP：提供操作日志 @OperationLog 注解的切面支持 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
         </dependency>
         <!-- Spring Web：可选引入，用于在切面中获取 HttpServletRequest 信息（IP、路径等） -->
         <dependency>
