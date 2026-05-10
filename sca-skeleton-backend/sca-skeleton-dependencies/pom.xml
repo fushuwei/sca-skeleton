@@ -18,7 +18,6 @@
     <description>SCA Skeleton unified dependency management BOM</description>
 
     <properties>
-        <spring-boot.version>4.0.6</spring-boot.version>
         <spring-cloud.version>2025.1.1</spring-cloud.version>
         <spring-cloud-alibaba.version>2025.1.0.0</spring-cloud-alibaba.version>
         <mybatis-plus.version>3.5.16</mybatis-plus.version>

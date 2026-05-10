@@ -17,24 +17,24 @@
     </modules>
 
     <properties>
-        <!-- 项目版本 -->
+        <!-- 项目统一版本 -->
         <revision>1.0.0</revision>
 
-        <!-- Java 版本 -->
+        <!-- Java 版本配置 -->
         <java.version>25</java.version>
         <maven.compiler.release>${java.version}</maven.compiler.release>
 
-        <!-- 编码 -->
+        <!-- 项目编码配置 -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <!-- 依赖版本 -->
+        <!-- 第三方依赖版本 -->
+        <spring-boot.version>4.0.6</spring-boot.version>
         <lombok.version>1.18.46</lombok.version>
         <mapstruct.version>1.6.3</mapstruct.version>
 
-        <!-- 插件版本 -->
+        <!-- Maven 插件版本 -->
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
-        <spring-boot-maven-plugin.version>4.0.6</spring-boot-maven-plugin.version>
         <flatten-maven-plugin.version>1.7.3</flatten-maven-plugin.version>
     </properties>
 
