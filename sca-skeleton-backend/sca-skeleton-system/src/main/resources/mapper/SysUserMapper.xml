@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.fushuwei.sca.system.infrastructure.mapper.SysUserMapper">
+
+    <select id="selectUserPage" resultType="io.github.fushuwei.sca.system.infrastructure.entity.SysUser">
+        SELECT u.*
+        FROM sys_user u
+        <if test="deptId != null and deptId != ''">
+            INNER JOIN sys_user_dept ud
+                ON ud.user_id = u.id
+                AND ud.is_deleted = 0
+                AND ud.dept_id = #{deptId}
+        </if>
+        WHERE u.is_deleted = 0
+          AND u.tenant_id = #{tenantId}
+          AND u.user_category = 'backend'
+        <if test="username != null and username != ''">
+            AND u.username LIKE CONCAT('%', #{username}, '%')
+        </if>
+        <if test="nickname != null and nickname != ''">
+            AND u.nickname LIKE CONCAT('%', #{nickname}, '%')
+        </if>
+        <if test="status != null and status != ''">
+            AND u.status = #{status}
+        </if>
+        ORDER BY u.create_time DESC
+    </select>
+
+</mapper>

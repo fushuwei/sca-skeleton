@@ -68,6 +68,24 @@ public final class SecurityUtils {
     }
 
     /**
+     * 从 JWT Claims 中获取当前登录用户名（preferred_username）。
+     *
+     * @return 用户名，未认证时返回 {@code null}
+     */
+    public static String getUsername() {
+        return getClaim("preferred_username");
+    }
+
+    /**
+     * 从 JWT Claims 中获取当前用户的租户 ID（tenant_id）。
+     *
+     * @return 租户 ID，未认证或无该字段时返回 {@code null}
+     */
+    public static String getTenantId() {
+        return getClaim("tenant_id");
+    }
+
+    /**
      * 判断当前请求是否已通过认证。
      *
      * @return true 表示已认证

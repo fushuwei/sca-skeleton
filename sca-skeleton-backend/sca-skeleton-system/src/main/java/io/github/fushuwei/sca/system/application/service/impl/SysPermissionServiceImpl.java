@@ -1,0 +1,105 @@
+package io.github.fushuwei.sca.system.application.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import io.github.fushuwei.sca.starter.core.exception.BusinessException;
+import io.github.fushuwei.sca.starter.core.exception.ErrorCode;
+import io.github.fushuwei.sca.system.api.dto.permission.PermissionSaveRequest;
+import io.github.fushuwei.sca.system.application.service.SysPermissionService;
+import io.github.fushuwei.sca.system.infrastructure.entity.SysPermission;
+import io.github.fushuwei.sca.system.infrastructure.mapper.SysPermissionMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.List;
+
+/**
+ * 权限管理服务实现。
+ *
+ * @author Fu Wei
+ */
+@Service
+@RequiredArgsConstructor
+public class SysPermissionServiceImpl implements SysPermissionService {
+
+    private final SysPermissionMapper permissionMapper;
+
+    @Override
+    public List<SysPermission> listAllPermissions() {
+        return permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
+                .orderByAsc(SysPermission::getSort));
+    }
+
+    @Override
+    public SysPermission getPermissionById(String id) {
+        SysPermission perm = permissionMapper.selectById(id);
+        if (perm == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "权限不存在");
+        }
+        return perm;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void createPermission(PermissionSaveRequest req) {
+        SysPermission permission = new SysPermission();
+        permission.setParentId(req.getParentId());
+        permission.setName(req.getName());
+        permission.setType(req.getType());
+        permission.setCode(req.getCode());
+        permission.setPath(req.getPath());
+        permission.setComponent(req.getComponent());
+        permission.setIcon(req.getIcon());
+        permission.setSort(req.getSort() != null ? req.getSort() : 100);
+        permission.setIsVisible(req.getIsVisible() != null ? req.getIsVisible() : 1);
+        permission.setIsExternal(req.getIsExternal() != null ? req.getIsExternal() : 0);
+        permission.setStatus(StringUtils.hasText(req.getStatus()) ? req.getStatus() : "enabled");
+        permission.setRemark(req.getRemark());
+
+        permissionMapper.insert(permission);
+
+        // 更新 treePath：父路径 + 当前ID
+        String treePath = buildTreePath(req.getParentId(), permission.getId());
+        permission.setTreePath(treePath);
+        permissionMapper.updateById(permission);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePermission(PermissionSaveRequest req) {
+        SysPermission existing = getPermissionById(req.getId());
+        existing.setName(req.getName());
+        existing.setCode(req.getCode());
+        existing.setPath(req.getPath());
+        existing.setComponent(req.getComponent());
+        existing.setIcon(req.getIcon());
+        existing.setSort(req.getSort() != null ? req.getSort() : existing.getSort());
+        existing.setIsVisible(req.getIsVisible() != null ? req.getIsVisible() : existing.getIsVisible());
+        existing.setStatus(StringUtils.hasText(req.getStatus()) ? req.getStatus() : existing.getStatus());
+        existing.setRemark(req.getRemark());
+        permissionMapper.updateById(existing);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deletePermission(String id) {
+        long childCount = permissionMapper.selectCount(new LambdaQueryWrapper<SysPermission>()
+                .eq(SysPermission::getParentId, id));
+        if (childCount > 0) {
+            throw new BusinessException(ErrorCode.INVALID_ARGUMENT, "请先删除子权限");
+        }
+        permissionMapper.deleteById(id);
+    }
+
+    private String buildTreePath(String parentId, String currentId) {
+        if ("0".equals(parentId)) {
+            return "0," + currentId;
+        }
+        SysPermission parent = permissionMapper.selectById(parentId);
+        if (parent == null) {
+            return "0," + currentId;
+        }
+        return parent.getTreePath() + "," + currentId;
+    }
+}

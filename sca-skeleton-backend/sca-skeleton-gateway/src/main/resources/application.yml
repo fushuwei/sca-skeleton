@@ -1,0 +1,87 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: sca-skeleton-gateway
+
+  # Redis（响应式客户端，用于网关限流）
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+
+  # Nacos 服务注册与发现
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+
+    # Spring Cloud Gateway 路由配置
+    gateway:
+      # 开启基于 Nacos 的服务发现自动路由（lb://serviceId）
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      # 全局默认过滤器
+      default-filters:
+        # 传递 TraceId 请求头到下游
+        - name: AddRequestHeader
+          args:
+            name: X-Gateway-Version
+            value: "1.0"
+
+      routes:
+        # 认证服务路由：/auth/** → sca-skeleton-auth
+        - id: sca-skeleton-auth
+          uri: lb://sca-skeleton-auth
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+
+        # 系统管理服务路由：/system/** → sca-skeleton-system
+        - id: sca-skeleton-system
+          uri: lb://sca-skeleton-system
+          predicates:
+            - Path=/system/**
+          filters:
+            - StripPrefix=1
+
+  # OAuth2 资源服务器：从认证服务获取 JWK Set 完成 JWT 验签
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # 认证服务 JWK Set 端点；网关用此公钥验证 access_token 签名
+          jwk-set-uri: ${AUTH_JWK_SET_URI:http://localhost:9000/oauth2/jwks}
+          # issuer-uri 用于验证 JWT 的 iss claim
+          issuer-uri: ${AUTH_ISSUER_URI:http://sca-skeleton-auth:9000}
+
+# 网关安全配置
+sca:
+  gateway:
+    # 不需要 JWT 的白名单路径（支持 Ant 风格）
+    white-list:
+      - /auth/oauth2/token
+      - /auth/oauth2/jwks
+      - /auth/login
+      - /auth/captcha/**
+      - /actuator/health
+      - /actuator/info
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: when-authorized
+    gateway:
+      access: read-only

@@ -9,6 +9,11 @@ import io.github.fushuwei.sca.starter.core.exception.ErrorCode;
  */
 public record ApiResponse<T>(String code, String message, T data) {
 
+    // 构造成功响应（无数据）。
+    public static ApiResponse<Void> success() {
+        return new ApiResponse<>(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMessage(), null);
+    }
+
     // 构造成功响应。
     public static <T> ApiResponse<T> success(T data) {
         // 使用统一成功码构建响应。
