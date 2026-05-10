@@ -34,10 +34,10 @@
             <artifactId>redisson-spring-boot-starter</artifactId>
         </dependency>
         <!-- Spring AOP：提供 @RateLimit 限流注解的切面支持 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
+        <!-- <dependency> -->
+        <!--     <groupId>org.springframework.boot</groupId> -->
+        <!--     <artifactId>spring-boot-starter-aop</artifactId> -->
+        <!-- </dependency> -->
         <!-- Lombok：简化工具类与配置类的样板代码 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
