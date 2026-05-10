@@ -23,7 +23,6 @@
         <spring-cloud-alibaba.version>2025.1.0.0</spring-cloud-alibaba.version>
         <mybatis-plus.version>3.5.16</mybatis-plus.version>
         <redisson.version>4.3.0</redisson.version>
-        <mapstruct.version>1.6.3</mapstruct.version>
     </properties>
 
     <dependencyManagement>
