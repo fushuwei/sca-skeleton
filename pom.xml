@@ -34,8 +34,8 @@
         <mapstruct.version>1.6.3</mapstruct.version>
 
         <!-- Maven 插件版本 -->
-        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
         <flatten-maven-plugin.version>1.7.3</flatten-maven-plugin.version>
+        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
     </properties>
 
     <build>
