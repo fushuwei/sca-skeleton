@@ -17,17 +17,6 @@
     <name>SCA Skeleton Backend</name>
     <description>SCA Skeleton Backend Project</description>
 
-    <properties>
-        <java.version>25</java.version>
-        <spring-boot.version>4.0.6</spring-boot.version>
-        <lombok.version>1.18.46</lombok.version>
-        <mapstruct.version>1.6.3</mapstruct.version>
-        <maven.compiler.release>${java.version}</maven.compiler.release>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
-    </properties>
-
     <modules>
         <module>sca-skeleton-dependencies</module>
         <module>sca-skeleton-gateway</module>
@@ -77,7 +66,7 @@
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${spring-boot.version}</version>
+                    <version>${spring-boot-maven-plugin.version}</version>
                     <configuration>
                         <excludes>
                             <!-- 打包时排除 Lombok -->
