@@ -23,6 +23,7 @@
         <module>sca-skeleton-auth</module>
         <module>sca-skeleton-system</module>
         <module>sca-skeleton-starters</module>
+        <module>sca-skeleton-middlewares</module>
     </modules>
 
     <dependencyManagement>

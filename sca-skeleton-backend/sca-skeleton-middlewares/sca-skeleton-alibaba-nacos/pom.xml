@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.fushuwei</groupId>
+        <artifactId>sca-skeleton-middlewares</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>sca-skeleton-alibaba-nacos</artifactId>
+    <packaging>jar</packaging>
+
+    <name>SCA Skeleton Backend :: Middleware :: Alibaba Nacos</name>
+    <description>Alibaba Nacos integration for service discovery, configuration management, and dynamic naming</description>
+
+    <properties>
+        <nacos.version>3.2.1</nacos.version>
+        <jraft.version>1.4.0</jraft.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.pig-mesh.nacos</groupId>
+            <artifactId>nacos-server</artifactId>
+            <version>${nacos.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.pig-mesh.sofa</groupId>
+            <artifactId>jraft-core</artifactId>
+            <version>${jraft.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>hessian</artifactId>
+                    <groupId>com.alipay.sofa</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.github.pig-mesh.nacos</groupId>
+            <artifactId>nacos-console</artifactId>
+            <version>${nacos.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jraft-core</artifactId>
+                    <groupId>com.alipay.sofa</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+</project>
