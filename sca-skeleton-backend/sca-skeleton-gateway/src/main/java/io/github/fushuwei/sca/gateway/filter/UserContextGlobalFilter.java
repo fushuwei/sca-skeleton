@@ -41,7 +41,7 @@ public class UserContextGlobalFilter implements GlobalFilter, Ordered {
      */
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE + 10;
+        return Ordered.HIGHEST_PRECEDENCE + 20;
     }
 
     @Override
