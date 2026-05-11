@@ -22,11 +22,13 @@
         <spring-cloud-alibaba.version>2025.1.0.0</spring-cloud-alibaba.version>
         <mybatis-plus.version>3.5.16</mybatis-plus.version>
         <redisson.version>4.3.0</redisson.version>
+        <hutool.version>5.8.44</hutool.version>
+        <springdoc.version>3.0.3</springdoc.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-            <!-- Spring Boot BOM：管理 Spring Boot 全量依赖版本 -->
+            <!-- Spring Boot -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -35,7 +37,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Spring Cloud BOM：管理 Spring Cloud 全量依赖版本（含 OpenFeign、Gateway、LoadBalancer 等） -->
+            <!-- Spring Cloud -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -44,7 +46,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Spring Cloud Alibaba BOM：管理 Nacos、Sentinel、Seata 等阿里云组件版本 -->
+            <!-- Spring Cloud Alibaba -->
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-alibaba-dependencies</artifactId>
@@ -53,18 +55,43 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- MyBatis-Plus Spring Boot 4 适配 starter：ORM 增强，支持 Spring Boot 4 与 mybatis-spring 4.x -->
+            <!-- MyBatis-Plus -->
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
 
-            <!-- Redisson Spring Boot Starter：Redis 客户端增强，提供分布式锁、分布式集合、限流等能力 -->
+            <!-- MyBatis-Plus JSQLParser -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-jsqlparser</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <!-- Redisson -->
             <dependency>
                 <groupId>org.redisson</groupId>
                 <artifactId>redisson-spring-boot-starter</artifactId>
                 <version>${redisson.version}</version>
+            </dependency>
+
+            <!-- Hutool -->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-bom</artifactId>
+                <version>${hutool.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- SpringDoc OpenAPI 3 + Swagger UI -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-bom</artifactId>
+                <version>${springdoc.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <!-- MapStruct -->
@@ -74,68 +101,61 @@
                 <version>${mapstruct.version}</version>
             </dependency>
 
-            <!--
-                MyBatis-Plus JSQLParser 模块：3.5.9 起将 PaginationInnerInterceptor、
-                BlockAttackInnerInterceptor 等需要 SQL 解析的插件拆分到此独立模块，
-                使用分页或防全表攻击插件时必须显式引入，版本与 mybatis-plus 保持一致。
-            -->
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-jsqlparser</artifactId>
-                <version>${mybatis-plus.version}</version>
-            </dependency>
 
-            <!-- ===== 内部 Starter 版本统一管理 ===== -->
-            <!-- 核心基础 Starter：异常体系、工具类、TraceId 上下文、UUID 等 -->
+            <!-- ======================================================================== -->
+            <!-- 内部 Starter 版本统一管理 -->
+            <!-- ======================================================================== -->
+
+            <!-- 核心基础 Starter -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Web 通用 Starter：统一响应体、全局异常处理、TraceId 过滤器、Jackson 配置 -->
+            <!-- Web 通用 Starter -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-web</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- 日志增强 Starter：操作日志 AOP 注解、MDC 链路追踪辅助配置 -->
+            <!-- 日志增强 Starter -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-logging</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Redis/Redisson Starter：Redis Template 配置、分布式锁、限流注解 AOP -->
+            <!-- Redis/Redisson Starter -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-redis</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- MyBatis-Plus 增强 Starter：基础实体、审计字段自动填充、分页插件 -->
+            <!-- MyBatis-Plus 增强 Starter -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-mybatis-plus</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- OpenFeign 增强 Starter：请求头传递（TraceId/Authorization）、统一错误解码 -->
+            <!-- OpenFeign 增强 Starter -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-feign</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- 验证码 Starter：图形验证码生成（Java AWT）、Redis 存储与校验 -->
+            <!-- 验证码 Starter -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-captcha</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Security 资源服务 Starter：JWT 解析、资源服务鉴权配置、当前用户上下文 -->
+            <!-- Security 资源服务 Starter -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-security</artifactId>

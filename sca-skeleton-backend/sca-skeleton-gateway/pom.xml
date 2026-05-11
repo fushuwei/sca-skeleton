@@ -15,25 +15,31 @@
     <packaging>jar</packaging>
 
     <name>SCA Skeleton Backend :: Gateway</name>
-    <description>API Gateway: reactive routing, JWT validation, rate limiting, user context injection</description>
+    <description>SCA Skeleton Backend :: 网关服务</description>
 
     <dependencies>
-        <!--
-            Spring Cloud Gateway（响应式）：基于 Reactor Netty，不依赖 Servlet 容器。
-            注意：此模块严禁引入 spring-boot-starter-web（Servlet），两者冲突。
-        -->
+        <!-- 公共核心组件，所有微服务都需要引入此依赖 -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-core</artifactId>
+        </dependency>
+
+        <!-- Spring Cloud Gateway（响应式）：基于 Reactor Netty，不依赖 Servlet 容器 -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
         </dependency>
 
-        <!--
-            OAuth2 资源服务器（响应式版本）：验证 JWT 签名与有效期。
-            Spring Cloud Gateway 基于 WebFlux，此 starter 自动适配 ReactiveSecurityContextHolder。
-        -->
+        <!-- Nacos 配置中心客户端 -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+
+        <!-- Nacos 注册中心客户端 -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
         </dependency>
 
         <!-- 客户端负载均衡：支持 lb://sca-skeleton-system 格式的路由 URI -->
@@ -42,19 +48,39 @@
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
 
-        <!-- Nacos 服务注册与发现 -->
+        <!-- caffeine 本地内存缓存（高性能，减轻注册中心压力，提升网关稳定性），只需引入该依赖即可，自动生效，无需任何配置 -->
         <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
         </dependency>
 
-        <!-- 核心 Starter（TraceId 上下文、常量、异常体系）；不含 spring-boot-starter-web -->
+        <!-- 响应式 Redis 客户端 (用于限流、令牌桶、黑名单、白名单、IP 封禁等) -->
         <dependency>
-            <groupId>io.github.fushuwei</groupId>
-            <artifactId>sca-skeleton-starter-core</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
         </dependency>
 
-        <!-- Actuator -->
+        <!-- OAuth2 资源服务器（响应式版本） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <!-- Circuit Breaker (提供熔断、降级、限流、超时保护的能力) -->
+        <!-- todo：暂时未使用，后续补充 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-circuitbreaker-reactor-resilience4j</artifactId>
+        </dependency>
+        <!-- Spring Cloud Circuit Breaker: 熔断器支持 -->
+
+        <!--接口文档 -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+        </dependency>
+
+        <!-- Actuator 监控与健康检查 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>

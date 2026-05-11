@@ -1,0 +1,115 @@
+spring:
+  main:
+    web-application-type: reactive
+  cloud:
+    gateway.server.webflux:
+      # 服务发现配置
+      discovery:
+        # 服务定位器配置
+        locator:
+          # 启用服务发现定位器, 允许通过服务名路由到请求地址 (如: http://gatewayIP:gatewayPort/微服务名称/...), 生产环境禁用
+          enabled: false
+          # 使用小写服务名 (Eureka 默认是大写服务名)
+          lower-case-service-id: true
+      # 路由配置
+      routes:
+        # 系统服务路由
+        - id: sca-skeleton-system
+          uri: lb://sca-skeleton-system
+          predicates:
+            - Path=/sys/**
+            - Header=Authorization, (Bearer|Basic)\s+.+
+            - Method=POST
+          filters:
+            - StripPrefix=1
+            # 请求限流配置
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 2
+      # 全局默认过滤器
+      default-filters:
+        # 清理下游污染的 CORS 头
+        - RemoveResponseHeader=Access-Control-Allow-Origin
+        - RemoveResponseHeader=Access-Control-Allow-Credentials
+        # 安全响应头（Web 基线）
+        - AddResponseHeader=X-Frame-Options, DENY
+        - AddResponseHeader=X-Content-Type-Options, nosniff
+        - AddResponseHeader=Referrer-Policy, no-referrer
+        # 删除不应透传的 Header
+        - RemoveRequestHeader=Cookie
+      # 全局 CORS 配置
+      globalcors:
+        # 让未匹配路由的 OPTIONS 也走 CORS 处理，生产必须开启，避免预检 404
+        add-to-simple-url-handler-mapping: true
+        # CORS 规则集合
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "*" # 允许所有来源（生产环境应配置具体域名）
+            allowed-methods: "*" # 允许的 HTTP 方法
+            allowed-headers: "*" # 允许客户端携带的请求头
+            allow-credentials: false # 是否允许携带凭证
+            max-age: 3600 # 预检请求缓存时间（秒），减少 OPTIONS 风暴
+      # 下游服务调用客户端
+      httpclient:
+        # 连接超时配置：建立 TCP 连接的等待时间（毫秒），如果超过此时间无法连接到下游服务，直接报错，防止线程阻塞
+        connect-timeout: 3000
+        # 响应超时配置：从请求发出到收到完整响应的最大时间
+        response-timeout: 30s
+        # 连接池配置：避免频繁创建/销毁 TCP 连接
+        pool:
+          # 连接池类型
+          # ELASTIC：弹性无上限（适合低并发），有连接泄漏风险
+          # FIXED：固定上限（生产推荐），超出则排队等待
+          # DISABLED：不复用连接，每次新建（禁止生产使用）
+          type: FIXED
+          # 最大连接数（per remote host）
+          # 建议：max-connections = 每实例预期 QPS × 平均响应时间(s) × 1.5 buffer
+          # 示例：500 QPS × 0.1s × 1.5 ≈ 75，保守取 200
+          max-connections: 200
+          # 等待空闲连接的最大排队时间
+          # 超时后抛出 PoolAcquireTimeoutException
+          # 建议略小于 response-timeout，让上层感知到连接池瓶颈
+          acquire-timeout: 10000
+          # 空闲连接最大存活时间（超过 30s 未使用的连接将被关闭，防止持有过多无效连接）
+          max-idle-time: 30s
+          # 连接最大生命周期（一个连接存活的最长时间，不论是否空闲，到期强制关闭，防止因后端扩容导致的 DNS 缓存过期或长连接老化）
+          max-life-time: 60s
+          # 空闲连接定期健康驱逐间隔，每隔此时间扫描并关闭过期空闲连接，释放资源
+          eviction-interval: 30s
+        # SSL/TLS 配置 (如果后端服务是 HTTPS)
+        ssl:
+          # 是否信任所有证书（仅限开发/测试，生产务必 false）
+          use-insecure-trust-manager: false
+        # WebSocket 配置
+        websocket:
+          # 单帧最大负载（防攻击）
+          max-frame-payload-length: 65536
+          # 是否代理 ping/pong 帧
+          proxy-ping: true
+        # 开启 Wiretap 日志 (调试神器)，在排查网关与后端服务的交互细节时非常有用，但生产环境建议默认关闭以节省性能
+        wiretap: false
+        # 是否对上游响应启用自动解压（gzip/deflate），生产建议：开启节省带宽，但会增加 CPU 开销
+        compression: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 123456
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://127.0.0.1:9001
+
+server:
+  port: 9999
