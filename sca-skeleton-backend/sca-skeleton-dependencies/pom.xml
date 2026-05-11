@@ -15,7 +15,7 @@
     <packaging>pom</packaging>
 
     <name>SCA Skeleton Backend :: Dependencies</name>
-    <description>SCA Skeleton unified dependency management BOM</description>
+    <description>SCA Skeleton Backend :: 统一依赖管理 BOM</description>
 
     <properties>
         <spring-cloud.version>2025.1.1</spring-cloud.version>
@@ -85,7 +85,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- SpringDoc OpenAPI 3 + Swagger UI -->
+            <!-- SpringDoc OpenAPI -->
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-bom</artifactId>

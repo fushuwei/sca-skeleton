@@ -18,13 +18,13 @@
     <description>SCA Skeleton Backend :: 网关服务</description>
 
     <dependencies>
-        <!-- 公共核心组件，所有微服务都需要引入此依赖 -->
+        <!-- 核心基础组件 -->
         <dependency>
             <groupId>io.github.fushuwei</groupId>
             <artifactId>sca-skeleton-starter-core</artifactId>
         </dependency>
 
-        <!-- Spring Cloud Gateway（响应式）：基于 Reactor Netty，不依赖 Servlet 容器 -->
+        <!-- Spring Cloud Gateway (响应式) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
@@ -48,7 +48,7 @@
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
 
-        <!-- caffeine 本地内存缓存（高性能，减轻注册中心压力，提升网关稳定性），只需引入该依赖即可，自动生效，无需任何配置 -->
+        <!-- caffeine 本地内存缓存 (高性能，减轻注册中心压力，提升网关稳定性)，只需引入该依赖即可，自动生效，无需任何配置 -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
@@ -60,7 +60,7 @@
             <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
         </dependency>
 
-        <!-- OAuth2 资源服务器（响应式版本） -->
+        <!-- OAuth2 资源服务器 (响应式版本) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
@@ -73,7 +73,7 @@
             <artifactId>spring-cloud-starter-circuitbreaker-reactor-resilience4j</artifactId>
         </dependency>
 
-        <!--接口文档 -->
+        <!-- 接口文档 -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
