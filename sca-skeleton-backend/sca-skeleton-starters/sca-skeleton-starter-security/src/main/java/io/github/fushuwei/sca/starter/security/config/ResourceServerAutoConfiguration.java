@@ -1,6 +1,6 @@
 package io.github.fushuwei.sca.starter.security.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import io.github.fushuwei.sca.starter.core.user.CurrentUserProvider;
 import io.github.fushuwei.sca.starter.security.handler.SecurityAccessDeniedHandler;
 import io.github.fushuwei.sca.starter.security.handler.SecurityAuthenticationEntryPoint;

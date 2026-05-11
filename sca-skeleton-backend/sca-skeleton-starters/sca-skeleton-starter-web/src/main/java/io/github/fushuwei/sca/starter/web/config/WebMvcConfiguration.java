@@ -1,18 +1,17 @@
 package io.github.fushuwei.sca.starter.web.config;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.ext.javatime.deser.LocalDateDeserializer;
+import tools.jackson.databind.ext.javatime.deser.LocalDateTimeDeserializer;
+import tools.jackson.databind.ext.javatime.ser.LocalDateSerializer;
+import tools.jackson.databind.ext.javatime.ser.LocalDateTimeSerializer;
+import tools.jackson.databind.module.SimpleModule;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,6 +22,9 @@ import java.time.format.DateTimeFormatter;
  * <p>
  * 负责 Jackson 全局日期格式统一（yyyy-MM-dd HH:mm:ss）、宽松反序列化，
  * 以及默认 CORS 策略（生产环境由 API 网关统一收口，此处仅兜底）。
+ * <p>
+ * Jackson 3（Spring Boot 4）通过 {@link JsonMapperBuilderCustomizer} 叠加方式定制
+ * 自动配置的 {@code JsonMapper}，业务模块可再注册 Customizer 进一步覆盖。
  *
  * @author Fu Wei
  */
@@ -36,32 +38,31 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     /**
-     * 全局 Jackson ObjectMapper 配置。使用 ConditionalOnMissingBean 确保业务模块可覆盖。
+     * 全局 Jackson JsonMapper 定制器。
+     * Spring Boot 4 会将所有 {@link JsonMapperBuilderCustomizer} 累加应用到自动配置的 JsonMapper 上，
+     * 业务模块若需进一步定制，再额外注册 Customizer Bean 即可（按 @Order 排序）。
      */
     @Bean
-    @ConditionalOnMissingBean
-    public Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder() {
-        // 注册 Java 8 时间模块，统一 LocalDate / LocalDateTime 序列化格式
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        // LocalDateTime 序列化与反序列化
-        javaTimeModule.addSerializer(LocalDateTime.class,
-                new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)));
-        javaTimeModule.addDeserializer(LocalDateTime.class,
-                new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)));
-        // LocalDate 序列化与反序列化
-        javaTimeModule.addSerializer(LocalDate.class,
-                new LocalDateSerializer(DateTimeFormatter.ofPattern(DATE_FORMAT)));
-        javaTimeModule.addDeserializer(LocalDate.class,
-                new LocalDateDeserializer(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+    public JsonMapperBuilderCustomizer scaJsonMapperBuilderCustomizer() {
+        return builder -> {
+            // 自定义 Java 8 时间序列化格式（Jackson 3 已内置 JSR310 支持，仅覆盖格式）
+            SimpleModule javaTimeModule = new SimpleModule("sca-java-time");
+            javaTimeModule.addSerializer(LocalDateTime.class,
+                    new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)));
+            javaTimeModule.addDeserializer(LocalDateTime.class,
+                    new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)));
+            javaTimeModule.addSerializer(LocalDate.class,
+                    new LocalDateSerializer(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+            javaTimeModule.addDeserializer(LocalDate.class,
+                    new LocalDateDeserializer(DateTimeFormatter.ofPattern(DATE_FORMAT)));
 
-        return new Jackson2ObjectMapperBuilder()
-                .modules(javaTimeModule)
-                // 禁止日期序列化为时间戳数字
-                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                // 忽略 JSON 中存在但 Java 对象没有的未知字段，提升接口版本兼容性
-                .featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                // 避免空对象抛出 SerializationException
-                .featuresToDisable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+            // Jackson 3 已默认不再将日期序列化为时间戳（WRITE_DATES_AS_TIMESTAMPS 枚举已移除），无需显式 disable
+            builder.addModule(javaTimeModule)
+                    // 忽略 JSON 中存在但 Java 对象没有的未知字段，提升接口版本兼容性
+                    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    // 避免空对象抛出 SerializationException
+                    .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        };
     }
 
     /**

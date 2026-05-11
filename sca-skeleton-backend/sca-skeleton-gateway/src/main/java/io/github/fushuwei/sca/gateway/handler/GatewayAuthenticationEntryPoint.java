@@ -1,7 +1,7 @@
 package io.github.fushuwei.sca.gateway.handler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import io.github.fushuwei.sca.starter.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +47,8 @@ public class GatewayAuthenticationEntryPoint implements ServerAuthenticationEntr
             byte[] bytes = objectMapper.writeValueAsBytes(body);
             DataBuffer buffer = response.bufferFactory().wrap(bytes);
             return response.writeWith(Mono.just(buffer));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
+            // Jackson 3 改为非受检异常，仍显式兜底以防止序列化失败时无响应
             return response.setComplete();
         }
     }

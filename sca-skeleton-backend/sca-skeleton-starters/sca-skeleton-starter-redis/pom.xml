@@ -28,6 +28,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
+        <!-- Jackson 3 数据绑定：为 RedisTemplate 的 JSON 序列化提供 ObjectMapper/JsonMapper（spring-data-redis 4 将 Jackson 设为可选依赖，需显式引入） -->
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
         <!-- Redisson Spring Boot Starter：分布式锁、分布式集合、限流令牌桶等高级 Redis 能力 -->
         <dependency>
             <groupId>org.redisson</groupId>

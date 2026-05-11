@@ -1,6 +1,6 @@
 package io.github.fushuwei.sca.starter.logging.aspect;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import io.github.fushuwei.sca.starter.core.trace.TraceContext;
 import io.github.fushuwei.sca.starter.core.user.CurrentUserProvider;
 import io.github.fushuwei.sca.starter.logging.annotation.OperationLog;
