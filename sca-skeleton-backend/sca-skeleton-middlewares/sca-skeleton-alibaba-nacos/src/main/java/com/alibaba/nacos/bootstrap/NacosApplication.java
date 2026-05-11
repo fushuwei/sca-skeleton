@@ -38,7 +38,7 @@ import static org.springframework.core.io.ResourceLoader.CLASSPATH_URL_PREFIX;
  * nacos console 源码运行，方便开发 生产从官网下载zip最新版集群配置运行
  */
 @SpringBootApplication
-public class AlibabaNacosApplication {
+public class NacosApplication {
 
 	/**
 	 * 独立模式系统属性名称
