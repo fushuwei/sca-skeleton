@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
- * API 网关启动类。
+ * API 网关启动类
  * <p>
  * 基于 Spring Cloud Gateway（响应式 WebFlux），承担以下职责：
  * <ul>
@@ -14,16 +14,14 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  *   <li>用户上下文注入（将 JWT Claims 转为 X-User-Id / X-Username / X-Tenant-Id 请求头）</li>
  *   <li>统一路由转发至下游微服务</li>
  * </ul>
- * <p>
- * 注意：网关模块严禁引入 spring-boot-starter-web（Servlet）。
  *
  * @author Fu Wei
  */
-@SpringBootApplication
 @EnableDiscoveryClient
+@SpringBootApplication
 public class GatewayApplication {
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         SpringApplication.run(GatewayApplication.class, args);
     }
 }
