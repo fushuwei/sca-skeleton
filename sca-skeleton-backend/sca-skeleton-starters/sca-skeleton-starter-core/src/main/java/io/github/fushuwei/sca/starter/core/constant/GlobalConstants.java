@@ -8,41 +8,69 @@ package io.github.fushuwei.sca.starter.core.constant;
  *
  * @author Fu Wei
  */
-public final class BaseConstants {
+public final class GlobalConstants {
 
-    private BaseConstants() {
+    private GlobalConstants() {
     }
 
     // ===== HTTP 请求头 =====
 
-    /** Authorization 请求头 Key */
+    /**
+     * Authorization 请求头 Key
+     */
     public static final String HEADER_AUTHORIZATION = "Authorization";
 
-    /** Bearer Token 前缀（含尾部空格） */
+    /**
+     * Bearer Token 前缀（含尾部空格）
+     */
     public static final String BEARER_PREFIX = "Bearer ";
 
-    /** 链路追踪 ID 请求头 Key */
+    /**
+     * 内部调用来源的请求头 Key
+     */
+    public static final String HEADER_FROM = "from";
+
+    /**
+     * 链路追踪 ID 请求头 Key
+     */
     public static final String HEADER_TRACE_ID = "X-Trace-Id";
 
-    /** 透传当前用户 ID 的内部请求头 Key（网关 → 下游服务） */
+    /**
+     * 透传当前用户 ID 的内部请求头 Key（网关 → 下游服务）
+     */
     public static final String HEADER_USER_ID = "X-User-Id";
 
-    /** 透传当前用户名的内部请求头 Key（网关 → 下游服务） */
+    /**
+     * 透传当前用户名的内部请求头 Key（网关 → 下游服务）
+     */
     public static final String HEADER_USERNAME = "X-Username";
+
+    /**
+     * 请求开始时间的请求头 Key
+     */
+    public static final String HEADER_START_TIME = "X-Request-Start-Time";
 
     // ===== 逻辑删除 =====
 
-    /** 逻辑删除：未删除标识值 */
+    /**
+     * 逻辑删除：未删除标识值
+     */
     public static final int NOT_DELETED = 0;
 
-    /** 逻辑删除：已删除标识值 */
+    /**
+     * 逻辑删除：已删除标识值
+     */
     public static final int DELETED = 1;
 
     // ===== 通用状态 =====
 
-    /** 通用启用状态 */
+    /**
+     * 通用启用状态
+     */
     public static final int STATUS_ENABLED = 1;
 
-    /** 通用禁用状态 */
+    /**
+     * 通用禁用状态
+     */
     public static final int STATUS_DISABLED = 0;
 }

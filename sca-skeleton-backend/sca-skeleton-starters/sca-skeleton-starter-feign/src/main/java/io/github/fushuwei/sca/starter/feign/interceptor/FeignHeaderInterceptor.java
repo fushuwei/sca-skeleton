@@ -2,7 +2,7 @@ package io.github.fushuwei.sca.starter.feign.interceptor;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
-import io.github.fushuwei.sca.starter.core.constant.BaseConstants;
+import io.github.fushuwei.sca.starter.core.constant.GlobalConstants;
 import io.github.fushuwei.sca.starter.core.trace.TraceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ public class FeignHeaderInterceptor implements RequestInterceptor {
         // 从当前线程 MDC 中读取链路追踪 ID 并透传
         String traceId = TraceContext.get();
         if (traceId != null && !traceId.isBlank()) {
-            template.header(BaseConstants.HEADER_TRACE_ID, traceId);
+            template.header(GlobalConstants.HEADER_TRACE_ID, traceId);
         }
 
         // 获取当前 HTTP 请求上下文（仅在 Web 请求线程中有效，异步线程需手动传递）
@@ -49,20 +49,20 @@ public class FeignHeaderInterceptor implements RequestInterceptor {
         HttpServletRequest request = attributes.getRequest();
 
         // 透传 Authorization Token，确保下游服务能完成鉴权
-        String authorization = request.getHeader(BaseConstants.HEADER_AUTHORIZATION);
+        String authorization = request.getHeader(GlobalConstants.HEADER_AUTHORIZATION);
         if (authorization != null && !authorization.isBlank()) {
-            template.header(BaseConstants.HEADER_AUTHORIZATION, authorization);
+            template.header(GlobalConstants.HEADER_AUTHORIZATION, authorization);
         }
 
         // 透传网关注入的用户 ID 和用户名，下游服务可直接读取而无需再次解析 Token
-        String userId = request.getHeader(BaseConstants.HEADER_USER_ID);
+        String userId = request.getHeader(GlobalConstants.HEADER_USER_ID);
         if (userId != null && !userId.isBlank()) {
-            template.header(BaseConstants.HEADER_USER_ID, userId);
+            template.header(GlobalConstants.HEADER_USER_ID, userId);
         }
 
-        String username = request.getHeader(BaseConstants.HEADER_USERNAME);
+        String username = request.getHeader(GlobalConstants.HEADER_USERNAME);
         if (username != null && !username.isBlank()) {
-            template.header(BaseConstants.HEADER_USERNAME, username);
+            template.header(GlobalConstants.HEADER_USERNAME, username);
         }
     }
 }
