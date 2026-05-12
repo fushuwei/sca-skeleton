@@ -56,8 +56,10 @@ public class RequestHeaderGovernanceGlobalFilter implements GlobalFilter, Ordere
             headers.remove(GlobalConstants.HEADER_FROM);
 
             // 2) 清理外部可伪造的用户身份头，后续由认证通过后重建
+            headers.remove(GlobalConstants.HEADER_TENANT_ID);
             headers.remove(GlobalConstants.HEADER_USER_ID);
-            headers.remove(GlobalConstants.HEADER_USERNAME);
+            headers.remove(GlobalConstants.HEADER_USER_NAME);
+            headers.remove(GlobalConstants.HEADER_USER_ROLES);
 
             // 3) 清理不应透传的 hop-by-hop 头，减少协议层问题
             HOP_BY_HOP_HEADERS.forEach(headers::remove);
