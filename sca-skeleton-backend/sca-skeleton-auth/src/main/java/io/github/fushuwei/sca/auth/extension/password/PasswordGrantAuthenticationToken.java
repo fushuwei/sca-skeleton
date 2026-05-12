@@ -4,6 +4,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AuthorizationGrantAuthenticationToken;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,6 +35,9 @@ public class PasswordGrantAuthenticationToken extends OAuth2AuthorizationGrantAu
     /** 租户 ID（多租户场景必传，单租户可为 null） */
     private final String tenantId;
 
+    /** 请求中声明的 scope 集合（可能为空） */
+    private final Set<String> requestedScopes;
+
     /**
      * @param clientPrincipal   已认证的客户端主体（由 SAS 标准客户端认证过滤器注入）
      * @param requestedScopes   客户端请求的 scope 集合
@@ -51,6 +56,16 @@ public class PasswordGrantAuthenticationToken extends OAuth2AuthorizationGrantAu
         this.username = username;
         this.password = password;
         this.tenantId = tenantId;
+        this.requestedScopes = requestedScopes != null
+                ? Collections.unmodifiableSet(new LinkedHashSet<>(requestedScopes))
+                : Collections.emptySet();
+    }
+
+    /**
+     * @return 请求中的 scope 集合（可能为空，非 null）
+     */
+    public Set<String> getScopes() {
+        return requestedScopes;
     }
 
     public String getUsername() {

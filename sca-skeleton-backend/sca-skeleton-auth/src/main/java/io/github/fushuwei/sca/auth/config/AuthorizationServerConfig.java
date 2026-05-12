@@ -9,7 +9,7 @@ import io.github.fushuwei.sca.auth.extension.password.PasswordGrantAuthenticatio
 import io.github.fushuwei.sca.auth.extension.password.PasswordGrantAuthenticationProvider;
 import io.github.fushuwei.sca.auth.extension.password.PasswordGrantAuthenticationToken;
 import io.github.fushuwei.sca.auth.security.ScaUserDetailsService;
-import io.github.fushuwei.sca.auth.token.ScaTokenCustomizer;
+import io.github.fushuwei.sca.auth.token.ScaOpaqueAccessTokenClaimsCustomizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,13 +20,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
+import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
+import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2AccessTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
-import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
@@ -44,8 +45,8 @@ import java.util.UUID;
  * <ol>
  *   <li>配置授权服务器端点（/oauth2/token、/oauth2/jwks 等）</li>
  *   <li>注册自定义密码授权模式（Converter + Provider）</li>
- *   <li>配置 RSA 密钥对用于 JWT 签名</li>
- *   <li>注入 ScaTokenCustomizer 向 JWT 写入业务 Claims</li>
+ *   <li>配置 RSA 密钥对用于 OIDC id_token 等 JWT 场景</li>
+ *   <li>注入不透明 access_token 生成链（REFERENCE）及业务 Claims</li>
  * </ol>
  *
  * @author Fu Wei
@@ -69,7 +70,7 @@ public class AuthorizationServerConfig {
             OAuth2TokenGenerator<?> tokenGenerator) throws Exception {
 
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
-                OAuth2AuthorizationServerConfigurer.authorizationServer();
+                new OAuth2AuthorizationServerConfigurer();
 
         http
             .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
@@ -119,20 +120,22 @@ public class AuthorizationServerConfig {
     }
 
     /**
-     * Token 生成器：将 JWT 生成器、Refresh Token 生成器组合为代理链。
-     * {@link ScaTokenCustomizer} 在 JWT 生成阶段被回调，写入业务 Claims。
+     * Token 生成器：不透明 access_token（REFERENCE）+ JWT（如 id_token）+ refresh_token 的委托链。
+     * 访问令牌业务字段由 {@link ScaOpaqueAccessTokenClaimsCustomizer} 写入，经自省返回给资源服务器。
      */
     @Bean
     public OAuth2TokenGenerator<?> tokenGenerator(JWKSource<SecurityContext> jwkSource) {
+        OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
+        accessTokenGenerator.setAccessTokenCustomizer(new ScaOpaqueAccessTokenClaimsCustomizer());
         JwtGenerator jwtGenerator = new JwtGenerator(
                 new org.springframework.security.oauth2.jwt.NimbusJwtEncoder(jwkSource));
-        jwtGenerator.setJwtCustomizer(new ScaTokenCustomizer());
-        return new DelegatingOAuth2TokenGenerator(jwtGenerator, new OAuth2RefreshTokenGenerator());
+        return new DelegatingOAuth2TokenGenerator(
+                accessTokenGenerator, jwtGenerator, new OAuth2RefreshTokenGenerator());
     }
 
     /**
-     * 授权服务器全局设置：issuer 地址决定 JWT 的 iss claim，
-     * 网关和资源服务通过此地址获取 JWK Set 完成验签。
+     * 授权服务器全局设置：issuer 用于访问令牌 claims 与 OIDC 元数据；
+     * 资源服务器通过自省校验不透明令牌，不再依赖 JWK 验签 access_token。
      */
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {

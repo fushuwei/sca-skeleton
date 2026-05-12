@@ -9,26 +9,18 @@ import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+
 /**
  * 用户上下文全局过滤器。
  * <p>
- * 在 JWT 验证通过后，从安全上下文提取 JWT Claims 并将用户信息注入下游请求头，
- * 下游服务（system 等）直接读取请求头获取用户上下文，无需再次解析 JWT。
- * <p>
- * 注入的请求头：
- * <ul>
- *   <li>{@code X-User-Id}    — 用户 ID（JWT sub claim）</li>
- *   <li>{@code X-Username}   — 登录用户名（JWT preferred_username claim）</li>
- *   <li>{@code X-Tenant-Id}  — 租户 ID（JWT tenant_id claim）</li>
- *   <li>{@code X-Trace-Id}   — 链路追踪 ID（从请求头读取或生成）</li>
- * </ul>
+ * 在 access_token 校验通过后，从 {@link BearerTokenAuthentication} 的 token 属性注入下游请求头。
  *
  * @author Fu Wei
  */
@@ -37,31 +29,36 @@ import reactor.core.publisher.Mono;
 public class UserContextGlobalFilter implements GlobalFilter, Ordered {
 
     /**
-     * 优先级高于路由过滤器，确保用户信息在转发前已注入
+     * 优先级高于路由过滤器，确保用户信息在转发前已注入。
      */
     @Override
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE + 20;
     }
 
+    /**
+     * 从安全上下文读取自省属性并写入 TraceId / 用户头。
+     *
+     * @param exchange 当前交换
+     * @param chain    过滤器链
+     * @return Mono 完成信号
+     */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        // 处理 TraceId：优先使用请求携带的，否则生成新的
         String traceId = exchange.getRequest().getHeaders()
             .getFirst(GlobalConstants.HEADER_TRACE_ID);
         if (!StringUtils.hasText(traceId)) {
-            traceId = UuidUtils.generate();
+            traceId = UuidUtils.nextSimpleStr();
         }
         final String finalTraceId = traceId;
 
         return ReactiveSecurityContextHolder.getContext()
             .map(SecurityContext::getAuthentication)
-            .filter(auth -> auth instanceof JwtAuthenticationToken)
-            .cast(JwtAuthenticationToken.class)
-            .map(JwtAuthenticationToken::getToken)
-            .flatMap(jwt -> chain.filter(buildExchangeWithUserHeaders(exchange, jwt, finalTraceId)))
+            .filter(auth -> auth instanceof BearerTokenAuthentication)
+            .cast(BearerTokenAuthentication.class)
+            .map(BearerTokenAuthentication::getTokenAttributes)
+            .flatMap(attrs -> chain.filter(buildExchangeWithUserHeaders(exchange, attrs, finalTraceId)))
             .switchIfEmpty(
-                // 无 JWT（白名单路径），仅注入 TraceId
                 chain.filter(exchange.mutate()
                     .request(r -> r.headers(headers ->
                         headers.set(GlobalConstants.HEADER_TRACE_ID, finalTraceId)))
@@ -70,14 +67,19 @@ public class UserContextGlobalFilter implements GlobalFilter, Ordered {
     }
 
     /**
-     * 将 JWT Claims 写入请求头后，构建新的 ServerWebExchange 向下游转发。
+     * 将 sub / preferred_username / tenant_id 写入请求头。
+     *
+     * @param exchange 交换
+     * @param attrs    自省 token 属性
+     * @param traceId  链路 ID
+     * @return 变更后的 exchange
      */
     private ServerWebExchange buildExchangeWithUserHeaders(
-        ServerWebExchange exchange, Jwt jwt, String traceId) {
+        ServerWebExchange exchange, Map<String, Object> attrs, String traceId) {
 
-        String userId = jwt.getSubject();
-        String username = jwt.getClaimAsString("preferred_username");
-        String tenantId = jwt.getClaimAsString("tenant_id");
+        String userId = stringAttr(attrs, "sub");
+        String username = stringAttr(attrs, "preferred_username");
+        String tenantId = stringAttr(attrs, "tenant_id");
 
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
             .headers(headers -> {
@@ -85,7 +87,7 @@ public class UserContextGlobalFilter implements GlobalFilter, Ordered {
                     headers.set(GlobalConstants.HEADER_USER_ID, userId);
                 }
                 if (StringUtils.hasText(username)) {
-                    headers.set(GlobalConstants.HEADER_USERNAME, username);
+                    headers.set(GlobalConstants.HEADER_USER_NAME, username);
                 }
                 if (StringUtils.hasText(tenantId)) {
                     headers.set("X-Tenant-Id", tenantId);
@@ -95,5 +97,20 @@ public class UserContextGlobalFilter implements GlobalFilter, Ordered {
             .build();
 
         return exchange.mutate().request(mutatedRequest).build();
+    }
+
+    /**
+     * 从属性 Map 取字符串，缺失返回 null。
+     *
+     * @param attrs Map
+     * @param key   键
+     * @return 字符串或 null
+     */
+    private static String stringAttr(Map<String, Object> attrs, String key) {
+        if (attrs == null) {
+            return null;
+        }
+        Object v = attrs.get(key);
+        return v != null ? v.toString() : null;
     }
 }

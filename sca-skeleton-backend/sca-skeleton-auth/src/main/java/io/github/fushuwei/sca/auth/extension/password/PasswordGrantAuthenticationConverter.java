@@ -32,6 +32,11 @@ public class PasswordGrantAuthenticationConverter implements AuthenticationConve
     /** 租户 ID 请求参数名 */
     private static final String PARAM_TENANT_ID = "tenant_id";
 
+    /** RFC 6749 表单字段名（Spring Security 7 起不再提供 OAuth2ParameterNames.USERNAME/PASSWORD 常量） */
+    private static final String PARAM_USERNAME = "username";
+
+    private static final String PARAM_PASSWORD = "password";
+
     @Override
     public Authentication convert(HttpServletRequest request) {
         String grantType = request.getParameter(OAuth2ParameterNames.GRANT_TYPE);
@@ -42,8 +47,8 @@ public class PasswordGrantAuthenticationConverter implements AuthenticationConve
 
         Authentication clientPrincipal = SecurityContextHolder.getContext().getAuthentication();
 
-        String username = request.getParameter(OAuth2ParameterNames.USERNAME);
-        String password = request.getParameter(OAuth2ParameterNames.PASSWORD);
+        String username = request.getParameter(PARAM_USERNAME);
+        String password = request.getParameter(PARAM_PASSWORD);
 
         if (!StringUtils.hasText(username) || !StringUtils.hasText(password)) {
             throwInvalidRequest(OAuth2ErrorCodes.INVALID_REQUEST,
@@ -67,7 +72,7 @@ public class PasswordGrantAuthenticationConverter implements AuthenticationConve
             }
         });
         // 不将密码写入 additionalParameters（安全隐患）
-        additionalParameters.remove(OAuth2ParameterNames.PASSWORD);
+        additionalParameters.remove(PARAM_PASSWORD);
 
         return new PasswordGrantAuthenticationToken(
                 clientPrincipal, requestedScopes, additionalParameters,
@@ -77,8 +82,8 @@ public class PasswordGrantAuthenticationConverter implements AuthenticationConve
     /** 判断是否为标准 OAuth2 参数（这些参数已被专用字段处理，无需放入 additionalParameters）。 */
     private boolean isStandardParameter(String name) {
         return OAuth2ParameterNames.GRANT_TYPE.equals(name)
-                || OAuth2ParameterNames.USERNAME.equals(name)
-                || OAuth2ParameterNames.PASSWORD.equals(name)
+                || PARAM_USERNAME.equals(name)
+                || PARAM_PASSWORD.equals(name)
                 || OAuth2ParameterNames.SCOPE.equals(name)
                 || OAuth2ParameterNames.CLIENT_ID.equals(name)
                 || OAuth2ParameterNames.CLIENT_SECRET.equals(name);

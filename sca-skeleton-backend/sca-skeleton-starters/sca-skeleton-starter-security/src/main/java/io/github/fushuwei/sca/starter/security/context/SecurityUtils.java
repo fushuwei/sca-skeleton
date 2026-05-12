@@ -3,16 +3,16 @@ package io.github.fushuwei.sca.starter.security.context;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+
+import java.util.Map;
 
 /**
  * Security 上下文工具类。
  * <p>
- * 提供从当前线程 SecurityContext 中提取 JWT Claims 的静态方法，
- * 可在 Controller、Service 层直接调用，无需注入 Security 相关依赖。
- * <p>
- * 注意：此工具类依赖 Spring Security 的 ThreadLocal SecurityContext，
- * 在异步线程中需要配合 {@code DelegatingSecurityContextExecutor} 或手动传递上下文。
+ * 从当前线程 SecurityContext 读取不透明令牌自省后的属性或 JWT Claims（兼容双模式），
+ * 供 Controller、Service 直接获取用户上下文。
  *
  * @author Fu Wei
  */
@@ -22,14 +22,12 @@ public final class SecurityUtils {
     }
 
     /**
-     * 获取当前认证的 JWT 对象。
+     * 获取当前 JWT（仅当认证类型为 {@link JwtAuthenticationToken} 时）。
      *
-     * @return JWT 实例，未认证或认证类型不匹配时返回 {@code null}
+     * @return JWT；非 JWT 资源服务器时返回 null
      */
     public static Jwt getCurrentJwt() {
-        // 从当前线程的 SecurityContext 中获取认证信息
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // 仅处理 JWT 认证类型，其他认证方式（如 UsernamePassword）返回 null
         if (authentication instanceof JwtAuthenticationToken jwtAuth) {
             return jwtAuth.getToken();
         }
@@ -37,49 +35,64 @@ public final class SecurityUtils {
     }
 
     /**
-     * 从 JWT Claims 中获取当前用户 ID（对应 sub 字段或自定义 Claims）。
+     * 获取当前请求的 token 属性 Map：不透明令牌为 {@link BearerTokenAuthentication#getTokenAttributes()}，
+     * JWT 为 {@link Jwt#getClaims()}。
      *
-     * @return 用户 ID 字符串，未认证时返回 {@code null}
+     * @return 属性 Map；未认证或类型不支持时返回 null
      */
-    public static String getCurrentUserId() {
-        Jwt jwt = getCurrentJwt();
-        // JWT 为 null 表示当前请求未认证
-        if (jwt == null) {
-            return null;
+    public static Map<String, Object> getTokenAttributes() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof BearerTokenAuthentication bearer) {
+            return bearer.getTokenAttributes();
         }
-        // sub 字段是 JWT 标准 Subject，通常存储用户唯一标识
-        return jwt.getSubject();
+        if (authentication instanceof JwtAuthenticationToken jwtAuth) {
+            return jwtAuth.getToken().getClaims();
+        }
+        return null;
     }
 
     /**
-     * 从 JWT Claims 中获取指定字段值。
+     * 从 token 属性或 JWT 中获取用户 ID（默认 sub）。
      *
-     * @param claimName JWT Claims 字段名
-     * @return 字段值，字段不存在或未认证时返回 {@code null}
+     * @return 用户 ID；未认证时返回 null
      */
-    public static String getClaim(String claimName) {
-        Jwt jwt = getCurrentJwt();
-        if (jwt == null) {
+    public static String getCurrentUserId() {
+        Map<String, Object> attrs = getTokenAttributes();
+        if (attrs == null) {
             return null;
         }
-        // 从 JWT Claims Map 中获取指定字段，转换为字符串返回
-        Object claim = jwt.getClaims().get(claimName);
+        Object sub = attrs.get("sub");
+        return sub != null ? sub.toString() : null;
+    }
+
+    /**
+     * 从 token 属性或 JWT 中读取指定声明/字段的字符串形式。
+     *
+     * @param claimName 字段名
+     * @return 字符串值；缺失或未认证时返回 null
+     */
+    public static String getClaim(String claimName) {
+        Map<String, Object> attrs = getTokenAttributes();
+        if (attrs == null) {
+            return null;
+        }
+        Object claim = attrs.get(claimName);
         return claim != null ? claim.toString() : null;
     }
 
     /**
-     * 从 JWT Claims 中获取当前登录用户名（preferred_username）。
+     * 获取当前登录用户名（preferred_username）。
      *
-     * @return 用户名，未认证时返回 {@code null}
+     * @return 用户名；未认证时返回 null
      */
     public static String getUsername() {
         return getClaim("preferred_username");
     }
 
     /**
-     * 从 JWT Claims 中获取当前用户的租户 ID（tenant_id）。
+     * 获取租户 ID（tenant_id）。
      *
-     * @return 租户 ID，未认证或无该字段时返回 {@code null}
+     * @return 租户 ID；未认证或无该字段时返回 null
      */
     public static String getTenantId() {
         return getClaim("tenant_id");
@@ -92,7 +105,6 @@ public final class SecurityUtils {
      */
     public static boolean isAuthenticated() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // authentication 不为 null 且 isAuthenticated() 为 true 才算真正认证
         return authentication != null && authentication.isAuthenticated()
                 && !(authentication instanceof org.springframework.security.authentication.AnonymousAuthenticationToken);
     }

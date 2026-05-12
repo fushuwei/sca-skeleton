@@ -108,8 +108,10 @@ spring:
   security:
     oauth2:
       resourceserver:
-        jwt:
-          issuer-uri: http://127.0.0.1:9001
+        opaquetoken:
+          introspection-uri: http://127.0.0.1:9001/oauth2/introspect
+          client-id: sca-web-client
+          client-secret: sca-web-secret
 
 server:
   port: 9999

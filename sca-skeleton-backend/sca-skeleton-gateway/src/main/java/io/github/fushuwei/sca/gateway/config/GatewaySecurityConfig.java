@@ -2,43 +2,71 @@ package io.github.fushuwei.sca.gateway.config;
 
 import io.github.fushuwei.sca.gateway.handler.GatewayAccessDeniedHandler;
 import io.github.fushuwei.sca.gateway.handler.GatewayAuthenticationEntryPoint;
+import io.github.fushuwei.sca.gateway.security.PermissionsReactiveOpaqueTokenAuthenticationConverter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
+import org.springframework.security.oauth2.server.resource.introspection.SpringReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.util.AntPathMatcher;
+import org.springframework.util.StringUtils;
 
 /**
  * 网关响应式安全配置。
  * <p>
- * 职责：
- * <ol>
- *   <li>白名单路径直接放行（无需 JWT）</li>
- *   <li>其余请求验证 JWT 有效性（签名、有效期、issuer）</li>
- *   <li>将 JWT scope/permissions 映射为 GrantedAuthority</li>
- *   <li>自定义 401/403 响应（JSON 格式，保持与下游服务统一）</li>
- * </ol>
- * <p>
- * 注意：网关仅做 JWT 合法性验证，细粒度鉴权由下游资源服务负责。
+ * 白名单外请求经 OAuth2 不透明令牌自省校验；权限来自 {@code permissions} 声明。
  *
  * @author Fu Wei
  */
 @Configuration
 @EnableWebFluxSecurity
+@EnableConfigurationProperties(OAuth2ResourceServerProperties.class)
 @RequiredArgsConstructor
 public class GatewaySecurityConfig {
 
+    /**
+     * 网关路由白名单等自定义属性。
+     */
     private final GatewayProperties gatewayProperties;
+
+    /**
+     * 403 处理器。
+     */
     private final GatewayAccessDeniedHandler accessDeniedHandler;
+
+    /**
+     * 401 入口。
+     */
     private final GatewayAuthenticationEntryPoint authenticationEntryPoint;
 
+    /**
+     * Boot 标准 OAuth2 资源服务器属性（opaque introspection）。
+     */
+    private final OAuth2ResourceServerProperties oauth2ResourceServerProperties;
+
+    /**
+     * 配置安全过滤链：自省、白名单、异常响应。
+     *
+     * @param http ServerHttpSecurity
+     * @return SecurityWebFilterChain
+     */
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
-        // 动态构建白名单数组
+        OAuth2ResourceServerProperties.Opaquetoken opaque = oauth2ResourceServerProperties.getOpaquetoken();
+        if (!StringUtils.hasText(opaque.getIntrospectionUri())
+                || !StringUtils.hasText(opaque.getClientId())
+                || !StringUtils.hasText(opaque.getClientSecret())) {
+            throw new IllegalStateException(
+                    "网关需配置 spring.security.oauth2.resourceserver.opaquetoken "
+                            + "(introspection-uri, client-id, client-secret)");
+        }
+        ReactiveOpaqueTokenIntrospector introspector = new SpringReactiveOpaqueTokenIntrospector(
+                opaque.getIntrospectionUri(), opaque.getClientId(), opaque.getClientSecret());
+
         String[] whiteList = gatewayProperties.getWhiteList().toArray(new String[0]);
 
         http
@@ -50,7 +78,9 @@ public class GatewaySecurityConfig {
                 .anyExchange().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                .opaqueToken(opaqueToken -> opaqueToken
+                    .introspector(introspector)
+                    .authenticationConverter(new PermissionsReactiveOpaqueTokenAuthenticationConverter()))
                 .authenticationEntryPoint(authenticationEntryPoint)
                 .accessDeniedHandler(accessDeniedHandler)
             )
@@ -60,21 +90,5 @@ public class GatewaySecurityConfig {
             );
 
         return http.build();
-    }
-
-    /**
-     * JWT 认证转换器：将 JWT 中的 permissions claim 映射为 Spring Security GrantedAuthority。
-     * 权限码格式与授权服务器写入的 permissions claim 一致（如 sys:user:list）。
-     */
-    private ReactiveJwtAuthenticationConverter jwtAuthenticationConverter() {
-        ReactiveJwtGrantedAuthoritiesConverter grantedAuthoritiesConverter =
-                new ReactiveJwtGrantedAuthoritiesConverter();
-        // 从 permissions claim 读取权限（不加 SCOPE_ 前缀）
-        grantedAuthoritiesConverter.setAuthoritiesClaimName("permissions");
-        grantedAuthoritiesConverter.setAuthorityPrefix("");
-
-        ReactiveJwtAuthenticationConverter converter = new ReactiveJwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
-        return converter;
     }
 }

@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  * <p>
  * 登录时由 {@link ScaUserDetailsService} 构建，并传入 Spring Security 认证上下文。
  * 自定义授权流程中，该对象会被存入 {@code Authentication.getPrincipal()}，
- * 供 {@link io.github.fushuwei.sca.auth.token.ScaTokenCustomizer} 读取并写入 JWT Claims。
+ * 供 {@link io.github.fushuwei.sca.auth.token.ScaOpaqueAccessTokenClaimsCustomizer} 写入不透明访问令牌的自省 claims。
  *
  * @author Fu Wei
  */

@@ -53,23 +53,23 @@ spring:
           filters:
             - StripPrefix=1
 
-  # OAuth2 资源服务器：从认证服务获取 JWK Set 完成 JWT 验签
+  # OAuth2 资源服务器：不透明 access_token 经自省端点校验
   security:
     oauth2:
       resourceserver:
-        jwt:
-          # 认证服务 JWK Set 端点；网关用此公钥验证 access_token 签名
-          jwk-set-uri: ${AUTH_JWK_SET_URI:http://localhost:9000/oauth2/jwks}
-          # issuer-uri 用于验证 JWT 的 iss claim
-          issuer-uri: ${AUTH_ISSUER_URI:http://sca-skeleton-auth:9000}
+        opaquetoken:
+          # 直连认证服务自省（避免经网关回环）；容器内使用服务名与端口 9000
+          introspection-uri: ${AUTH_INTROSPECTION_URI:http://localhost:9000/oauth2/introspect}
+          client-id: ${AUTH_INTROSPECTION_CLIENT_ID:sca-web-client}
+          # 与注册客户端密钥一致（不含 {noop} 前缀）；生产请用环境变量注入
+          client-secret: ${AUTH_INTROSPECTION_CLIENT_SECRET:sca-web-secret}
 
 # 网关安全配置
 sca:
   gateway:
-    # 不需要 JWT 的白名单路径（支持 Ant 风格）
+    # 不需要 access_token 的白名单路径（支持 Ant 风格）
     white-list:
       - /auth/oauth2/token
-      - /auth/oauth2/jwks
       - /auth/login
       - /auth/captcha/**
       - /actuator/health

@@ -34,7 +34,7 @@ import java.util.Set;
  *   <li>通过 {@link ScaUserDetailsService} 加载用户，验证密码与账号状态</li>
  *   <li>计算最终允许的 scope（取请求 scope 与客户端注册 scope 的交集）</li>
  *   <li>调用 SAS 标准 {@link OAuth2TokenGenerator} 生成 access_token 和 refresh_token</li>
- *   <li>将授权记录持久化到 {@link OAuth2AuthorizationService}（JDBC 存储）</li>
+ *   <li>将授权记录持久化到 {@link OAuth2AuthorizationService}（Redis 存储）</li>
  * </ol>
  *
  * @author Fu Wei

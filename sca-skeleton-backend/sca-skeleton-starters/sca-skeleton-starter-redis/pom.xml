@@ -43,6 +43,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aspectj</artifactId>
         </dependency>
+        <!-- RateLimitAspect 依赖 RequestContextHolder / HttpServletRequest，编译期由 spring-web 与 Servlet API 提供 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <!-- Lombok：简化工具类与配置类的样板代码 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
