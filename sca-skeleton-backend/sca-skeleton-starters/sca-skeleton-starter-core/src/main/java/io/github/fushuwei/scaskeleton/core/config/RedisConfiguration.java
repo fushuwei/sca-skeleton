@@ -1,12 +1,16 @@
 package io.github.fushuwei.scaskeleton.core.config;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
+
+import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET;
 
 /**
  * Redis 自动配置类
@@ -18,6 +22,8 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  */
 @EnableCaching
 @AutoConfiguration
+@ConditionalOnBean(RedisConnectionFactory.class)  // 如果没有配置 Redis 连接，RedisTemplate Bean 会因注入失败而报错
+@ConditionalOnWebApplication(type = SERVLET)  // 只允许在 Servlet 应用中加载该配置，如果是响应式服务（比如网关）
 public class RedisConfiguration {
 
     /**
