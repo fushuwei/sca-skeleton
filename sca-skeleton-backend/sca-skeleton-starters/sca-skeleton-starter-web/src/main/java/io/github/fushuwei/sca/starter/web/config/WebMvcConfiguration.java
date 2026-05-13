@@ -64,21 +64,4 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
                     .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         };
     }
-
-    /**
-     * 默认 CORS 策略，服务本地开发与集成测试场景。
-     * 生产环境应由 API 网关统一管控 CORS，可在业务模块声明 WebMvcConfigurer Bean 覆盖此配置。
-     */
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                // 允许所有来源，生产时应限定具体域名
-                .allowedOriginPatterns("*")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-                .allowedHeaders("*")
-                // 允许携带认证信息（Cookie、Authorization 等）
-                .allowCredentials(true)
-                // 预检请求缓存 1 小时，减少 OPTIONS 请求频次
-                .maxAge(3600);
-    }
 }
