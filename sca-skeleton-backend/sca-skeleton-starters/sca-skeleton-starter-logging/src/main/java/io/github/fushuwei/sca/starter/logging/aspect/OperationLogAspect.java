@@ -1,8 +1,8 @@
 package io.github.fushuwei.sca.starter.logging.aspect;
 
 import tools.jackson.databind.ObjectMapper;
-import io.github.fushuwei.sca.starter.core.trace.TraceContext;
-import io.github.fushuwei.sca.starter.core.user.CurrentUserProvider;
+import io.github.fushuwei.scaskeleton.core.trace.TraceContext;
+import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.sca.starter.logging.annotation.OperationLog;
 import io.github.fushuwei.sca.starter.logging.handler.OperationLogHandler;
 import io.github.fushuwei.sca.starter.logging.model.OperationLogRecord;
@@ -18,7 +18,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 /**
  * 操作日志切面。

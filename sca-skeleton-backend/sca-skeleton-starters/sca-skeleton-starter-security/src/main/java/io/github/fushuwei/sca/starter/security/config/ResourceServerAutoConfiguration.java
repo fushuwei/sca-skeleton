@@ -1,7 +1,7 @@
 package io.github.fushuwei.sca.starter.security.config;
 
 import tools.jackson.databind.ObjectMapper;
-import io.github.fushuwei.sca.starter.core.user.CurrentUserProvider;
+import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.sca.starter.security.handler.SecurityAccessDeniedHandler;
 import io.github.fushuwei.sca.starter.security.handler.SecurityAuthenticationEntryPoint;
 import io.github.fushuwei.sca.starter.security.introspection.PermissionsOpaqueTokenAuthenticationConverter;

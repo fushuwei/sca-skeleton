@@ -1,6 +1,6 @@
 package io.github.fushuwei.sca.starter.security.user;
 
-import io.github.fushuwei.sca.starter.core.user.CurrentUserProvider;
+import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.sca.starter.security.context.SecurityUtils;
 import io.github.fushuwei.sca.starter.security.properties.SecurityProperties;
 import lombok.RequiredArgsConstructor;

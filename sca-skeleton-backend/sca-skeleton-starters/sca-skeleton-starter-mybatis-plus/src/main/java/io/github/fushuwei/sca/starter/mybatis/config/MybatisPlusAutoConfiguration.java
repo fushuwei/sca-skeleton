@@ -1,6 +1,6 @@
 package io.github.fushuwei.sca.starter.mybatis.config;
 
-import io.github.fushuwei.sca.starter.core.user.CurrentUserProvider;
+import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.sca.starter.mybatis.handler.MybatisPlusMetaObjectHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

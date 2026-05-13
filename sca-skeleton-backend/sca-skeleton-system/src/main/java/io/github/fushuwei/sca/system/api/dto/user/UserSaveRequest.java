@@ -1,6 +1,6 @@
 package io.github.fushuwei.sca.system.api.dto.user;
 
-import io.github.fushuwei.sca.starter.core.validation.ValidGroup;
+import io.github.fushuwei.scaskeleton.core.validation.ValidGroup;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;

@@ -1,2 +1,2 @@
-io.github.fushuwei.sca.starter.core.config.CoreAutoConfiguration
-io.github.fushuwei.sca.starter.core.config.RedisConfiguration
+io.github.fushuwei.scaskeleton.core.config.CoreAutoConfiguration
+io.github.fushuwei.scaskeleton.core.config.RedisConfiguration

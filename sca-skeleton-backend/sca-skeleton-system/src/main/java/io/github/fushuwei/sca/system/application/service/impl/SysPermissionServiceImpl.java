@@ -1,8 +1,8 @@
 package io.github.fushuwei.sca.system.application.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import io.github.fushuwei.sca.starter.core.exception.BusinessException;
-import io.github.fushuwei.sca.starter.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
+import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
 import io.github.fushuwei.sca.system.api.dto.permission.PermissionSaveRequest;
 import io.github.fushuwei.sca.system.application.service.SysPermissionService;
 import io.github.fushuwei.sca.system.infrastructure.entity.SysPermission;

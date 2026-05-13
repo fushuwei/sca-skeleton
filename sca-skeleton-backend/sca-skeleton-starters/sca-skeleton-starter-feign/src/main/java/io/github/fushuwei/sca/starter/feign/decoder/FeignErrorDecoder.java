@@ -2,8 +2,8 @@ package io.github.fushuwei.sca.starter.feign.decoder;
 
 import feign.Response;
 import feign.codec.ErrorDecoder;
-import io.github.fushuwei.sca.starter.core.exception.BusinessException;
-import io.github.fushuwei.sca.starter.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
+import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

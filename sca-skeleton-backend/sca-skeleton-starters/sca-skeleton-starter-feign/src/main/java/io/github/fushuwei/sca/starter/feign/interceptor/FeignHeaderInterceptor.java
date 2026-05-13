@@ -2,8 +2,8 @@ package io.github.fushuwei.sca.starter.feign.interceptor;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
-import io.github.fushuwei.sca.starter.core.constant.GlobalConstants;
-import io.github.fushuwei.sca.starter.core.trace.TraceContext;
+import io.github.fushuwei.scaskeleton.core.constant.GlobalConstants;
+import io.github.fushuwei.scaskeleton.core.trace.TraceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.context.request.RequestContextHolder;

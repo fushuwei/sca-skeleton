@@ -1,7 +1,7 @@
 package io.github.fushuwei.sca.system.api.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import io.github.fushuwei.sca.starter.core.validation.ValidGroup;
+import io.github.fushuwei.scaskeleton.core.validation.ValidGroup;
 import io.github.fushuwei.sca.starter.security.context.SecurityUtils;
 import io.github.fushuwei.sca.starter.web.response.ApiResponse;
 import io.github.fushuwei.sca.system.api.dto.user.UserPageRequest;

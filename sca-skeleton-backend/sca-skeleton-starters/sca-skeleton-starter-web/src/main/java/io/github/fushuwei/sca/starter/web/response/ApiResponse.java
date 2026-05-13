@@ -1,6 +1,6 @@
 package io.github.fushuwei.sca.starter.web.response;
 
-import io.github.fushuwei.sca.starter.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
 
 /**
  * 统一 API 响应体。

@@ -1,7 +1,7 @@
 package io.github.fushuwei.sca.starter.web.exception;
 
-import io.github.fushuwei.sca.starter.core.exception.BusinessException;
-import io.github.fushuwei.sca.starter.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
+import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
 import io.github.fushuwei.sca.starter.web.response.ApiResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;

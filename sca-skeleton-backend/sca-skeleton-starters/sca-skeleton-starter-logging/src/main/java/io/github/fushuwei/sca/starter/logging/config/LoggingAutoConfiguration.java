@@ -1,7 +1,7 @@
 package io.github.fushuwei.sca.starter.logging.config;
 
 import tools.jackson.databind.ObjectMapper;
-import io.github.fushuwei.sca.starter.core.user.CurrentUserProvider;
+import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.sca.starter.logging.aspect.OperationLogAspect;
 import io.github.fushuwei.sca.starter.logging.handler.OperationLogHandler;
 import org.springframework.beans.factory.annotation.Autowired;

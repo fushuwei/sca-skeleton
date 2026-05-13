@@ -1,7 +1,7 @@
 package io.github.fushuwei.sca.starter.security.handler;
 
 import tools.jackson.databind.ObjectMapper;
-import io.github.fushuwei.sca.starter.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
