@@ -49,6 +49,7 @@
         </dependency>
 
         <!-- caffeine 本地内存缓存 (高性能，减轻注册中心压力，提升网关稳定性)，只需引入该依赖即可，自动生效，无需任何配置 -->
+        <!-- 因为 spring-cloud-starter-loadbalancer 已经依赖了 spring-boot-starter-cache，所以当前文件无需再次手动添加 spring-boot-starter-cache -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
