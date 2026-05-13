@@ -15,7 +15,8 @@
     <packaging>jar</packaging>
 
     <name>SCA Skeleton Backend :: Starter :: Core</name>
-    <description>Core foundation: exception hierarchy, error codes, UUID utils, TraceId context, validation groups</description>
+    <description>Core foundation: exception hierarchy, error codes, UUID utils, TraceId context, validation groups
+    </description>
 
     <dependencies>
         <!-- Spring Boot 自动配置支持：提供 @AutoConfiguration、条件注解等核心 SPI -->
@@ -28,6 +29,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jackson</artifactId>
         </dependency>
 
         <!-- 配置元数据处理器：生成 spring-configuration-metadata.json，支持 IDE 属性提示 -->
