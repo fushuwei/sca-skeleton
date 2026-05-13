@@ -1,7 +1,10 @@
 package io.github.fushuwei.scaskeleton.core.util;
 
-import cn.hutool.core.convert.Convert;
-import lombok.experimental.UtilityClass;
+import cn.hutool.extra.spring.SpringUtil;
+import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.Cursor;
@@ -9,665 +12,626 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisConnectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.data.redis.core.ZSetOperations;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 缓存工具类，注意这里都是基于RedisTemplate 来操作的
+ * Redis 操作工具类
+ * <p>
+ * 提供便捷的静态方法操作 Redis 中的 String、Hash、Set、List、ZSet 等数据结构。
  *
- * @author XX
- * @date 2023/05/12
+ * @author Fu Wei
  */
-@UtilityClass
-public class RedisUtils {
+public final class RedisUtils {
 
-	private static final Long SUCCESS = 1L;
+    private static volatile RedisTemplate<String, Object> redisTemplate;
 
-	/**
-	 * 指定缓存失效时间
-	 * @param key 键
-	 * @param time 时间(秒)
-	 */
-	public boolean expire(String key, long time) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		Optional.ofNullable(redisTemplate)
-			.filter(template -> time > 0)
-			.ifPresent(template -> template.expire(key, time, TimeUnit.SECONDS));
-		return true;
-	}
+    private RedisUtils() {
+    }
 
-	/**
-	 * 根据 key 获取过期时间
-	 * @param key 键 不能为null
-	 * @return 时间(秒) 返回0代表为永久有效
-	 */
-	public long getExpire(String key) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return Optional.ofNullable(redisTemplate)
-			.map(template -> template.getExpire(key, TimeUnit.SECONDS))
-			.orElse(-1L);
-	}
+    @Component
+    @RequiredArgsConstructor
+    static class Injector implements ApplicationListener<ApplicationReadyEvent> {
 
-	/**
-	 * 查找匹配key
-	 * @param pattern key
-	 * @return /
-	 */
-	public List<String> scan(String pattern) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		ScanOptions options = ScanOptions.scanOptions().match(pattern).build();
-		return Optional.ofNullable(redisTemplate).map(template -> {
-			RedisConnectionFactory factory = template.getConnectionFactory();
-			RedisConnection rc = Objects.requireNonNull(factory).getConnection();
-			Cursor<byte[]> cursor = rc.keyCommands().scan(options);
-			List<String> result = new ArrayList<>();
-			while (cursor.hasNext()) {
-				result.add(new String(cursor.next()));
-			}
-			RedisConnectionUtils.releaseConnection(rc, factory);
-			return result;
-		}).orElse(Collections.emptyList());
-	}
+        private final RedisTemplate<String, Object> redisTemplate;
 
-	/**
-	 * 查找匹配key (使用KEYS命令)
-	 * @param pattern key模式，支持通配符 * ? [] 等
-	 * @return 匹配的key列表
-	 * @apiNote 注意：KEYS命令会阻塞Redis服务器，生产环境建议使用scan方法
-	 */
-	public Set<String> keys(String pattern) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return Optional.ofNullable(redisTemplate)
-			.map(template -> template.keys(pattern))
-			.orElse(Collections.emptySet());
-	}
+        @Override
+        public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
+            RedisUtils.redisTemplate = redisTemplate;
+        }
+    }
 
-	/**
-	 * 分页查询 key
-	 * @param patternKey key
-	 * @param page 页码
-	 * @param size 每页数目
-	 * @return /
-	 */
-	public List<String> findKeysForPage(String patternKey, int page, int size) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		ScanOptions options = ScanOptions.scanOptions().match(patternKey).build();
-		RedisConnectionFactory factory = redisTemplate.getConnectionFactory();
-		RedisConnection rc = Objects.requireNonNull(factory).getConnection();
-		Cursor<byte[]> cursor = rc.keyCommands().scan(options);
-		List<String> result = new ArrayList<>(size);
-		int tmpIndex = 0;
-		int fromIndex = page * size;
-		int toIndex = page * size + size;
-		while (cursor.hasNext()) {
-			if (tmpIndex >= fromIndex && tmpIndex < toIndex) {
-				result.add(new String(cursor.next()));
-				tmpIndex++;
-				continue;
-			}
-			// 获取到满足条件的数据后,就可以退出了
-			if (tmpIndex >= toIndex) {
-				break;
-			}
-			tmpIndex++;
-			cursor.next();
-		}
-		RedisConnectionUtils.releaseConnection(rc, factory);
-		return result;
-	}
+    @SuppressWarnings("unchecked")
+    private static RedisTemplate<String, Object> getRedisTemplate() {
+        if (redisTemplate == null) {
+            synchronized (RedisUtils.class) {
+                if (redisTemplate == null) {
+                    redisTemplate = SpringUtil.getBean(RedisTemplate.class);
+                }
+            }
+        }
+        return redisTemplate;
+    }
 
-	/**
-	 * 判断key是否存在
-	 * @param key 键
-	 * @return true 存在 false不存在
-	 */
-	public boolean hasKey(String key) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return Optional.ofNullable(redisTemplate).map(template -> template.hasKey(key)).orElse(false);
-	}
+    // ======================== Key 操作 ========================
 
-	/**
-	 * 删除缓存
-	 * @param keys 可以传一个值 或多个
-	 */
-	public void delete(String... keys) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		if (keys != null) {
-			Arrays.stream(keys).forEach(redisTemplate::delete);
-		}
-	}
+    /**
+     * 设置 Key 的过期时间。
+     *
+     * @param key     Redis Key
+     * @param timeout 过期时间
+     * @param unit    时间单位
+     * @return true 表示设置成功
+     */
+    public static boolean expire(String key, long timeout, TimeUnit unit) {
+        return Boolean.TRUE.equals(getRedisTemplate().expire(key, timeout, unit));
+    }
 
-	/**
-	 * 获取锁
-	 * @param lockKey 锁key
-	 * @param value value
-	 * @param expireTime：单位-秒
-	 * @return boolean
-	 */
-	public boolean getLock(String lockKey, String value, int expireTime) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return Optional.ofNullable(redisTemplate)
-			.map(template -> template.opsForValue().setIfAbsent(lockKey, value, expireTime, TimeUnit.SECONDS))
-			.orElse(false);
-	}
+    /**
+     * 设置 Key 的过期时间（秒）。
+     *
+     * @param key     Redis Key
+     * @param seconds 过期秒数
+     * @return true 表示设置成功
+     */
+    public static boolean expire(String key, long seconds) {
+        return expire(key, seconds, TimeUnit.SECONDS);
+    }
 
-	/**
-	 * 释放锁
-	 * @param lockKey 锁key
-	 * @param value value
-	 * @return boolean
-	 */
-	public boolean releaseLock(String lockKey, String value) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
-		RedisScript<Long> redisScript = new DefaultRedisScript<>(script, Long.class);
-		return Optional.ofNullable(redisTemplate.execute(redisScript, Collections.singletonList(lockKey), value))
-			.map(Convert::toLong)
-			.filter(SUCCESS::equals)
-			.isPresent();
-	}
+    /**
+     * 获取 Key 的剩余过期时间。
+     *
+     * @param key  Redis Key
+     * @param unit 时间单位
+     * @return 剩余时间，Key 不存在或永不过期返回 -2
+     */
+    public static long getExpire(String key, TimeUnit unit) {
+        Long expire = getRedisTemplate().getExpire(key, unit);
+        return expire != null ? expire : -2;
+    }
 
-	// ============================String=============================
+    /**
+     * 获取 Key 的剩余过期时间（秒）。
+     *
+     * @param key Redis Key
+     * @return 剩余秒数，Key 不存在或永不过期返回 -2
+     */
+    public static long getExpire(String key) {
+        return getExpire(key, TimeUnit.SECONDS);
+    }
 
-	/**
-	 * 普通缓存获取
-	 * @param key 键
-	 * @return 值
-	 */
-	public <T> T get(String key) {
-		RedisTemplate<String, T> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForValue().get(key);
-	}
+    /**
+     * 判断 Key 是否存在。
+     *
+     * @param key Redis Key
+     * @return true 表示存在
+     */
+    public static boolean hasKey(String key) {
+        return Boolean.TRUE.equals(getRedisTemplate().hasKey(key));
+    }
 
-	/**
-	 * 批量获取
-	 * @param keys
-	 * @return
-	 */
-	public <T> List<T> multiGet(List<String> keys) {
-		RedisTemplate<String, T> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForValue().multiGet(keys);
-	}
+    /**
+     * 删除单个 Key。
+     *
+     * @param key Redis Key
+     * @return true 表示删除成功
+     */
+    public static boolean delete(String key) {
+        return Boolean.TRUE.equals(getRedisTemplate().delete(key));
+    }
 
-	/**
-	 * 普通缓存放入
-	 * @param key 键
-	 * @param value 值
-	 * @return true成功 false失败
-	 */
-	public boolean set(String key, Object value) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		Optional.ofNullable(redisTemplate).map(template -> {
-			template.opsForValue().set(key, value);
-			return true;
-		});
-		return true;
-	}
+    /**
+     * 批量删除 Key。
+     *
+     * @param keys Key 集合
+     * @return 实际删除的 Key 数量
+     */
+    public static long delete(Collection<String> keys) {
+        Long count = getRedisTemplate().delete(keys);
+        return count != null ? count : 0;
+    }
 
-	/**
-	 * 普通缓存放入并设置时间
-	 * @param key 键
-	 * @param value 值
-	 * @param time 时间(秒) time要大于0 如果time小于等于0 将设置无限期
-	 * @return true成功 false 失败
-	 */
-	public boolean set(String key, Object value, long time) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return Optional.ofNullable(redisTemplate).map(template -> {
-			if (time > 0) {
-				template.opsForValue().set(key, value, time, TimeUnit.SECONDS);
-			}
-			else {
-				template.opsForValue().set(key, value);
-			}
-			return true;
-		}).orElse(false);
-	}
+    /**
+     * 删除一个或多个 Key。
+     *
+     * @param keys 可变参数 Key 列表
+     */
+    public static void delete(String... keys) {
+        if (keys != null) {
+            RedisTemplate<String, Object> t = getRedisTemplate();
+            for (String key : keys) {
+                t.delete(key);
+            }
+        }
+    }
 
-	/**
-	 * 普通缓存放入并设置时间
-	 * @param key 键
-	 * @param value 值
-	 * @param time 时间
-	 * @param timeUnit 类型
-	 * @return true成功 false 失败
-	 */
-	public <T> boolean set(String key, T value, long time, TimeUnit timeUnit) {
-		RedisTemplate<String, T> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		Optional.ofNullable(redisTemplate).map(template -> {
-			if (time > 0) {
-				template.opsForValue().set(key, value, time, timeUnit);
-			}
-			else {
-				template.opsForValue().set(key, value);
-			}
-			return true;
-		});
-		return true;
-	}
+    /**
+     * 使用 KEYS 命令查找匹配的 Key。
+     * <p>
+     * 注意：KEYS 命令会阻塞 Redis 服务器，生产环境请使用 {@link #scan(String)}。
+     *
+     * @param pattern Key 匹配模式，支持通配符 * ? []
+     * @return 匹配的 Key 集合
+     */
+    public static Set<String> keys(String pattern) {
+        return getRedisTemplate().keys(pattern);
+    }
 
-	/**
-	 * 执行 Redis 命令回调
-	 * @param callback Redis回调函数
-	 * @return 执行结果
-	 */
-	public <T> T execute(RedisCallback<T> callback) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return (T) redisTemplate.execute(callback);
-	}
+    /**
+     * 使用 SCAN 命令查找匹配的 Key（无数量限制）。
+     *
+     * @param pattern Key 匹配模式
+     * @return 匹配的 Key 列表
+     */
+    public static List<String> scan(String pattern) {
+        return scan(pattern, -1);
+    }
 
-	// ================================Map=================================
+    /**
+     * 使用 SCAN 命令查找匹配的 Key。
+     *
+     * @param pattern Key 匹配模式
+     * @param count   每次 SCAN 的约数数量（-1 表示不限制）
+     * @return 匹配的 Key 列表
+     */
+    public static List<String> scan(String pattern, int count) {
+        RedisConnectionFactory factory = getRedisTemplate().getConnectionFactory();
+        Objects.requireNonNull(factory, "RedisConnectionFactory must not be null");
 
-	/**
-	 * HashGet
-	 * @param key 键 不能为null
-	 * @param hashKey 项 不能为null
-	 * @return 值
-	 */
-	public <HK, HV> HV hget(String key, HK hashKey) {
-		RedisTemplate<String, HV> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.<HK, HV>opsForHash().get(key, hashKey);
-	}
+        RedisConnection connection = factory.getConnection();
+        try {
+            ScanOptions.Builder builder = ScanOptions.scanOptions().match(pattern);
+            if (count > 0) {
+                builder.count(count);
+            }
+            Cursor<byte[]> cursor = connection.keyCommands().scan(builder.build());
+            List<String> result = new ArrayList<>();
+            while (cursor.hasNext()) {
+                result.add(new String(cursor.next(), StandardCharsets.UTF_8));
+            }
+            return result;
+        } finally {
+            RedisConnectionUtils.releaseConnection(connection, factory);
+        }
+    }
 
-	/**
-	 * 获取hashKey对应的所有键值
-	 * @param key 键
-	 * @return 对应的多个键值
-	 */
-	public <HK, HV> Map<HK, HV> hmget(String key) {
-		RedisTemplate<String, HV> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.<HK, HV>opsForHash().entries(key);
-	}
+    /**
+     * 分页查询匹配的 Key（基于 SCAN 命令模拟分页）。
+     *
+     * @param pattern Key 匹配模式
+     * @param page    页码（从 0 开始）
+     * @param size    每页大小
+     * @return 当前页的 Key 列表
+     */
+    public static List<String> scanKeysForPage(String pattern, int page, int size) {
+        RedisConnectionFactory factory = getRedisTemplate().getConnectionFactory();
+        Objects.requireNonNull(factory, "RedisConnectionFactory must not be null");
 
-	/**
-	 * HashSet
-	 * @param key 键
-	 * @param map 对应多个键值
-	 * @return true 成功 false 失败
-	 */
-	public boolean hmset(String key, Map<String, Object> map) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		Optional.ofNullable(redisTemplate).map(template -> {
-			template.opsForHash().putAll(key, map);
-			return true;
-		});
-		return true;
-	}
+        RedisConnection connection = factory.getConnection();
+        try {
+            ScanOptions options = ScanOptions.scanOptions().match(pattern).build();
+            Cursor<byte[]> cursor = connection.keyCommands().scan(options);
 
-	/**
-	 * HashSet 并设置时间
-	 * @param key 键
-	 * @param map 对应多个键值
-	 * @param time 时间(秒)
-	 * @return true成功 false失败
-	 */
-	public boolean hmset(String key, Map<String, Object> map, long time) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		Optional.ofNullable(redisTemplate).map(template -> {
-			template.opsForHash().putAll(key, map);
-			if (time > 0) {
-				template.expire(key, time, TimeUnit.SECONDS);
-			}
-			return true;
-		});
-		return true;
-	}
+            int fromIndex = page * size;
+            int toIndex = fromIndex + size;
+            List<String> result = new ArrayList<>(size);
+            int index = 0;
 
-	/**
-	 * 向一张hash表中放入数据,如果不存在将创建
-	 * @param key 键
-	 * @param item 项
-	 * @param value 值
-	 * @return true 成功 false失败
-	 */
-	public boolean hset(String key, String item, Object value) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return Optional.ofNullable(redisTemplate).map(template -> {
-			template.opsForHash().put(key, item, value);
-			return true;
-		}).orElse(false);
-	}
+            while (cursor.hasNext()) {
+                if (index >= toIndex) {
+                    break;
+                }
+                byte[] keyBytes = cursor.next();
+                if (index >= fromIndex) {
+                    result.add(new String(keyBytes, StandardCharsets.UTF_8));
+                }
+                index++;
+            }
+            return result;
+        } finally {
+            RedisConnectionUtils.releaseConnection(connection, factory);
+        }
+    }
 
-	/**
-	 * 向一张hash表中放入数据,如果不存在将创建
-	 * @param key 键
-	 * @param item 项
-	 * @param value 值
-	 * @param time 时间(秒) 注意:如果已存在的hash表有时间,这里将会替换原有的时间
-	 * @return true 成功 false失败
-	 */
-	public boolean hset(String key, String item, Object value, long time) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return Optional.ofNullable(redisTemplate).map(template -> {
-			template.opsForHash().put(key, item, value);
-			if (time > 0) {
-				template.expire(key, time, TimeUnit.SECONDS);
-			}
-			return true;
-		}).orElse(false);
-	}
+    // ======================== String 操作 ========================
 
-	/**
-	 * 删除hash表中的值
-	 * @param key 键 不能为null
-	 * @param item 项 可以使多个 不能为null
-	 */
-	public void hdel(String key, Object... item) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		redisTemplate.opsForHash().delete(key, item);
-	}
+    /**
+     * 获取 String 类型的值。
+     *
+     * @param key Redis Key
+     * @param <T> 值类型
+     * @return 值，不存在时返回 null
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T get(String key) {
+        return (T) getRedisTemplate().opsForValue().get(key);
+    }
 
-	/**
-	 * 判断hash表中是否有该项的值
-	 * @param key 键 不能为null
-	 * @param item 项 不能为null
-	 * @return true 存在 false不存在
-	 */
-	public boolean hHasKey(String key, String item) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForHash().hasKey(key, item);
-	}
+    /**
+     * 批量获取 String 类型的值。
+     *
+     * @param keys Key 列表
+     * @param <T>  值类型
+     * @return 值列表，不存在的 Key 对应位置为 null
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> multiGet(List<String> keys) {
+        return (List<T>) getRedisTemplate().opsForValue().multiGet(keys);
+    }
 
-	/**
-	 * hash递增 如果不存在,就会创建一个 并把新增后的值返回
-	 * @param key 键
-	 * @param item 项
-	 * @param by 要增加几(大于0)
-	 * @return
-	 */
-	public double hincr(String key, String item, double by) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForHash().increment(key, item, by);
-	}
+    /**
+     * 存入 String 类型的值。
+     *
+     * @param key   Redis Key
+     * @param value 值
+     */
+    public static void set(String key, Object value) {
+        getRedisTemplate().opsForValue().set(key, value);
+    }
 
-	/**
-	 * hash递减
-	 * @param key 键
-	 * @param item 项
-	 * @param by 要减少记(小于0)
-	 * @return
-	 */
-	public double hdecr(String key, String item, double by) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForHash().increment(key, item, -by);
-	}
+    /**
+     * 存入 String 类型的值并设置过期时间。
+     *
+     * @param key     Redis Key
+     * @param value   值
+     * @param timeout 过期时间
+     * @param unit    时间单位
+     */
+    public static void set(String key, Object value, long timeout, TimeUnit unit) {
+        getRedisTemplate().opsForValue().set(key, value, timeout, unit);
+    }
 
-	// ============================set=============================
+    /**
+     * 仅在 Key 不存在时设置值（原子操作）。
+     *
+     * @param key     Redis Key
+     * @param value   值
+     * @param timeout 过期时间
+     * @param unit    时间单位
+     * @return true 表示写入成功，false 表示 Key 已存在
+     */
+    public static Boolean setIfAbsent(String key, Object value, long timeout, TimeUnit unit) {
+        return getRedisTemplate().opsForValue().setIfAbsent(key, value, timeout, unit);
+    }
 
-	/**
-	 * 根据key获取Set中的所有值
-	 * @param key 键
-	 * @return
-	 */
-	public <T> Set<T> sGet(String key) {
-		RedisTemplate<String, T> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForSet().members(key);
-	}
+    /**
+     * 对数值类型的 Key 执行自增操作。
+     *
+     * @param key   Redis Key
+     * @param delta 自增步长（可为负数）
+     * @return 自增后的值
+     */
+    public static long increment(String key, long delta) {
+        Long result = getRedisTemplate().opsForValue().increment(key, delta);
+        return result != null ? result : 0;
+    }
 
-	/**
-	 * 根据value从一个set中查询,是否存在
-	 * @param key 键
-	 * @param value 值
-	 * @return true 存在 false不存在
-	 */
-	public boolean sHasKey(String key, Object value) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForSet().isMember(key, value);
-	}
+    // ======================== Hash 操作 ========================
 
-	/**
-	 * 将数据放入set缓存
-	 * @param key 键
-	 * @param values 值 可以是多个
-	 * @return 成功个数
-	 */
-	public long sSet(String key, Object... values) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForSet().add(key, values);
-	}
+    /**
+     * 获取 Hash 中指定字段的值。
+     *
+     * @param key     Redis Key
+     * @param hashKey Hash 字段名
+     * @param <HK>    Hash 字段类型
+     * @param <HV>    Hash 值类型
+     * @return 字段值，不存在时返回 null
+     */
+    @SuppressWarnings("unchecked")
+    public static <HK, HV> HV hGet(String key, HK hashKey) {
+        return (HV) getRedisTemplate().opsForHash().get(key, hashKey);
+    }
 
-	/**
-	 * 将set数据放入缓存
-	 * @param key 键
-	 * @param time 时间(秒)
-	 * @param values 值 可以是多个
-	 * @return 成功个数
-	 */
-	public long sSetAndTime(String key, long time, Object... values) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		Long count = redisTemplate.opsForSet().add(key, values);
-		if (time > 0) {
-			expire(key, time);
-		}
-		return count;
-	}
+    /**
+     * 获取 Hash 的全部字段。
+     *
+     * @param key  Redis Key
+     * @param <HK> Hash 字段类型
+     * @param <HV> Hash 值类型
+     * @return 字段名-值映射
+     */
+    @SuppressWarnings("unchecked")
+    public static <HK, HV> Map<HK, HV> hGetAll(String key) {
+        return (Map<HK, HV>) getRedisTemplate().opsForHash().entries(key);
+    }
 
-	/**
-	 * 获取set缓存的长度
-	 * @param key 键
-	 * @return
-	 */
-	public long sGetSetSize(String key) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForSet().size(key);
-	}
+    /**
+     * 向 Hash 中存入单个字段。
+     *
+     * @param key     Redis Key
+     * @param hashKey Hash 字段名
+     * @param value   字段值
+     */
+    public static void hPut(String key, String hashKey, Object value) {
+        getRedisTemplate().opsForHash().put(key, hashKey, value);
+    }
 
-	/**
-	 * 移除值为value的
-	 * @param key 键
-	 * @param values 值 可以是多个
-	 * @return 移除的个数
-	 */
-	public long setRemove(String key, Object... values) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		Long count = redisTemplate.opsForSet().remove(key, values);
-		return count;
-	}
+    /**
+     * 批量向 Hash 中存入字段。
+     *
+     * @param key Redis Key
+     * @param map 字段名-值映射
+     */
+    public static void hPutAll(String key, Map<String, Object> map) {
+        getRedisTemplate().opsForHash().putAll(key, map);
+    }
 
-	/**
-	 * 获集合key1和集合key2的差集元素
-	 * @param key 键
-	 * @return
-	 */
-	public <T> Set<T> sDifference(String key, String otherKey) {
-		RedisTemplate<String, T> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForSet().difference(key, otherKey);
-	}
+    /**
+     * 删除 Hash 中的一个或多个字段。
+     *
+     * @param key      Redis Key
+     * @param hashKeys 字段名，可多个
+     * @return 删除的字段数量
+     */
+    public static Long hDelete(String key, Object... hashKeys) {
+        return getRedisTemplate().opsForHash().delete(key, hashKeys);
+    }
 
-	// ===============================list=================================
+    /**
+     * 判断 Hash 中是否存在指定字段。
+     *
+     * @param key     Redis Key
+     * @param hashKey Hash 字段名
+     * @return true 表示存在
+     */
+    public static boolean hHasKey(String key, String hashKey) {
+        return Boolean.TRUE.equals(getRedisTemplate().opsForHash().hasKey(key, hashKey));
+    }
 
-	/**
-	 * 获取list缓存的内容
-	 * @param key 键
-	 * @param start 开始
-	 * @param end 结束 0 到 -1代表所有值
-	 * @return
-	 */
-	public <T> List<T> lGet(String key, long start, long end) {
-		RedisTemplate<String, T> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForList().range(key, start, end);
-	}
+    /**
+     * 对 Hash 中数值字段执行自增（长整型）。
+     *
+     * @param key     Redis Key
+     * @param hashKey Hash 字段名
+     * @param delta   自增步长（可为负数）
+     * @return 自增后的值
+     */
+    public static long hIncr(String key, String hashKey, long delta) {
+        return getRedisTemplate().opsForHash().increment(key, hashKey, delta);
+    }
 
-	/**
-	 * 获取list缓存的长度
-	 * @param key 键
-	 * @return
-	 */
-	public long lGetListSize(String key) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForList().size(key);
-	}
+    /**
+     * 对 Hash 中数值字段执行自增（浮点型）。
+     *
+     * @param key     Redis Key
+     * @param hashKey Hash 字段名
+     * @param delta   自增步长（可为负数）
+     * @return 自增后的值
+     */
+    public static double hIncr(String key, String hashKey, double delta) {
+        return getRedisTemplate().opsForHash().increment(key, hashKey, delta);
+    }
 
-	/**
-	 * 通过索引 获取list中的值
-	 * @param key 键
-	 * @param index 索引 index>=0时， 0 表头，1 第二个元素，依次类推；index<0时，-1，表尾，-2倒数第二个元素，依次类推
-	 * @return
-	 */
-	public Object lGetIndex(String key, long index) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForList().index(key, index);
-	}
+    // ======================== Set 操作 ========================
 
-	/**
-	 * 将list放入缓存
-	 * @param key 键
-	 * @param value 值
-	 * @return
-	 */
-	public boolean lSet(String key, Object value) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		redisTemplate.opsForList().rightPush(key, value);
-		return true;
-	}
+    /**
+     * 获取 Set 的全部元素。
+     *
+     * @param key Redis Key
+     * @param <T> 元素类型
+     * @return 元素集合
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Set<T> sMembers(String key) {
+        return (Set<T>) getRedisTemplate().opsForSet().members(key);
+    }
 
-	/**
-	 * 将list放入缓存
-	 * @param key 键
-	 * @param value 值
-	 * @param time 时间(秒)
-	 * @return
-	 */
-	public boolean lSet(String key, Object value, long time) {
-		RedisTemplate<String, Object> redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		redisTemplate.opsForList().rightPush(key, value);
-		if (time > 0) {
-			Optional.ofNullable(redisTemplate).ifPresent(template -> template.expire(key, time, TimeUnit.SECONDS));
-		}
-		return true;
-	}
+    /**
+     * 判断元素是否在 Set 中。
+     *
+     * @param key   Redis Key
+     * @param value 元素值
+     * @return true 表示存在
+     */
+    public static boolean sIsMember(String key, Object value) {
+        return Boolean.TRUE.equals(getRedisTemplate().opsForSet().isMember(key, value));
+    }
 
-	/**
-	 * 将list放入缓存
-	 * @param key 键
-	 * @param value 值
-	 * @return
-	 */
-	public boolean lSet(String key, List<Object> value) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		redisTemplate.opsForList().rightPushAll(key, value);
-		return true;
-	}
+    /**
+     * 向 Set 中添加元素。
+     *
+     * @param key    Redis Key
+     * @param values 元素值，可多个
+     * @return 实际添加的元素数量
+     */
+    public static long sAdd(String key, Object... values) {
+        Long count = getRedisTemplate().opsForSet().add(key, values);
+        return count != null ? count : 0;
+    }
 
-	/**
-	 * 将list放入缓存
-	 * @param key 键
-	 * @param value 值
-	 * @param time 时间(秒)
-	 * @return
-	 */
-	public boolean lSet(String key, List<Object> value, long time) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		redisTemplate.opsForList().rightPushAll(key, value);
-		if (time > 0) {
-			expire(key, time);
-		}
-		return true;
-	}
+    /**
+     * 获取 Set 的元素数量。
+     *
+     * @param key Redis Key
+     * @return Set 大小
+     */
+    public static long sSize(String key) {
+        Long size = getRedisTemplate().opsForSet().size(key);
+        return size != null ? size : 0;
+    }
 
-	/**
-	 * 根据索引修改list中的某条数据
-	 * @param key 键
-	 * @param index 索引
-	 * @param value 值
-	 * @return /
-	 */
-	public boolean lUpdateIndex(String key, long index, Object value) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		redisTemplate.opsForList().set(key, index, value);
-		return true;
-	}
+    /**
+     * 从 Set 中移除元素。
+     *
+     * @param key    Redis Key
+     * @param values 元素值，可多个
+     * @return 实际移除的元素数量
+     */
+    public static long sRemove(String key, Object... values) {
+        Long count = getRedisTemplate().opsForSet().remove(key, values);
+        return count != null ? count : 0;
+    }
 
-	/**
-	 * 移除N个值为value
-	 * @param key 键
-	 * @param count 移除多少个
-	 * @param value 值
-	 * @return 移除的个数
-	 */
-	public long lRemove(String key, long count, Object value) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForList().remove(key, count, value);
-	}
+    /**
+     * 获取两个 Set 的差集。
+     *
+     * @param key      Redis Key
+     * @param otherKey 另一个 Set 的 Key
+     * @param <T>      元素类型
+     * @return 差集元素集合
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Set<T> sDifference(String key, String otherKey) {
+        return (Set<T>) getRedisTemplate().opsForSet().difference(key, otherKey);
+    }
 
-	/**
-	 * 将zSet数据放入缓存
-	 * @param key
-	 * @param time
-	 * @param tuples
-	 * @return
-	 */
-	public long zSetAndTime(String key, long time, Set<ZSetOperations.TypedTuple<Object>> tuples) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		Long count = redisTemplate.opsForZSet().add(key, tuples);
-		if (time > 0) {
-			expire(key, time);
-		}
-		return count;
+    // ======================== List 操作 ========================
 
-	}
+    /**
+     * 获取 List 指定范围的元素。
+     *
+     * @param key   Redis Key
+     * @param start 起始下标（含）
+     * @param end   结束下标（含，-1 表示尾部）
+     * @param <T>   元素类型
+     * @return 元素列表
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> lRange(String key, long start, long end) {
+        return (List<T>) getRedisTemplate().opsForList().range(key, start, end);
+    }
 
-	/**
-	 * Sorted set:有序集合获取
-	 * @param key
-	 * @param min
-	 * @param max
-	 * @return
-	 */
-	public Set<Object> zRangeByScore(String key, double min, double max) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		ZSetOperations<String, Object> zset = redisTemplate.opsForZSet();
-		return zset.rangeByScore(key, min, max);
+    /**
+     * 获取 List 的长度。
+     *
+     * @param key Redis Key
+     * @return List 长度
+     */
+    public static long lSize(String key) {
+        Long size = getRedisTemplate().opsForList().size(key);
+        return size != null ? size : 0;
+    }
 
-	}
+    /**
+     * 通过索引获取 List 中的元素。
+     *
+     * @param key   Redis Key
+     * @param index 索引（0 表示头部，-1 表示尾部）
+     * @param <T>   元素类型
+     * @return 元素值，不存在时返回 null
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T lIndex(String key, long index) {
+        return (T) getRedisTemplate().opsForList().index(key, index);
+    }
 
-	/**
-	 * Sorted set:有序集合获取 正序
-	 * @param key
-	 * @param start
-	 * @param end
-	 * @return
-	 */
-	public Set<Object> zRange(String key, long start, long end) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		ZSetOperations<String, Object> zset = redisTemplate.opsForZSet();
-		return zset.range(key, start, end);
+    /**
+     * 向 List 左端（头部）插入元素。
+     *
+     * @param key   Redis Key
+     * @param value 元素值
+     */
+    public static void lLeftPush(String key, Object value) {
+        getRedisTemplate().opsForList().leftPush(key, value);
+    }
 
-	}
+    /**
+     * 向 List 右端（尾部）插入元素。
+     *
+     * @param key   Redis Key
+     * @param value 元素值
+     */
+    public static void lRightPush(String key, Object value) {
+        getRedisTemplate().opsForList().rightPush(key, value);
+    }
 
-	/**
-	 * Sorted set:有序集合获取 倒叙
-	 * @param key
-	 * @param start
-	 * @param end
-	 * @return
-	 */
-	public Set<Object> zReverseRange(String key, long start, long end) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		ZSetOperations<String, Object> zset = redisTemplate.opsForZSet();
-		return zset.reverseRange(key, start, end);
+    /**
+     * 修改 List 中指定索引的元素值。
+     *
+     * @param key   Redis Key
+     * @param index 索引
+     * @param value 新值
+     */
+    public static void lSet(String key, long index, Object value) {
+        getRedisTemplate().opsForList().set(key, index, value);
+    }
 
-	}
+    /**
+     * 从 List 中移除指定数量的元素。
+     *
+     * @param key   Redis Key
+     * @param count 移除数量（正数从头移除，负数从尾移除）
+     * @param value 元素值
+     * @return 实际移除的数量
+     */
+    public static long lRemove(String key, long count, Object value) {
+        Long removed = getRedisTemplate().opsForList().remove(key, count, value);
+        return removed != null ? removed : 0;
+    }
 
-	/**
-	 * 获取zSet缓存的长度
-	 * @param key 键
-	 * @return
-	 */
-	public long zGetSetSize(String key) {
-		RedisTemplate redisTemplate = SpringContextHolder.getBean(RedisTemplate.class);
-		return redisTemplate.opsForZSet().size(key);
-	}
+    // ======================== ZSet 操作 ========================
 
+    /**
+     * 获取 ZSet 指定范围的元素（按 score 升序）。
+     *
+     * @param key   Redis Key
+     * @param start 起始下标
+     * @param end   结束下标
+     * @param <T>   元素类型
+     * @return 元素集合
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Set<T> zRange(String key, long start, long end) {
+        return (Set<T>) getRedisTemplate().opsForZSet().range(key, start, end);
+    }
+
+    /**
+     * 获取 ZSet 指定范围的元素（按 score 降序）。
+     *
+     * @param key   Redis Key
+     * @param start 起始下标
+     * @param end   结束下标
+     * @param <T>   元素类型
+     * @return 元素集合
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Set<T> zReverseRange(String key, long start, long end) {
+        return (Set<T>) getRedisTemplate().opsForZSet().reverseRange(key, start, end);
+    }
+
+    /**
+     * 获取 ZSet 中指定 score 范围内的元素。
+     *
+     * @param key Redis Key
+     * @param min 最小 score（含）
+     * @param max 最大 score（含）
+     * @param <T> 元素类型
+     * @return 元素集合
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Set<T> zRangeByScore(String key, double min, double max) {
+        return (Set<T>) getRedisTemplate().opsForZSet().rangeByScore(key, min, max);
+    }
+
+    /**
+     * 获取 ZSet 的元素数量。
+     *
+     * @param key Redis Key
+     * @return ZSet 大小
+     */
+    public static long zSize(String key) {
+        Long size = getRedisTemplate().opsForZSet().size(key);
+        return size != null ? size : 0;
+    }
+
+    // ======================== 通用执行 ========================
+
+    /**
+     * 执行 Redis 命令回调。
+     *
+     * @param callback Redis 回调
+     * @param <T>      返回类型
+     * @return 执行结果
+     */
+    public static <T> T execute(RedisCallback<T> callback) {
+        return getRedisTemplate().execute(callback);
+    }
 }

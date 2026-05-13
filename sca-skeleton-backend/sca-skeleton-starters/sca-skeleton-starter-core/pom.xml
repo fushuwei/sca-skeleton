@@ -49,6 +49,18 @@
             <artifactId>redisson-spring-boot-starter</artifactId>
         </dependency>
 
+        <!-- Jakarta Validation API：提供 @Valid / @Validated 及分组校验能力 -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+
+        <!-- Hutool 扩展模块 -->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-extra</artifactId>
+        </dependency>
+
         <!-- SLF4J API：日志门面，用于 TraceContext 操作 MDC -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -60,12 +72,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
-        </dependency>
-
-        <!-- Jakarta Validation API：提供 @Valid / @Validated 及分组校验能力 -->
-        <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
         </dependency>
     </dependencies>
 </project>
