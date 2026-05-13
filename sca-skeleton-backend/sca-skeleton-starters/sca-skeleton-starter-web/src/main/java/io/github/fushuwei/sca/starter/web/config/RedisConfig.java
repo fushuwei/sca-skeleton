@@ -21,27 +21,6 @@ import java.time.format.DateTimeFormatter;
 @Configuration
 public class RedisConfig {
 
-    /**
-     * 自定义 RedisTemplate
-     * <p>
-     * Key / HashKey 使用 String 序列化
-     * Value 使用 JSON 序列化（后续存对象方便）
-     */
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(factory);
-
-        template.setKeySerializer(RedisSerializer.string());
-        template.setHashKeySerializer(RedisSerializer.string());
-
-        template.setValueSerializer(RedisSerializer.json());
-        template.setHashValueSerializer(RedisSerializer.json());
-
-        template.afterPropertiesSet();
-        return template;
-    }
-
 
     /** 标准日期时间格式 */
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";

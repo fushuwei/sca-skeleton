@@ -18,25 +18,10 @@
     <description>Redis/Redisson common capabilities: RedisTemplate, RedisUtils, distributed lock, rate limiter AOP</description>
 
     <dependencies>
-        <!-- 核心基础：TraceContext、BusinessException 等 -->
-        <dependency>
-            <groupId>io.github.fushuwei</groupId>
-            <artifactId>sca-skeleton-starter-core</artifactId>
-        </dependency>
-        <!-- Spring Data Redis：提供 RedisTemplate、StringRedisTemplate 及连接管理 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
         <!-- Jackson 3 数据绑定：为 RedisTemplate 的 JSON 序列化提供 ObjectMapper/JsonMapper（spring-data-redis 4 将 Jackson 设为可选依赖，需显式引入） -->
         <dependency>
             <groupId>tools.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <!-- Redisson Spring Boot Starter：分布式锁、分布式集合、限流令牌桶等高级 Redis 能力 -->
-        <dependency>
-            <groupId>org.redisson</groupId>
-            <artifactId>redisson-spring-boot-starter</artifactId>
         </dependency>
         <!-- Spring AOP：提供 @RateLimit 限流注解的切面支持 -->
         <dependency>
@@ -52,12 +37,6 @@
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <!-- Lombok：简化工具类与配置类的样板代码 -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>
