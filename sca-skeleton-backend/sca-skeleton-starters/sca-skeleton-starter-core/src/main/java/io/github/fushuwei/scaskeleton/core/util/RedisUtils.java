@@ -26,17 +26,29 @@ import java.util.concurrent.TimeUnit;
 /**
  * Redis 操作工具类
  * <p>
- * 提供便捷的静态方法操作 Redis 中的 String、Hash、Set、List、ZSet 等数据结构。
+ * 提供便捷的静态方法操作 Redis 中的 String、Hash、Set、List、ZSet 等数据结构
  *
  * @author Fu Wei
  */
 public final class RedisUtils {
 
+    /**
+     * RedisTemplate 实例，启动时由 Injector 或 getRedisTemplate 懒加载初始化
+     */
     private static volatile RedisTemplate<String, Object> redisTemplate;
 
+    /**
+     * 工具类禁止实例化
+     */
     private RedisUtils() {
     }
 
+    /**
+     * 内部注入器
+     * <p>
+     * 监听 ApplicationReadyEvent，在 Spring 容器就绪后将 RedisTemplate
+     * 注入到静态字段，避免每次操作都通过 ApplicationContext 查找
+     */
     @Component
     @RequiredArgsConstructor
     static class Injector implements ApplicationListener<ApplicationReadyEvent> {
@@ -49,6 +61,12 @@ public final class RedisUtils {
         }
     }
 
+    /**
+     * 获取 RedisTemplate 实例
+     * <p>
+     * 优先使用已缓存的静态引用；若未被 Injector 初始化（如 ApplicationReadyEvent 尚未触发），
+     * 则通过 SpringUtil 懒加载获取并缓存，后续调用不再查找
+     */
     @SuppressWarnings("unchecked")
     private static RedisTemplate<String, Object> getRedisTemplate() {
         if (redisTemplate == null) {
@@ -64,7 +82,7 @@ public final class RedisUtils {
     // ======================== Key 操作 ========================
 
     /**
-     * 设置 Key 的过期时间。
+     * 设置 Key 的过期时间
      *
      * @param key     Redis Key
      * @param timeout 过期时间
@@ -76,7 +94,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 设置 Key 的过期时间（秒）。
+     * 设置 Key 的过期时间（秒）
      *
      * @param key     Redis Key
      * @param seconds 过期秒数
@@ -87,7 +105,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 获取 Key 的剩余过期时间。
+     * 获取 Key 的剩余过期时间
      *
      * @param key  Redis Key
      * @param unit 时间单位
@@ -99,7 +117,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 获取 Key 的剩余过期时间（秒）。
+     * 获取 Key 的剩余过期时间（秒）
      *
      * @param key Redis Key
      * @return 剩余秒数，Key 不存在或永不过期返回 -2
@@ -109,7 +127,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 判断 Key 是否存在。
+     * 判断 Key 是否存在
      *
      * @param key Redis Key
      * @return true 表示存在
@@ -119,7 +137,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 删除单个 Key。
+     * 删除单个 Key
      *
      * @param key Redis Key
      * @return true 表示删除成功
@@ -129,7 +147,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 批量删除 Key。
+     * 批量删除 Key
      *
      * @param keys Key 集合
      * @return 实际删除的 Key 数量
@@ -140,7 +158,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 删除一个或多个 Key。
+     * 删除一个或多个 Key
      *
      * @param keys 可变参数 Key 列表
      */
@@ -154,9 +172,9 @@ public final class RedisUtils {
     }
 
     /**
-     * 使用 KEYS 命令查找匹配的 Key。
+     * 使用 KEYS 命令查找匹配的 Key
      * <p>
-     * 注意：KEYS 命令会阻塞 Redis 服务器，生产环境请使用 {@link #scan(String)}。
+     * 注意：KEYS 命令会阻塞 Redis 服务器，生产环境请使用 {@link #scan(String)}
      *
      * @param pattern Key 匹配模式，支持通配符 * ? []
      * @return 匹配的 Key 集合
@@ -166,7 +184,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 使用 SCAN 命令查找匹配的 Key（无数量限制）。
+     * 使用 SCAN 命令查找匹配的 Key（无数量限制）
      *
      * @param pattern Key 匹配模式
      * @return 匹配的 Key 列表
@@ -176,7 +194,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 使用 SCAN 命令查找匹配的 Key。
+     * 使用 SCAN 命令查找匹配的 Key
      *
      * @param pattern Key 匹配模式
      * @param count   每次 SCAN 的约数数量（-1 表示不限制）
@@ -188,11 +206,10 @@ public final class RedisUtils {
 
         RedisConnection connection = factory.getConnection();
         try {
-            ScanOptions.Builder builder = ScanOptions.scanOptions().match(pattern);
-            if (count > 0) {
-                builder.count(count);
-            }
-            Cursor<byte[]> cursor = connection.keyCommands().scan(builder.build());
+            ScanOptions options = count > 0
+                ? ScanOptions.scanOptions().match(pattern).count(count).build()
+                : ScanOptions.scanOptions().match(pattern).build();
+            Cursor<byte[]> cursor = connection.keyCommands().scan(options);
             List<String> result = new ArrayList<>();
             while (cursor.hasNext()) {
                 result.add(new String(cursor.next(), StandardCharsets.UTF_8));
@@ -204,7 +221,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 分页查询匹配的 Key（基于 SCAN 命令模拟分页）。
+     * 分页查询匹配的 Key（基于 SCAN 命令模拟分页）
      *
      * @param pattern Key 匹配模式
      * @param page    页码（从 0 开始）
@@ -244,7 +261,7 @@ public final class RedisUtils {
     // ======================== String 操作 ========================
 
     /**
-     * 获取 String 类型的值。
+     * 获取 String 类型的值
      *
      * @param key Redis Key
      * @param <T> 值类型
@@ -256,7 +273,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 批量获取 String 类型的值。
+     * 批量获取 String 类型的值
      *
      * @param keys Key 列表
      * @param <T>  值类型
@@ -268,7 +285,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 存入 String 类型的值。
+     * 存入 String 类型的值
      *
      * @param key   Redis Key
      * @param value 值
@@ -278,7 +295,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 存入 String 类型的值并设置过期时间。
+     * 存入 String 类型的值并设置过期时间
      *
      * @param key     Redis Key
      * @param value   值
@@ -290,7 +307,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 仅在 Key 不存在时设置值（原子操作）。
+     * 仅在 Key 不存在时设置值（原子操作）
      *
      * @param key     Redis Key
      * @param value   值
@@ -303,7 +320,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 对数值类型的 Key 执行自增操作。
+     * 对数值类型的 Key 执行自增操作
      *
      * @param key   Redis Key
      * @param delta 自增步长（可为负数）
@@ -317,7 +334,7 @@ public final class RedisUtils {
     // ======================== Hash 操作 ========================
 
     /**
-     * 获取 Hash 中指定字段的值。
+     * 获取 Hash 中指定字段的值
      *
      * @param key     Redis Key
      * @param hashKey Hash 字段名
@@ -331,7 +348,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 获取 Hash 的全部字段。
+     * 获取 Hash 的全部字段
      *
      * @param key  Redis Key
      * @param <HK> Hash 字段类型
@@ -344,7 +361,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 向 Hash 中存入单个字段。
+     * 向 Hash 中存入单个字段
      *
      * @param key     Redis Key
      * @param hashKey Hash 字段名
@@ -355,7 +372,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 批量向 Hash 中存入字段。
+     * 批量向 Hash 中存入字段
      *
      * @param key Redis Key
      * @param map 字段名-值映射
@@ -365,7 +382,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 删除 Hash 中的一个或多个字段。
+     * 删除 Hash 中的一个或多个字段
      *
      * @param key      Redis Key
      * @param hashKeys 字段名，可多个
@@ -376,7 +393,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 判断 Hash 中是否存在指定字段。
+     * 判断 Hash 中是否存在指定字段
      *
      * @param key     Redis Key
      * @param hashKey Hash 字段名
@@ -387,7 +404,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 对 Hash 中数值字段执行自增（长整型）。
+     * 对 Hash 中数值字段执行自增（长整型）
      *
      * @param key     Redis Key
      * @param hashKey Hash 字段名
@@ -399,7 +416,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 对 Hash 中数值字段执行自增（浮点型）。
+     * 对 Hash 中数值字段执行自增（浮点型）
      *
      * @param key     Redis Key
      * @param hashKey Hash 字段名
@@ -413,7 +430,7 @@ public final class RedisUtils {
     // ======================== Set 操作 ========================
 
     /**
-     * 获取 Set 的全部元素。
+     * 获取 Set 的全部元素
      *
      * @param key Redis Key
      * @param <T> 元素类型
@@ -425,7 +442,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 判断元素是否在 Set 中。
+     * 判断元素是否在 Set 中
      *
      * @param key   Redis Key
      * @param value 元素值
@@ -436,7 +453,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 向 Set 中添加元素。
+     * 向 Set 中添加元素
      *
      * @param key    Redis Key
      * @param values 元素值，可多个
@@ -448,7 +465,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 获取 Set 的元素数量。
+     * 获取 Set 的元素数量
      *
      * @param key Redis Key
      * @return Set 大小
@@ -459,7 +476,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 从 Set 中移除元素。
+     * 从 Set 中移除元素
      *
      * @param key    Redis Key
      * @param values 元素值，可多个
@@ -471,7 +488,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 获取两个 Set 的差集。
+     * 获取两个 Set 的差集
      *
      * @param key      Redis Key
      * @param otherKey 另一个 Set 的 Key
@@ -486,7 +503,7 @@ public final class RedisUtils {
     // ======================== List 操作 ========================
 
     /**
-     * 获取 List 指定范围的元素。
+     * 获取 List 指定范围的元素
      *
      * @param key   Redis Key
      * @param start 起始下标（含）
@@ -500,7 +517,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 获取 List 的长度。
+     * 获取 List 的长度
      *
      * @param key Redis Key
      * @return List 长度
@@ -511,7 +528,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 通过索引获取 List 中的元素。
+     * 通过索引获取 List 中的元素
      *
      * @param key   Redis Key
      * @param index 索引（0 表示头部，-1 表示尾部）
@@ -524,7 +541,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 向 List 左端（头部）插入元素。
+     * 向 List 左端（头部）插入元素
      *
      * @param key   Redis Key
      * @param value 元素值
@@ -534,7 +551,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 向 List 右端（尾部）插入元素。
+     * 向 List 右端（尾部）插入元素
      *
      * @param key   Redis Key
      * @param value 元素值
@@ -544,7 +561,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 修改 List 中指定索引的元素值。
+     * 修改 List 中指定索引的元素值
      *
      * @param key   Redis Key
      * @param index 索引
@@ -555,7 +572,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 从 List 中移除指定数量的元素。
+     * 从 List 中移除指定数量的元素
      *
      * @param key   Redis Key
      * @param count 移除数量（正数从头移除，负数从尾移除）
@@ -570,7 +587,7 @@ public final class RedisUtils {
     // ======================== ZSet 操作 ========================
 
     /**
-     * 获取 ZSet 指定范围的元素（按 score 升序）。
+     * 获取 ZSet 指定范围的元素（按 score 升序）
      *
      * @param key   Redis Key
      * @param start 起始下标
@@ -584,7 +601,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 获取 ZSet 指定范围的元素（按 score 降序）。
+     * 获取 ZSet 指定范围的元素（按 score 降序）
      *
      * @param key   Redis Key
      * @param start 起始下标
@@ -598,7 +615,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 获取 ZSet 中指定 score 范围内的元素。
+     * 获取 ZSet 中指定 score 范围内的元素
      *
      * @param key Redis Key
      * @param min 最小 score（含）
@@ -612,7 +629,7 @@ public final class RedisUtils {
     }
 
     /**
-     * 获取 ZSet 的元素数量。
+     * 获取 ZSet 的元素数量
      *
      * @param key Redis Key
      * @return ZSet 大小
@@ -625,7 +642,7 @@ public final class RedisUtils {
     // ======================== 通用执行 ========================
 
     /**
-     * 执行 Redis 命令回调。
+     * 执行 Redis 命令回调
      *
      * @param callback Redis 回调
      * @param <T>      返回类型
