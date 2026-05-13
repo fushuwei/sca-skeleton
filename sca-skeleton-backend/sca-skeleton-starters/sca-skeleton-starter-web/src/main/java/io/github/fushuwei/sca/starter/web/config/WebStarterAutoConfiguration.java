@@ -11,12 +11,12 @@ import org.springframework.core.Ordered;
 /**
  * Web Starter 自动配置入口。
  * <p>
- * 统一注册：全局异常处理器、TraceId 注入过滤器、Web MVC 公共配置（Jackson、CORS）。
+ * 统一注册：全局异常处理器、TraceId 注入过滤器；Jackson 全局约定由 starter-core 提供。
  *
  * @author Fu Wei
  */
 @AutoConfiguration
-@Import({GlobalExceptionHandler.class, WebMvcConfiguration.class})
+@Import(GlobalExceptionHandler.class)
 public class WebStarterAutoConfiguration {
 
     /**
