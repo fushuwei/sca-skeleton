@@ -1,3 +1,2 @@
-io.github.fushuwei.scaskeleton.core.config.CoreAutoConfiguration
 io.github.fushuwei.scaskeleton.core.config.JacksonConfiguration
 io.github.fushuwei.scaskeleton.core.config.RedisConfiguration
