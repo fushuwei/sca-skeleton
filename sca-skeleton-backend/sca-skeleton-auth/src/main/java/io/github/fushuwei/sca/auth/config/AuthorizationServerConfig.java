@@ -7,21 +7,22 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import io.github.fushuwei.sca.auth.extension.password.PasswordGrantAuthenticationConverter;
 import io.github.fushuwei.sca.auth.extension.password.PasswordGrantAuthenticationProvider;
-import io.github.fushuwei.sca.auth.extension.password.PasswordGrantAuthenticationToken;
 import io.github.fushuwei.sca.auth.security.ScaUserDetailsService;
 import io.github.fushuwei.sca.auth.token.ScaOpaqueAccessTokenClaimsCustomizer;
+import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
-import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
@@ -36,17 +37,21 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.UUID;
 
 /**
  * Spring Authorization Server 核心配置。
  * <p>
- * 职责：
+ * 本项目认证中心基于 Spring Authorization Server starter（Spring Boot 4 内置工件
+ * {@code spring-boot-starter-security-oauth2-authorization-server}），以标准 OAuth2 协议提供
+ * {@code /oauth2/token}、{@code /oauth2/introspect}、{@code /oauth2/revoke}、{@code /oauth2/jwks} 等端点。
+ * <p>
+ * 配置职责：
  * <ol>
- *   <li>配置授权服务器端点（/oauth2/token、/oauth2/jwks 等）</li>
- *   <li>注册自定义密码授权模式（Converter + Provider）</li>
- *   <li>配置 RSA 密钥对用于 OIDC id_token 等 JWT 场景</li>
- *   <li>注入不透明 access_token 生成链（REFERENCE）及业务 Claims</li>
+ *   <li>启用授权服务器标准端点与对应安全过滤链（最高优先级）</li>
+ *   <li>注册自定义 password 授权模式扩展（Converter + Provider）</li>
+ *   <li>提供 JWK（仅用于 OIDC id_token 等 JWT 场景；access_token 为不透明令牌不依赖 JWK）</li>
+ *   <li>装配不透明 access_token 生成链（REFERENCE 格式）+ 业务 Claims customizer + refresh_token 生成器</li>
+ *   <li>统一通过外部化配置注入 issuer，禁止硬编码到代码</li>
  * </ol>
  *
  * @author Fu Wei
@@ -55,8 +60,21 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthorizationServerConfig {
 
+    /**
+     * 用户加载服务：自定义 password 授权 Provider 通过它加载并校验用户。
+     */
     private final ScaUserDetailsService userDetailsService;
+
+    /**
+     * 授权记录存储：自定义 password 授权 Provider 在颁发令牌后将授权写入此存储（项目实现为 Redis）。
+     */
     private final OAuth2AuthorizationService authorizationService;
+
+    /**
+     * 授权服务器对外发布的 issuer，外部化配置注入；OIDC 元数据与令牌 claims 中均使用该值。
+     */
+    @Value("${sca.auth.issuer:http://localhost:9000}")
+    private String issuer;
 
     /**
      * 授权服务器安全过滤链（最高优先级）。
@@ -97,9 +115,10 @@ public class AuthorizationServerConfig {
     }
 
     /**
-     * RSA 密钥对：用于 JWT 签名与验签。
-     * 生产环境应从 KMS 或密钥文件加载，此处在内存中动态生成（服务重启 Token 失效）。
-     * 替换方式：注入 @Value 读取 PEM/PKCS12 文件后构建 RSAKey。
+     * RSA 密钥对：仅用于 OIDC id_token 等 JWT 场景的签名与验签；不透明 access_token 不依赖 JWK。
+     * <p>
+     * 生产环境必须从 KMS 或外部密钥文件加载，此处在内存中动态生成会导致服务重启后旧 id_token 全部失效，
+     * 仅适合本地开发与 CI 冒烟验证。替换方式：注入 PEM/PKCS12 文件路径后构建 RSAKey。
      */
     @Bean
     public JWKSource<SecurityContext> jwkSource() {
@@ -108,7 +127,8 @@ public class AuthorizationServerConfig {
         RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
         RSAKey rsaKey = new RSAKey.Builder(publicKey)
                 .privateKey(privateKey)
-                .keyID(UUID.randomUUID().toString())
+                // 密钥 ID 统一使用 32 位 UUID 字符串，遵循全局 ID 策略
+                .keyID(UuidUtils.nextSimpleStr())
                 .build();
         return new ImmutableJWKSet<>(new JWKSet(rsaKey));
     }
@@ -134,13 +154,16 @@ public class AuthorizationServerConfig {
     }
 
     /**
-     * 授权服务器全局设置：issuer 用于访问令牌 claims 与 OIDC 元数据；
-     * 资源服务器通过自省校验不透明令牌，不再依赖 JWK 验签 access_token。
+     * 授权服务器全局设置：issuer 写入 OIDC discovery 元数据与 JWT 类令牌 claims；
+     * 资源服务器通过 {@code /oauth2/introspect} 校验不透明 access_token，不依赖 JWK 验签。
+     * <p>
+     * issuer 通过外部化配置注入（{@code sca.auth.issuer}），不同环境（本地/容器/网关回环）应在
+     * application-{profile}.yml 或环境变量中覆盖，禁止硬编码到代码中。
      */
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder()
-                .issuer("http://sca-skeleton-auth:9000")
+                .issuer(issuer)
                 .build();
     }
 

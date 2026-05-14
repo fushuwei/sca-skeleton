@@ -16,9 +16,10 @@ alwaysApply: true
 - Java：应用运行时与编译基线；统一使用 `JDK 25 LTS`。
 - Spring Boot：应用框架与自动配置基线；统一使用“最新可用稳定版”。
 - Spring Cloud：微服务治理基线（服务发现、配置整合、调用治理）；统一使用“最新可用稳定版”。
-- Spring Security：全局安全认证与授权基线（包含网关鉴权、资源服务鉴权、方法级权限控制）；统一使用“最新可用稳定版”。
-- 认证中心能力在 Spring Boot 4 时代归口到 Spring Security 体系，默认不再以独立 Spring Authorization Server 作为首选基线。
-- 本项目默认不引入独立 Spring Authorization Server 依赖；如后续确需引入，必须先完成兼容性专项评估并获得明确确认。
+- Spring Security：全局安全基线，承担资源服务器鉴权（含网关）、方法级权限控制与 PasswordEncoder 等通用能力；统一使用“最新可用稳定版”。
+- Spring Authorization Server：OAuth2 授权服务器能力基线，提供 `/oauth2/token`、`/oauth2/introspect`、`/oauth2/revoke`、`/oauth2/jwks` 等标准端点；统一通过 Spring Boot 4 内置工件 `spring-boot-starter-security-oauth2-authorization-server` 引入，禁止直接引入 SAS 独立 GA 包以避免与 Boot 4 版本管理脱节。
+- Spring Security OAuth2 Resource Server：网关与下游业务服务统一以资源服务器角色运行，校验由认证中心颁发的 access_token；项目主链路使用不透明令牌自省（Opaque + Introspection），不依赖 JWT 自包含验签。
+- 同一项目内的“认证中心”角色仅由 `sca-skeleton-auth` 承担，禁止其它业务模块再引入 Authorization Server starter。
 - MyBatis-Plus：数据访问与 ORM 增强基线；统一使用“最新可用稳定版”。
 - Redis：缓存与高频读写加速基线；统一使用“最新可用稳定版”。
 - Redisson：分布式锁与分布式结构化能力基线；统一使用“最新可用稳定版”。
@@ -57,6 +58,8 @@ alwaysApply: true
 
 - 当官方公告某框架能力已迁移或并入其他主框架时，后续技术选型必须以迁移后的主框架为默认基线。
 - 对处于“最后维护分支”或“代际终止分支”的组件，只允许按兼容兜底方案引入，不得作为新项目默认技术基线。
+- 涉及“某能力是否已归口到其它主框架”的判断，必须以官方发布说明、官方仓库 README 与官方 starter 列表为准，禁止凭印象表述；规则文档中如出现与官方现状不符的描述，必须先修订规则再实施。
+- 反例约束：禁止在规则或文档中表述“Spring Authorization Server 已合并入 Spring Security”“认证中心能力已归口到 Spring Security”等不实结论；Spring Authorization Server 在 Spring Boot 4 时代仍以独立工件存在，仅通过 starter 由 Boot 4 内置管理。
 
 ## 变更验证要求（强制）
 

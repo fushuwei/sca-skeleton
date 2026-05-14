@@ -1,0 +1,112 @@
+---
+description: 后端 OAuth2 标准认证与不透明令牌实施基线
+alwaysApply: true
+---
+
+# 后端 OAuth2 认证与不透明令牌实施基线（强制）
+
+## 适用范围（强制）
+
+- 本规则适用于 `sca-skeleton-backend/` 内所有承担认证、授权、令牌校验职责的模块。
+- 与根仓库规则冲突时，以根仓库规则与用户最新明确决策为准。
+- 涉及 OAuth2 协议语义的实现细节优先以 RFC 6749 / RFC 7662 / RFC 7009 与 Spring Authorization Server 官方文档为准。
+
+## 协议与令牌格式基线（强制）
+
+- 全平台认证协议统一使用 OAuth 2.0，且必须通过标准端点对外暴露能力：
+  - `POST /oauth2/token`：颁发 access_token 与 refresh_token
+  - `POST /oauth2/introspect`：资源服务器自省校验 access_token / refresh_token
+  - `POST /oauth2/revoke`：吊销 access_token 或 refresh_token
+  - `GET  /oauth2/jwks` 与 `GET /.well-known/openid-configuration`：仅用于 OIDC id_token 等 JWT 类令牌场景
+- access_token 必须采用**不透明令牌**（Reference Token），客户端注册时显式设置 `OAuth2TokenFormat.REFERENCE`，禁止默认 JWT 自包含格式。
+- refresh_token 默认即为不透明令牌，禁止配置为 JWT 形态。
+- access_token 与 refresh_token 的值必须由 Spring Security 标准生成器产出（基于安全随机源），禁止业务自实现令牌值生成。
+- 默认拒绝在 access_token 载荷中携带任何敏感业务字段；敏感字段仅通过 introspect 返回，且经客户端凭证保护。
+- 如确需 JWT 自包含 access_token（例如外部 BFF、第三方接入），必须以独立 RegisteredClient 维度开启并提交安全评估，禁止默认全局开启。
+
+## 授权类型准入清单（强制）
+
+- 默认允许的授权类型仅限：
+  - `authorization_code`（含 PKCE）：Web 前端、移动端的首选授权方式
+  - `refresh_token`：与 `authorization_code` 配套使用
+  - `client_credentials`：服务间 M2M 调用
+  - 项目内自定义 `password` 授权：仅作为前后端简化登录的过渡方案，必须保持与 RFC 6749 错误响应语义兼容
+- `password` 授权属于 RFC 6819 中明确不推荐的高风险授权方式，使用时必须满足：
+  - 仅授予强信任内部前端，禁止下发给第三方客户端
+  - 必须叠加图形验证码、登录失败锁定、IP 风控等业务防护
+  - 必须在规则与 README 中显著标注“非企业级生产推荐”，并在产品 roadmap 中规划替换为 PKCE 授权码
+- 默认禁止 `implicit`、`device_code` 与未列入清单的自定义授权类型；如需启用必须先在规则中显式追加并完成评审。
+
+## 角色边界（强制）
+
+- 认证中心（Authorization Server）由 `sca-skeleton-auth` 独占承担：
+  - 必须且只能在该模块引入 `spring-boot-starter-security-oauth2-authorization-server`
+  - 必须暴露完整的 OAuth2 标准端点，端点路径不得自定义改名
+  - 必须实现 `OAuth2TokenCustomizer` 将业务 claim 写入不透明令牌的自省响应
+- 网关（API Gateway）由 `sca-skeleton-gateway` 独占承担：
+  - 必须以**响应式资源服务器**形态运行（`spring-boot-starter-oauth2-resource-server` + `ReactiveOpaqueTokenIntrospector`）
+  - 必须负责令牌自省、白名单放行、用户上下文头注入与外部伪造头清理
+  - 禁止承载任何业务编排与业务规则
+- 业务服务（Resource Server）以 `sca-skeleton-system` 为代表：
+  - 必须通过共享 `sca-skeleton-starter-security` 接入资源服务器能力，不得绕过 starter 自实现自省链
+  - 必须使用 `@PreAuthorize("hasAuthority('...')")` 等方法级注解承接接口级权限
+  - 禁止直接调用认证中心数据库表或读取 Redis 授权键，跨模块访问只能通过 introspect 端点
+
+## 令牌 Claims 与自省响应（强制）
+
+- 不透明 access_token 的自省响应必须至少包含以下业务 claim，字段名固定，不得自创别名：
+  - `sub`：用户业务 ID（UUID 去连字符 32 位小写）
+  - `preferred_username`：登录用户名
+  - `tenant_id`：租户 ID（单租户场景可为空字符串，但字段必须存在）
+  - `user_type`：用户类型枚举
+  - `nickname`：用户昵称（仅展示用途，禁止做权限判断）
+  - `permissions`：权限码数组（字符串列表，不带前缀；空集时返回空数组）
+- 资源服务器读取 claim 时必须使用统一常量或配置项，禁止在多个模块各自硬编码字段名。
+- 自省响应缓存策略须遵循：
+  - 默认禁用缓存，命中即真实自省，保证可即时吊销
+  - 高并发场景下允许在网关或资源服务器侧引入短 TTL 缓存（建议 ≤ 60 秒），但必须实现强制失效通道
+  - 缓存键以令牌哈希为主键，禁止以明文令牌作为日志或缓存键
+
+## 客户端与密钥管理（强制）
+
+- `RegisteredClient` 必须通过 `JdbcRegisteredClientRepository` 持久化，禁止使用 `InMemoryRegisteredClientRepository` 作为生产基线。
+- 客户端 `clientSecret` 必须满足：
+  - 配置文件中以 `{bcrypt}` 等密文前缀存储；`{noop}` 仅允许在本地开发 profile 中使用
+  - 生产环境必须通过环境变量或配置中心注入，禁止明文写入仓库
+  - 同一 client 不得跨环境复用同一 secret
+- 注册客户端的 redirectUri、scope、grant_type 必须按最小必要原则配置，禁止开启 `all`、`*` 等放任策略。
+- 客户端注册初始化（如 `RegisteredClientInitializer`）只能用于本地与测试环境；生产环境的客户端必须通过运维流程预置入库。
+
+## 授权服务器配置（强制）
+
+- `AuthorizationServerSettings#issuer` 必须通过外部化配置（环境变量或 application-{profile}.yml）注入，禁止硬编码到 Java 代码。
+- 同一逻辑认证中心对外发布的 issuer 必须保持稳定，不同环境（开发、测试、预发、生产）应使用独立 issuer。
+- 授权服务器对外发布的端点 URL 必须与 issuer 同源；如经过反向代理或 API 网关，必须通过统一域名与统一证书。
+- 授权会话（含不透明令牌索引）允许使用 Redis 等外部存储替代默认 JDBC，但必须：
+  - 字段语义与 SAS JDBC schema 严格对齐
+  - 提供与 access_token / refresh_token 过期时间一致的 TTL 自动清理
+  - 同步维护各类令牌值到授权主键的反向索引以支持 `findByToken`
+
+## OIDC 与 JWK（强制）
+
+- 项目默认仅在 OIDC id_token 等 JWT 类令牌场景使用 RSA 密钥对，access_token 不依赖 JWK 验签。
+- 默认本地开发可由 `JWKSource` 在内存中生成 RSA 密钥对；生产环境必须通过外部密钥文件或 KMS 注入，禁止运行时随机生成。
+- 密钥 ID（`kid`）必须使用全局统一 ID 策略生成（32 位 UUID 小写），禁止使用 `UUID.randomUUID().toString()` 原样输出。
+- 密钥轮换必须支持新旧 `kid` 同时存在的过渡期，且必须给出明确的过渡时长与切换计划。
+
+## 错误响应与日志（强制）
+
+- 授权服务器侧错误响应必须严格遵循 RFC 6749：使用 `invalid_request`、`invalid_client`、`invalid_grant`、`unauthorized_client`、`unsupported_grant_type`、`invalid_scope`、`server_error` 等标准 error code。
+- 资源服务器与网关侧 401 必须设置 `WWW-Authenticate: Bearer`，403 必须返回统一结构化 JSON；禁止暴露异常堆栈与内部细节。
+- 用户密码、客户端密钥、令牌值禁止以明文方式进入业务日志；进入审计日志时必须脱敏或哈希。
+- 任何令牌相关错误日志必须保留 traceId、clientId、grantType、错误码等关键字段以支持事后审计。
+
+## ID 与全局策略对齐（强制）
+
+- 授权服务器内的客户端主键、JWK `kid`、登录会话标识等内部 ID 必须使用项目统一的 `UuidUtils.nextSimpleStr()` 生成。
+- 用户业务 ID（写入 `sub` claim）必须与 system 服务持久化的用户主键格式一致，跨服务保持同一 UUID 字符串。
+
+## 变更与审批（强制）
+
+- 任何调整令牌格式、授权类型、issuer 策略、自省响应字段的变更，必须先更新本规则与 README 中的对应章节，再实施代码改造。
+- 偏离本规则的实现必须提交：偏离原因、影响范围、回退方案，并获得明确确认后再执行。

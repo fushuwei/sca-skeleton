@@ -15,10 +15,10 @@
     <packaging>jar</packaging>
 
     <name>SCA Skeleton Backend :: Auth</name>
-    <description>Authentication service: OAuth2 Authorization Server (Spring Security 7 SAS), custom password grant, JWT issuance</description>
+    <description>Authentication service: OAuth2 Authorization Server, custom password grant, opaque access token</description>
 
     <dependencies>
-        <!-- Spring Authorization Server（已合并入 Spring Security 7 / Spring Boot 4）：提供 OAuth2 AS 能力，含 /oauth2/token 端点、JWK Set 等 -->
+        <!-- Spring Authorization Server starter（Spring Boot 4 内置工件）：提供标准 OAuth2 授权服务器能力，含 /oauth2/token、/oauth2/introspect、/oauth2/revoke、/oauth2/jwks 等端点 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-oauth2-authorization-server</artifactId>

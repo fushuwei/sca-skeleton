@@ -15,7 +15,7 @@
     <packaging>jar</packaging>
 
     <name>SCA Skeleton Backend :: Starter :: Security</name>
-    <description>OAuth2 Resource Server: JWT parsing, current user context, access denied handler</description>
+    <description>OAuth2 Resource Server: opaque token introspection, current user context, 401/403 handlers</description>
 
     <dependencies>
         <!-- 核心基础：CurrentUserProvider 接口契约、BaseConstants、TraceContext 等 -->
@@ -28,7 +28,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-        <!-- OAuth2 Resource Server：JWT 令牌解析与资源服务鉴权（含 nimbus-jose-jwt） -->
+        <!-- OAuth2 Resource Server：不透明令牌自省校验（项目主链路）与 JWT 解析能力（可选，OIDC id_token 等场景） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>

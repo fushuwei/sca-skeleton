@@ -2,7 +2,7 @@ package io.github.fushuwei.sca.starter.mybatis.handler;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
-import io.github.fushuwei.scaskeleton.core.util.UuidUtils;
+import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.lang.Nullable;

@@ -27,34 +27,34 @@ public class SysRoleController {
     @GetMapping("/list")
     @PreAuthorize("hasAuthority('sys:role:list')")
     public ApiResponse<List<SysRole>> list() {
-        return ApiResult.success(roleService.listRoles(SecurityUtils.getTenantId()));
+        return ApiResponse.success(roleService.listRoles(SecurityUtils.getTenantId()));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('sys:role:query')")
     public ApiResponse<SysRole> getById(@PathVariable String id) {
-        return ApiResult.success(roleService.getRoleById(id));
+        return ApiResponse.success(roleService.getRoleById(id));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('sys:role:add')")
     public ApiResponse<Void> create(@Validated @RequestBody RoleSaveRequest request) {
         roleService.createRole(SecurityUtils.getTenantId(), request);
-        return ApiResult.success();
+        return ApiResponse.success();
     }
 
     @PutMapping
     @PreAuthorize("hasAuthority('sys:role:edit')")
     public ApiResponse<Void> update(@Validated @RequestBody RoleSaveRequest request) {
         roleService.updateRole(SecurityUtils.getTenantId(), request);
-        return ApiResult.success();
+        return ApiResponse.success();
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('sys:role:delete')")
     public ApiResponse<Void> delete(@PathVariable String id) {
         roleService.deleteRole(id);
-        return ApiResult.success();
+        return ApiResponse.success();
     }
 
     @PutMapping("/{id}/permissions")
@@ -62,6 +62,6 @@ public class SysRoleController {
     public ApiResponse<Void> assignPermissions(@PathVariable String id,
                                               @RequestBody List<String> permissionIds) {
         roleService.assignPermissions(SecurityUtils.getTenantId(), id, permissionIds);
-        return ApiResult.success();
+        return ApiResponse.success();
     }
 }

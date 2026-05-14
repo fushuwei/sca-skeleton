@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.gateway.filter;
 
 import io.github.fushuwei.scaskeleton.core.constant.GlobalConstants;
-import io.github.fushuwei.scaskeleton.core.util.UuidUtils;
+import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;

@@ -1,7 +1,7 @@
 package io.github.fushuwei.sca.starter.web.filter;
 
 import io.github.fushuwei.scaskeleton.core.trace.TraceContext;
-import io.github.fushuwei.scaskeleton.core.util.UuidUtils;
+import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

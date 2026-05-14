@@ -28,14 +28,15 @@ public class SysUserController {
     @GetMapping("/page")
     @PreAuthorize("hasAuthority('sys:user:list')")
     public ApiResponse<IPage<SysUser>> page(@Validated UserPageRequest request) {
+        // 多租户场景下从当前认证主体读取租户标识，避免越权
         String tenantId = SecurityUtils.getTenantId();
-        return ApiResult.success(userService.pageUsers(tenantId, request));
+        return ApiResponse.success(userService.pageUsers(tenantId, request));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('sys:user:query')")
     public ApiResponse<SysUser> getById(@PathVariable String id) {
-        return ApiResult.success(userService.getUserById(id));
+        return ApiResponse.success(userService.getUserById(id));
     }
 
     @PostMapping
@@ -43,7 +44,7 @@ public class SysUserController {
     public ApiResponse<Void> create(
             @Validated(ValidGroup.Create.class) @RequestBody UserSaveRequest request) {
         userService.createUser(SecurityUtils.getTenantId(), request);
-        return ApiResult.success();
+        return ApiResponse.success();
     }
 
     @PutMapping
@@ -51,14 +52,14 @@ public class SysUserController {
     public ApiResponse<Void> update(
             @Validated(ValidGroup.Update.class) @RequestBody UserSaveRequest request) {
         userService.updateUser(SecurityUtils.getTenantId(), request);
-        return ApiResult.success();
+        return ApiResponse.success();
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('sys:user:delete')")
     public ApiResponse<Void> delete(@PathVariable String id) {
         userService.deleteUser(id);
-        return ApiResult.success();
+        return ApiResponse.success();
     }
 
     @PutMapping("/{id}/password/reset")
@@ -66,7 +67,7 @@ public class SysUserController {
     public ApiResponse<Void> resetPassword(@PathVariable String id,
                                           @RequestParam String newPassword) {
         userService.resetPassword(id, newPassword);
-        return ApiResult.success();
+        return ApiResponse.success();
     }
 
     @PutMapping("/{id}/status")
@@ -75,6 +76,6 @@ public class SysUserController {
                                          @RequestParam String status,
                                          @RequestParam(required = false) String reason) {
         userService.changeStatus(id, status, reason);
-        return ApiResult.success();
+        return ApiResponse.success();
     }
 }

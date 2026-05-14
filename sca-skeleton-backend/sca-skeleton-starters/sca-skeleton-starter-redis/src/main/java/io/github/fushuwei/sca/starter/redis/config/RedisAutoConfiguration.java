@@ -1,6 +1,6 @@
 package io.github.fushuwei.sca.starter.redis.config;
 
-import io.github.fushuwei.sca.starter.core.user.CurrentUserProvider;
+import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.sca.starter.redis.aspect.RateLimitAspect;
 import io.github.fushuwei.sca.starter.redis.util.RedisUtils;
 import org.redisson.api.RedissonClient;

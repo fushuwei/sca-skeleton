@@ -1,5 +1,7 @@
 package io.github.fushuwei.sca.auth.config;
 
+import io.github.fushuwei.sca.auth.extension.password.PasswordGrantAuthenticationToken;
+import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -9,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
-import io.github.fushuwei.sca.auth.extension.password.PasswordGrantAuthenticationToken;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
@@ -52,7 +53,8 @@ public class RegisteredClientInitializer implements ApplicationRunner {
         }
 
         RegisteredClient webClient = RegisteredClient
-                .withId(java.util.UUID.randomUUID().toString())
+                // 客户端主键使用全局统一 UUID（去连字符 32 位小写），满足主键策略约束
+                .withId(UuidUtils.nextSimpleStr())
                 .clientId(clientId)
                 .clientSecret(webClientProperties.getClientSecret())
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)

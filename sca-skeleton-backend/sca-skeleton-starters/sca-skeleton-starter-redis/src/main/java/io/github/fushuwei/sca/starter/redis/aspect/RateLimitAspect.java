@@ -1,8 +1,8 @@
 package io.github.fushuwei.sca.starter.redis.aspect;
 
-import io.github.fushuwei.sca.starter.core.exception.BusinessException;
-import io.github.fushuwei.sca.starter.core.exception.ErrorCode;
-import io.github.fushuwei.sca.starter.core.user.CurrentUserProvider;
+import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
+import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.sca.starter.redis.annotation.RateLimit;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;

@@ -1,0 +1,89 @@
+---
+description: 后端安全架构与三角色职责边界（auth / gateway / resource server）
+alwaysApply: true
+---
+
+# 后端安全架构与三角色职责边界（强制）
+
+## 适用范围（强制）
+
+- 本规则适用于 `sca-skeleton-backend/` 内所有承担鉴权、令牌校验、用户上下文传递职责的模块。
+- 与根仓库规则、03-OAuth2 认证规则冲突时按既定优先级处理。
+- 本规则定义的“三角色”是认证体系职责的最小切分，禁止合并、跨角色实现或新增并行角色。
+
+## 三角色定义（强制）
+
+- 认证中心（Authorization Server）：
+  - 唯一归属模块：`sca-skeleton-auth`
+  - 核心职责：账号体系访问、密码校验、客户端认证、令牌颁发、令牌自省、令牌吊销、OIDC 元数据
+  - 必须独立部署，不得与业务服务共进程
+- 网关（API Gateway）：
+  - 唯一归属模块：`sca-skeleton-gateway`
+  - 核心职责：南北向流量入口、不透明令牌自省、白名单放行、用户上下文头注入、外部伪造头清理、限流与基础防护
+  - 严格遵循“透明转发”原则，业务编排禁止下沉到网关
+- 资源服务器（Resource Server）：
+  - 归属模块：所有业务微服务（如 `sca-skeleton-system` 及未来扩展模块）
+  - 核心职责：自省校验经网关转发后的访问令牌、读取用户上下文、执行方法级权限控制、提供业务接口
+  - 必须通过 `sca-skeleton-starter-security` 统一接入，禁止逐模块重复造轮
+
+## 链路与调用方向（强制）
+
+- 标准认证链路：客户端 → 网关 → 业务服务 → 认证中心（自省）。
+- 令牌颁发链路：客户端 → 网关 → 认证中心 `/oauth2/token`（网关对该路径做白名单放行，仅透传不做语义改写）。
+- 自省调用必须在“网关 → 认证中心”直连或“业务服务 → 认证中心”直连两种链路中二选一；禁止形成自省请求绕回网关的环路。
+- 服务间内部调用必须携带服务身份（如 `client_credentials` 颁发的 access_token 或 mTLS），禁止依赖网关注入的用户头作为唯一身份依据。
+
+## 网关侧硬约束（强制）
+
+- 必须使用响应式技术栈：`spring-cloud-starter-gateway-server-webflux` + `spring-boot-starter-oauth2-resource-server`，禁止与同进程内 Servlet 资源服务器混用。
+- 必须实现外部请求头治理过滤器，清理或重置以下伪造风险头：`X-User-Id`、`X-User-Name`、`X-Tenant-Id`、`X-User-Roles`、`X-From` 等内部头；hop-by-hop 头按 RFC 7230 一并清理。
+- 必须在认证通过后写入下游可信用户上下文头，字段固定：
+  - `X-User-Id`（对应 access_token claim `sub`）
+  - `X-User-Name`（对应 `preferred_username`）
+  - `X-Tenant-Id`（对应 `tenant_id`）
+  - `X-Trace-Id`（链路追踪 ID，缺失时由网关自动生成）
+- 自省失败、令牌缺失或令牌过期必须返回 401 + JSON，响应 `WWW-Authenticate: Bearer`；权限不足必须返回 403 + JSON；禁止返回 HTML 错误页或 Spring 默认错误页。
+- 白名单仅限：登录端点、登出端点、验证码端点、健康检查、文档端点等无副作用接口，禁止把任何业务读写接口加入白名单。
+- 网关全局响应头必须固定包含安全基线：`X-Frame-Options: DENY`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: no-referrer`；CORS 必须显式枚举来源，禁止生产环境使用 `*`。
+
+## 资源服务器硬约束（强制）
+
+- 必须以无状态模式运行（`SessionCreationPolicy.STATELESS`），禁止依赖 HTTP Session。
+- 必须显式禁用 CSRF（不透明令牌 + Bearer 头场景）。
+- 必须通过 `OpaqueTokenIntrospector` + 自定义 `OpaqueTokenAuthenticationConverter` 把 `permissions` 转换为 `GrantedAuthority`，权限码不带 `ROLE_` 前缀。
+- 接口级权限统一通过 `@PreAuthorize("hasAuthority('xxx:yyy:zzz')")` 标注，禁止在业务代码中手写 `SecurityContextHolder` 校验。
+- 当前用户上下文统一通过 `SecurityUtils` 与 `CurrentUserProvider` 获取，禁止直接读取 `BearerTokenAuthentication` 内部字段。
+- 资源服务器自身不得签发或刷新令牌，禁止直接读写认证中心的存储介质。
+
+## 多租户与权限模型对齐（强制）
+
+- `tenant_id` 必须作为 access_token 自省响应的固定字段，资源服务器在数据访问层必须将 `SecurityUtils.getTenantId()` 作为基础过滤条件。
+- RBAC 模型（用户-角色-权限）统一由 `sca-skeleton-system` 维护数据，认证中心仅在颁发令牌时按一次性视图读取最新权限并写入 `permissions` claim。
+- 跨服务读取权限不允许走 token 之外的旁路；如确需，必须通过 system 服务公开的 API 与服务间令牌完成。
+
+## 与令牌格式的对齐（强制）
+
+- 三角色对令牌格式的认知必须一致：
+  - 认证中心：颁发**不透明** access_token（REFERENCE）+ refresh_token，OIDC id_token 为 JWT
+  - 网关：以**不透明令牌自省**模式校验 access_token，不得使用 `JwtDecoder`/`JwtReactiveAuthenticationManager`
+  - 资源服务器：以**不透明令牌自省**模式校验 access_token，与网关行为对齐
+- 任何角色单独切换为 JWT 自验签链路都视为破坏一致性，必须提交全局影响评估。
+
+## 失败处理与可观测性（强制）
+
+- 401/403 响应必须包含统一字段：`code`、`message`、`data`（与项目统一响应体语义一致）。
+- 自省失败、令牌过期、权限不足三类典型异常必须分别可被监控告警识别（建议通过日志关键字 + Micrometer 指标双通道暴露）。
+- 链路追踪必须从网关到资源服务器全链路贯通：网关生成或透传 `X-Trace-Id`，业务服务进入时必须落入 `MDC` 以便日志关联。
+
+## 公共 Starter 复用约束（强制）
+
+- 资源服务器能力必须通过 `sca-skeleton-starter-security` 统一封装：
+  - 自动装配 `SecurityFilterChain`、`OpaqueTokenIntrospector`、`PermissionsOpaqueTokenAuthenticationConverter`
+  - 暴露统一的 `sca.security.*` 配置项与默认白名单
+  - 提供 `SecurityUtils` 与 `CurrentUserProvider` 上下文工具
+- 模块如需扩展能力（如自定义认证转换器、附加业务 claim 字段），必须以 starter 钩子或 `@ConditionalOnMissingBean` 的方式实现，禁止直接在业务模块声明同名 `SecurityFilterChain` 覆盖默认链。
+
+## 变更约束（强制）
+
+- 任何会改变三角色边界、自省链路、上下文头、白名单语义的修改，必须先更新本规则再实施代码改造。
+- 偏离本规则的实现必须提交：偏离原因、影响范围、回退方案，并获得明确确认后再执行。

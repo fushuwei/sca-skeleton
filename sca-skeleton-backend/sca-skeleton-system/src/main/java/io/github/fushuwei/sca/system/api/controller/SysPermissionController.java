@@ -26,33 +26,33 @@ public class SysPermissionController {
     @GetMapping("/list")
     @PreAuthorize("hasAuthority('sys:permission:list')")
     public ApiResponse<List<SysPermission>> list() {
-        return ApiResult.success(permissionService.listAllPermissions());
+        return ApiResponse.success(permissionService.listAllPermissions());
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('sys:permission:query')")
     public ApiResponse<SysPermission> getById(@PathVariable String id) {
-        return ApiResult.success(permissionService.getPermissionById(id));
+        return ApiResponse.success(permissionService.getPermissionById(id));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('sys:permission:add')")
     public ApiResponse<Void> create(@Validated @RequestBody PermissionSaveRequest request) {
         permissionService.createPermission(request);
-        return ApiResult.success();
+        return ApiResponse.success();
     }
 
     @PutMapping
     @PreAuthorize("hasAuthority('sys:permission:edit')")
     public ApiResponse<Void> update(@Validated @RequestBody PermissionSaveRequest request) {
         permissionService.updatePermission(request);
-        return ApiResult.success();
+        return ApiResponse.success();
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('sys:permission:delete')")
     public ApiResponse<Void> delete(@PathVariable String id) {
         permissionService.deletePermission(id);
-        return ApiResult.success();
+        return ApiResponse.success();
     }
 }
