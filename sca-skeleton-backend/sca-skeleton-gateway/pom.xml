@@ -18,13 +18,13 @@
     <description>SCA Skeleton Backend :: 网关服务</description>
 
     <dependencies>
-        <!-- 核心基础组件 -->
+        <!-- 项目核心 Starter（自定义基础组件封装） -->
         <dependency>
             <groupId>io.github.fushuwei</groupId>
             <artifactId>sca-skeleton-starter-core</artifactId>
         </dependency>
 
-        <!-- Spring Cloud Gateway (响应式) -->
+        <!-- Spring Cloud Gateway 网关（基于 WebFlux 响应式实现） -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
@@ -42,7 +42,7 @@
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
         </dependency>
 
-        <!-- 客户端负载均衡：支持 lb://sca-skeleton-system 格式的路由 URI -->
+        <!-- Spring Cloud 客户端负载均衡（支持 lb://sca-skeleton-system 格式的路由 URI） -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
@@ -61,7 +61,7 @@
             <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
         </dependency>
 
-        <!-- OAuth2 资源服务器 (响应式版本) -->
+        <!-- Spring Security OAuth2 资源服务器 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
@@ -74,7 +74,7 @@
             <artifactId>spring-cloud-starter-circuitbreaker-reactor-resilience4j</artifactId>
         </dependency>
 
-        <!-- 接口文档 -->
+        <!-- SpringDoc OpenAPI 文档（基于 WebFlux 响应式实现） -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
@@ -86,7 +86,7 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Lombok -->
+        <!-- Lombok 代码简化工具 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
