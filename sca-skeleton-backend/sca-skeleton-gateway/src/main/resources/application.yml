@@ -1,87 +1,25 @@
 server:
-  port: 8888
+  port: 9999
 
 spring:
   application:
     name: sca-skeleton-gateway
-
-  # Redis（响应式客户端，用于网关限流）
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:123456}
-      database: 0
-
-  # Nacos 服务注册与发现
   cloud:
     nacos:
+      server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:nacos}
       discovery:
-        server-addr: ${NACOS_ADDR:localhost:8848}
-        namespace: ${NACOS_NAMESPACE:}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_DISCOVERY_GROUP:DEFAULT_GROUP}
+      config:
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_CONFIG_GROUP:DEFAULT_GROUP}
+  config:
+    import:
+      - optional:nacos:sca-skeleton-common.yaml
+      - optional:nacos:${spring.application.name}.yaml
+      - optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml
 
-    # Spring Cloud Gateway 路由配置
-    gateway:
-      # 开启基于 Nacos 的服务发现自动路由（lb://serviceId）
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-
-      # 全局默认过滤器
-      default-filters:
-        # 传递 TraceId 请求头到下游
-        - name: AddRequestHeader
-          args:
-            name: X-Gateway-Version
-            value: "1.0"
-
-      routes:
-        # 认证服务路由：/auth/** → sca-skeleton-auth
-        - id: sca-skeleton-auth
-          uri: lb://sca-skeleton-auth
-          predicates:
-            - Path=/auth/**
-          filters:
-            - StripPrefix=1
-
-        # 系统管理服务路由：/system/** → sca-skeleton-system
-        - id: sca-skeleton-system
-          uri: lb://sca-skeleton-system
-          predicates:
-            - Path=/system/**
-          filters:
-            - StripPrefix=1
-
-  # OAuth2 资源服务器：不透明 access_token 经自省端点校验
-  security:
-    oauth2:
-      resourceserver:
-        opaquetoken:
-          # 直连认证服务自省（避免经网关回环）；容器内使用服务名与端口 9000
-          introspection-uri: ${AUTH_INTROSPECTION_URI:http://localhost:9000/oauth2/introspect}
-          client-id: ${AUTH_INTROSPECTION_CLIENT_ID:sca-web-client}
-          # 与注册客户端密钥一致（不含 {noop} 前缀）；生产请用环境变量注入
-          client-secret: ${AUTH_INTROSPECTION_CLIENT_SECRET:sca-web-secret}
-
-# 网关安全配置
-sca:
-  gateway:
-    # 不需要 access_token 的白名单路径（支持 Ant 风格）
-    white-list:
-      - /auth/oauth2/token
-      - /auth/login
-      - /auth/captcha/**
-      - /actuator/health
-      - /actuator/info
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,gateway
-  endpoint:
-    health:
-      show-details: when-authorized
-    gateway:
-      access: read-only
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}

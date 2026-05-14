@@ -1,7 +1,9 @@
 spring:
   main:
+    # 启用响应式 Web 应用模式
     web-application-type: reactive
   cloud:
+    # Spring Cloud Gateway 网关配置
     gateway.server.webflux:
       # 服务发现配置
       discovery:
@@ -28,6 +30,13 @@ spring:
                 key-resolver: "#{@userKeyResolver}"
                 redis-rate-limiter.replenishRate: 1
                 redis-rate-limiter.burstCapacity: 2
+        # 认证服务路由
+        - id: sca-skeleton-auth
+          uri: lb://sca-skeleton-auth
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
       # 全局默认过滤器
       default-filters:
         # 清理下游污染的 CORS 头
@@ -93,11 +102,13 @@ spring:
         # 是否对上游响应启用自动解压（gzip/deflate），生产建议：开启节省带宽，但会增加 CPU 开销
         compression: true
 
+  # Redis 配置
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: 123456
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:123456}
+      database: ${REDIS_DATABASE:0}
       timeout: 2000ms
       lettuce:
         pool:
@@ -105,13 +116,33 @@ spring:
           max-idle: 8
           min-idle: 0
 
+  # OAuth2 资源服务器配置，不透明 access_token 经自省端点校验
   security:
     oauth2:
       resourceserver:
         opaquetoken:
-          introspection-uri: http://127.0.0.1:9001/oauth2/introspect
-          client-id: sca-web-client
-          client-secret: sca-web-secret
+          introspection-uri: ${AUTH_INTROSPECTION_URI:http://localhost:9001/oauth2/introspect}
+          client-id: ${AUTH_INTROSPECTION_CLIENT_ID:sca-web-client}
+          client-secret: ${AUTH_INTROSPECTION_CLIENT_SECRET:sca-web-secret}  # 不含 {noop} 前缀，生产请用环境变量注入
 
-server:
-  port: 9999
+# OAuth2 安全配置
+oauth2:
+  security:
+    # 不需要 access_token 的白名单路径（支持 Ant 风格）
+    white-list:
+      - /auth/oauth2/token
+      - /auth/login
+      - /auth/captcha/**
+      - /actuator/health
+      - /actuator/info
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: when-authorized
+    gateway:
+      access: read-only
