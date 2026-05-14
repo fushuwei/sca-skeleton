@@ -18,13 +18,13 @@
     <description>SCA Skeleton Backend :: 核心基础 Starter</description>
 
     <dependencies>
-        <!-- Jackson -->
+        <!-- JSON 处理组件（提供 JSON 序列化/反序列化支持） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jackson</artifactId>
         </dependency>
 
-        <!-- Spring Data Redis -->
+        <!-- Redis 缓存与数据操作支持 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
@@ -36,7 +36,7 @@
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
 
-        <!-- UUID 生成器 -->
+        <!-- 高性能 UUID 生成工具（支持 UUID v7） -->
         <dependency>
             <groupId>com.github.f4b6a3</groupId>
             <artifactId>uuid-creator</artifactId>

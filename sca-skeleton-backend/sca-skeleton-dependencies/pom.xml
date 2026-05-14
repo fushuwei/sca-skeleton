@@ -29,7 +29,7 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- Spring Boot -->
+            <!-- Spring Boot 依赖版本管理（BOM） -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -38,7 +38,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Spring Cloud -->
+            <!-- Spring Cloud 依赖版本管理（BOM） -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -47,7 +47,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Spring Cloud Alibaba -->
+            <!-- Spring Cloud Alibaba 依赖版本管理（BOM） -->
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-alibaba-dependencies</artifactId>
@@ -56,35 +56,35 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- MyBatis-Plus -->
+            <!-- MyBatis-Plus ORM 增强框架（简化 CRUD 操作） -->
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
 
-            <!-- MyBatis-Plus JSQLParser -->
+            <!-- MyBatis-Plus SQL 解析器（支持分页、租户等插件） -->
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-jsqlparser</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
 
-            <!-- Redisson -->
+            <!-- Redisson 分布式锁与 Redis 客户端增强 -->
             <dependency>
                 <groupId>org.redisson</groupId>
                 <artifactId>redisson-spring-boot-starter</artifactId>
                 <version>${redisson.version}</version>
             </dependency>
 
-            <!-- UUID 生成器，支持 UUID v7 -->
+            <!-- 高性能 UUID 生成工具（支持 UUID v7） -->
             <dependency>
                 <groupId>com.github.f4b6a3</groupId>
                 <artifactId>uuid-creator</artifactId>
                 <version>${uuid-creator.version}</version>
             </dependency>
 
-            <!-- Hutool -->
+            <!-- Hutool 工具库依赖版本管理（BOM） -->
             <dependency>
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-bom</artifactId>
@@ -93,7 +93,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- SpringDoc OpenAPI -->
+            <!-- SpringDoc OpenAPI 依赖版本管理（BOM） -->
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-bom</artifactId>
@@ -102,7 +102,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- MapStruct -->
+            <!-- MapStruct 对象映射框架 -->
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct</artifactId>
@@ -111,59 +111,59 @@
 
 
             <!-- ======================================================================== -->
-            <!-- 内部 Starter 版本统一管理 -->
+            <!-- 内部 Starter 统一管理 -->
             <!-- ======================================================================== -->
 
-            <!-- 核心基础 Starter -->
+            <!-- 项目核心 Starter（自定义基础组件封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Web 通用 Starter -->
+            <!-- 项目 Web 层 Starter（自定义 Web 组件封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-web</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- 日志增强 Starter -->
+            <!-- 项目日志 Starter（自定义日志组件封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-logging</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Redis/Redisson Starter -->
+            <!-- 项目 Redis Starter（自定义缓存与数据操作组件封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-redis</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- MyBatis-Plus 增强 Starter -->
+            <!-- 项目 MyBatis-Plus Starter（自定义持久层组件封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-mybatis-plus</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- OpenFeign 增强 Starter -->
+            <!-- 项目 OpenFeign Starter（自定义服务间调用组件封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-feign</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- 验证码 Starter -->
+            <!-- 项目验证码 Starter（自定义验证码组件封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-captcha</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Security 资源服务 Starter -->
+            <!-- 项目安全 Starter（自定义认证与授权组件封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-security</artifactId>
