@@ -134,14 +134,12 @@ spring:
         # 是否对上游响应启用自动解压（gzip/deflate），生产建议：开启节省带宽，但会增加 CPU 开销
         compression: true
 
-# SCA 网关自定义配置（绑定 Java 端 @ConfigurationProperties(prefix = "sca.gateway")）
-sca:
-  gateway:
-    # 网关白名单路径（Ant 风格），白名单内的请求免认证直接放行
-    # 仅限登录、登出、验证码、健康检查等无副作用接口；禁止把任何业务读写接口加入白名单
+# 网关自定义安全配置
+gateway:
+  security:
+    # 白名单路径，白名单内的请求免认证直接放行
     white-list:
       - /auth/oauth2/token
-      - /auth/login
       - /auth/captcha/**
       - /actuator/health
       - /actuator/info
