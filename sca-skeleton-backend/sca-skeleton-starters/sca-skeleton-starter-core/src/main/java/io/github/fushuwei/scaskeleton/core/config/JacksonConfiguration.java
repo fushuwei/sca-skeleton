@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.core.config;
 
-import io.github.fushuwei.scaskeleton.core.jackson.JavaLongModule;
+import io.github.fushuwei.scaskeleton.core.jackson.JavaLangModule;
 import io.github.fushuwei.scaskeleton.core.jackson.JavaTimeModule;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -37,14 +37,13 @@ public class JacksonConfiguration {
             // 时区
             builder.defaultTimeZone(TimeZone.getTimeZone(ZoneId.systemDefault()));
 
-            // Java Time
+            // java.time 类型序列化/反序列化
             builder.addModule(new JavaTimeModule());
 
-            // Java Long
-            // java.lang
-            builder.addModule(new JavaLongModule());
+            // java.lang 类型序列化/反序列化
+            builder.addModule(new JavaLangModule());
 
-            // 反序列化：JSON 多出的字段在 Java 类型上无对应属性时不报错（接口演进、前端多传字段时更宽松）
+            // 反序列化：JSON 多出的字段在 Java 类型上无对应属性时不报错
             builder.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
             // 序列化：空对象不报错，仍输出 {}

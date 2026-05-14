@@ -21,7 +21,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * 统一设置日期时间类型序列化/反序列化格式
+ * 统一设置 java.time 类型序列化/反序列化格式
  *
  * @author Fu Wei
  */

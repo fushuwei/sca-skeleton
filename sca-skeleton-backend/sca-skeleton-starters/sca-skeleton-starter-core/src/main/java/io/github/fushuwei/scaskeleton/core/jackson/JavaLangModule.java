@@ -5,20 +5,19 @@ import tools.jackson.databind.module.SimpleModule;
 import tools.jackson.databind.ser.std.ToStringSerializer;
 
 /**
- * 统一设置 Long 类型序列化格式
- * 默认将 Long 类型序列化为字符串，防止精度丢失问题
+ * 统一设置 java.lang 类型序列化/反序列化格式
  *
  * @author Fu Wei
  */
-public final class JavaLongModule extends SimpleModule {
+public final class JavaLangModule extends SimpleModule {
 
     /**
      * 构造函数
      */
-    public JavaLongModule() {
+    public JavaLangModule() {
         super(PackageVersion.VERSION);
 
-        // 序列化
+        // Long 类型的序列化，将 Long 类型序列化为字符串，防止精度丢失问题
         this.addSerializer(Long.class, ToStringSerializer.instance);
         this.addSerializer(Long.TYPE, ToStringSerializer.instance);
     }
