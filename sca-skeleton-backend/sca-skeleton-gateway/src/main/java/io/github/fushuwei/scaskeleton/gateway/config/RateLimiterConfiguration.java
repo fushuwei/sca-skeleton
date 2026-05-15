@@ -43,27 +43,20 @@ public class RateLimiterConfiguration {
 
     /**
      * 按用户身份维度的限流键解析器
-     * <p>
-     * 解析顺序：access_token 的 {@code sub} → 客户端 IP → {@code "anonymous"}。
-     * <p>
-     * 适用前提：路由位于网关 Security 白名单之外（即必须先通过 OAuth2 自省校验），
-     * 因此到达 RequestRateLimiter 时 SecurityContext 中应已存在
-     * {@link BearerTokenAuthentication}；白名单接口理论上不会经过限流过滤器，
-     * IP 兜底仅用于异常场景（如配置变更后白名单路由临时启用了限流）。
      *
      * @param remoteAddressResolver 客户端 IP 解析器
-     * @return Reactor 风格的 {@link KeyResolver} 实现
+     * @return KeyResolver
      */
     @Bean("userKeyResolver")
     public KeyResolver userKeyResolver(RemoteAddressResolver remoteAddressResolver) {
         return exchange -> ReactiveSecurityContextHolder.getContext()
             // 1) 从安全上下文取认证对象，仅接受 OAuth2 不透明令牌自省产物
-            .map(SecurityContext::getAuthentication)
+            .mapNotNull(SecurityContext::getAuthentication)
             .filter(BearerTokenAuthentication.class::isInstance)
             .cast(BearerTokenAuthentication.class)
             // 2) 取自省响应中的 sub claim（与 03 规则定义的用户业务 ID 一致）
             .map(auth -> auth.getTokenAttributes().get("sub"))
-            .filter(sub -> sub != null && !sub.toString().isBlank())
+            .filter(sub -> !sub.toString().isBlank())
             .map(Object::toString)
             // 3) 未认证或 sub 缺失，回退到客户端 IP / 兜底常量
             .switchIfEmpty(Mono.fromSupplier(() -> resolveClientIp(exchange, remoteAddressResolver)));
@@ -72,12 +65,12 @@ public class RateLimiterConfiguration {
     /**
      * 通过注入的 {@link RemoteAddressResolver} 解析客户端 IP，地址为空时返回 {@link #ANONYMOUS_KEY}
      *
-     * @param exchange 当前请求上下文
-     * @param resolver 远程地址解析器
+     * @param exchange              当前请求上下文
+     * @param remoteAddressResolver 远程地址解析器
      * @return 客户端 IP 字符串或匿名兜底 key
      */
-    private static String resolveClientIp(ServerWebExchange exchange, RemoteAddressResolver resolver) {
-        InetSocketAddress addr = resolver.resolve(exchange);
+    private static String resolveClientIp(ServerWebExchange exchange, RemoteAddressResolver remoteAddressResolver) {
+        InetSocketAddress addr = remoteAddressResolver.resolve(exchange);
         if (addr == null || addr.getAddress() == null) {
             return ANONYMOUS_KEY;
         }
