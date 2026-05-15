@@ -27,26 +27,12 @@ public class RateLimiterConfiguration {
     private static final String ANONYMOUS_KEY = "anonymous";
 
     /**
-     * 网关前可信代理层数：按生产部署形态硬编码为 1（单层 Nginx）
-     * <p>
-     * 解析规则：从 {@code X-Forwarded-For} 列表中倒数第 1 个 IP 取真实客户端 IP，
-     * 等价于"信任 Nginx 写入的最末尾一跳"。如部署架构变更（如前置 CDN 或 LB），
-     * 必须同步调整该值并更新 {@code deploy/nginx/default.conf}。
+     * 可信代理层数
      */
     private static final int TRUSTED_PROXY_COUNT = 1;
 
     /**
-     * 客户端 IP 解析器
-     * <p>
-     * 解析行为：
-     * <ul>
-     *   <li>请求带 {@code X-Forwarded-For} 时，按 {@link #TRUSTED_PROXY_COUNT} 信任跳数取真实客户端 IP</li>
-     *   <li>请求不带 {@code X-Forwarded-For} 时，自动回退到 TCP 远端地址（本地直连或异常场景）</li>
-     * </ul>
-     * <p>
-     * 安全前提：网关进程必须不能直接对公网暴露，所有流量必须经过 Nginx 入口
-     * （详见 {@code deploy/nginx/default.conf}），否则恶意客户端可绕过 Nginx
-     * 自构 {@code X-Forwarded-For} 头伪造 IP，限流失效。
+     * 客户端 IP 解析器，网关服务不能直接对外暴露，所有流量必须经过 Nginx 入口
      *
      * @return Spring Cloud Gateway 内置的 X-Forwarded-For 解析器
      */
@@ -87,7 +73,7 @@ public class RateLimiterConfiguration {
      * 通过注入的 {@link RemoteAddressResolver} 解析客户端 IP，地址为空时返回 {@link #ANONYMOUS_KEY}
      *
      * @param exchange 当前请求上下文
-     * @param resolver 远端地址解析器
+     * @param resolver 远程地址解析器
      * @return 客户端 IP 字符串或匿名兜底 key
      */
     private static String resolveClientIp(ServerWebExchange exchange, RemoteAddressResolver resolver) {
