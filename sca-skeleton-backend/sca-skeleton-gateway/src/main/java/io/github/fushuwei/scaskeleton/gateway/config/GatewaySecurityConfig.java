@@ -24,14 +24,14 @@ import org.springframework.util.StringUtils;
  */
 @Configuration
 @EnableWebFluxSecurity
-@EnableConfigurationProperties(OAuth2ResourceServerProperties.class)
+@EnableConfigurationProperties({OAuth2ResourceServerProperties.class, GatewaySecurityProperties.class})
 @RequiredArgsConstructor
 public class GatewaySecurityConfig {
 
     /**
      * 网关路由白名单等自定义属性。
      */
-    private final GatewayProperties gatewayProperties;
+    private final GatewaySecurityProperties gatewaySecurityProperties;
 
     /**
      * 403 处理器。
@@ -67,7 +67,7 @@ public class GatewaySecurityConfig {
         ReactiveOpaqueTokenIntrospector introspector = new SpringReactiveOpaqueTokenIntrospector(
                 opaque.getIntrospectionUri(), opaque.getClientId(), opaque.getClientSecret());
 
-        String[] whiteList = gatewayProperties.getWhiteList().toArray(new String[0]);
+        String[] whiteList = gatewaySecurityProperties.getWhiteList().toArray(new String[0]);
 
         http
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
