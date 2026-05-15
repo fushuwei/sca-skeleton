@@ -28,7 +28,7 @@ import org.springframework.util.StringUtils;
 public class GatewaySecurityConfiguration {
 
     /**
-     * 网关路由白名单等自定义属性
+     * 自定义网关安全配置属性
      */
     private final GatewaySecurityProperties gatewaySecurityProperties;
 

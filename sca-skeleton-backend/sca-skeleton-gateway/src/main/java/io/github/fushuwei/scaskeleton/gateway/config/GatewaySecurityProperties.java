@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 网关自定义安全配置属性
+ * 自定义网关安全配置属性
  *
  * @author Fu Wei
  */
