@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.gateway.config;
 
+import io.github.fushuwei.scaskeleton.gateway.filter.RequestHeaderGovernanceGlobalFilter;
 import io.github.fushuwei.scaskeleton.gateway.handler.GatewayAccessDeniedHandler;
 import io.github.fushuwei.scaskeleton.gateway.handler.GatewayAuthenticationEntryPoint;
 import io.github.fushuwei.scaskeleton.gateway.security.PermissionsReactiveOpaqueTokenAuthenticationConverter;
@@ -16,9 +17,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.util.StringUtils;
 
 /**
- * 网关响应式安全配置。
- * <p>
- * 白名单外请求经 OAuth2 不透明令牌自省校验；权限来自 {@code permissions} 声明。
+ * 网关安全配置类
  *
  * @author Fu Wei
  */
@@ -26,30 +25,38 @@ import org.springframework.util.StringUtils;
 @EnableWebFluxSecurity
 @EnableConfigurationProperties({OAuth2ResourceServerProperties.class, GatewaySecurityProperties.class})
 @RequiredArgsConstructor
-public class GatewaySecurityConfig {
+public class GatewaySecurityConfiguration {
 
     /**
-     * 网关路由白名单等自定义属性。
+     * 网关路由白名单等自定义属性
      */
     private final GatewaySecurityProperties gatewaySecurityProperties;
 
     /**
-     * 403 处理器。
+     * 403 处理器
      */
     private final GatewayAccessDeniedHandler accessDeniedHandler;
 
     /**
-     * 401 入口。
+     * 401 入口
      */
     private final GatewayAuthenticationEntryPoint authenticationEntryPoint;
 
     /**
-     * Boot 标准 OAuth2 资源服务器属性（opaque introspection）。
+     * Boot 标准 OAuth2 资源服务器属性（opaque introspection）
      */
     private final OAuth2ResourceServerProperties oauth2ResourceServerProperties;
 
     /**
-     * 配置安全过滤链：自省、白名单、异常响应。
+     * 请求头治理全局过滤器
+     */
+    @Bean
+    public RequestHeaderGovernanceGlobalFilter requestHeaderGovernanceGlobalFilter() {
+        return new RequestHeaderGovernanceGlobalFilter();
+    }
+
+    /**
+     * 配置安全过滤链：自省、白名单、异常响应
      *
      * @param http ServerHttpSecurity
      * @return SecurityWebFilterChain
@@ -58,14 +65,14 @@ public class GatewaySecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         OAuth2ResourceServerProperties.Opaquetoken opaque = oauth2ResourceServerProperties.getOpaquetoken();
         if (!StringUtils.hasText(opaque.getIntrospectionUri())
-                || !StringUtils.hasText(opaque.getClientId())
-                || !StringUtils.hasText(opaque.getClientSecret())) {
+            || !StringUtils.hasText(opaque.getClientId())
+            || !StringUtils.hasText(opaque.getClientSecret())) {
             throw new IllegalStateException(
-                    "网关需配置 spring.security.oauth2.resourceserver.opaquetoken "
-                            + "(introspection-uri, client-id, client-secret)");
+                "网关需配置 spring.security.oauth2.resourceserver.opaquetoken "
+                    + "(introspection-uri, client-id, client-secret)");
         }
         ReactiveOpaqueTokenIntrospector introspector = new SpringReactiveOpaqueTokenIntrospector(
-                opaque.getIntrospectionUri(), opaque.getClientId(), opaque.getClientSecret());
+            opaque.getIntrospectionUri(), opaque.getClientId(), opaque.getClientSecret());
 
         String[] whiteList = gatewaySecurityProperties.getWhiteList().toArray(new String[0]);
 
