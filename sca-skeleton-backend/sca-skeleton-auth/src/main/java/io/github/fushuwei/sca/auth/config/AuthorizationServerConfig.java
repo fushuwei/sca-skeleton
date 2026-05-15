@@ -56,7 +56,7 @@ import java.security.interfaces.RSAPublicKey;
  *
  * @author Fu Wei
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
 public class AuthorizationServerConfig {
 

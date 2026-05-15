@@ -22,7 +22,7 @@ import java.net.InetSocketAddress;
  *
  * @author Fu Wei
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class RateLimiterConfiguration {
 
     /**

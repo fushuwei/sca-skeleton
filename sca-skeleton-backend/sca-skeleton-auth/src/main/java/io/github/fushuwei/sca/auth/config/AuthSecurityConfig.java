@@ -26,7 +26,7 @@ import java.util.Map;
  *
  * @author Fu Wei
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableMethodSecurity
 public class AuthSecurityConfig {
 

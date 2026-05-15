@@ -27,7 +27,7 @@ import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
  *
  * @author Fu Wei
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class RedisTemplateConfig {
 
     /**

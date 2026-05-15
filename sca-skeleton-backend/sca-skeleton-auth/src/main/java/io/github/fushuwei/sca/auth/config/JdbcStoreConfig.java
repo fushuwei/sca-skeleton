@@ -19,7 +19,7 @@ import javax.sql.DataSource;
  *
  * @author Fu Wei
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class JdbcStoreConfig {
 
     @Bean

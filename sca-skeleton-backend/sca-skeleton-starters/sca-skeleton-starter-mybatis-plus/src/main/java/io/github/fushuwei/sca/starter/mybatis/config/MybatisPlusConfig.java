@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author Fu Wei
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class MybatisPlusConfig {
 
     /**

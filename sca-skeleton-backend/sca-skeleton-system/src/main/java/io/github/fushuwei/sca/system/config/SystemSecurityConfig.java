@@ -17,7 +17,7 @@ import java.util.Map;
  *
  * @author Fu Wei
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class SystemSecurityConfig {
 
     @Bean

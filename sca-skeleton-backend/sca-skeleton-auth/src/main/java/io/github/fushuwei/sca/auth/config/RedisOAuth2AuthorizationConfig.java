@@ -15,7 +15,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
  *
  * @author Fu Wei
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class RedisOAuth2AuthorizationConfig {
 
     /**

@@ -64,6 +64,17 @@ alwaysApply: true
 - 统一通过 `UuidUtils.nextSimpleStr()` 生成 ID，禁止 `UUID.randomUUID().toString()` 原样入库。
 - 禁止引入雪花算法或其他数字分布式 ID 方案作为主键。
 
+## Spring 配置类规约（强制）
+
+- `sca-skeleton-backend/` 范围内所有 `@Configuration` 类必须显式声明 `@Configuration(proxyBeanMethods = false)`，不得使用默认 `true`。
+- `@Configuration` 类内部 `@Bean` 方法之间禁止直接调用同类的其他 `@Bean` 方法；依赖其他 Bean 时必须通过方法参数注入由容器解析单例。
+- 调用同类非 `@Bean` 的私有/静态工具方法不在限制范围内。
+- 本规约仅约束 `@Configuration` 注解的类，不影响 `@Component`、`@Service`、`@Repository`、`@Controller` 等其他 stereotype 注解的类。
+- 基础设施型 Bean（`BeanPostProcessor`、`BeanFactoryPostProcessor` 及与容器早期生命周期相关的 Bean）的 `@Bean` 工厂方法必须声明为 `static`。
+- 属性载体类（`@ConfigurationProperties`）禁止叠加 `@Configuration`/`@Component`，必须通过 `@EnableConfigurationProperties` 在配置类中显式启用，避免因短类名冲突造成 Bean 注册失败。
+- 例外审批：如确需保留默认 CGLIB 代理增强语义（同类 `@Bean` 方法递归调用等场景），必须在变更前提交偏离说明（场景、影响范围、回退方案）并获得明确确认，并在类注释中标注豁免原因。
+- 新增或修改 `@Configuration` 类时，未显式声明 `proxyBeanMethods = false` 视为不符合交付标准，不允许提交。
+
 ## 变更约束（强制）
 
 - 仅做与当前需求直接相关且满足生产级质量要求的变更，禁止借机重构无关模块。

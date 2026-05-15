@@ -21,7 +21,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Fu Wei
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableWebFluxSecurity
 @EnableConfigurationProperties({OAuth2ResourceServerProperties.class, GatewaySecurityProperties.class})
 @RequiredArgsConstructor
