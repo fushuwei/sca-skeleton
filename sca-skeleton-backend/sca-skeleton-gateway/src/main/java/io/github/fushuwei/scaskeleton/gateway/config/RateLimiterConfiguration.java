@@ -51,14 +51,10 @@ public class RateLimiterConfiguration {
     public KeyResolver userKeyResolver(RemoteAddressResolver remoteAddressResolver) {
         return exchange -> ReactiveSecurityContextHolder.getContext()
             // 1) 从安全上下文取认证对象，仅接受 OAuth2 不透明令牌自省产物
-            .mapNotNull(SecurityContext::getAuthentication)
-            .filter(BearerTokenAuthentication.class::isInstance)
-            .cast(BearerTokenAuthentication.class)
-            // 2) 取自省响应中的 sub claim（与 03 规则定义的用户业务 ID 一致）
-            .map(auth -> auth.getTokenAttributes().get("sub"))
-            .filter(sub -> !sub.toString().isBlank())
-            .map(Object::toString)
-            // 3) 未认证或 sub 缺失，回退到客户端 IP / 兜底常量
+            .mapNotNull(SecurityContext::getAuthentication).filter(BearerTokenAuthentication.class::isInstance).cast(BearerTokenAuthentication.class)
+            // 2) 取自省响应中的 sub claim（用户 ID）
+            .map(auth -> auth.getTokenAttributes().get("sub")).filter(sub -> !sub.toString().isBlank()).map(Object::toString)
+            // 3) 未认证或 sub 缺失，回退到客户端 IP 地址
             .switchIfEmpty(Mono.fromSupplier(() -> resolveClientIp(exchange, remoteAddressResolver)));
     }
 
