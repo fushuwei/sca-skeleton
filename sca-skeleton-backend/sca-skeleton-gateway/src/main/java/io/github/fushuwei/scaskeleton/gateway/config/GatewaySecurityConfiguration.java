@@ -71,8 +71,11 @@ public class GatewaySecurityConfiguration {
                 "网关需配置 spring.security.oauth2.resourceserver.opaquetoken "
                     + "(introspection-uri, client-id, client-secret)");
         }
-        ReactiveOpaqueTokenIntrospector introspector = new SpringReactiveOpaqueTokenIntrospector(
-            opaque.getIntrospectionUri(), opaque.getClientId(), opaque.getClientSecret());
+        ReactiveOpaqueTokenIntrospector introspector = SpringReactiveOpaqueTokenIntrospector
+            .withIntrospectionUri(opaque.getIntrospectionUri())
+            .clientId(opaque.getClientId())
+            .clientSecret(opaque.getClientSecret())
+            .build();
 
         String[] whiteList = gatewaySecurityProperties.getWhiteList().toArray(new String[0]);
 
