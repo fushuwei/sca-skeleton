@@ -18,9 +18,9 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 
 /**
- * 用户上下文全局过滤器。
+ * 用户上下文全局过滤器
  * <p>
- * 在 access_token 校验通过后，从 {@link BearerTokenAuthentication} 的 token 属性注入下游请求头。
+ * 在 access_token 校验通过后，从 {@link BearerTokenAuthentication} 的 token 属性注入下游请求头
  *
  * @author Fu Wei
  */
@@ -29,15 +29,7 @@ import java.util.Map;
 public class UserContextGlobalFilter implements GlobalFilter, Ordered {
 
     /**
-     * 优先级高于路由过滤器，确保用户信息在转发前已注入。
-     */
-    @Override
-    public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE + 20;
-    }
-
-    /**
-     * 从安全上下文读取自省属性并写入 TraceId / 用户头。
+     * 从安全上下文读取自省属性并写入 TraceId / 用户头
      *
      * @param exchange 当前交换
      * @param chain    过滤器链
@@ -67,7 +59,7 @@ public class UserContextGlobalFilter implements GlobalFilter, Ordered {
     }
 
     /**
-     * 将 sub / preferred_username / tenant_id 写入请求头。
+     * 将 sub / preferred_username / tenant_id 写入请求头
      *
      * @param exchange 交换
      * @param attrs    自省 token 属性
@@ -100,7 +92,7 @@ public class UserContextGlobalFilter implements GlobalFilter, Ordered {
     }
 
     /**
-     * 从属性 Map 取字符串，缺失返回 null。
+     * 从属性 Map 取字符串，缺失返回 null
      *
      * @param attrs Map
      * @param key   键
@@ -112,5 +104,13 @@ public class UserContextGlobalFilter implements GlobalFilter, Ordered {
         }
         Object v = attrs.get(key);
         return v != null ? v.toString() : null;
+    }
+
+    /**
+     * 过滤器执行顺序（优先级高于 NettyRoutingFilter 路由过滤器，确保用户信息在转发前已注入）
+     */
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE + 20;
     }
 }

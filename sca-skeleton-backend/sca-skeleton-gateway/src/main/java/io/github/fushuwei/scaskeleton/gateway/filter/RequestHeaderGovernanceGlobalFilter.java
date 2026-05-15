@@ -74,9 +74,11 @@ public class RequestHeaderGovernanceGlobalFilter implements GlobalFilter, Ordere
         }).build();
     }
 
+    /**
+     * 过滤器执行顺序（优先执行，确保后续过滤器拿到已标准化请求）
+     */
     @Override
     public int getOrder() {
-        // 放在前置过滤链较靠前的位置，保证后续过滤器拿到已标准化请求
         return Ordered.HIGHEST_PRECEDENCE + 10;
     }
 }
