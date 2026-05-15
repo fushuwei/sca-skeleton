@@ -1,13 +1,13 @@
 package io.github.fushuwei.sca.auth.config;
 
+import io.github.fushuwei.sca.auth.config.properties.WebClientProperties;
 import io.github.fushuwei.sca.auth.extension.password.PasswordGrantAuthenticationToken;
 import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -34,6 +34,7 @@ import java.time.Duration;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@EnableConfigurationProperties(WebClientProperties.class)
 public class RegisteredClientInitializer implements ApplicationRunner {
 
     private final RegisteredClientRepository registeredClientRepository;
@@ -113,24 +114,4 @@ public class RegisteredClientInitializer implements ApplicationRunner {
         log.info("OAuth2 客户端 [{}] 已升级为不透明访问令牌（REFERENCE）", clientId);
     }
 
-    /**
-     * Web 客户端配置属性（绑定 application.yml sca.auth.client.web.*）。
-     */
-    @Configuration
-    @ConfigurationProperties(prefix = "sca.auth.client.web")
-    public static class WebClientProperties {
-        private String clientId = "sca-web-client";
-        private String clientSecret = "{noop}sca-web-secret";
-        private long accessTokenTtl = 7200;
-        private long refreshTokenTtl = 604800;
-
-        public String getClientId() { return clientId; }
-        public void setClientId(String clientId) { this.clientId = clientId; }
-        public String getClientSecret() { return clientSecret; }
-        public void setClientSecret(String clientSecret) { this.clientSecret = clientSecret; }
-        public long getAccessTokenTtl() { return accessTokenTtl; }
-        public void setAccessTokenTtl(long accessTokenTtl) { this.accessTokenTtl = accessTokenTtl; }
-        public long getRefreshTokenTtl() { return refreshTokenTtl; }
-        public void setRefreshTokenTtl(long refreshTokenTtl) { this.refreshTokenTtl = refreshTokenTtl; }
-    }
 }

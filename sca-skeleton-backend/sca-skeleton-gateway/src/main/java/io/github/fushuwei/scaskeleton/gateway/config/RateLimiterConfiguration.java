@@ -12,13 +12,7 @@ import reactor.core.publisher.Mono;
 import java.net.InetSocketAddress;
 
 /**
- * 网关限流相关 Bean 配置
- * <p>
- * 当前提供 {@code userKeyResolver}：受保护路由优先按 access_token 的 {@code sub} 维度限流，
- * 取不到时回退为客户端 IP，再取不到回退为固定 {@code "anonymous"}。
- * <p>
- * Bean 名必须与 nacos 路由配置中 {@code #{@userKeyResolver}} 引用严格一致，
- * 否则 {@code RequestRateLimiter} 过滤器在路由初始化期会因 Bean 解析失败而启动报错。
+ * 网关限流配置
  *
  * @author Fu Wei
  */
@@ -58,7 +52,7 @@ public class RateLimiterConfiguration {
     }
 
     /**
-     * 取请求的远端地址；地址为空时返回 {@link #ANONYMOUS_KEY}
+     * 解析请求客户端 IP 地址，地址为空时返回 {@link #ANONYMOUS_KEY}
      * <p>
      * 注意：此处不解析 {@code X-Forwarded-For}，原因是网关作为整个系统的南北向入口，
      * 客户端可直接构造该头伪造 IP；如未来部署在可信反向代理之后，应在
