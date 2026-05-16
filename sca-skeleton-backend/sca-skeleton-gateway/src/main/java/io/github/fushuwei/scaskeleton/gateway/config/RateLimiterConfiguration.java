@@ -5,6 +5,7 @@ import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolve
 import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
@@ -56,6 +57,14 @@ public class RateLimiterConfiguration {
             .map(auth -> auth.getTokenAttributes().get("sub")).filter(sub -> !sub.toString().isBlank()).map(Object::toString)
             // 3) 未认证或 sub 缺失，回退到客户端 IP 地址
             .switchIfEmpty(Mono.fromSupplier(() -> resolveClientIp(exchange, remoteAddressResolver)));
+    }
+
+    private static String extractBearerToken(ServerWebExchange exchange) {
+        String auth = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        if (auth != null && auth.startsWith("Bearer ")) {
+            return auth.substring(7);
+        }
+        return null;
     }
 
     /**
