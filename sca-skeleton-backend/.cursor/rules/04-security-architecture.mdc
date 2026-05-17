@@ -36,10 +36,10 @@ alwaysApply: true
 
 ## 网关侧硬约束（强制）
 
-- 必须使用响应式技术栈：`spring-cloud-starter-gateway-server-webflux` + `spring-boot-starter-security`（最小链），禁止与同进程内 Servlet 资源服务器混用。
+- 必须使用响应式技术栈：`spring-cloud-starter-gateway-server-webflux`，**禁止** 引入 `spring-boot-starter-security`；鉴权前置由自定义 `GlobalFilter` 完成，禁止与同进程内 Servlet 资源服务器混用。
 - 必须实现外部请求头治理过滤器，清理或重置以下伪造风险头：`X-User-Id`、`X-User-Name`、`X-Tenant-Id`、`X-User-Roles`、`X-From` 等内部头；hop-by-hop 头按 RFC 7230 一并清理。
 - **禁止** 在认证通过后向下游写入 `X-User-Id`、`X-User-Name`、`X-Tenant-Id`；用户上下文由下游从 `BearerTokenAuthentication` / `SecurityUtils` 获取。
-- **必须** 透传或生成 `X-Trace-Id`（链路追踪 ID，缺失时由网关自动生成）。
+- **必须** 由网关统一生成 `X-Trace-Id`（不信任外网/浏览器传入值；先剥离客户端头再写入新 ID）。
 - 非白名单且缺失/空 Bearer 必须返回 401 + JSON，响应 `WWW-Authenticate: Bearer`；**禁止** 在网关返回 403（权限不足仅在资源服务器返回 403）。
 - 白名单仅限：登录端点、登出端点、验证码端点、健康检查、文档端点等无副作用接口，禁止把任何业务读写接口加入白名单。
 - 限流 KeyResolver **必须** 优先使用 Bearer token 字符串，无 token 时回退客户端 IP。

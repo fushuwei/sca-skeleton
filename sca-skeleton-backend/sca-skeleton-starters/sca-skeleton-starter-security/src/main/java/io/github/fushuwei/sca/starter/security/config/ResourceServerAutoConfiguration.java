@@ -2,6 +2,7 @@ package io.github.fushuwei.sca.starter.security.config;
 
 import tools.jackson.databind.ObjectMapper;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
+import io.github.fushuwei.sca.starter.security.authorization.RequiresPermissionAuthorizer;
 import io.github.fushuwei.sca.starter.security.handler.SecurityAccessDeniedHandler;
 import io.github.fushuwei.sca.starter.security.handler.SecurityAuthenticationEntryPoint;
 import io.github.fushuwei.sca.starter.security.introspection.PermissionsOpaqueTokenAuthenticationConverter;
@@ -39,6 +40,17 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity(securedEnabled = true)
 @EnableConfigurationProperties(SecurityProperties.class)
 public class ResourceServerAutoConfiguration {
+
+    /**
+     * 注册 {@link RequiresPermission} 的 SpEL 校验 Bean（固定 bean 名供元注解引用）。
+     *
+     * @return 权限校验委托器
+     */
+    @Bean(name = "requiresPermissionAuthorizer")
+    @ConditionalOnMissingBean(RequiresPermissionAuthorizer.class)
+    public RequiresPermissionAuthorizer requiresPermissionAuthorizer() {
+        return new RequiresPermissionAuthorizer();
+    }
 
     /**
      * 注册资源服务 SecurityFilterChain：Redis 不透明令牌自省、白名单、异常响应。

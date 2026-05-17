@@ -1,13 +1,13 @@
 package io.github.fushuwei.scaskeleton.gateway.filter;
 
+import io.github.fushuwei.scaskeleton.core.exception.UnauthorizedException;
 import io.github.fushuwei.scaskeleton.gateway.config.GatewaySecurityProperties;
-import io.github.fushuwei.scaskeleton.gateway.handler.GatewayAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
@@ -25,12 +25,11 @@ import reactor.core.publisher.Mono;
  *       {@code @PreAuthorize} / {@code @RequiresPermission} 权限校验</li>
  * </ul>
  * <p>
- * 缺失 Bearer 时返回 401 + JSON（复用 {@link GatewayAuthenticationEntryPoint}）。
+ * 缺失 Bearer 时抛出 {@link UnauthorizedException}，由 {@link io.github.fushuwei.scaskeleton.gateway.handler.GatewayWebExceptionHandler} 统一写 401 JSON。
  *
  * @author Fu Wei
  */
-@Component
-@RequiredArgsConstructor
+@EnableConfigurationProperties(GatewaySecurityProperties.class)
 public class GatewayBearerPresenceFilter implements GlobalFilter, Ordered {
 
     /**
@@ -44,9 +43,11 @@ public class GatewayBearerPresenceFilter implements GlobalFilter, Ordered {
     private final GatewaySecurityProperties gatewaySecurityProperties;
 
     /**
-     * 401 JSON 响应处理器。
+     * @param gatewaySecurityProperties 白名单等网关安全属性
      */
-    private final GatewayAuthenticationEntryPoint authenticationEntryPoint;
+    public GatewayBearerPresenceFilter(GatewaySecurityProperties gatewaySecurityProperties) {
+        this.gatewaySecurityProperties = gatewaySecurityProperties;
+    }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -59,9 +60,8 @@ public class GatewayBearerPresenceFilter implements GlobalFilter, Ordered {
         if (StringUtils.hasText(bearerToken)) {
             return chain.filter(exchange);
         }
-        // 3) 缺失令牌：401，不转发到下游
-        return authenticationEntryPoint.commence(exchange,
-            new InsufficientAuthenticationException("Bearer token required"));
+        // 3) 缺失令牌：抛异常，由 ErrorWebExceptionHandler 统一写 401，不转发下游
+        return Mono.error(new UnauthorizedException("登录已过期，请重新登录"));
     }
 
     /**

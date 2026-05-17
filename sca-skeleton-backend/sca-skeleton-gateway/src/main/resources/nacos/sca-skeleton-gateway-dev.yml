@@ -145,8 +145,8 @@ management:
   endpoint:
     # /actuator/health 健康检查端点
     health:
-      # 仅当请求方已通过认证（access_token 校验通过）时返回完整组件状态，匿名访问仅返回 UP/DOWN
-      show-details: when-authorized
+      # 网关不做令牌校验，健康检查不暴露组件明细
+      show-details: never
     # /actuator/gateway 网关运维端点（routes 查询、过滤器列表等）
     gateway:
       # 只读模式：仅允许查询路由信息，禁止动态刷新/新增/删除路由，避免生产误改

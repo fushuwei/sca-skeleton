@@ -24,7 +24,6 @@ public enum ErrorCode {
     FORBIDDEN("403", "Forbidden"),
     NOT_FOUND("404", "Not found"),
     METHOD_NOT_ALLOWED("405", "Method not allowed"),
-    CONFLICT("409", "Conflict"),
     ALREADY_EXISTS("409", "Already exists"),
     TOO_MANY_REQUESTS("429", "Too many requests"),
 

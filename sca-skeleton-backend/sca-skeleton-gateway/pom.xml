@@ -61,12 +61,6 @@
             <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
         </dependency>
 
-        <!-- Spring Security WebFlux：Bearer 存在性前置校验、CSRF 禁用等最小安全链 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-
         <!-- Circuit Breaker (提供熔断、降级、限流、超时保护的能力) -->
         <!-- todo：暂时未使用，后续补充 -->
         <dependency>
