@@ -38,6 +38,15 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- Redis：不透明令牌本地自省（与认证中心共用授权 Redis） -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-oauth2-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
         <!-- 配置元数据处理器：支持 IDE 对 sca.security.* 配置项的自动补全 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

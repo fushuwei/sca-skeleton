@@ -6,7 +6,7 @@ import io.github.fushuwei.sca.system.api.dto.dept.DeptSaveRequest;
 import io.github.fushuwei.sca.system.application.service.SysDeptService;
 import io.github.fushuwei.sca.system.infrastructure.entity.SysDept;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
+import io.github.fushuwei.sca.starter.security.annotation.RequiresPermission;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,33 +25,33 @@ public class SysDeptController {
     private final SysDeptService deptService;
 
     @GetMapping("/list")
-    @PreAuthorize("hasAuthority('sys:dept:list')")
+    @RequiresPermission("sys:dept:list")
     public ApiResponse<List<SysDept>> list() {
         return ApiResponse.success(deptService.listDepts(SecurityUtils.getTenantId()));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('sys:dept:query')")
+    @RequiresPermission("sys:dept:query")
     public ApiResponse<SysDept> getById(@PathVariable String id) {
         return ApiResponse.success(deptService.getDeptById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('sys:dept:add')")
+    @RequiresPermission("sys:dept:add")
     public ApiResponse<Void> create(@Validated @RequestBody DeptSaveRequest request) {
         deptService.createDept(SecurityUtils.getTenantId(), request);
         return ApiResponse.success();
     }
 
     @PutMapping
-    @PreAuthorize("hasAuthority('sys:dept:edit')")
+    @RequiresPermission("sys:dept:edit")
     public ApiResponse<Void> update(@Validated @RequestBody DeptSaveRequest request) {
         deptService.updateDept(SecurityUtils.getTenantId(), request);
         return ApiResponse.success();
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('sys:dept:delete')")
+    @RequiresPermission("sys:dept:delete")
     public ApiResponse<Void> delete(@PathVariable String id) {
         deptService.deleteDept(id);
         return ApiResponse.success();

@@ -13,7 +13,7 @@ import java.util.List;
  * <pre>
  * sca:
  *   security:
- *     # 不透明令牌自省在 spring.security.oauth2.resourceserver.opaquetoken 下配置
+ *     # 不透明令牌通过 Redis 本地自省（与 auth 共用 Redis，无需 introspection-uri）
  *     # 白名单路径，不需要认证即可访问
  *     permit-paths:
  *       - /actuator/**

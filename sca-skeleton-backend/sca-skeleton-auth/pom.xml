@@ -42,6 +42,12 @@
             <artifactId>sca-skeleton-starter-redis</artifactId>
         </dependency>
 
+        <!-- OAuth2 Redis 键约定：与资源服务器共用同一套 Redis 键前缀 -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-oauth2-redis</artifactId>
+        </dependency>
+
         <!-- Nacos 服务注册与发现 -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>

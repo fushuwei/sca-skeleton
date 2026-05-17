@@ -1,5 +1,6 @@
 package io.github.fushuwei.sca.starter.security.introspection;
 
+import io.github.fushuwei.sca.oauth2.redis.OAuth2TokenClaimNames;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,7 +26,7 @@ public class PermissionsOpaqueTokenAuthenticationConverter implements OpaqueToke
     /**
      * 自省权限声明在 token 属性中的键名，与认证服务写入的 access_token claims 一致。
      */
-    private static final String PERMISSIONS_CLAIM = "permissions";
+    private static final String PERMISSIONS_CLAIM = OAuth2TokenClaimNames.PERMISSIONS;
 
     /**
      * 将自省主体与原始 bearer token 值包装为 {@link BearerTokenAuthentication}，并附加权限集合。

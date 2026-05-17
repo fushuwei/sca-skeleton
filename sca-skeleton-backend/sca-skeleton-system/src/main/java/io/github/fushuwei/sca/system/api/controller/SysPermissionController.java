@@ -5,7 +5,7 @@ import io.github.fushuwei.sca.system.api.dto.permission.PermissionSaveRequest;
 import io.github.fushuwei.sca.system.application.service.SysPermissionService;
 import io.github.fushuwei.sca.system.infrastructure.entity.SysPermission;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
+import io.github.fushuwei.sca.starter.security.annotation.RequiresPermission;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,33 +24,33 @@ public class SysPermissionController {
     private final SysPermissionService permissionService;
 
     @GetMapping("/list")
-    @PreAuthorize("hasAuthority('sys:permission:list')")
+    @RequiresPermission("sys:permission:list")
     public ApiResponse<List<SysPermission>> list() {
         return ApiResponse.success(permissionService.listAllPermissions());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('sys:permission:query')")
+    @RequiresPermission("sys:permission:query")
     public ApiResponse<SysPermission> getById(@PathVariable String id) {
         return ApiResponse.success(permissionService.getPermissionById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('sys:permission:add')")
+    @RequiresPermission("sys:permission:add")
     public ApiResponse<Void> create(@Validated @RequestBody PermissionSaveRequest request) {
         permissionService.createPermission(request);
         return ApiResponse.success();
     }
 
     @PutMapping
-    @PreAuthorize("hasAuthority('sys:permission:edit')")
+    @RequiresPermission("sys:permission:edit")
     public ApiResponse<Void> update(@Validated @RequestBody PermissionSaveRequest request) {
         permissionService.updatePermission(request);
         return ApiResponse.success();
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('sys:permission:delete')")
+    @RequiresPermission("sys:permission:delete")
     public ApiResponse<Void> delete(@PathVariable String id) {
         permissionService.deletePermission(id);
         return ApiResponse.success();

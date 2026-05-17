@@ -33,15 +33,6 @@ spring:
         server-addr: ${NACOS_ADDR:localhost:8848}
         namespace: ${NACOS_NAMESPACE:}
 
-  # OAuth2 资源服务器：不透明 access_token 自省
-  security:
-    oauth2:
-      resourceserver:
-        opaquetoken:
-          introspection-uri: ${AUTH_INTROSPECTION_URI:http://localhost:9000/oauth2/introspect}
-          client-id: ${AUTH_INTROSPECTION_CLIENT_ID:sca-web-client}
-          client-secret: ${AUTH_INTROSPECTION_CLIENT_SECRET:sca-web-secret}
-
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
   type-aliases-package: io.github.fushuwei.sca.system.infrastructure.entity
@@ -54,12 +45,10 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
-# SCA Security Starter 配置
+# SCA Security Starter 配置（不透明令牌经 Redis 本地自省，无需 introspection-uri）
 sca:
   security:
-    # 自省 token 属性中的用户 ID 字段名（与认证服务 opaque claims 的 sub 一致）
     user-id-claim-name: sub
-    # 自省 token 属性中的用户名字段名
     username-claim-name: preferred_username
     # 无需鉴权的路径（Actuator 等）
     permit-paths:

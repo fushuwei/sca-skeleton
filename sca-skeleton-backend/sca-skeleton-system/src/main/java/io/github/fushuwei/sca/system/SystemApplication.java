@@ -13,7 +13,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * <p>
  * 安全模型：本服务以 OAuth2 资源服务器角色运行，通过 {@code spring-boot-starter-oauth2-resource-server}
  * 调用认证服务 {@code /oauth2/introspect} 校验不透明 access_token，并基于 introspect 响应中的 permissions
- * 配合 {@code @PreAuthorize} 完成方法级权限控制。
+ * 配合 {@code @RequiresPermission} 完成方法级权限控制。
  *
  * @author Fu Wei
  */

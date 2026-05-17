@@ -1,5 +1,6 @@
 package io.github.fushuwei.sca.auth.authorization;
 
+import io.github.fushuwei.sca.oauth2.redis.OAuth2RedisKeys;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -51,16 +52,6 @@ import java.util.concurrent.TimeUnit;
  * @author Fu Wei
  */
 public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationService {
-
-    /**
-     * Redis 中 OAuth2 授权 Hash 的统一前缀，避免与其他业务键冲突。
-     */
-    private static final String AUTH_KEY_PREFIX = "sca:oauth2:authorization:";
-
-    /**
-     * 令牌值到授权主键 id 的索引前缀，后缀为令牌类型与令牌值。
-     */
-    private static final String IDX_PREFIX = "sca:oauth2:authorization:idx:";
 
     /**
      * 与 {@link JdbcOAuth2AuthorizationService.JsonMapperOAuth2AuthorizationParametersMapper#apply} 返回顺序严格一致的列名，
@@ -293,7 +284,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
      * @return 完整 Redis key
      */
     private static String authKey(String id) {
-        return AUTH_KEY_PREFIX + id;
+        return OAuth2RedisKeys.authorizationKey(id);
     }
 
     /**
@@ -304,7 +295,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
      * @return 索引 Redis key
      */
     private static String idxKey(String type, String token) {
-        return IDX_PREFIX + type + ":" + token;
+        return OAuth2RedisKeys.IDX_PREFIX + type + ":" + token;
     }
 
     /**

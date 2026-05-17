@@ -169,6 +169,13 @@
                 <artifactId>sca-skeleton-starter-security</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <!-- OAuth2 Redis 共享读模型（opaque token 本地自省） -->
+            <dependency>
+                <groupId>io.github.fushuwei</groupId>
+                <artifactId>sca-skeleton-oauth2-redis</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

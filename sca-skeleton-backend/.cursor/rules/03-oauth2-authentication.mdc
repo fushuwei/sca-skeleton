@@ -15,13 +15,13 @@ alwaysApply: true
 
 - 全平台认证协议统一使用 OAuth 2.0，且必须通过标准端点对外暴露能力：
   - `POST /oauth2/token`：颁发 access_token 与 refresh_token
-  - `POST /oauth2/introspect`：资源服务器自省校验 access_token / refresh_token
+  - `POST /oauth2/introspect`：对外部客户端或第三方保留的标准自省端点（认证中心实现）
   - `POST /oauth2/revoke`：吊销 access_token 或 refresh_token
   - `GET  /oauth2/jwks` 与 `GET /.well-known/openid-configuration`：仅用于 OIDC id_token 等 JWT 类令牌场景
 - access_token 必须采用**不透明令牌**（Reference Token），客户端注册时显式设置 `OAuth2TokenFormat.REFERENCE`，禁止默认 JWT 自包含格式。
 - refresh_token 默认即为不透明令牌，禁止配置为 JWT 形态。
 - access_token 与 refresh_token 的值必须由 Spring Security 标准生成器产出（基于安全随机源），禁止业务自实现令牌值生成。
-- 默认拒绝在 access_token 载荷中携带任何敏感业务字段；敏感字段仅通过 introspect 返回，且经客户端凭证保护。
+- 默认拒绝在 access_token 载荷中携带任何敏感业务字段；敏感字段写入 SAS `access_token_metadata` 的 claims，供资源服务器 Redis 自省读取。
 - 如确需 JWT 自包含 access_token（例如外部 BFF、第三方接入），必须以独立 RegisteredClient 维度开启并提交安全评估，禁止默认全局开启。
 
 ## 授权类型准入清单（强制）
@@ -42,29 +42,33 @@ alwaysApply: true
 - 认证中心（Authorization Server）由 `sca-skeleton-auth` 独占承担：
   - 必须且只能在该模块引入 `spring-boot-starter-security-oauth2-authorization-server`
   - 必须暴露完整的 OAuth2 标准端点，端点路径不得自定义改名
-  - 必须实现 `OAuth2TokenCustomizer` 将业务 claim 写入不透明令牌的自省响应
+  - 必须实现 `OAuth2TokenCustomizer` 将业务 claim 写入不透明令牌的 metadata
+  - 授权会话必须持久化到 Redis（`RedisOAuth2AuthorizationService`），键前缀由 `sca-skeleton-oauth2-redis` 统一定义
 - 网关（API Gateway）由 `sca-skeleton-gateway` 独占承担：
-  - 必须以**响应式资源服务器**形态运行（`spring-boot-starter-oauth2-resource-server` + `ReactiveOpaqueTokenIntrospector`）
-  - 必须负责令牌自省、白名单放行、用户上下文头注入与外部伪造头清理
-  - 禁止承载任何业务编排与业务规则
+  - **禁止** OAuth2 不透明令牌自省、**禁止** 读取 Redis 授权键、**禁止** 向下游注入用户上下文头
+  - **必须** 实现白名单放行；非白名单 **仅检查** `Authorization: Bearer` 是否存在且非空，缺失则 401
+  - **必须** 实现外部伪造头清理与 `X-Trace-Id` 等链路元数据透传
+  - **禁止** 在网关做 403 权限校验（细粒度权限在下游微服务）
+  - 限流 KeyResolver **必须** 优先使用 Bearer token 字符串
 - 业务服务（Resource Server）以 `sca-skeleton-system` 为代表：
   - 必须通过共享 `sca-skeleton-starter-security` 接入资源服务器能力，不得绕过 starter 自实现自省链
-  - 必须使用 `@PreAuthorize("hasAuthority('...')")` 等方法级注解承接接口级权限
-  - 禁止直接调用认证中心数据库表或读取 Redis 授权键，跨模块访问只能通过 introspect 端点
+  - 必须通过 `RedisOpaqueTokenIntrospector`（`sca-skeleton-oauth2-redis`）直连 Redis 校验令牌，**禁止** 配置 `spring.security.oauth2.resourceserver.opaquetoken.introspection-uri` 作为默认主链路
+  - 接口级权限优先使用 `@RequiresPermission`（底层仍为 `@PreAuthorize("hasAuthority(...)")`）或 `@PreAuthorize`
+  - **禁止** 直接调用认证中心数据库表；**允许** 只读访问与 auth 共用的 OAuth2 授权 Redis 键（通过 starter 封装）
 
 ## 令牌 Claims 与自省响应（强制）
 
-- 不透明 access_token 的自省响应必须至少包含以下业务 claim，字段名固定，不得自创别名：
+- 不透明 access_token 的自省响应（HTTP 或 Redis 本地解析）必须至少包含以下业务 claim，字段名固定，不得自创别名：
   - `sub`：用户业务 ID（UUID 去连字符 32 位小写）
   - `preferred_username`：登录用户名
   - `tenant_id`：租户 ID（单租户场景可为空字符串，但字段必须存在）
   - `user_type`：用户类型枚举
   - `nickname`：用户昵称（仅展示用途，禁止做权限判断）
   - `permissions`：权限码数组（字符串列表，不带前缀；空集时返回空数组）
-- 资源服务器读取 claim 时必须使用统一常量或配置项，禁止在多个模块各自硬编码字段名。
+- 资源服务器读取 claim 时必须使用 `OAuth2TokenClaimNames` 或 `sca.security.*` 配置项，禁止在多个模块各自硬编码字段名。
 - 自省响应缓存策略须遵循：
   - 默认禁用缓存，命中即真实自省，保证可即时吊销
-  - 高并发场景下允许在网关或资源服务器侧引入短 TTL 缓存（建议 ≤ 60 秒），但必须实现强制失效通道
+  - 高并发场景下允许在资源服务器侧引入短 TTL 缓存（建议 ≤ 60 秒），但必须实现强制失效通道
   - 缓存键以令牌哈希为主键，禁止以明文令牌作为日志或缓存键
 
 ## 客户端与密钥管理（强制）
@@ -82,10 +86,11 @@ alwaysApply: true
 - `AuthorizationServerSettings#issuer` 必须通过外部化配置（环境变量或 application-{profile}.yml）注入，禁止硬编码到 Java 代码。
 - 同一逻辑认证中心对外发布的 issuer 必须保持稳定，不同环境（开发、测试、预发、生产）应使用独立 issuer。
 - 授权服务器对外发布的端点 URL 必须与 issuer 同源；如经过反向代理或 API 网关，必须通过统一域名与统一证书。
-- 授权会话（含不透明令牌索引）允许使用 Redis 等外部存储替代默认 JDBC，但必须：
+- 授权会话（含不透明令牌索引）必须使用 Redis 等外部存储替代默认 JDBC，且必须：
   - 字段语义与 SAS JDBC schema 严格对齐
   - 提供与 access_token / refresh_token 过期时间一致的 TTL 自动清理
   - 同步维护各类令牌值到授权主键的反向索引以支持 `findByToken`
+  - 键前缀与 `sca-skeleton-oauth2-redis` 中 `OAuth2RedisKeys` 保持一致
 
 ## OIDC 与 JWK（强制）
 
@@ -97,7 +102,7 @@ alwaysApply: true
 ## 错误响应与日志（强制）
 
 - 授权服务器侧错误响应必须严格遵循 RFC 6749：使用 `invalid_request`、`invalid_client`、`invalid_grant`、`unauthorized_client`、`unsupported_grant_type`、`invalid_scope`、`server_error` 等标准 error code。
-- 资源服务器与网关侧 401 必须设置 `WWW-Authenticate: Bearer`，403 必须返回统一结构化 JSON；禁止暴露异常堆栈与内部细节。
+- 网关与资源服务器 401 必须设置 `WWW-Authenticate: Bearer`；资源服务器 403 必须返回统一结构化 JSON；禁止暴露异常堆栈与内部细节。
 - 用户密码、客户端密钥、令牌值禁止以明文方式进入业务日志；进入审计日志时必须脱敏或哈希。
 - 任何令牌相关错误日志必须保留 traceId、clientId、grantType、错误码等关键字段以支持事后审计。
 

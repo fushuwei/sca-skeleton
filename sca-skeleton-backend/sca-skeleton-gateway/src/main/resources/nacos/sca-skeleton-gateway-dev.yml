@@ -3,7 +3,7 @@ spring:
   main:
     web-application-type: reactive
 
-  # Redis 配置：网关侧用于响应式限流（RequestRateLimiter 依赖 Redis 令牌桶）、令牌自省结果缓存等
+  # Redis 配置：网关侧用于响应式限流（RequestRateLimiter 依赖 Redis 令牌桶）
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -16,18 +16,6 @@ spring:
           max-active: 8
           max-idle: 8
           min-idle: 0
-
-  # OAuth2 资源服务器配置：网关以资源服务器角色，对不透明 access_token 经自省端点校验
-  security:
-    oauth2:
-      resourceserver:
-        opaquetoken:
-          # 自省端点地址（直连认证服务，避免经网关回环形成自省请求自调用）
-          introspection-uri: ${AUTH_INTROSPECTION_URI:http://localhost:9001/oauth2/introspect}
-          # 自省客户端 ID，对应认证服务注册客户端
-          client-id: ${AUTH_INTROSPECTION_CLIENT_ID:sca-web-client}
-          # 自省客户端密钥（不含 {noop} 前缀），生产请通过环境变量注入 BCrypt 密文
-          client-secret: ${AUTH_INTROSPECTION_CLIENT_SECRET:sca-web-secret}
 
   cloud:
     # Spring Cloud Gateway 网关配置
