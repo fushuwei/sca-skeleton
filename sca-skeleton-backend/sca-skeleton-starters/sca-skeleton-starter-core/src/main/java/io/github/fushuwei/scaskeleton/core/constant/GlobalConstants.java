@@ -28,7 +28,7 @@ public final class GlobalConstants {
     public static final String BEARER_PREFIX = "Bearer ";
 
     /**
-     * 内部调用来源的请求头 Key
+     * 内部调用标记的请求头 Key
      */
     public static final String HEADER_FROM = "From";
 
@@ -40,7 +40,7 @@ public final class GlobalConstants {
     /**
      * 请求开始时间的请求头 Key
      */
-    public static final String HEADER_START_TIME = "X-Request-Start-Time";
+    public static final String HEADER_REQUEST_START = "X-Request-Start";
 
     /**
      * 透传当前租户 ID 的内部请求头 Key（网关 → 下游服务）
@@ -56,6 +56,11 @@ public final class GlobalConstants {
      * 透传当前用户名的内部请求头 Key（网关 → 下游服务）
      */
     public static final String HEADER_USER_NAME = "X-User-Name";
+
+    /**
+     * 透传当前用户部门的内部请求头 Key（网关 → 下游服务）
+     */
+    public static final String HEADER_USER_DEPT = "X-User-Dept";
 
     /**
      * 透传当前用户角色的内部请求头 Key（网关 → 下游服务）

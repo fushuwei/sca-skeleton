@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.gateway.config;
 
+import io.github.fushuwei.scaskeleton.core.constant.GlobalConstants;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolver;
 import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver;
@@ -71,9 +72,8 @@ public class RateLimiterConfiguration {
         if (auth == null) {
             return null;
         }
-        String prefix = "Bearer ";
-        if (auth.regionMatches(true, 0, prefix, 0, prefix.length())) {
-            String token = auth.substring(prefix.length()).trim();
+        if (auth.regionMatches(true, 0, GlobalConstants.BEARER_PREFIX, 0, GlobalConstants.BEARER_PREFIX.length())) {
+            String token = auth.substring(GlobalConstants.BEARER_PREFIX.length()).trim();
             return StringUtils.hasText(token) ? token : null;
         }
         return null;
