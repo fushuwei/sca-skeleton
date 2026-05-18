@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.resource.NoResourceFoundException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -83,7 +84,7 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
         }
 
         // 请求的资源不存在（404）
-        if (rootCause instanceof NotFoundException) {
+        if (rootCause instanceof NotFoundException || rootCause instanceof NoResourceFoundException) {
             return ErrorResult.of(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND.getCode(), ErrorMessage.NOT_FOUND.getMessage());
         }
 
