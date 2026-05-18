@@ -17,7 +17,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * 网关安全过滤器
+ * 网关安全前置全局过滤器
  *
  * @author Fu Wei
  */
