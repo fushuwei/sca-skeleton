@@ -3,8 +3,10 @@ package io.github.fushuwei.scaskeleton.gateway.handler;
 import io.github.fushuwei.scaskeleton.core.constant.GlobalConstants;
 import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
 import io.github.fushuwei.scaskeleton.core.exception.UnauthorizedException;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.boot.webflux.error.ErrorWebExceptionHandler;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.gateway.support.ServiceUnavailableException;
@@ -17,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import tools.jackson.databind.ObjectMapper;
@@ -37,36 +40,6 @@ import java.util.Map;
 public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler {
 
     /**
-     * 401：未认证
-     */
-    private static final String MSG_UNAUTHORIZED = "登录已过期，请重新登录";
-
-    /**
-     * 404：请求的资源不存在
-     */
-    private static final String MSG_NOT_FOUND = "请求的资源不存在";
-
-    /**
-     * 502：网关异常
-     */
-    private static final String MSG_BAD_GATEWAY = "服务响应异常，请稍后重试";
-
-    /**
-     * 503：服务不可用
-     */
-    private static final String MSG_SERVICE_UNAVAILABLE = "服务暂时不可用，请稍后重试";
-
-    /**
-     * 504：网关超时
-     */
-    private static final String MSG_GATEWAY_TIMEOUT = "服务响应超时，请稍后重试";
-
-    /**
-     * 500：服务器内部错误
-     */
-    private static final String MSG_INTERNAL = "系统繁忙，请稍后重试";
-
-    /**
      * JSON 序列化器
      */
     private final ObjectMapper objectMapper;
@@ -75,7 +48,7 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
      * 网关异常入口
      */
     @Override
-    public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
+    public @NonNull Mono<Void> handle(@NonNull ServerWebExchange exchange, @NonNull Throwable ex) {
         // 判断响应是否已提交，如果已提交则无法改写，只能原样向上抛出
         if (exchange.getResponse().isCommitted()) {
             return Mono.error(ex);
@@ -106,31 +79,38 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
 
         // 未认证异常（401）
         if (rootCause instanceof UnauthorizedException) {
-            return ErrorResult.of(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED.getCode(), MSG_UNAUTHORIZED);
+            return ErrorResult.of(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED.getCode(), ErrorMessage.UNAUTHORIZED.getMessage());
         }
 
         // 请求的资源不存在（404）
         if (rootCause instanceof NotFoundException) {
-            return ErrorResult.of(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND.getCode(), MSG_NOT_FOUND);
+            return ErrorResult.of(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND.getCode(), ErrorMessage.NOT_FOUND.getMessage());
         }
 
         // 网关异常（502）
         if (rootCause instanceof ConnectException) {
-            return ErrorResult.of(HttpStatus.BAD_GATEWAY, ErrorCode.BAD_GATEWAY.getCode(), MSG_BAD_GATEWAY);
+            return ErrorResult.of(HttpStatus.BAD_GATEWAY, ErrorCode.BAD_GATEWAY.getCode(), ErrorMessage.BAD_GATEWAY.getMessage());
         }
 
         // 服务不可用（503）
         if (rootCause instanceof ServiceUnavailableException) {
-            return ErrorResult.of(HttpStatus.SERVICE_UNAVAILABLE, ErrorCode.SERVICE_UNAVAILABLE.getCode(), MSG_SERVICE_UNAVAILABLE);
+            return ErrorResult.of(HttpStatus.SERVICE_UNAVAILABLE, ErrorCode.SERVICE_UNAVAILABLE.getCode(), ErrorMessage.SERVICE_UNAVAILABLE.getMessage());
         }
 
         // 网关超时（504）
         if (rootCause instanceof TimeoutException || ex.getClass().getName().contains("Timeout")) {
-            return ErrorResult.of(HttpStatus.GATEWAY_TIMEOUT, ErrorCode.GATEWAY_TIMEOUT.getCode(), MSG_GATEWAY_TIMEOUT);
+            return ErrorResult.of(HttpStatus.GATEWAY_TIMEOUT, ErrorCode.GATEWAY_TIMEOUT.getCode(), ErrorMessage.GATEWAY_TIMEOUT.getMessage());
         }
 
-        // 兜底：对外统一 500，详细堆栈仅写日志
-        return ErrorResult.of(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR.getCode(), MSG_INTERNAL);
+        if (rootCause instanceof ResponseStatusException cause) {
+            HttpStatus httpStatus = HttpStatus.resolve(cause.getStatusCode().value());
+            if (httpStatus != null) {
+                return ErrorResult.of(httpStatus, String.valueOf(httpStatus.value()), ErrorMessage.NOT_FOUND.getMessage());
+            }
+        }
+
+        // 服务器内部错误（500），默认兜底异常
+        return ErrorResult.of(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR.getCode(), ErrorMessage.INTERNAL_ERROR.getMessage());
     }
 
     /**
@@ -165,6 +145,49 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
 
         static ErrorResult of(HttpStatus httpStatus, String code, String message) {
             return new ErrorResult(httpStatus, code, message);
+        }
+    }
+
+    /**
+     * 网关错误消息枚举
+     */
+    @Getter
+    private enum ErrorMessage {
+
+        /**
+         * 401：未认证
+         */
+        UNAUTHORIZED("登录已过期，请重新登录"),
+
+        /**
+         * 404：请求的资源不存在
+         */
+        NOT_FOUND("请求的资源不存在"),
+
+        /**
+         * 500：服务器内部错误
+         */
+        INTERNAL_ERROR("系统繁忙，请稍后重试"),
+
+        /**
+         * 502：网关异常
+         */
+        BAD_GATEWAY("服务响应异常，请稍后重试"),
+
+        /**
+         * 503：服务不可用
+         */
+        SERVICE_UNAVAILABLE("服务暂时不可用，请稍后重试"),
+
+        /**
+         * 504：网关超时
+         */
+        GATEWAY_TIMEOUT("服务响应超时，请稍后重试");
+
+        private final String message;
+
+        ErrorMessage(String message) {
+            this.message = message;
         }
     }
 }
