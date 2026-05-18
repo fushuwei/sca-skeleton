@@ -86,11 +86,11 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
 
         // 记录日志
         String traceId = exchange.getRequest().getHeaders().getFirst(GlobalConstants.HEADER_TRACE_ID);
-        String logMessage = "[Gateway] Error: traceId={}, httpStatus={}, code={}, message={}, errorMessage={}";
+        String logMessage = "[Gateway] Error: traceId={}, code={}, message={}, errorMessage={}";
         if (errorResult.httpStatus().is5xxServerError()) {
-            log.error(logMessage, traceId, errorResult.httpStatus, errorResult.code, errorResult.message, ex.getMessage());
+            log.error(logMessage, traceId, errorResult.code, errorResult.message, ex.getMessage());
         } else {
-            log.warn(logMessage, traceId, errorResult.httpStatus, errorResult.code, errorResult.message, ex.getMessage());
+            log.warn(logMessage, traceId, errorResult.code, errorResult.message, ex.getMessage());
         }
 
         // 返回响应体
