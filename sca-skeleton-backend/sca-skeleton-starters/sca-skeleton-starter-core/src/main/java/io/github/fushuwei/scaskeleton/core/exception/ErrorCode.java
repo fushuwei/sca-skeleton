@@ -29,7 +29,9 @@ public enum ErrorCode {
 
     // 服务端错误
     INTERNAL_ERROR("500", "Internal server error"),
-    SERVICE_UNAVAILABLE("503", "Service unavailable");
+    BAD_GATEWAY("502", "Bad gateway"),
+    SERVICE_UNAVAILABLE("503", "Service unavailable"),
+    GATEWAY_TIMEOUT("504", "Gateway timeout");
 
     // 错误码字符串
     private final String code;
