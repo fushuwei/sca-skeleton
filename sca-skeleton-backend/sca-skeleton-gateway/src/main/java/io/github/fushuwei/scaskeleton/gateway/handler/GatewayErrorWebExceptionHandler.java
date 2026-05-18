@@ -102,10 +102,11 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
             return ErrorResult.of(HttpStatus.GATEWAY_TIMEOUT, ErrorCode.GATEWAY_TIMEOUT.getCode(), ErrorMessage.GATEWAY_TIMEOUT.getMessage());
         }
 
+        // 处理 Spring 框架抛出的标准 HTTP 状态异常
         if (rootCause instanceof ResponseStatusException cause) {
             HttpStatus httpStatus = HttpStatus.resolve(cause.getStatusCode().value());
             if (httpStatus != null) {
-                return ErrorResult.of(httpStatus, String.valueOf(httpStatus.value()), ErrorMessage.NOT_FOUND.getMessage());
+                return ErrorResult.of(httpStatus, String.valueOf(httpStatus.value()), ErrorMessage.fromHttpStatus(httpStatus));
             }
         }
 
@@ -157,37 +158,51 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
         /**
          * 401：未认证
          */
-        UNAUTHORIZED("登录已过期，请重新登录"),
+        UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "登录已过期，请重新登录"),
 
         /**
          * 404：请求的资源不存在
          */
-        NOT_FOUND("请求的资源不存在"),
+        NOT_FOUND(HttpStatus.NOT_FOUND, "请求的资源不存在"),
 
         /**
          * 500：服务器内部错误
          */
-        INTERNAL_ERROR("系统繁忙，请稍后重试"),
+        INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "系统繁忙，请稍后重试"),
 
         /**
          * 502：网关异常
          */
-        BAD_GATEWAY("服务响应异常，请稍后重试"),
+        BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "服务响应异常，请稍后重试"),
 
         /**
          * 503：服务不可用
          */
-        SERVICE_UNAVAILABLE("服务暂时不可用，请稍后重试"),
+        SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "服务暂时不可用，请稍后重试"),
 
         /**
          * 504：网关超时
          */
-        GATEWAY_TIMEOUT("服务响应超时，请稍后重试");
+        GATEWAY_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "服务响应超时，请稍后重试");
 
+        private final HttpStatus httpStatus;
         private final String message;
 
-        ErrorMessage(String message) {
+        ErrorMessage(HttpStatus httpStatus, String message) {
+            this.httpStatus = httpStatus;
             this.message = message;
+        }
+
+        /**
+         * 根据 HTTP 状态码获取对应的错误提示
+         */
+        static String fromHttpStatus(HttpStatus httpStatus) {
+            for (ErrorMessage value : values()) {
+                if (value.httpStatus == httpStatus) {
+                    return value.message;
+                }
+            }
+            return INTERNAL_ERROR.message;
         }
     }
 }
