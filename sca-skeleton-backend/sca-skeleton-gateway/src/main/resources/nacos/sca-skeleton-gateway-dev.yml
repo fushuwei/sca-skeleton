@@ -3,7 +3,7 @@ spring:
   main:
     web-application-type: reactive
 
-  # Redis 配置：网关侧用于响应式限流（RequestRateLimiter 依赖 Redis 令牌桶）
+  # Redis 配置
   data:
     redis:
       host: ${REDIS_HOST:localhost}
