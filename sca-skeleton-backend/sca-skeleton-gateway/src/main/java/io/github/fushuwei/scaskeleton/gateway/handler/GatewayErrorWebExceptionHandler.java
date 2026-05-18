@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.gateway.handler;
 
+import org.springframework.boot.webflux.error.ErrorWebExceptionHandler;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import io.github.fushuwei.scaskeleton.core.constant.GlobalConstants;
@@ -16,28 +17,24 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebExceptionHandler;
 import reactor.core.publisher.Mono;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 网关全局 Web 异常处理器（{@link WebExceptionHandler}）。
- * <p>
- * 在 Spring Cloud Gateway 中，过滤器链抛出的 {@link UnauthorizedException} 等异常会进入 WebFlux
- * {@link WebExceptionHandler} 责任链；本类以较高优先级处理未认证场景，其余异常交还后续处理器。
+ * 网关全局 Web 异常处理器
  *
  * @author Fu Wei
  */
 @Slf4j
 @Component
-@Order(-2)
+@Order(-1)  // 确保优先级高于 Spring 默认的异常处理器
 @RequiredArgsConstructor
-public class GatewayWebExceptionHandler implements WebExceptionHandler {
+public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler {
 
     /**
-     * JSON 序列化器，写出与下游 {@code ApiResponse} 一致的三段式结构。
+     * JSON 序列化器
      */
     private final ObjectMapper objectMapper;
 
@@ -54,32 +51,32 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
     }
 
     /**
-     * 处理未认证异常：HTTP 401 + {@code WWW-Authenticate: Bearer} + 业务 JSON。
+     * 处理未认证异常
      *
-     * @param exchange      当前交换
-     * @param unauthorized  未认证异常（message 由抛出方指定）
+     * @param exchange     当前交换
+     * @param unauthorized 未认证异常（message 由抛出方指定）
      * @return 完成信号
      */
     private Mono<Void> handleUnauthorized(ServerWebExchange exchange, UnauthorizedException unauthorized) {
         ServerHttpRequest request = exchange.getRequest();
         log.warn("[Gateway] unauthorized. method={} path={} message={}",
             request.getMethod(), request.getPath().pathWithinApplication().value(), unauthorized.getMessage());
-        return writeApiErrorResponse(exchange, HttpStatus.UNAUTHORIZED, unauthorized.getCode(),
+        return writeErrorResponse(exchange, HttpStatus.UNAUTHORIZED, unauthorized.getCode(),
             unauthorized.getMessage(), true);
     }
 
     /**
-     * 写入统一 JSON 错误响应体。
+     * 写入统一 JSON 错误响应体
      *
-     * @param exchange                当前交换
-     * @param httpStatus              HTTP 状态
-     * @param code                    业务错误码
-     * @param message                 业务错误描述（来自异常，非 ErrorCode 默认文案）
-     * @param wwwAuthenticateBearer   是否添加 {@code WWW-Authenticate: Bearer}
+     * @param exchange              当前交换
+     * @param httpStatus            HTTP 状态
+     * @param code                  业务错误码
+     * @param message               业务错误描述（来自异常，非 ErrorCode 默认文案）
+     * @param wwwAuthenticateBearer 是否添加 {@code WWW-Authenticate: Bearer}
      * @return 完成信号
      */
-    private Mono<Void> writeApiErrorResponse(ServerWebExchange exchange, HttpStatus httpStatus, String code,
-            String message, boolean wwwAuthenticateBearer) {
+    private Mono<Void> writeErrorResponse(ServerWebExchange exchange, HttpStatus httpStatus, String code,
+                                             String message, boolean wwwAuthenticateBearer) {
         ServerHttpResponse response = exchange.getResponse();
         if (response.isCommitted()) {
             return Mono.empty();
