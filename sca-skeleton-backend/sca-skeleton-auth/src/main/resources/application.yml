@@ -41,7 +41,7 @@ spring:
 # MyBatis-Plus 配置
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
-  type-aliases-package: io.github.fushuwei.sca.auth.infrastructure.entity
+  type-aliases-package: io.github.fushuwei.scaskeleton.auth.infrastructure.entity
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl

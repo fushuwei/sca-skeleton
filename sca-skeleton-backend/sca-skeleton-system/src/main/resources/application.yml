@@ -35,7 +35,7 @@ spring:
 
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
-  type-aliases-package: io.github.fushuwei.sca.system.infrastructure.entity
+  type-aliases-package: io.github.fushuwei.scaskeleton.system.infrastructure.entity
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
