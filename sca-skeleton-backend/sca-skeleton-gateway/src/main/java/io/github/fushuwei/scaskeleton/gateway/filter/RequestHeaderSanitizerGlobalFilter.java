@@ -20,19 +20,16 @@ import reactor.core.publisher.Mono;
 public class RequestHeaderSanitizerGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
-    public @NonNull Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpRequest request = sanitizeRequestHeaders(exchange.getRequest());
+    public @NonNull Mono<Void> filter(@NonNull ServerWebExchange exchange, GatewayFilterChain chain) {
+        ServerHttpRequest request = sanitizeRequestHeaders(exchange);
         return chain.filter(exchange.mutate().request(request).build());
     }
 
     /**
      * 清理请求头
-     *
-     * @param request 原始请求
-     * @return 清理后的请求
      */
-    private ServerHttpRequest sanitizeRequestHeaders(ServerHttpRequest request) {
-        return request.mutate().headers(headers -> {
+    private ServerHttpRequest sanitizeRequestHeaders(ServerWebExchange exchange) {
+        return exchange.getRequest().mutate().headers(headers -> {
             // 1) 防止外部请求伪造内部调用标记
             headers.remove(GlobalConstants.HEADER_FROM);
 
@@ -44,7 +41,9 @@ public class RequestHeaderSanitizerGlobalFilter implements GlobalFilter, Ordered
             headers.remove(GlobalConstants.HEADER_USER_ROLES);
 
             // 3) 写入 TraceId
-            headers.set(GlobalConstants.HEADER_TRACE_ID, UuidUtils.nextSimpleStr());
+            String traceId = UuidUtils.nextSimpleStr();
+            headers.set(GlobalConstants.HEADER_TRACE_ID, traceId);
+            exchange.getAttributes().put(GlobalConstants.HEADER_TRACE_ID, traceId);
 
             // 4) 写入请求起始时间（用于耗时统计）
             headers.set(GlobalConstants.HEADER_REQUEST_START, String.valueOf(System.currentTimeMillis()));
