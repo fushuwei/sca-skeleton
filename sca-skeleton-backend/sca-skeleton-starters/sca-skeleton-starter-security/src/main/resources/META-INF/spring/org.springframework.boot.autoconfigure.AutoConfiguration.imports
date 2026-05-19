@@ -1,2 +1,2 @@
-io.github.fushuwei.sca.starter.security.config.OAuth2RedisIntrospectionConfiguration
+io.github.fushuwei.sca.starter.security.config.OAuth2AuthorizationRedisAutoConfiguration
 io.github.fushuwei.sca.starter.security.config.ResourceServerAutoConfiguration

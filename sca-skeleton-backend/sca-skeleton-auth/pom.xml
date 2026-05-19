@@ -42,10 +42,10 @@
             <artifactId>sca-skeleton-starter-redis</artifactId>
         </dependency>
 
-        <!-- OAuth2 Redis 键约定：与资源服务器共用同一套 Redis 键前缀 -->
+        <!-- Security Starter：OAuth2 Redis 授权存储（共享）；认证中心关闭资源服务器 FilterChain -->
         <dependency>
             <groupId>io.github.fushuwei</groupId>
-            <artifactId>sca-skeleton-oauth2-redis</artifactId>
+            <artifactId>sca-skeleton-starter-security</artifactId>
         </dependency>
 
         <!-- Nacos 服务注册与发现 -->

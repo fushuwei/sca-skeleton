@@ -32,9 +32,7 @@
         <module>sca-skeleton-starter-feign</module>
         <!-- 验证码：图形验证码生成（Java AWT）、Redis 存储与校验 -->
         <module>sca-skeleton-starter-captcha</module>
-        <!-- Security 资源服务：JWT 解析、资源服务器鉴权配置、当前用户上下文 -->
+        <!-- Security 资源服务：OAuth2 Redis 授权存储、不透明令牌自省、资源服务器鉴权 -->
         <module>sca-skeleton-starter-security</module>
-        <!-- OAuth2 Redis 共享读模型：与 auth 写入结构对齐，供资源服务器本地自省 -->
-        <module>sca-skeleton-oauth2-redis</module>
     </modules>
 </project>

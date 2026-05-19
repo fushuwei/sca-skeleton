@@ -43,7 +43,7 @@ alwaysApply: true
   - 必须且只能在该模块引入 `spring-boot-starter-security-oauth2-authorization-server`
   - 必须暴露完整的 OAuth2 标准端点，端点路径不得自定义改名
   - 必须实现 `OAuth2TokenCustomizer` 将业务 claim 写入不透明令牌的 metadata
-  - 授权会话必须持久化到 Redis（`RedisOAuth2AuthorizationService`），键前缀由 `sca-skeleton-oauth2-redis` 统一定义
+  - 授权会话必须持久化到 Redis（`RedisOAuth2AuthorizationService`，`starter-security`），键前缀由 `OAuth2AuthorizationRedisKeys` 统一定义
 - 网关（API Gateway）由 `sca-skeleton-gateway` 独占承担：
   - **禁止** OAuth2 不透明令牌自省、**禁止** 读取 Redis 授权键、**禁止** 向下游注入用户上下文头
   - **必须** 实现白名单放行；非白名单 **仅检查** `Authorization: Bearer` 是否存在且非空，缺失则 401
@@ -52,7 +52,7 @@ alwaysApply: true
   - 限流 KeyResolver **必须** 优先使用 Bearer token 字符串
 - 业务服务（Resource Server）以 `sca-skeleton-system` 为代表：
   - 必须通过共享 `sca-skeleton-starter-security` 接入资源服务器能力，不得绕过 starter 自实现自省链
-  - 必须通过 `RedisOpaqueTokenIntrospector`（`sca-skeleton-oauth2-redis`）直连 Redis 校验令牌，**禁止** 配置 `spring.security.oauth2.resourceserver.opaquetoken.introspection-uri` 作为默认主链路
+  - 必须通过 `RedisOpaqueTokenIntrospector`（基于 `OAuth2AuthorizationService#findByToken`）直连 Redis 校验令牌，**禁止** 配置 `spring.security.oauth2.resourceserver.opaquetoken.introspection-uri` 作为默认主链路
   - 接口级权限优先使用 `@RequiresPermission`（底层仍为 `@PreAuthorize("hasAuthority(...)")`）或 `@PreAuthorize`
   - **禁止** 直接调用认证中心数据库表；**允许** 只读访问与 auth 共用的 OAuth2 授权 Redis 键（通过 starter 封装）
 
@@ -65,7 +65,7 @@ alwaysApply: true
   - `user_type`：用户类型枚举
   - `nickname`：用户昵称（仅展示用途，禁止做权限判断）
   - `permissions`：权限码数组（字符串列表，不带前缀；空集时返回空数组）
-- 资源服务器读取 claim 时必须使用 `OAuth2TokenClaimNames` 或 `sca.security.*` 配置项，禁止在多个模块各自硬编码字段名。
+- 资源服务器读取 claim 时必须使用 `OAuth2AccessTokenClaimNames`（`starter-core`）或 `sca.security.*` 配置项，禁止在多个模块各自硬编码字段名。
 - 自省响应缓存策略须遵循：
   - 默认禁用缓存，命中即真实自省，保证可即时吊销
   - 高并发场景下允许在资源服务器侧引入短 TTL 缓存（建议 ≤ 60 秒），但必须实现强制失效通道
@@ -90,7 +90,7 @@ alwaysApply: true
   - 字段语义与 SAS JDBC schema 严格对齐
   - 提供与 access_token / refresh_token 过期时间一致的 TTL 自动清理
   - 同步维护各类令牌值到授权主键的反向索引以支持 `findByToken`
-  - 键前缀与 `sca-skeleton-oauth2-redis` 中 `OAuth2RedisKeys` 保持一致
+  - 键前缀与 `starter-security` 中 `OAuth2AuthorizationRedisKeys` 保持一致；注册客户端快照由 `CachingRegisteredClientRepository` 同步至 Redis 供资源服务器加载
 
 ## OIDC 与 JWK（强制）
 

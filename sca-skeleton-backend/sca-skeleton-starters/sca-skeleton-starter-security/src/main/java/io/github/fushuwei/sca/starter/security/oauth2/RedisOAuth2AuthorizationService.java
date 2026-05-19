@@ -1,12 +1,9 @@
-package io.github.fushuwei.sca.auth.authorization;
-
-import io.github.fushuwei.sca.oauth2.redis.OAuth2RedisKeys;
+package io.github.fushuwei.sca.starter.security.oauth2;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.lang.Nullable;
-import org.springframework.security.jackson.SecurityJacksonModules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2DeviceCode;
@@ -125,9 +122,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
         Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
         this.registeredClientRepository = registeredClientRepository;
         this.stringRedisTemplate = stringRedisTemplate;
-        this.authorizationJsonMapper = JsonMapper.builder()
-                .addModules(SecurityJacksonModules.getModules(RedisOAuth2AuthorizationService.class.getClassLoader()))
-                .build();
+        this.authorizationJsonMapper = OAuth2AuthorizationJsonMapperFactory.create(getClass().getClassLoader());
         this.parametersMapper = new JdbcOAuth2AuthorizationService.JsonMapperOAuth2AuthorizationParametersMapper(
                 this.authorizationJsonMapper);
     }
@@ -284,7 +279,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
      * @return 完整 Redis key
      */
     private static String authKey(String id) {
-        return OAuth2RedisKeys.authorizationKey(id);
+        return OAuth2AuthorizationRedisKeys.authorizationKey(id);
     }
 
     /**
@@ -295,7 +290,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
      * @return 索引 Redis key
      */
     private static String idxKey(String type, String token) {
-        return OAuth2RedisKeys.IDX_PREFIX + type + ":" + token;
+        return OAuth2AuthorizationRedisKeys.IDX_PREFIX + type + ":" + token;
     }
 
     /**

@@ -10,6 +10,7 @@ import io.github.fushuwei.sca.starter.security.properties.SecurityProperties;
 import io.github.fushuwei.sca.starter.security.user.CurrentUserProviderImpl;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -36,9 +37,10 @@ import org.springframework.security.web.SecurityFilterChain;
  *
  * @author Fu Wei
  */
-@AutoConfiguration(after = OAuth2RedisIntrospectionConfiguration.class)
+@AutoConfiguration(after = OAuth2AuthorizationRedisAutoConfiguration.class)
 @EnableMethodSecurity(securedEnabled = true)
 @EnableConfigurationProperties(SecurityProperties.class)
+@ConditionalOnProperty(prefix = "sca.security.resource-server", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class ResourceServerAutoConfiguration {
 
     /**

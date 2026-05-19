@@ -1,14 +1,13 @@
-package io.github.fushuwei.sca.oauth2.redis;
+package io.github.fushuwei.scaskeleton.core.constant;
 
 /**
  * 不透明 access_token 自省响应中的业务 claim 字段名。
  * <p>
- * 与认证中心 {@code ScaOpaqueAccessTokenClaimsCustomizer} 写入的字段保持一致，
- * 资源服务器、日志与多租户过滤均通过本常量读取，禁止在业务代码中散落硬编码字符串。
+ * 认证中心写入 token metadata、资源服务器读取 claim 时均使用本常量，禁止在业务代码中散落硬编码字符串。
  *
  * @author Fu Wei
  */
-public final class OAuth2TokenClaimNames {
+public final class OAuth2AccessTokenClaimNames {
 
     /**
      * 用户业务主键（UUID 32 位小写）。
@@ -40,6 +39,6 @@ public final class OAuth2TokenClaimNames {
      */
     public static final String PERMISSIONS = "permissions";
 
-    private OAuth2TokenClaimNames() {
+    private OAuth2AccessTokenClaimNames() {
     }
 }

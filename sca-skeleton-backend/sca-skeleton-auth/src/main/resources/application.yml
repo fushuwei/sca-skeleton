@@ -54,6 +54,10 @@ mybatis-plus:
 
 # SCA 自定义认证服务配置
 sca:
+  security:
+    resource-server:
+      # 认证中心仅发证，不启用资源服务器 FilterChain（OAuth2 Redis 存储仍由 starter-security 提供）
+      enabled: false
   auth:
     # 授权服务器对外发布的 issuer，必须在 OIDC discovery 与 JWT 类令牌 claims 中保持一致
     # 不同环境（本地直连 / 经网关 / 容器内服务名）应通过环境变量覆盖

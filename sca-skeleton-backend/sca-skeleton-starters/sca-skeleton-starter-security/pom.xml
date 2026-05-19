@@ -38,14 +38,20 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!-- Redis：不透明令牌本地自省（与认证中心共用授权 Redis） -->
-        <dependency>
-            <groupId>io.github.fushuwei</groupId>
-            <artifactId>sca-skeleton-oauth2-redis</artifactId>
-        </dependency>
+        <!-- Redis：OAuth2 授权记录与注册客户端缓存（与认证中心共用） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!-- SAS 类型与 Jackson 模块：OAuth2AuthorizationService Redis 实现 -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-authorization-server</artifactId>
+        </dependency>
+        <!-- JdbcOAuth2AuthorizationService 参数映射器依赖（仅类型，不引入数据源） -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
         </dependency>
         <!-- 配置元数据处理器：支持 IDE 对 sca.security.* 配置项的自动补全 -->
         <dependency>
