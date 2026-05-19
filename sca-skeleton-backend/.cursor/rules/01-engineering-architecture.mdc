@@ -34,8 +34,14 @@ alwaysApply: true
 
 ## 包结构规范（强制）
 
-- Java 包名统一使用全小写，遵循反向域名 + 系统名 + 模块域：`io.github.fushuwei.sca.<domain>`。
-- `groupId` 与包名前缀保持一致，默认统一为 `io.github.fushuwei`；未确认前禁止新增平行 `groupId`。
+- Java 包名根前缀统一为 **`io.github.fushuwei.scaskeleton`**（全小写连写）。
+- 禁止使用的包名形态：
+  - `io.github.fushuwei.sca.*`（`sca` 仅用于 Maven `artifactId`/目录名，不作为 Java 包名段）。
+  - `io.github.fushuwei.scaskeleton.starter.*`（`starter` 仅用于 Maven 工件命名，不作为 Java 包名段；与 Spring Boot 惯例一致：工件叫 `spring-boot-starter-*`，包名按能力域划分）。
+- Maven `groupId` 统一为 `io.github.fushuwei`（与 Java 包名根不同，禁止将 `groupId` 误当作包名前缀）；未确认前禁止新增平行 `groupId`。
+- Maven `artifactId` 与 Java 包名对应关系（工件名可含 `starter`，包名按**能力域**命名）：
+  - 可部署业务服务：`sca-skeleton-<domain>` → `io.github.fushuwei.scaskeleton.<domain>`（如 `auth`、`system`、`gateway`）。
+  - 横切能力库（含平台核心）：`sca-skeleton-starter-<capability>` → `io.github.fushuwei.scaskeleton.<capability>`。示例：`starter-core` → `scaskeleton.core`（`constant`、`exception`、`uuid` 等子包）、`starter-security` → `scaskeleton.security`、`starter-web` → `scaskeleton.web`、`starter-mybatis-plus` → `scaskeleton.mybatis`。其中 `starter-core` 为各 Starter 的公共依赖基础，包名仍遵循同一映射，不单独占一条规则。
 - 模块内按分层组织包结构，建议固定为：`api`、`application`、`domain`、`infrastructure`。
 - 控制器、DTO、命令对象等接口层类型仅允许出现在 `api` 层及其子包。
 - 持久化实现（Mapper、DO、Repository impl）仅允许出现在 `infrastructure` 层及其子包。
