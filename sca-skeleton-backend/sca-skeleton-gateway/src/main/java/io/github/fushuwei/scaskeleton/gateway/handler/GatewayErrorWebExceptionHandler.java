@@ -154,43 +154,41 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
         /**
          * 401：未认证
          */
-        UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "登录已过期，请重新登录"),
+        UNAUTHORIZED("登录已过期，请重新登录"),
 
         /**
          * 403：禁止访问
          */
-        FORBIDDEN(HttpStatus.FORBIDDEN, "权限不足，拒绝访问"),
+        FORBIDDEN("权限不足，拒绝访问"),
 
         /**
          * 404：请求的资源不存在
          */
-        NOT_FOUND(HttpStatus.NOT_FOUND, "请求的资源不存在"),
+        NOT_FOUND("请求的资源不存在"),
 
         /**
          * 500：服务器内部错误
          */
-        INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "系统繁忙，请稍后重试"),
+        INTERNAL_ERROR("系统繁忙，请稍后重试"),
 
         /**
          * 502：网关异常
          */
-        BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "服务响应异常，请稍后重试"),
+        BAD_GATEWAY("服务响应异常，请稍后重试"),
 
         /**
          * 503：服务不可用
          */
-        SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "服务暂时不可用，请稍后重试"),
+        SERVICE_UNAVAILABLE("服务暂时不可用，请稍后重试"),
 
         /**
          * 504：网关超时
          */
-        GATEWAY_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "服务响应超时，请稍后重试");
+        GATEWAY_TIMEOUT("服务响应超时，请稍后重试");
 
-        private final HttpStatus httpStatus;
         private final String message;
 
-        ErrorMessage(HttpStatus httpStatus, String message) {
-            this.httpStatus = httpStatus;
+        ErrorMessage(String message) {
             this.message = message;
         }
     }
