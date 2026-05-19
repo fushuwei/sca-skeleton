@@ -1,7 +1,6 @@
 package io.github.fushuwei.scaskeleton.gateway.filter;
 
 import io.github.fushuwei.scaskeleton.core.constant.GlobalConstants;
-import io.github.fushuwei.scaskeleton.core.exception.UnauthorizedException;
 import io.github.fushuwei.scaskeleton.core.util.BearerTokenUtils;
 import io.github.fushuwei.scaskeleton.gateway.config.GatewaySecurityProperties;
 import lombok.RequiredArgsConstructor;
@@ -10,9 +9,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -37,7 +38,7 @@ public class GatewaySecurityGlobalFilter implements GlobalFilter, Ordered {
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
     @Override
-    public @NonNull Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+    public @NonNull Mono<Void> filter(@NonNull ServerWebExchange exchange, @NonNull GatewayFilterChain chain) {
         // 白名单路径直接放行，无需 Bearer
         if (matchesWhiteList(exchange)) {
             return chain.filter(exchange);
@@ -51,7 +52,7 @@ public class GatewaySecurityGlobalFilter implements GlobalFilter, Ordered {
         }
 
         // 非白名单且缺失令牌：抛出 401 异常，不转发下游
-        return Mono.error(new UnauthorizedException("登录已过期，请重新登录"));
+        return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     }
 
     /**

@@ -2,15 +2,11 @@ package io.github.fushuwei.scaskeleton.gateway.handler;
 
 import io.github.fushuwei.scaskeleton.core.constant.GlobalConstants;
 import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
-import io.github.fushuwei.scaskeleton.core.exception.UnauthorizedException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.boot.webflux.error.ErrorWebExceptionHandler;
-import org.springframework.cloud.gateway.support.NotFoundException;
-import org.springframework.cloud.gateway.support.ServiceUnavailableException;
-import org.springframework.cloud.gateway.support.TimeoutException;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -19,13 +15,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.resource.NoResourceFoundException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import tools.jackson.databind.ObjectMapper;
 
-import java.net.ConnectException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -78,40 +72,41 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
         // 获取异常的具体原因
         Throwable rootCause = NestedExceptionUtils.getMostSpecificCause(ex);
 
-        // 未认证异常（401）
-        if (rootCause instanceof UnauthorizedException) {
-            return ErrorResult.of(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED.getCode(), ErrorMessage.UNAUTHORIZED.getMessage());
-        }
-
-        // 请求的资源不存在（404）
-        if (rootCause instanceof NotFoundException || rootCause instanceof NoResourceFoundException) {
-            return ErrorResult.of(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND.getCode(), ErrorMessage.NOT_FOUND.getMessage());
-        }
-
-        // 网关异常（502）
-        if (rootCause instanceof ConnectException) {
-            return ErrorResult.of(HttpStatus.BAD_GATEWAY, ErrorCode.BAD_GATEWAY.getCode(), ErrorMessage.BAD_GATEWAY.getMessage());
-        }
-
-        // 服务不可用（503）
-        if (rootCause instanceof ServiceUnavailableException) {
-            return ErrorResult.of(HttpStatus.SERVICE_UNAVAILABLE, ErrorCode.SERVICE_UNAVAILABLE.getCode(), ErrorMessage.SERVICE_UNAVAILABLE.getMessage());
-        }
-
-        // 网关超时（504）
-        if (rootCause instanceof TimeoutException || ex.getClass().getName().contains("Timeout")) {
-            return ErrorResult.of(HttpStatus.GATEWAY_TIMEOUT, ErrorCode.GATEWAY_TIMEOUT.getCode(), ErrorMessage.GATEWAY_TIMEOUT.getMessage());
-        }
-
         // 处理 Spring 框架抛出的标准 HTTP 状态异常
         if (rootCause instanceof ResponseStatusException cause) {
-            HttpStatus httpStatus = HttpStatus.resolve(cause.getStatusCode().value());
-            if (httpStatus != null) {
-                return ErrorResult.of(httpStatus, String.valueOf(httpStatus.value()), ErrorMessage.fromHttpStatus(httpStatus));
+            switch (cause.getStatusCode()) {
+                // 未认证异常（401）
+                case HttpStatus.UNAUTHORIZED -> {
+                    return ErrorResult.of(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED.getCode(), ErrorMessage.UNAUTHORIZED.getMessage());
+                }
+                // 禁止访问（403）
+                case HttpStatus.FORBIDDEN -> {
+                    return ErrorResult.of(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED.getCode(), ErrorMessage.UNAUTHORIZED.getMessage());
+                }
+                // 请求的资源不存在（404）
+                case HttpStatus.NOT_FOUND -> {
+                    return ErrorResult.of(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND.getCode(), ErrorMessage.NOT_FOUND.getMessage());
+                }
+                // 网关异常（502）
+                case HttpStatus.BAD_GATEWAY -> {
+                    return ErrorResult.of(HttpStatus.BAD_GATEWAY, ErrorCode.BAD_GATEWAY.getCode(), ErrorMessage.BAD_GATEWAY.getMessage());
+                }
+                // 服务不可用（503）
+                case HttpStatus.SERVICE_UNAVAILABLE -> {
+                    return ErrorResult.of(HttpStatus.SERVICE_UNAVAILABLE, ErrorCode.SERVICE_UNAVAILABLE.getCode(), ErrorMessage.SERVICE_UNAVAILABLE.getMessage());
+                }
+                // 网关超时（504）
+                case HttpStatus.GATEWAY_TIMEOUT -> {
+                    return ErrorResult.of(HttpStatus.GATEWAY_TIMEOUT, ErrorCode.GATEWAY_TIMEOUT.getCode(), ErrorMessage.GATEWAY_TIMEOUT.getMessage());
+                }
+                default -> {
+                    // 服务器内部错误（500）
+                    return ErrorResult.of(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR.getCode(), ErrorMessage.INTERNAL_ERROR.getMessage());
+                }
             }
         }
 
-        // 服务器内部错误（500），默认兜底异常
+        // 默认兜底异常
         return ErrorResult.of(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR.getCode(), ErrorMessage.INTERNAL_ERROR.getMessage());
     }
 
@@ -162,6 +157,11 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
         UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "登录已过期，请重新登录"),
 
         /**
+         * 403：禁止访问
+         */
+        FORBIDDEN(HttpStatus.FORBIDDEN, "权限不足，拒绝访问"),
+
+        /**
          * 404：请求的资源不存在
          */
         NOT_FOUND(HttpStatus.NOT_FOUND, "请求的资源不存在"),
@@ -192,18 +192,6 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
         ErrorMessage(HttpStatus httpStatus, String message) {
             this.httpStatus = httpStatus;
             this.message = message;
-        }
-
-        /**
-         * 根据 HTTP 状态码获取对应的错误提示
-         */
-        static String fromHttpStatus(HttpStatus httpStatus) {
-            for (ErrorMessage value : values()) {
-                if (value.httpStatus == httpStatus) {
-                    return value.message;
-                }
-            }
-            return INTERNAL_ERROR.message;
         }
     }
 }
