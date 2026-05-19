@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="io.github.fushuwei.sca.system.infrastructure.mapper.SysUserMapper">
+<mapper namespace="io.github.fushuwei.scaskeleton.system.infrastructure.mapper.SysUserMapper">
 
-    <select id="selectUserPage" resultType="io.github.fushuwei.sca.system.infrastructure.entity.SysUser">
+    <select id="selectUserPage" resultType="io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysUser">
         SELECT u.*
         FROM sys_user u
         <if test="deptId != null and deptId != ''">
