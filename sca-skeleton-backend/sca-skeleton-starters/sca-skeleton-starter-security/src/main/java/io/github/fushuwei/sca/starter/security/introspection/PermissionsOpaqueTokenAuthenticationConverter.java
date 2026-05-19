@@ -1,6 +1,6 @@
 package io.github.fushuwei.sca.starter.security.introspection;
 
-import io.github.fushuwei.scaskeleton.core.constant.OAuth2AccessTokenClaimNames;
+import io.github.fushuwei.sca.starter.security.constant.OAuth2AccessTokenClaimNames;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

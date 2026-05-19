@@ -65,7 +65,7 @@ alwaysApply: true
   - `user_type`：用户类型枚举
   - `nickname`：用户昵称（仅展示用途，禁止做权限判断）
   - `permissions`：权限码数组（字符串列表，不带前缀；空集时返回空数组）
-- 资源服务器读取 claim 时必须使用 `OAuth2AccessTokenClaimNames`（`starter-core`）或 `sca.security.*` 配置项，禁止在多个模块各自硬编码字段名。
+- 资源服务器读取 claim 时必须使用 `OAuth2AccessTokenClaimNames`（`starter-security` 常量包）或 `sca.security.*` 配置项，禁止在多个模块各自硬编码字段名。
 - 自省响应缓存策略须遵循：
   - 默认禁用缓存，命中即真实自省，保证可即时吊销
   - 高并发场景下允许在资源服务器侧引入短 TTL 缓存（建议 ≤ 60 秒），但必须实现强制失效通道

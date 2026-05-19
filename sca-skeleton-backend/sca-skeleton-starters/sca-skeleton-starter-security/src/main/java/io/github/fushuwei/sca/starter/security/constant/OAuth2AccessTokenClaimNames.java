@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.core.constant;
+package io.github.fushuwei.sca.starter.security.constant;
 
 /**
  * 不透明 access_token 自省响应中的业务 claim 字段名。
