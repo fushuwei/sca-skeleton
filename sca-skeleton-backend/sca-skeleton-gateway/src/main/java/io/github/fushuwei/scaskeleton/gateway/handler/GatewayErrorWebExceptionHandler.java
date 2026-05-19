@@ -131,8 +131,12 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
         body.put("message", errorResult.message);
         body.put("data", null);
 
-        DataBuffer buffer = response.bufferFactory().wrap(objectMapper.writeValueAsBytes(body));
-        return response.writeWith(Mono.just(buffer));
+        try {
+            DataBuffer buffer = response.bufferFactory().wrap(objectMapper.writeValueAsBytes(body));
+            return response.writeWith(Mono.just(buffer));
+        } catch (Throwable e) {
+            return response.setComplete();
+        }
     }
 
     /**
