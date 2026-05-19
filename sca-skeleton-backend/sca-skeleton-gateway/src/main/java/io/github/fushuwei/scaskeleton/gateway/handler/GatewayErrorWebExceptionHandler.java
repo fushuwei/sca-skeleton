@@ -52,14 +52,8 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
         // 封装异常响应结果
         ErrorResult errorResult = resolveError(ex);
 
-        // 记录日志
-        String traceId = exchange.getRequest().getHeaders().getFirst(GlobalConstants.HEADER_TRACE_ID);
-        String logMessage = "[Gateway] Error: traceId={}, code={}, message={}, errorMessage={}";
-        if (errorResult.httpStatus().is5xxServerError()) {
-            log.error(logMessage, traceId, errorResult.code, errorResult.message, ex.getMessage());
-        } else {
-            log.warn(logMessage, traceId, errorResult.code, errorResult.message, ex.getMessage());
-        }
+        // 记录异常日志
+        writeErrorLog(exchange, errorResult, ex);
 
         // 返回响应体
         return writeErrorResponse(exchange, errorResult);
@@ -111,6 +105,19 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
     }
 
     /**
+     * 记录异常日志
+     */
+    private void writeErrorLog(ServerWebExchange exchange, ErrorResult errorResult, Throwable ex) {
+        String traceId = exchange.getRequest().getHeaders().getFirst(GlobalConstants.HEADER_TRACE_ID);
+        String logMessage = "[Gateway] {}: TraceId={}, Code={}, Message={}, Detail={}";
+        if (errorResult.httpStatus().is5xxServerError()) {
+            log.error(logMessage, "Error", traceId, errorResult.code, errorResult.message, ex.getMessage());
+        } else {
+            log.warn(logMessage, "Warn", traceId, errorResult.code, errorResult.message, ex.getMessage());
+        }
+    }
+
+    /**
      * 返回响应体
      */
     private Mono<Void> writeErrorResponse(ServerWebExchange exchange, ErrorResult errorResult) {
@@ -150,7 +157,7 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
     }
 
     /**
-     * 网关错误消息枚举
+     * 网关异常消息枚举
      */
     @Getter
     private enum ErrorMessage {
