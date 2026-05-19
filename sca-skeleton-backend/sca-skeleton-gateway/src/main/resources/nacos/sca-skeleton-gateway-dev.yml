@@ -44,8 +44,8 @@ spring:
           uri: lb://sca-skeleton-system
           predicates:
             - Path=/sys/**
-            - Header=Authorization, (Bearer|Basic)\s+.+
-            - Method=POST
+            # - Header=Authorization, (Bearer|Basic)\s+.+
+            # - Method=POST
           filters:
             - StripPrefix=1
             # 请求限流配置
