@@ -109,7 +109,7 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
      */
     private void writeErrorLog(ServerWebExchange exchange, ErrorResult errorResult, Throwable ex) {
         String traceId = exchange.getRequest().getHeaders().getFirst(GlobalConstants.HEADER_TRACE_ID);
-        String logMessage = "[Gateway] {}: TraceId={}, Code={}, Message={}, Detail={}";
+        String logMessage = "[Gateway] {}: TraceId => {}, Code => {}, Message => {}, Detail => {}";
         if (errorResult.httpStatus().is5xxServerError()) {
             log.error(logMessage, "Error", traceId, errorResult.code, errorResult.message, ex.getMessage());
         } else {
