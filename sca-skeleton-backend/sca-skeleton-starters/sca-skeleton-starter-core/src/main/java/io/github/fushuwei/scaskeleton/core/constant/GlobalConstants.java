@@ -1,14 +1,14 @@
 package io.github.fushuwei.scaskeleton.core.constant;
 
+import lombok.experimental.UtilityClass;
+
 /**
  * 全局公共常量类
  *
  * @author Fu Wei
  */
-public final class GlobalConstants {
-
-    private GlobalConstants() {
-    }
+@UtilityClass
+public class GlobalConstants {
 
     // ======================================================================
     // HTTP 请求头
