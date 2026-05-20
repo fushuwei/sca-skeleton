@@ -20,12 +20,10 @@
     <modules>
         <!-- 核心基础：异常体系、工具类、TraceId 上下文、UUID 生成规范，所有其他 Starter 的依赖基础 -->
         <module>sca-skeleton-starter-core</module>
-        <!-- Web 通用：统一响应体、全局异常处理、TraceId 过滤器、Jackson 配置 -->
+        <!-- Web 通用：统一响应体、全局异常处理、TraceId 过滤器、@RateLimit 限流 -->
         <module>sca-skeleton-starter-web</module>
         <!-- 日志增强：操作日志 AOP 注解、MDC 链路追踪辅助 -->
         <module>sca-skeleton-starter-logging</module>
-        <!-- Redis/Redisson：Redis Template 配置、RedisUtils、限流注解 AOP -->
-        <module>sca-skeleton-starter-redis</module>
         <!-- MyBatis-Plus 增强：基础实体、审计字段自动填充、分页插件配置 -->
         <module>sca-skeleton-starter-mybatis-plus</module>
         <!-- OpenFeign 增强：请求头传递（TraceId/Authorization）、统一错误解码 -->

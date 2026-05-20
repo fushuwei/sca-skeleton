@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.redis.annotation;
+package io.github.fushuwei.scaskeleton.web.annotation;
 
 import java.lang.annotation.*;
 import java.util.concurrent.TimeUnit;

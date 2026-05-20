@@ -18,7 +18,7 @@
     <description>System management service: user, role, permission, dept, post, dict, config</description>
 
     <dependencies>
-        <!-- Web 通用 Starter：统一响应体、全局异常处理、TraceId 过滤器 -->
+        <!-- Web 通用 Starter：统一响应体、全局异常处理、TraceId 过滤器、限流注解 -->
         <dependency>
             <groupId>io.github.fushuwei</groupId>
             <artifactId>sca-skeleton-starter-web</artifactId>
@@ -34,12 +34,6 @@
         <dependency>
             <groupId>io.github.fushuwei</groupId>
             <artifactId>sca-skeleton-starter-security</artifactId>
-        </dependency>
-
-        <!-- Redis Starter：缓存权限列表、字典数据等高频读取数据 -->
-        <dependency>
-            <groupId>io.github.fushuwei</groupId>
-            <artifactId>sca-skeleton-starter-redis</artifactId>
         </dependency>
 
         <!-- 日志增强 Starter：@OperationLog 操作日志记录 -->

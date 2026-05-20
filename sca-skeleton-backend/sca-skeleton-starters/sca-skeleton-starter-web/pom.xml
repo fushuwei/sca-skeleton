@@ -15,7 +15,7 @@
     <packaging>jar</packaging>
 
     <name>SCA Skeleton Backend :: Starter :: Web</name>
-    <description>Web reusable components</description>
+    <description>Web reusable components: unified response, exception handling, TraceId filter, rate limit AOP</description>
 
     <dependencies>
         <!-- Starter Core -->
@@ -33,6 +33,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <!-- Redisson：@RateLimit 分布式限流（需业务服务配置 Redis） -->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- Spring AOP：@RateLimit 切面支持 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
         </dependency>
 
         <!-- Lombok 代码简化工具 -->

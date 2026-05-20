@@ -1,42 +1,27 @@
-package io.github.fushuwei.scaskeleton.redis.config;
+package io.github.fushuwei.scaskeleton.web.config;
 
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
-import io.github.fushuwei.scaskeleton.redis.aspect.RateLimitAspect;
-import io.github.fushuwei.scaskeleton.redis.util.RedisUtils;
+import io.github.fushuwei.scaskeleton.web.aspect.RateLimitAspect;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.lang.Nullable;
 
 /**
- * Redis Starter 自动配置入口。
+ * Web 限流自动配置。
  * <p>
- * 统一注册：RedisTemplate 序列化配置、RedisUtils 工具 Bean、RateLimitAspect 限流切面。
- * 依赖 RedissonClient（由 redisson-spring-boot-starter 自动装配）。
+ * 在 Redisson 可用时注册 {@link RateLimitAspect}，支持 {@code @RateLimit} 注解驱动的分布式限流。
  *
  * @author Fu Wei
  */
 @AutoConfiguration
-@Import(RedisTemplateConfig.class)
 @ConditionalOnClass(RedissonClient.class)
-public class RedisAutoConfiguration {
-
-    /**
-     * 注册 RedisUtils 工具 Bean，依赖上方配置的 RedisTemplate。
-     *
-     * @param redisTemplate 由 RedisTemplateConfig 提供的 RedisTemplate
-     * @return RedisUtils 实例
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public RedisUtils redisUtils(RedisTemplate<String, Object> redisTemplate) {
-        return new RedisUtils(redisTemplate);
-    }
+@ConditionalOnBean(RedissonClient.class)
+public class WebRateLimitAutoConfiguration {
 
     /**
      * 注册限流切面 Bean，依赖 RedissonClient 与可选的 CurrentUserProvider。

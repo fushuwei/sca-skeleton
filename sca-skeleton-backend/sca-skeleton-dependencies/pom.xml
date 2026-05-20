@@ -135,13 +135,6 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- 项目 Redis Starter（自定义缓存与数据操作组件封装） -->
-            <dependency>
-                <groupId>io.github.fushuwei</groupId>
-                <artifactId>sca-skeleton-starter-redis</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
             <!-- 项目 MyBatis-Plus Starter（自定义持久层组件封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>

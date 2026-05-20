@@ -11,7 +11,8 @@ import org.springframework.core.Ordered;
 /**
  * Web Starter 自动配置入口。
  * <p>
- * 统一注册：全局异常处理器、TraceId 注入过滤器；Jackson 全局约定由 starter-core 提供。
+ * 统一注册：全局异常处理器、TraceId 注入过滤器；Redis 与 Jackson 约定由 starter-core 提供；
+ * {@code @RateLimit} 限流由 {@link WebRateLimitAutoConfiguration} 条件装配。
  *
  * @author Fu Wei
  */

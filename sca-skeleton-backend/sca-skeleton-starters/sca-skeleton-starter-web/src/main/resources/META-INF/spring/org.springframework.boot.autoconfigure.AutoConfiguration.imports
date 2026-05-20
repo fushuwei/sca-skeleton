@@ -1,1 +1,2 @@
 io.github.fushuwei.scaskeleton.web.config.WebStarterAutoConfiguration
+io.github.fushuwei.scaskeleton.web.config.WebRateLimitAutoConfiguration

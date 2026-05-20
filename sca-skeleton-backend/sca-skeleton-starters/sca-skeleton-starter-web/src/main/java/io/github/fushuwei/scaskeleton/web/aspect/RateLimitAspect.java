@@ -1,9 +1,9 @@
-package io.github.fushuwei.scaskeleton.redis.aspect;
+package io.github.fushuwei.scaskeleton.web.aspect;
 
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
-import io.github.fushuwei.scaskeleton.redis.annotation.RateLimit;
+import io.github.fushuwei.scaskeleton.web.annotation.RateLimit;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -73,7 +73,7 @@ public class RateLimitAspect {
             log.warn("[RateLimit] triggered. key={} rate={}/{}{}", rateLimitKey,
                     annotation.rate(), annotation.rateInterval(),
                     annotation.rateIntervalUnit().name().toLowerCase());
-            // 超限时抛出业务异常，由全局异常处理器统一响应 429
+            // 超限时抛出业务异常，由全局异常处理器统一响应
             throw BusinessException.of(ResultCode.TOO_MANY_REQUESTS, annotation.message());
         }
 

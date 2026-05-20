@@ -24,7 +24,7 @@
             <artifactId>spring-boot-starter-security-oauth2-authorization-server</artifactId>
         </dependency>
 
-        <!-- Web 通用 Starter：统一响应体、全局异常处理、TraceId 过滤器 -->
+        <!-- Web 通用 Starter：统一响应体、全局异常处理、TraceId 过滤器、限流注解 -->
         <dependency>
             <groupId>io.github.fushuwei</groupId>
             <artifactId>sca-skeleton-starter-web</artifactId>
@@ -34,12 +34,6 @@
         <dependency>
             <groupId>io.github.fushuwei</groupId>
             <artifactId>sca-skeleton-starter-mybatis-plus</artifactId>
-        </dependency>
-
-        <!-- Redis Starter：令牌黑名单（吊销）、登录失败计数 -->
-        <dependency>
-            <groupId>io.github.fushuwei</groupId>
-            <artifactId>sca-skeleton-starter-redis</artifactId>
         </dependency>
 
         <!-- Security Starter：OAuth2 Redis 授权存储（共享）；认证中心关闭资源服务器 FilterChain -->
