@@ -128,7 +128,6 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
         }
 
         // 设置 HTTP 响应状态码与响应内容类型
-        response.setStatusCode(errorResult.httpStatus);
         response.getHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
         // 设置响应体
@@ -136,6 +135,9 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
         body.put("code", errorResult.code);
         body.put("message", errorResult.message);
         body.put("data", null);
+        body.put("type", "FAILURE");
+        body.put("traceId", exchange.getAttribute(GatewayConstants.EXCHANGE_ATTRIBUTE_TRACE_ID));
+        body.put("timestamp", System.currentTimeMillis());
 
         try {
             DataBuffer buffer = response.bufferFactory().wrap(objectMapper.writeValueAsBytes(body));
