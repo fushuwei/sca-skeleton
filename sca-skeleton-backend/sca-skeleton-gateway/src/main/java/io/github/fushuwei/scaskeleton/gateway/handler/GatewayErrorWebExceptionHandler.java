@@ -1,6 +1,7 @@
 package io.github.fushuwei.scaskeleton.gateway.handler;
 
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.core.result.ResultType;
 import io.github.fushuwei.scaskeleton.gateway.constant.GatewayConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -135,7 +136,7 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
         body.put("code", errorResult.code);
         body.put("message", errorResult.message);
         body.put("data", null);
-        body.put("type", "FAILURE");
+        body.put("type", ResultType.FAILURE);
         body.put("traceId", exchange.getAttribute(GatewayConstants.EXCHANGE_ATTRIBUTE_TRACE_ID));
         body.put("timestamp", System.currentTimeMillis());
 
