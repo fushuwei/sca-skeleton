@@ -1,23 +1,19 @@
 package io.github.fushuwei.scaskeleton.core.trace;
 
+import io.github.fushuwei.scaskeleton.core.constant.GlobalConstants;
 import org.slf4j.MDC;
 
 /**
  * 链路追踪上下文。
  * <p>
  * 维护当前请求的 TraceId，同步写入 SLF4J MDC，使日志能自动携带链路标识。
+ * HTTP 请求头 Key 见 {@link GlobalConstants#HEADER_TRACE_ID}。
  * Web 过滤器（{@code TraceIdFilter}）在请求入口注入，Feign 拦截器在跨服务调用时传递，
  * 异步任务场景需手动传递（通过 {@link #copy()} 获取当前值，在新线程中调用 {@link #set(String)}）。
  *
  * @author Fu Wei
  */
 public final class TraceContext {
-
-    /** MDC Key，也是响应头 Key，用于日志输出与链路透传 */
-    public static final String MDC_KEY = "traceId";
-
-    /** HTTP 请求头 Key，网关生成或前端透传 */
-    public static final String HEADER_KEY = "X-Trace-Id";
 
     private TraceContext() {
     }
@@ -28,7 +24,7 @@ public final class TraceContext {
      * @param traceId 链路追踪 ID，通常为 32 位无连字符 UUID
      */
     public static void set(String traceId) {
-        MDC.put(MDC_KEY, traceId);
+        MDC.put(GlobalConstants.MDC_TRACE_ID, traceId);
     }
 
     /**
@@ -37,7 +33,7 @@ public final class TraceContext {
      * @return 当前线程的 traceId，未设置时返回 {@code null}
      */
     public static String get() {
-        return MDC.get(MDC_KEY);
+        return MDC.get(GlobalConstants.MDC_TRACE_ID);
     }
 
     /**
@@ -45,7 +41,7 @@ public final class TraceContext {
      * 应在请求处理结束后（filter finally 块）调用。
      */
     public static void clear() {
-        MDC.remove(MDC_KEY);
+        MDC.remove(GlobalConstants.MDC_TRACE_ID);
     }
 
     /**
@@ -55,6 +51,6 @@ public final class TraceContext {
      * @return 当前 traceId 快照，可能为 {@code null}
      */
     public static String copy() {
-        return MDC.get(MDC_KEY);
+        return MDC.get(GlobalConstants.MDC_TRACE_ID);
     }
 }

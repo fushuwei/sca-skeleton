@@ -2,7 +2,7 @@ package io.github.fushuwei.scaskeleton.system.application.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
-import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.system.api.dto.dept.DeptSaveRequest;
 import io.github.fushuwei.scaskeleton.system.application.service.SysDeptService;
 import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysDept;
@@ -36,7 +36,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     public SysDept getDeptById(String id) {
         SysDept dept = deptMapper.selectById(id);
         if (dept == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND, "部门不存在");
+            throw new BusinessException(ResultCode.NOT_FOUND, "部门不存在");
         }
         return dept;
     }
@@ -84,7 +84,7 @@ public class SysDeptServiceImpl implements SysDeptService {
                 .eq(SysDept::getTenantId, dept.getTenantId())
                 .eq(SysDept::getParentId, id));
         if (childCount > 0) {
-            throw new BusinessException(ErrorCode.INVALID_ARGUMENT, "请先删除子部门");
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "请先删除子部门");
         }
         deptMapper.deleteById(id);
     }

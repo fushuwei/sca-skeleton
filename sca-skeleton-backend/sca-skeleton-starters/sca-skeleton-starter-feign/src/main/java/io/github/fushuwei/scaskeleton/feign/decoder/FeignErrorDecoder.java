@@ -3,7 +3,7 @@ package io.github.fushuwei.scaskeleton.feign.decoder;
 import feign.Response;
 import feign.codec.ErrorDecoder;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
-import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -43,26 +43,26 @@ public class FeignErrorDecoder implements ErrorDecoder {
         // 根据 HTTP 状态码映射到对应业务错误码
         return switch (status) {
             // 下游服务返回 400：请求参数异常，原样透传
-            case 400 -> new BusinessException(ErrorCode.INVALID_ARGUMENT,
+            case 400 -> new BusinessException(ResultCode.VALIDATION_ERROR,
                     "下游服务请求参数异常: " + responseBody);
             // 下游服务返回 401：未认证，可能是 Token 失效
-            case 401 -> new BusinessException(ErrorCode.UNAUTHORIZED,
+            case 401 -> new BusinessException(ResultCode.UNAUTHORIZED,
                     "下游服务认证失败: " + responseBody);
             // 下游服务返回 403：无权限访问该资源
-            case 403 -> new BusinessException(ErrorCode.FORBIDDEN,
+            case 403 -> new BusinessException(ResultCode.FORBIDDEN,
                     "下游服务访问被拒绝: " + responseBody);
             // 下游服务返回 404：目标资源不存在
-            case 404 -> new BusinessException(ErrorCode.NOT_FOUND,
+            case 404 -> new BusinessException(ResultCode.NOT_FOUND,
                     "下游服务资源不存在: " + responseBody);
             // 下游服务返回 429：下游限流触发
-            case 429 -> new BusinessException(ErrorCode.TOO_MANY_REQUESTS,
+            case 429 -> new BusinessException(ResultCode.TOO_MANY_REQUESTS,
                     "下游服务触发限流: " + responseBody);
             // 下游服务返回 503：服务不可用（可能正在重启或超载）
-            case 503 -> new BusinessException(ErrorCode.SERVICE_UNAVAILABLE,
+            case 503 -> new BusinessException(ResultCode.SERVICE_UNAVAILABLE,
                     "下游服务暂不可用: " + responseBody);
             // 下游服务返回 5xx 其他错误：统一映射为内部错误
             default -> status >= 500
-                    ? new BusinessException(ErrorCode.INTERNAL_ERROR, "下游服务内部错误: " + responseBody)
+                    ? new BusinessException(ResultCode.INTERNAL_SERVER_ERROR, "下游服务内部错误: " + responseBody)
                     // 其他状态码交由默认解码器处理（如 RetryableException）
                     : defaultDecoder.decode(methodKey, response);
         };

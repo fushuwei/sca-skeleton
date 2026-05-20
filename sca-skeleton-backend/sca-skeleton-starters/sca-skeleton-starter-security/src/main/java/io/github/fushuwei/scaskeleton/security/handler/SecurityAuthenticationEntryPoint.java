@@ -1,7 +1,8 @@
 package io.github.fushuwei.scaskeleton.security.handler;
 
 import tools.jackson.databind.ObjectMapper;
-import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.result.Result;
+import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 /**
  * Security 未认证请求入口处理器。
@@ -46,12 +46,8 @@ public class SecurityAuthenticationEntryPoint implements AuthenticationEntryPoin
         log.warn("[Security] unauthorized access. uri={} method={} message={}",
                 request.getRequestURI(), request.getMethod(), authException.getMessage());
 
-        // 构造统一错误响应体，与 ApiResponse 格式对齐
-        Map<String, Object> body = Map.of(
-                "code", ErrorCode.UNAUTHORIZED.getCode(),
-                "message", ErrorCode.UNAUTHORIZED.getMessage(),
-                "data", null
-        );
+        // 构造统一错误响应体，与 Result 格式对齐
+        Result<Void> body = Result.fail(ResultCode.UNAUTHORIZED);
 
         // 设置响应为 JSON 格式，UTF-8 编码，HTTP 状态码 401
         response.setStatus(HttpStatus.UNAUTHORIZED.value());

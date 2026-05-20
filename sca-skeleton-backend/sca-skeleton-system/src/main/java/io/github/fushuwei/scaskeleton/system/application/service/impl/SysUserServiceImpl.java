@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
-import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserSaveRequest;
 import io.github.fushuwei.scaskeleton.system.application.service.SysUserService;
@@ -51,7 +51,7 @@ public class SysUserServiceImpl implements SysUserService {
     public SysUser getUserById(String id) {
         SysUser user = userMapper.selectById(id);
         if (user == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND, "用户不存在");
+            throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在");
         }
         return user;
     }
@@ -65,7 +65,7 @@ public class SysUserServiceImpl implements SysUserService {
                 .eq(SysUser::getUsername, req.getUsername())
                 .eq(SysUser::getUserCategory, "backend"));
         if (count > 0) {
-            throw new BusinessException(ErrorCode.ALREADY_EXISTS, "用户名已存在");
+            throw new BusinessException(ResultCode.ALREADY_EXISTS, "用户名已存在");
         }
 
         SysUser user = new SysUser();
@@ -124,7 +124,7 @@ public class SysUserServiceImpl implements SysUserService {
     public void deleteUser(String id) {
         SysUser user = getUserById(id);
         if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
-            throw new BusinessException(ErrorCode.FORBIDDEN, "系统内置用户不允许删除");
+            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许删除");
         }
         userMapper.deleteById(id);
         deleteUserRelations(user.getTenantId(), id);
@@ -147,7 +147,7 @@ public class SysUserServiceImpl implements SysUserService {
     public void changeStatus(String id, String status, String reason) {
         SysUser user = getUserById(id);
         if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
-            throw new BusinessException(ErrorCode.FORBIDDEN, "系统内置用户不允许操作");
+            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许操作");
         }
         userMapper.update(null, new LambdaUpdateWrapper<SysUser>()
                 .eq(SysUser::getId, id)

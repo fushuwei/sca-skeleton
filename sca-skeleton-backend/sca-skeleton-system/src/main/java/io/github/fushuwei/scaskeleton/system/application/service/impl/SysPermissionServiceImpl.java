@@ -2,7 +2,7 @@ package io.github.fushuwei.scaskeleton.system.application.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
-import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.system.api.dto.permission.PermissionSaveRequest;
 import io.github.fushuwei.scaskeleton.system.application.service.SysPermissionService;
 import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysPermission;
@@ -35,7 +35,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     public SysPermission getPermissionById(String id) {
         SysPermission perm = permissionMapper.selectById(id);
         if (perm == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND, "权限不存在");
+            throw new BusinessException(ResultCode.NOT_FOUND, "权限不存在");
         }
         return perm;
     }
@@ -87,7 +87,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         long childCount = permissionMapper.selectCount(new LambdaQueryWrapper<SysPermission>()
                 .eq(SysPermission::getParentId, id));
         if (childCount > 0) {
-            throw new BusinessException(ErrorCode.INVALID_ARGUMENT, "请先删除子权限");
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "请先删除子权限");
         }
         permissionMapper.deleteById(id);
     }

@@ -2,7 +2,7 @@ package io.github.fushuwei.scaskeleton.system.application.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
-import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.system.api.dto.role.RoleSaveRequest;
 import io.github.fushuwei.scaskeleton.system.application.service.SysRoleService;
 import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysRole;
@@ -41,7 +41,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     public SysRole getRoleById(String id) {
         SysRole role = roleMapper.selectById(id);
         if (role == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND, "角色不存在");
+            throw new BusinessException(ResultCode.NOT_FOUND, "角色不存在");
         }
         return role;
     }
@@ -53,7 +53,7 @@ public class SysRoleServiceImpl implements SysRoleService {
                 .eq(SysRole::getTenantId, tenantId)
                 .eq(SysRole::getCode, req.getCode()));
         if (count > 0) {
-            throw new BusinessException(ErrorCode.ALREADY_EXISTS, "角色编码已存在");
+            throw new BusinessException(ResultCode.ALREADY_EXISTS, "角色编码已存在");
         }
         SysRole role = new SysRole();
         role.setTenantId(tenantId);
@@ -82,7 +82,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     public void deleteRole(String id) {
         SysRole role = getRoleById(id);
         if (role.getIsBuiltin() != null && role.getIsBuiltin() == 1) {
-            throw new BusinessException(ErrorCode.FORBIDDEN, "系统内置角色不允许删除");
+            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置角色不允许删除");
         }
         roleMapper.deleteById(id);
         rolePermissionMapper.delete(new LambdaQueryWrapper<SysRolePermission>()

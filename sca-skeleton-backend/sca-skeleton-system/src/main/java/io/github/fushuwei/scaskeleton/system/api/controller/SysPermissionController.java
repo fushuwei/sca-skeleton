@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.system.api.controller;
 
-import io.github.fushuwei.scaskeleton.web.response.ApiResponse;
+import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.system.api.dto.permission.PermissionSaveRequest;
 import io.github.fushuwei.scaskeleton.system.application.service.SysPermissionService;
 import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysPermission;
@@ -25,34 +25,34 @@ public class SysPermissionController {
 
     @GetMapping("/list")
     @RequiresPermission("sys:permission:list")
-    public ApiResponse<List<SysPermission>> list() {
-        return ApiResponse.success(permissionService.listAllPermissions());
+    public Result<List<SysPermission>> list() {
+        return Result.ok(permissionService.listAllPermissions());
     }
 
     @GetMapping("/{id}")
     @RequiresPermission("sys:permission:query")
-    public ApiResponse<SysPermission> getById(@PathVariable String id) {
-        return ApiResponse.success(permissionService.getPermissionById(id));
+    public Result<SysPermission> getById(@PathVariable String id) {
+        return Result.ok(permissionService.getPermissionById(id));
     }
 
     @PostMapping
     @RequiresPermission("sys:permission:add")
-    public ApiResponse<Void> create(@Validated @RequestBody PermissionSaveRequest request) {
+    public Result<Void> create(@Validated @RequestBody PermissionSaveRequest request) {
         permissionService.createPermission(request);
-        return ApiResponse.success();
+        return Result.ok();
     }
 
     @PutMapping
     @RequiresPermission("sys:permission:edit")
-    public ApiResponse<Void> update(@Validated @RequestBody PermissionSaveRequest request) {
+    public Result<Void> update(@Validated @RequestBody PermissionSaveRequest request) {
         permissionService.updatePermission(request);
-        return ApiResponse.success();
+        return Result.ok();
     }
 
     @DeleteMapping("/{id}")
     @RequiresPermission("sys:permission:delete")
-    public ApiResponse<Void> delete(@PathVariable String id) {
+    public Result<Void> delete(@PathVariable String id) {
         permissionService.deletePermission(id);
-        return ApiResponse.success();
+        return Result.ok();
     }
 }

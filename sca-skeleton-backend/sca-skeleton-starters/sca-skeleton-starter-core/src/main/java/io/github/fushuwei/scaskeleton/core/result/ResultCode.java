@@ -3,7 +3,7 @@ package io.github.fushuwei.scaskeleton.core.result;
 import lombok.Getter;
 
 /**
- * 响应状态码枚举
+ * 统一响应状态码枚举
  *
  * @author Fu Wei
  */
@@ -16,24 +16,64 @@ public enum ResultCode {
     SUCCESS(10000, "操作成功"),
 
     /**
+     * 业务警告
+     */
+    WARNING(30000, "警告信息"),
+
+    /**
      * 参数校验失败
      */
     VALIDATION_ERROR(40000, "请求参数不合法"),
 
     /**
-     * 未认证（未登录或令牌无效）
+     * 未认证
      */
-    UNAUTHORIZED(40100, "未认证或认证已失效"),
+    UNAUTHORIZED(40100, "登录已过期，请重新登录"),
 
     /**
      * 无权限访问
      */
-    FORBIDDEN(40300, "无权限访问"),
+    FORBIDDEN(40300, "权限不足，拒绝访问"),
 
     /**
-     * 业务警告（流程可继续）
+     * 资源不存在
      */
-    WARNING(50000, "警告信息"),
+    NOT_FOUND(40400, "请求的资源不存在"),
+
+    /**
+     * 请求方法不允许
+     */
+    METHOD_NOT_ALLOWED(40500, "请求方法不允许"),
+
+    /**
+     * 资源已存在
+     */
+    ALREADY_EXISTS(40900, "资源已存在"),
+
+    /**
+     * 请求过于频繁
+     */
+    TOO_MANY_REQUESTS(42900, "请求过于频繁，请稍后重试"),
+
+    /**
+     * 服务器内部错误
+     */
+    INTERNAL_SERVER_ERROR(50000, "系统繁忙，请稍后重试"),
+
+    /**
+     * 网关异常
+     */
+    BAD_GATEWAY(50200, "服务响应异常，请稍后重试"),
+
+    /**
+     * 服务不可用
+     */
+    SERVICE_UNAVAILABLE(50300, "服务暂时不可用，请稍后重试"),
+
+    /**
+     * 网关超时
+     */
+    GATEWAY_TIMEOUT(50400, "服务响应超时，请稍后重试"),
 
     /**
      * 需要二次确认

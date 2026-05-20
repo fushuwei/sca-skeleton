@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.system.api.controller;
 
+import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
-import io.github.fushuwei.scaskeleton.web.response.ApiResponse;
 import io.github.fushuwei.scaskeleton.system.api.dto.role.RoleSaveRequest;
 import io.github.fushuwei.scaskeleton.system.application.service.SysRoleService;
 import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysRole;
@@ -26,42 +26,42 @@ public class SysRoleController {
 
     @GetMapping("/list")
     @RequiresPermission("sys:role:list")
-    public ApiResponse<List<SysRole>> list() {
-        return ApiResponse.success(roleService.listRoles(SecurityUtils.getTenantId()));
+    public Result<List<SysRole>> list() {
+        return Result.ok(roleService.listRoles(SecurityUtils.getTenantId()));
     }
 
     @GetMapping("/{id}")
     @RequiresPermission("sys:role:query")
-    public ApiResponse<SysRole> getById(@PathVariable String id) {
-        return ApiResponse.success(roleService.getRoleById(id));
+    public Result<SysRole> getById(@PathVariable String id) {
+        return Result.ok(roleService.getRoleById(id));
     }
 
     @PostMapping
     @RequiresPermission("sys:role:add")
-    public ApiResponse<Void> create(@Validated @RequestBody RoleSaveRequest request) {
+    public Result<Void> create(@Validated @RequestBody RoleSaveRequest request) {
         roleService.createRole(SecurityUtils.getTenantId(), request);
-        return ApiResponse.success();
+        return Result.ok();
     }
 
     @PutMapping
     @RequiresPermission("sys:role:edit")
-    public ApiResponse<Void> update(@Validated @RequestBody RoleSaveRequest request) {
+    public Result<Void> update(@Validated @RequestBody RoleSaveRequest request) {
         roleService.updateRole(SecurityUtils.getTenantId(), request);
-        return ApiResponse.success();
+        return Result.ok();
     }
 
     @DeleteMapping("/{id}")
     @RequiresPermission("sys:role:delete")
-    public ApiResponse<Void> delete(@PathVariable String id) {
+    public Result<Void> delete(@PathVariable String id) {
         roleService.deleteRole(id);
-        return ApiResponse.success();
+        return Result.ok();
     }
 
     @PutMapping("/{id}/permissions")
     @RequiresPermission("sys:role:assign-permission")
-    public ApiResponse<Void> assignPermissions(@PathVariable String id,
+    public Result<Void> assignPermissions(@PathVariable String id,
                                               @RequestBody List<String> permissionIds) {
         roleService.assignPermissions(SecurityUtils.getTenantId(), id, permissionIds);
-        return ApiResponse.success();
+        return Result.ok();
     }
 }

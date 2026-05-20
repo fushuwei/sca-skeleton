@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.core.exception;
 
+import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import lombok.Getter;
 
 /**
@@ -13,7 +14,17 @@ public class BusinessException extends RuntimeException {
     /**
      * 业务错误码
      */
-    private final String code;
+    private final Integer code;
+
+    /**
+     * 使用自定义描述构造业务异常
+     *
+     * @param message 错误描述
+     */
+    public BusinessException(String message) {
+        super(message);
+        this.code = ResultCode.FAILURE.getCode();
+    }
 
     /**
      * 使用自定义错误码和描述构造业务异常
@@ -21,7 +32,7 @@ public class BusinessException extends RuntimeException {
      * @param code    业务错误码
      * @param message 错误描述
      */
-    public BusinessException(String code, String message) {
+    public BusinessException(Integer code, String message) {
         super(message);
         this.code = code;
     }
@@ -29,42 +40,62 @@ public class BusinessException extends RuntimeException {
     /**
      * 使用标准错误码构造业务异常，描述信息取自枚举
      *
-     * @param errorCode 标准错误码枚举
+     * @param resultCode 标准错误码枚举
      */
-    public BusinessException(ErrorCode errorCode) {
-        super(errorCode.getMessage());
-        this.code = errorCode.getCode();
+    public BusinessException(ResultCode resultCode) {
+        super(resultCode.getMessage());
+        this.code = resultCode.getCode();
     }
 
     /**
      * 使用标准错误码构造业务异常，覆盖默认描述信息
      *
-     * @param errorCode 标准错误码枚举
-     * @param message   自定义错误描述
+     * @param resultCode 标准错误码枚举
+     * @param message    自定义错误描述
      */
-    public BusinessException(ErrorCode errorCode, String message) {
+    public BusinessException(ResultCode resultCode, String message) {
         super(message);
-        this.code = errorCode.getCode();
+        this.code = resultCode.getCode();
+    }
+
+    /**
+     * 使用自定义描述快速构造业务异常
+     *
+     * @return 业务异常实例
+     */
+    public static BusinessException of(String message) {
+        return new BusinessException(message);
+    }
+
+    /**
+     * 使用自定义错误码和描述构造业务异常
+     *
+     * @param code    业务错误码
+     * @param message 错误描述
+     * @return 业务异常实例
+     */
+    public static BusinessException of(Integer code, String message) {
+        return new BusinessException(code, message);
     }
 
     /**
      * 使用标准错误码快速构造业务异常，描述信息取自枚举
      *
-     * @param errorCode 标准错误码
+     * @param resultCode 标准错误码
      * @return 业务异常实例
      */
-    public static BusinessException of(ErrorCode errorCode) {
-        return new BusinessException(errorCode);
+    public static BusinessException of(ResultCode resultCode) {
+        return new BusinessException(resultCode);
     }
 
     /**
      * 使用标准错误码快速构造业务异常，覆盖默认描述信息
      *
-     * @param errorCode 标准错误码
-     * @param message   自定义错误描述
+     * @param resultCode 标准错误码
+     * @param message    自定义错误描述
      * @return 业务异常实例
      */
-    public static BusinessException of(ErrorCode errorCode, String message) {
-        return new BusinessException(errorCode, message);
+    public static BusinessException of(ResultCode resultCode, String message) {
+        return new BusinessException(resultCode, message);
     }
 }

@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.redis.aspect;
 
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
-import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.redis.annotation.RateLimit;
 import jakarta.servlet.http.HttpServletRequest;
@@ -74,7 +74,7 @@ public class RateLimitAspect {
                     annotation.rate(), annotation.rateInterval(),
                     annotation.rateIntervalUnit().name().toLowerCase());
             // 超限时抛出业务异常，由全局异常处理器统一响应 429
-            throw BusinessException.of(ErrorCode.TOO_MANY_REQUESTS, annotation.message());
+            throw BusinessException.of(ResultCode.TOO_MANY_REQUESTS, annotation.message());
         }
 
         // 令牌获取成功，执行原方法

@@ -1,9 +1,9 @@
 package io.github.fushuwei.scaskeleton.system.api.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.core.validation.ValidGroup;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
-import io.github.fushuwei.scaskeleton.web.response.ApiResponse;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserSaveRequest;
 import io.github.fushuwei.scaskeleton.system.application.service.SysUserService;
@@ -27,55 +27,55 @@ public class SysUserController {
 
     @GetMapping("/page")
     @RequiresPermission("sys:user:list")
-    public ApiResponse<IPage<SysUser>> page(@Validated UserPageRequest request) {
+    public Result<IPage<SysUser>> page(@Validated UserPageRequest request) {
         // 多租户场景下从当前认证主体读取租户标识，避免越权
         String tenantId = SecurityUtils.getTenantId();
-        return ApiResponse.success(userService.pageUsers(tenantId, request));
+        return Result.ok(userService.pageUsers(tenantId, request));
     }
 
     @GetMapping("/{id}")
     @RequiresPermission("sys:user:query")
-    public ApiResponse<SysUser> getById(@PathVariable String id) {
-        return ApiResponse.success(userService.getUserById(id));
+    public Result<SysUser> getById(@PathVariable String id) {
+        return Result.ok(userService.getUserById(id));
     }
 
     @PostMapping
     @RequiresPermission("sys:user:add")
-    public ApiResponse<Void> create(
+    public Result<Void> create(
             @Validated(ValidGroup.Create.class) @RequestBody UserSaveRequest request) {
         userService.createUser(SecurityUtils.getTenantId(), request);
-        return ApiResponse.success();
+        return Result.ok();
     }
 
     @PutMapping
     @RequiresPermission("sys:user:edit")
-    public ApiResponse<Void> update(
+    public Result<Void> update(
             @Validated(ValidGroup.Update.class) @RequestBody UserSaveRequest request) {
         userService.updateUser(SecurityUtils.getTenantId(), request);
-        return ApiResponse.success();
+        return Result.ok();
     }
 
     @DeleteMapping("/{id}")
     @RequiresPermission("sys:user:delete")
-    public ApiResponse<Void> delete(@PathVariable String id) {
+    public Result<Void> delete(@PathVariable String id) {
         userService.deleteUser(id);
-        return ApiResponse.success();
+        return Result.ok();
     }
 
     @PutMapping("/{id}/password/reset")
     @RequiresPermission("sys:user:reset-password")
-    public ApiResponse<Void> resetPassword(@PathVariable String id,
+    public Result<Void> resetPassword(@PathVariable String id,
                                           @RequestParam String newPassword) {
         userService.resetPassword(id, newPassword);
-        return ApiResponse.success();
+        return Result.ok();
     }
 
     @PutMapping("/{id}/status")
     @RequiresPermission("sys:user:edit")
-    public ApiResponse<Void> changeStatus(@PathVariable String id,
+    public Result<Void> changeStatus(@PathVariable String id,
                                          @RequestParam String status,
                                          @RequestParam(required = false) String reason) {
         userService.changeStatus(id, status, reason);
-        return ApiResponse.success();
+        return Result.ok();
     }
 }

@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * // 每秒最多 10 次请求，超限返回 TOO_MANY_REQUESTS 错误
  * @RateLimit(key = "sms:send", rate = 10, rateInterval = 1)
  * @PostMapping("/sms/send")
- * public ApiResponse<Void> sendSms(...) { ... }
+ * public Result<Void> sendSms(...) { ... }
  * }</pre>
  *
  * @author Fu Wei

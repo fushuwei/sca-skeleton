@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.github.fushuwei.scaskeleton.core.trace.TraceContext;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.slf4j.MDC;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -27,7 +27,7 @@ import java.util.Objects;
     "data",
     "type",
     "confirmToken",
-    "requestId",
+    "traceId",
     "timestamp"
 })
 public class Result<T> implements Serializable {
@@ -67,10 +67,10 @@ public class Result<T> implements Serializable {
     private String confirmToken;
 
     /**
-     * 请求ID，用于链路追踪
+     * 链路追踪 ID
      */
-    @JsonProperty("requestId")
-    private String requestId;
+    @JsonProperty("traceId")
+    private String traceId;
 
     /**
      * 时间戳
@@ -82,8 +82,8 @@ public class Result<T> implements Serializable {
      * 构造方法
      */
     private Result() {
-        // 从 MDC 中提取 requestId，保证链路追踪在统一响应里可见
-        this.requestId = MDC.get("requestId");
+        // 从 TraceContext 中提取 traceId，保证链路追踪在统一响应里可见
+        this.traceId = TraceContext.get();
         // 统一在构造时写入时间戳，避免调用方重复处理
         this.timestamp = System.currentTimeMillis();
     }
@@ -147,6 +147,20 @@ public class Result<T> implements Serializable {
     }
 
     /**
+     * 失败响应（标准状态码）
+     */
+    public static <T> Result<T> fail(ResultCode resultCode) {
+        return new Result<>(resultCode.getCode(), resultCode.getMessage(), null, ResultType.FAILURE);
+    }
+
+    /**
+     * 失败响应（标准状态码，自定义消息）
+     */
+    public static <T> Result<T> fail(ResultCode resultCode, String message) {
+        return new Result<>(resultCode.getCode(), message, null, ResultType.FAILURE);
+    }
+
+    /**
      * 失败响应（自定义消息和数据）
      */
     public static <T> Result<T> fail(T data, String message) {
@@ -158,6 +172,13 @@ public class Result<T> implements Serializable {
      */
     public static <T> Result<T> warn(String message) {
         return new Result<>(ResultCode.WARNING.getCode(), message, null, ResultType.WARNING);
+    }
+
+    /**
+     * 警告响应（标准状态码）
+     */
+    public static <T> Result<T> warn(ResultCode resultCode) {
+        return new Result<>(resultCode.getCode(), resultCode.getMessage(), null, ResultType.WARNING);
     }
 
     /**
@@ -179,6 +200,20 @@ public class Result<T> implements Serializable {
      */
     public static <T> Result<T> confirm(T data, String message, String confirmToken) {
         return new Result<>(ResultCode.CONFIRM.getCode(), message, data, ResultType.CONFIRM, confirmToken);
+    }
+
+    /**
+     * 标准状态码响应
+     */
+    public static <T> Result<T> of(ResultCode resultCode, ResultType type) {
+        return new Result<>(resultCode.getCode(), resultCode.getMessage(), null, type);
+    }
+
+    /**
+     * 标准状态码响应（带数据）
+     */
+    public static <T> Result<T> of(ResultCode resultCode, T data, ResultType type) {
+        return new Result<>(resultCode.getCode(), resultCode.getMessage(), data, type);
     }
 
     /**

@@ -12,7 +12,7 @@ import java.lang.annotation.*;
  * <pre>{@code
  * @OperationLog(module = "用户管理", action = "新增用户")
  * @PostMapping("/users")
- * public ApiResponse<Void> createUser(@RequestBody CreateUserCommand cmd) { ... }
+ * public Result<Void> createUser(@RequestBody CreateUserCommand cmd) { ... }
  * }</pre>
  *
  * @author Fu Wei

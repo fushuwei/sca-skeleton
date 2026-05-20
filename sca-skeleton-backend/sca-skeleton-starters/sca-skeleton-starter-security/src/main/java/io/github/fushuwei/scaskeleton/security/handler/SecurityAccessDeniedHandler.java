@@ -1,7 +1,8 @@
 package io.github.fushuwei.scaskeleton.security.handler;
 
 import tools.jackson.databind.ObjectMapper;
-import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
+import io.github.fushuwei.scaskeleton.core.result.Result;
+import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 /**
  * Security 权限不足处理器。
@@ -46,12 +46,8 @@ public class SecurityAccessDeniedHandler implements AccessDeniedHandler {
         log.warn("[Security] access denied. uri={} method={} message={}",
                 request.getRequestURI(), request.getMethod(), accessDeniedException.getMessage());
 
-        // 构造统一错误响应体，与 ApiResponse 格式对齐
-        Map<String, Object> body = Map.of(
-                "code", ErrorCode.FORBIDDEN.getCode(),
-                "message", ErrorCode.FORBIDDEN.getMessage(),
-                "data", null
-        );
+        // 构造统一错误响应体，与 Result 格式对齐
+        Result<Void> body = Result.fail(ResultCode.FORBIDDEN);
 
         // 设置响应为 JSON 格式，UTF-8 编码，HTTP 状态码 403
         response.setStatus(HttpStatus.FORBIDDEN.value());

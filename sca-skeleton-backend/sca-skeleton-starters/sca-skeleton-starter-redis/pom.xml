@@ -18,7 +18,7 @@
     <description>Redis/Redisson common capabilities: RedisTemplate, RedisUtils, distributed lock, rate limiter AOP</description>
 
     <dependencies>
-        <!-- 核心基础：BusinessException、ErrorCode、CurrentUserProvider 等公共契约 -->
+        <!-- 核心基础：BusinessException、ResultCode、CurrentUserProvider 等公共契约 -->
         <dependency>
             <groupId>io.github.fushuwei</groupId>
             <artifactId>sca-skeleton-starter-core</artifactId>

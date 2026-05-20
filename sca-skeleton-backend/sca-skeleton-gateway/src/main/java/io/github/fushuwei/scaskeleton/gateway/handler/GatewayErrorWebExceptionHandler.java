@@ -1,8 +1,7 @@
 package io.github.fushuwei.scaskeleton.gateway.handler;
 
 import io.github.fushuwei.scaskeleton.core.constant.GlobalConstants;
-import io.github.fushuwei.scaskeleton.core.exception.ErrorCode;
-import lombok.Getter;
+import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -71,37 +70,37 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
             switch (cause.getStatusCode()) {
                 // 未认证异常（401）
                 case HttpStatus.UNAUTHORIZED -> {
-                    return ErrorResult.of(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED.getCode(), ErrorMessage.UNAUTHORIZED.getMessage());
+                    return ErrorResult.of(HttpStatus.UNAUTHORIZED, ResultCode.UNAUTHORIZED.getCode(), ResultCode.UNAUTHORIZED.getMessage());
                 }
                 // 禁止访问（403）
                 case HttpStatus.FORBIDDEN -> {
-                    return ErrorResult.of(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED.getCode(), ErrorMessage.UNAUTHORIZED.getMessage());
+                    return ErrorResult.of(HttpStatus.FORBIDDEN, ResultCode.FORBIDDEN.getCode(), ResultCode.FORBIDDEN.getMessage());
                 }
                 // 请求的资源不存在（404）
                 case HttpStatus.NOT_FOUND -> {
-                    return ErrorResult.of(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND.getCode(), ErrorMessage.NOT_FOUND.getMessage());
+                    return ErrorResult.of(HttpStatus.NOT_FOUND, ResultCode.NOT_FOUND.getCode(), ResultCode.NOT_FOUND.getMessage());
                 }
                 // 网关异常（502）
                 case HttpStatus.BAD_GATEWAY -> {
-                    return ErrorResult.of(HttpStatus.BAD_GATEWAY, ErrorCode.BAD_GATEWAY.getCode(), ErrorMessage.BAD_GATEWAY.getMessage());
+                    return ErrorResult.of(HttpStatus.BAD_GATEWAY, ResultCode.BAD_GATEWAY.getCode(), ResultCode.BAD_GATEWAY.getMessage());
                 }
                 // 服务不可用（503）
                 case HttpStatus.SERVICE_UNAVAILABLE -> {
-                    return ErrorResult.of(HttpStatus.SERVICE_UNAVAILABLE, ErrorCode.SERVICE_UNAVAILABLE.getCode(), ErrorMessage.SERVICE_UNAVAILABLE.getMessage());
+                    return ErrorResult.of(HttpStatus.SERVICE_UNAVAILABLE, ResultCode.SERVICE_UNAVAILABLE.getCode(), ResultCode.SERVICE_UNAVAILABLE.getMessage());
                 }
                 // 网关超时（504）
                 case HttpStatus.GATEWAY_TIMEOUT -> {
-                    return ErrorResult.of(HttpStatus.GATEWAY_TIMEOUT, ErrorCode.GATEWAY_TIMEOUT.getCode(), ErrorMessage.GATEWAY_TIMEOUT.getMessage());
+                    return ErrorResult.of(HttpStatus.GATEWAY_TIMEOUT, ResultCode.GATEWAY_TIMEOUT.getCode(), ResultCode.GATEWAY_TIMEOUT.getMessage());
                 }
                 default -> {
                     // 服务器内部错误（500）
-                    return ErrorResult.of(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR.getCode(), ErrorMessage.INTERNAL_ERROR.getMessage());
+                    return ErrorResult.of(HttpStatus.INTERNAL_SERVER_ERROR, ResultCode.INTERNAL_SERVER_ERROR.getCode(), ResultCode.INTERNAL_SERVER_ERROR.getMessage());
                 }
             }
         }
 
         // 默认兜底异常
-        return ErrorResult.of(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR.getCode(), ErrorMessage.INTERNAL_ERROR.getMessage());
+        return ErrorResult.of(HttpStatus.INTERNAL_SERVER_ERROR, ResultCode.INTERNAL_SERVER_ERROR.getCode(), ResultCode.INTERNAL_SERVER_ERROR.getMessage());
     }
 
     /**
@@ -149,58 +148,10 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
     /**
      * 异常响应结果
      */
-    private record ErrorResult(HttpStatus httpStatus, String code, String message) {
+    private record ErrorResult(HttpStatus httpStatus, Integer code, String message) {
 
-        static ErrorResult of(HttpStatus httpStatus, String code, String message) {
+        static ErrorResult of(HttpStatus httpStatus, Integer code, String message) {
             return new ErrorResult(httpStatus, code, message);
-        }
-    }
-
-    /**
-     * 网关异常消息枚举
-     */
-    @Getter
-    private enum ErrorMessage {
-
-        /**
-         * 401：未认证
-         */
-        UNAUTHORIZED("登录已过期，请重新登录"),
-
-        /**
-         * 403：禁止访问
-         */
-        FORBIDDEN("权限不足，拒绝访问"),
-
-        /**
-         * 404：请求的资源不存在
-         */
-        NOT_FOUND("请求的资源不存在"),
-
-        /**
-         * 500：服务器内部错误
-         */
-        INTERNAL_ERROR("系统繁忙，请稍后重试"),
-
-        /**
-         * 502：网关异常
-         */
-        BAD_GATEWAY("服务响应异常，请稍后重试"),
-
-        /**
-         * 503：服务不可用
-         */
-        SERVICE_UNAVAILABLE("服务暂时不可用，请稍后重试"),
-
-        /**
-         * 504：网关超时
-         */
-        GATEWAY_TIMEOUT("服务响应超时，请稍后重试");
-
-        private final String message;
-
-        ErrorMessage(String message) {
-            this.message = message;
         }
     }
 }

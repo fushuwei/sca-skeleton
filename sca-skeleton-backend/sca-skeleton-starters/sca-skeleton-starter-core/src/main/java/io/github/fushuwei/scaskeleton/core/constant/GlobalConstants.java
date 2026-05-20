@@ -67,6 +67,15 @@ public final class GlobalConstants {
      */
     public static final String HEADER_USER_ROLES = "X-User-Roles";
 
+    // ======================================================================
+    // MDC 链路追踪
+    // ======================================================================
+
+    /**
+     * SLF4J MDC 中 traceId 的 Key
+     */
+    public static final String MDC_TRACE_ID = "traceId";
+
 
     // ======================================================================
     // 逻辑删除
