@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.gateway.handler;
 
-import io.github.fushuwei.scaskeleton.core.constant.GlobalConstants;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.gateway.constant.GatewayConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -107,7 +107,7 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
      * 记录异常日志
      */
     private void writeErrorLog(ServerWebExchange exchange, ErrorResult errorResult, Throwable ex) {
-        String traceId = exchange.getAttribute(GlobalConstants.HEADER_TRACE_ID);
+        String traceId = exchange.getAttribute(GatewayConstants.EXCHANGE_ATTRIBUTE_TRACE_ID);
         String logMessage = "[Gateway] {}: TraceId => {}, Code => {}, Message => {}, Detail => {}";
         if (errorResult.httpStatus().is5xxServerError()) {
             log.error(logMessage, "Error", traceId, errorResult.code, errorResult.message, ex.getMessage());

@@ -1,10 +1,7 @@
 package io.github.fushuwei.scaskeleton.core.constant;
 
 /**
- * 全局公共常量定义。
- * <p>
- * 仅存放跨模块公用的、与业务无关的基础常量。
- * 各业务域的私有常量应定义在对应模块内，不得集中堆砌到此类。
+ * 全局公共常量类
  *
  * @author Fu Wei
  */

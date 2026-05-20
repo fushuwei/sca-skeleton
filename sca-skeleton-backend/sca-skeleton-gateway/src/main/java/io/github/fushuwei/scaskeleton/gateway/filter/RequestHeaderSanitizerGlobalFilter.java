@@ -2,6 +2,7 @@ package io.github.fushuwei.scaskeleton.gateway.filter;
 
 import io.github.fushuwei.scaskeleton.core.constant.GlobalConstants;
 import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
+import io.github.fushuwei.scaskeleton.gateway.constant.GatewayConstants;
 import org.jspecify.annotations.NonNull;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -43,7 +44,7 @@ public class RequestHeaderSanitizerGlobalFilter implements GlobalFilter, Ordered
             // 3) 写入 TraceId
             String traceId = UuidUtils.nextSimpleStr();
             headers.set(GlobalConstants.HEADER_TRACE_ID, traceId);
-            exchange.getAttributes().put(GlobalConstants.HEADER_TRACE_ID, traceId);
+            exchange.getAttributes().put(GatewayConstants.EXCHANGE_ATTRIBUTE_TRACE_ID, traceId);
 
             // 4) 写入请求起始时间（用于耗时统计）
             headers.set(GlobalConstants.HEADER_REQUEST_START, String.valueOf(System.currentTimeMillis()));
