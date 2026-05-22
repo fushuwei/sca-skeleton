@@ -1,93 +1,25 @@
 server:
-  port: 9000
-  servlet:
-    context-path: /
+  port: 9001
 
 spring:
   application:
     name: sca-skeleton-auth
-
-  # 数据源配置（用于 SAS JDBC 存储 + MyBatis-Plus 用户查询）
-  datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/sca_platform?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:password}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      minimum-idle: 5
-      maximum-pool-size: 20
-      idle-timeout: 30000
-      connection-timeout: 30000
-
-  # Redis 配置（令牌黑名单、登录失败计数）
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:123456}
-      database: 0
-      lettuce:
-        pool:
-          min-idle: 2
-          max-active: 8
-
-  # Nacos 服务注册
   cloud:
     nacos:
+      server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:nacos}
       discovery:
-        server-addr: ${NACOS_ADDR:localhost:8848}
-        namespace: ${NACOS_NAMESPACE:}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_DISCOVERY_GROUP:DEFAULT_GROUP}
+      config:
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_CONFIG_GROUP:DEFAULT_GROUP}
+  config:
+    import:
+      - optional:nacos:sca-skeleton-common.yaml
+      - optional:nacos:${spring.application.name}.yaml
+      - optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml
 
-# MyBatis-Plus 配置
-mybatis-plus:
-  mapper-locations: classpath*:mapper/**/*.xml
-  type-aliases-package: io.github.fushuwei.scaskeleton.auth.infrastructure.entity
-  configuration:
-    map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
-  global-config:
-    db-config:
-      # 逻辑删除字段与值与 SQL 中 is_deleted 列对应
-      logic-delete-field: isDeleted
-      logic-delete-value: 1
-      logic-not-delete-value: 0
-
-# SCA 自定义认证服务配置
-sca:
-  security:
-    resource-server:
-      # 认证中心仅发证，不启用资源服务器 FilterChain（OAuth2 Redis 存储仍由 starter-security 提供）
-      enabled: false
-  auth:
-    # 授权服务器对外发布的 issuer，必须在 OIDC discovery 与 JWT 类令牌 claims 中保持一致
-    # 不同环境（本地直连 / 经网关 / 容器内服务名）应通过环境变量覆盖
-    issuer: ${AUTH_ISSUER:http://localhost:9000}
-    # 注册客户端：web 前端访问使用的 OAuth2 客户端
-    client:
-      web:
-        client-id: sca-web-client
-        # 生产环境必须使用 BCrypt 等密文格式（如 {bcrypt}$2a$10$...），并通过环境变量注入
-        client-secret: ${AUTH_WEB_CLIENT_SECRET:{noop}sca-web-secret}
-        # access_token 有效期（秒），默认 2 小时
-        access-token-ttl: 7200
-        # refresh_token 有效期（秒），默认 7 天
-        refresh-token-ttl: 604800
-    # RSA 密钥对（仅用于 OIDC id_token 等 JWT 类令牌；access_token 为不透明令牌不依赖 JWK）
-    jwt:
-      key-size: 2048
-    # 登录失败锁定策略
-    lock:
-      # 最大连续失败次数（超过后锁定账号）
-      max-fail-count: 5
-      # 锁定持续时长（秒），默认 30 分钟
-      lock-duration-seconds: 1800
-
-# Actuator 配置：仅暴露必要端点
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      show-details: when-authorized
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
