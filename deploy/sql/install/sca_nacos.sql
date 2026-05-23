@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
+ -- 创建数据库
+CREATE DATABASE IF NOT EXISTS sca_nacos DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
+-- 使用数据库
+USE sca_nacos;
+
+-- 设置连接字符集
+SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+-- 关闭外键检查
+SET FOREIGN_KEY_CHECKS = 0;
+
 /******************************************/
 /*   表名称 = config_info                  */
 /******************************************/
@@ -244,3 +255,7 @@ CREATE TABLE `ai_resource_version` (
     KEY `idx_ai_resource_ver_status` (`status`),
     KEY `idx_ai_resource_ver_gmt_modified` (`gmt_modified`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI资源版本表';
+
+
+-- 打开外键检查
+SET FOREIGN_KEY_CHECKS = 1;

@@ -1,3 +1,16 @@
+-- 创建数据库
+CREATE DATABASE IF NOT EXISTS sca_platform DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
+-- 使用数据库
+USE sca_platform;
+
+-- 设置连接字符集
+SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+-- 关闭外键检查
+SET FOREIGN_KEY_CHECKS = 0;
+
+
+
 INSERT INTO `sys_release` (`id`, `version`, `title`, `description`, `release_by`, `release_time`, `remark`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`)
 VALUES
 ('test_001', 'v1.0.0', '系统正式上线',
@@ -31,3 +44,8 @@ VALUES
 ('test_008', 'v2.2.1', '安全漏洞修复',
 '## 🔒 安全更新\n- 修复 XSS 跨站脚本攻击漏洞\n- 修复越权访问其他租户数据的安全漏洞\n- 升级 Spring Boot 至 3.2.5（修复 CVE-2024-22234）\n- 密码策略增强：强制要求大小写+数字+特殊字符',
 'admin', '2025-02-14 20:00:00', '安全补丁，建议所有用户尽快升级', 'admin', '2025-02-14 18:30:00', 'admin', '2025-02-14 19:45:00', 0);
+
+
+
+-- 打开外键检查
+SET FOREIGN_KEY_CHECKS = 1;
