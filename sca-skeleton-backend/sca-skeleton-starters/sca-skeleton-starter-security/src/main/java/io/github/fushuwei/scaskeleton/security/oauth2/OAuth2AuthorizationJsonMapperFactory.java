@@ -1,13 +1,13 @@
 package io.github.fushuwei.scaskeleton.security.oauth2;
 
 import org.springframework.security.jackson.SecurityJacksonModules;
-import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
  * OAuth2 授权服务器相关 JSON 序列化器工厂。
  * <p>
- * 与 SAS JDBC / Redis 实现使用一致的 Jackson 模块，保证 {@link org.springframework.security.oauth2.server.authorization.OAuth2Authorization}
+ * 与 SAS {@code JdbcOAuth2AuthorizationService.Jackson3} / {@code JdbcRegisteredClientRepository.Jackson3}
+ * 使用相同的 Jackson 3 模块发现方式，保证 {@link org.springframework.security.oauth2.server.authorization.OAuth2Authorization}
  * 与 {@link org.springframework.security.oauth2.server.authorization.client.RegisteredClient} 可正确往返 Redis。
  *
  * @author Fu Wei
@@ -19,13 +19,15 @@ public final class OAuth2AuthorizationJsonMapperFactory {
 
     /**
      * 创建用于 OAuth2 授权与注册客户端 Redis 持久化的 {@link JsonMapper}。
+     * <p>
+     * {@link SecurityJacksonModules#getModules(ClassLoader)} 在 classpath 存在 SAS 时会自动注册
+     * {@code OAuth2AuthorizationServerJacksonModule}，无需也不应再显式引入 jackson2 包下的模块。
      *
      * @param classLoader 加载 Security Jackson 模块的类加载器
      * @return 配置完成的 JsonMapper
      */
     public static JsonMapper create(ClassLoader classLoader) {
         return JsonMapper.builder()
-                .addModule(new OAuth2AuthorizationServerJackson2Module())
                 .addModules(SecurityJacksonModules.getModules(classLoader))
                 .build();
     }
