@@ -128,17 +128,10 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- 项目日志 Starter（自定义日志组件封装） -->
+            <!-- 项目安全 Starter（自定义认证与授权组件封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
-                <artifactId>sca-skeleton-starter-logging</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <!-- 项目 MyBatis-Plus Starter（自定义持久层组件封装） -->
-            <dependency>
-                <groupId>io.github.fushuwei</groupId>
-                <artifactId>sca-skeleton-starter-mybatis-plus</artifactId>
+                <artifactId>sca-skeleton-starter-security</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -149,20 +142,26 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <!-- 项目 MyBatis-Plus Starter（自定义持久层组件封装） -->
+            <dependency>
+                <groupId>io.github.fushuwei</groupId>
+                <artifactId>sca-skeleton-starter-mybatis-plus</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- 项目日志 Starter（自定义日志组件封装） -->
+            <dependency>
+                <groupId>io.github.fushuwei</groupId>
+                <artifactId>sca-skeleton-starter-logging</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <!-- 项目验证码 Starter（自定义验证码组件封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-captcha</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
-            <!-- 项目安全 Starter（自定义认证与授权组件封装） -->
-            <dependency>
-                <groupId>io.github.fushuwei</groupId>
-                <artifactId>sca-skeleton-starter-security</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
         </dependencies>
     </dependencyManagement>
 </project>
