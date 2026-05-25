@@ -48,6 +48,11 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-authorization-server</artifactId>
         </dependency>
+        <!-- Spring Framework 7 已用 commons-logging 替代 spring-jcl，但 SAS 7.0.5 仍排除 spring-core 传递的 commons-logging，需显式补回 -->
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+        </dependency>
         <!-- JdbcOAuth2AuthorizationService 参数映射器依赖（仅类型，不引入数据源） -->
         <dependency>
             <groupId>org.springframework</groupId>

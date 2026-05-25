@@ -7,7 +7,6 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * 基于 Redis 的 {@link RegisteredClientRepository} 只读实现。
@@ -20,9 +19,9 @@ import tools.jackson.databind.json.JsonMapper;
 public class RedisRegisteredClientRepository implements RegisteredClientRepository {
 
     /**
-     * SAS 兼容的 JSON 序列化器。
+     * 注册客户端 Redis 快照编解码器。
      */
-    private final JsonMapper jsonMapper;
+    private final RegisteredClientRedisSerializer redisSerializer;
 
     /**
      * Redis 字符串模板。
@@ -35,7 +34,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     public RedisRegisteredClientRepository(StringRedisTemplate stringRedisTemplate) {
         Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
         this.stringRedisTemplate = stringRedisTemplate;
-        this.jsonMapper = OAuth2AuthorizationJsonMapperFactory.create(getClass().getClassLoader());
+        this.redisSerializer = new RegisteredClientRedisSerializer(getClass().getClassLoader());
     }
 
     /**
@@ -93,7 +92,14 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
             return null;
         }
         try {
-            return this.jsonMapper.readValue(json, RegisteredClient.class);
+            RegisteredClient client = this.redisSerializer.deserialize(json);
+            if (client == null) {
+                throw new DataRetrievalFailureException(
+                        "RegisteredClient Redis cache is missing, invalid, or uses a legacy format");
+            }
+            return client;
+        } catch (DataRetrievalFailureException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new DataRetrievalFailureException("Failed to deserialize RegisteredClient from Redis", ex);
         }

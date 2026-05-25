@@ -1,8 +1,3 @@
-server:
-  port: 9000
-  servlet:
-    context-path: /
-
 spring:
   application:
     name: sca-skeleton-auth
@@ -30,13 +25,6 @@ spring:
         pool:
           min-idle: 2
           max-active: 8
-
-  # Nacos 服务注册
-  cloud:
-    nacos:
-      discovery:
-        server-addr: ${NACOS_ADDR:localhost:8848}
-        namespace: ${NACOS_NAMESPACE:}
 
 # MyBatis-Plus 配置
 mybatis-plus:

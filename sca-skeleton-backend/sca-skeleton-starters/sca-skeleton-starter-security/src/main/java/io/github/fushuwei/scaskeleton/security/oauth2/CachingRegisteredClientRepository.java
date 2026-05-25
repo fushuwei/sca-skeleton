@@ -1,11 +1,11 @@
 package io.github.fushuwei.scaskeleton.security.oauth2;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.util.Assert;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * 装饰 JDBC {@link RegisteredClientRepository}：读写时同步将客户端快照写入 Redis，供资源服务器只读加载。
@@ -14,6 +14,7 @@ import tools.jackson.databind.json.JsonMapper;
  *
  * @author Fu Wei
  */
+@Slf4j
 public class CachingRegisteredClientRepository implements RegisteredClientRepository {
 
     /**
@@ -27,9 +28,9 @@ public class CachingRegisteredClientRepository implements RegisteredClientReposi
     private final StringRedisTemplate stringRedisTemplate;
 
     /**
-     * SAS 兼容的 JSON 序列化器。
+     * 注册客户端 Redis 快照编解码器。
      */
-    private final JsonMapper jsonMapper;
+    private final RegisteredClientRedisSerializer redisSerializer;
 
     /**
      * @param delegate            权威客户端仓库（通常为 {@code JdbcRegisteredClientRepository}）
@@ -41,7 +42,7 @@ public class CachingRegisteredClientRepository implements RegisteredClientReposi
         Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
         this.delegate = delegate;
         this.stringRedisTemplate = stringRedisTemplate;
-        this.jsonMapper = OAuth2AuthorizationJsonMapperFactory.create(getClass().getClassLoader());
+        this.redisSerializer = new RegisteredClientRedisSerializer(getClass().getClassLoader());
     }
 
     /**
@@ -64,9 +65,9 @@ public class CachingRegisteredClientRepository implements RegisteredClientReposi
     @Nullable
     @Override
     public RegisteredClient findById(String id) {
-        String cachedJson = this.stringRedisTemplate.opsForValue()
-                .get(OAuth2AuthorizationRedisKeys.registeredClientIdKey(id));
-        RegisteredClient cached = deserialize(cachedJson);
+        String cacheKey = OAuth2AuthorizationRedisKeys.registeredClientIdKey(id);
+        String cachedJson = this.stringRedisTemplate.opsForValue().get(cacheKey);
+        RegisteredClient cached = deserialize(cachedJson, cacheKey);
         if (cached != null) {
             return cached;
         }
@@ -102,13 +103,13 @@ public class CachingRegisteredClientRepository implements RegisteredClientReposi
     }
 
     /**
-     * 将客户端 JSON 写入 Redis（主键与 client_id 双索引）。
+     * 将客户端快照写入 Redis（主键与 client_id 双索引）。
      *
      * @param registeredClient 客户端
      */
     private void cache(RegisteredClient registeredClient) {
         try {
-            String json = this.jsonMapper.writeValueAsString(registeredClient);
+            String json = this.redisSerializer.serialize(registeredClient);
             this.stringRedisTemplate.opsForValue()
                     .set(OAuth2AuthorizationRedisKeys.registeredClientIdKey(registeredClient.getId()), json);
             this.stringRedisTemplate.opsForValue()
@@ -120,20 +121,30 @@ public class CachingRegisteredClientRepository implements RegisteredClientReposi
     }
 
     /**
-     * 反序列化 Redis 中的客户端 JSON。
+     * 反序列化 Redis 中的客户端快照。
      *
-     * @param json JSON 文本
-     * @return 客户端；解析失败时抛出异常
+     * @param json     JSON 文本
+     * @param cacheKey 当前缓存键；解析失败或历史格式时用于失效旧数据
+     * @return 客户端；解析失败时失效缓存并返回 null，由调用方回源 JDBC
      */
     @Nullable
-    private RegisteredClient deserialize(@Nullable String json) {
+    private RegisteredClient deserialize(@Nullable String json, @Nullable String cacheKey) {
         if (json == null || json.isBlank()) {
             return null;
         }
         try {
-            return this.jsonMapper.readValue(json, RegisteredClient.class);
+            RegisteredClient client = this.redisSerializer.deserialize(json);
+            if (client == null && cacheKey != null) {
+                log.warn("RegisteredClient Redis 缓存格式无效或已过期，将回源 JDBC 并刷新缓存: key={}", cacheKey);
+                this.stringRedisTemplate.delete(cacheKey);
+            }
+            return client;
         } catch (Exception ex) {
-            throw new IllegalStateException("Failed to deserialize RegisteredClient from Redis cache", ex);
+            log.warn("RegisteredClient Redis 缓存反序列化失败，将回源 JDBC 并刷新缓存: key={}", cacheKey, ex);
+            if (cacheKey != null) {
+                this.stringRedisTemplate.delete(cacheKey);
+            }
+            return null;
         }
     }
 }

@@ -8,7 +8,8 @@ import tools.jackson.databind.json.JsonMapper;
  * <p>
  * 与 SAS {@code JdbcOAuth2AuthorizationService.Jackson3} / {@code JdbcRegisteredClientRepository.Jackson3}
  * 使用相同的 Jackson 3 模块发现方式，保证 {@link org.springframework.security.oauth2.server.authorization.OAuth2Authorization}
- * 与 {@link org.springframework.security.oauth2.server.authorization.client.RegisteredClient} 可正确往返 Redis。
+ * 的 attributes / token metadata 等 Map 字段可正确往返 Redis。
+ * 注册客户端缓存请使用 {@link RegisteredClientRedisSerializer}，勿整对象序列化 {@code RegisteredClient}。
  *
  * @author Fu Wei
  */
