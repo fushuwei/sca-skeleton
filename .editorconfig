@@ -24,8 +24,8 @@ trim_trailing_whitespace = false
 [*.properties]
 ij_properties_keep_blank_lines = true
 
-[{*.yml, *.yaml}]
+[*.{yml,yaml}]
 indent_size = 2
 
-[{*.txt, *.log}]
+[*.{txt,log}]
 insert_final_newline = false
