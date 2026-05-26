@@ -1,7 +1,4 @@
 spring:
-  application:
-    name: sca-skeleton-auth
-
   # 数据源配置（用于 SAS JDBC 存储 + MyBatis-Plus 用户查询）
   datasource:
     url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/sca_platform?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
