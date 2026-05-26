@@ -6,7 +6,6 @@ import io.github.fushuwei.scaskeleton.auth.infrastructure.mapper.SysUserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -14,36 +13,56 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 用户详情服务：从数据库加载用户信息用于 Spring Security 认证。
+ * 用户详情服务：从数据库加载用户信息用于 Spring Security 表单登录与 OAuth2 令牌颁发。
  * <p>
- * 在自定义密码授权模式（{@code PasswordGrantAuthenticationProvider}）中被调用。
- * 加载链路：sys_user → sys_user_role → sys_role_permission → sys_permission（权限码）。
- * <p>
- * 注意：此接口按 username 查询。多租户场景下 username 可能在不同租户间重复，
- * 实际登录时需结合租户信息；单租户/超管场景可直接按 username 唯一查询。
+ * 管理后台加载 {@code user_category=backend}；前台门户加载 {@code user_category=frontend}。
+ * 由 {@link RoutingUserDetailsService} 按 {@link LoginChannel} 路由调用。
  *
  * @author Fu Wei
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ScaUserDetailsService implements UserDetailsService {
+public class ScaUserDetailsService {
 
     private final SysUserMapper sysUserMapper;
 
+    /** 登录失败锁定与自动解锁 */
+    private final LoginAttemptService loginAttemptService;
+
     /**
-     * 按用户名加载用户详情（仅后台用户）。
+     * 按用户名加载后台用户（user_category=backend）。
      *
      * @param username 登录用户名
      * @return {@link ScaUserDetails}
      * @throws UsernameNotFoundException 用户不存在
      */
-    @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // 查询后台用户类别
         SysUser user = sysUserMapper.selectOne(
                 new LambdaQueryWrapper<SysUser>()
                         .eq(SysUser::getUsername, username)
                         .eq(SysUser::getUserCategory, "backend")
+        );
+        if (user == null) {
+            throw new UsernameNotFoundException("用户不存在：" + username);
+        }
+        return buildUserDetails(user);
+    }
+
+    /**
+     * 按用户名加载前台门户用户（user_category=frontend）。
+     *
+     * @param username 登录用户名
+     * @return {@link ScaUserDetails}
+     * @throws UsernameNotFoundException 用户不存在
+     */
+    public UserDetails loadFrontendUserByUsername(String username) throws UsernameNotFoundException {
+        // 查询前台用户类别
+        SysUser user = sysUserMapper.selectOne(
+                new LambdaQueryWrapper<SysUser>()
+                        .eq(SysUser::getUsername, username)
+                        .eq(SysUser::getUserCategory, "frontend")
         );
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在：" + username);
@@ -61,6 +80,7 @@ public class ScaUserDetailsService implements UserDetailsService {
      */
     public UserDetails loadUserByUsernameAndTenant(String username, String tenantId)
             throws UsernameNotFoundException {
+        // 多租户场景：用户名 + 租户 ID + 后台用户类别三重约束
         SysUser user = sysUserMapper.selectOne(
                 new LambdaQueryWrapper<SysUser>()
                         .eq(SysUser::getUsername, username)
@@ -70,6 +90,7 @@ public class ScaUserDetailsService implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在：" + username);
         }
+        // 复用统一构建逻辑，附带权限码与账号状态判定
         return buildUserDetails(user);
     }
 
@@ -78,6 +99,9 @@ public class ScaUserDetailsService implements UserDetailsService {
      * 同时加载该用户所有可用的权限码（button 类型）。
      */
     private ScaUserDetails buildUserDetails(SysUser user) {
+        // 锁定到期后自动解锁，避免永久 locked
+        loginAttemptService.unlockIfExpired(user);
+
         List<String> permissions = sysUserMapper.selectPermissionCodesByUserId(
                 user.getId(), user.getTenantId());
 

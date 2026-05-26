@@ -202,12 +202,31 @@ SELECT
     '1', '1', 'admin',
     '{bcrypt}$2a$10$7EqJtq98hPqEX7fNZaFWoO5S6rWQK4fA8FAdZkGouVp21HbQJseb',
     '管理员', '系统管理员', NULL, NULL, NULL, NULL,
-    'backend', 'superadmin', 'active', NULL, NULL, 0, 1,
+    'backend', 'superadmin', 'active', NULL, NULL, 0, 0,
     NOW(), NOW(), NULL, NULL, NULL,
     1, 'initial', '系统内置管理员账号', 0, 'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (
     SELECT 1 FROM `sys_user`
     WHERE `tenant_id` = '1' AND `username` = 'admin' AND `is_deleted` = 0
+);
+
+-- 内置前台门户演示账号（密码 123456，与 admin 相同 BCrypt 哈希）
+INSERT INTO `sys_user` (
+    `id`, `tenant_id`, `username`, `password`, `nickname`, `real_name`, `gender`, `avatar`, `phone`, `email`,
+    `user_category`, `user_type`, `status`, `status_time`, `status_reason`, `login_fail_count`, `must_change_password`,
+    `password_update_time`, `effective_start_time`, `effective_end_time`, `last_login_ip`, `last_login_time`,
+    `is_builtin`, `source_type`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
+)
+SELECT
+    '2', '1', 'portal',
+    '{bcrypt}$2a$10$7EqJtq98hPqEX7fNZaFWoO5S6rWQK4fA8FAdZkGouVp21HbQJseb',
+    '门户用户', '前台演示用户', NULL, NULL, NULL, NULL,
+    'frontend', 'member', 'active', NULL, NULL, 0, 0,
+    NOW(), NOW(), NULL, NULL, NULL,
+    1, 'initial', '系统内置门户演示账号', 0, 'system', NOW(), 'system', NOW(), 0
+WHERE NOT EXISTS (
+    SELECT 1 FROM `sys_user`
+    WHERE `tenant_id` = '1' AND `username` = 'portal' AND `is_deleted` = 0
 );
 
 

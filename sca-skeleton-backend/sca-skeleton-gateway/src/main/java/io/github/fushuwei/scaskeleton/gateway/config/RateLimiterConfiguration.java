@@ -40,6 +40,7 @@ public class RateLimiterConfiguration {
      */
     @Bean
     public RemoteAddressResolver remoteAddressResolver() {
+        // 信任一层反向代理（Nginx），从 X-Forwarded-For 解析真实客户端 IP
         return XForwardedRemoteAddressResolver.maxTrustedIndex(TRUSTED_PROXY_COUNT);
     }
 
@@ -52,11 +53,13 @@ public class RateLimiterConfiguration {
     @Bean("userKeyResolver")
     public KeyResolver userKeyResolver(RemoteAddressResolver remoteAddressResolver) {
         return exchange -> {
+            // 优先按 Bearer token 字符串划分限流桶（同一令牌共享配额）
             String token = BearerTokenUtils.extractBearerToken(
                 exchange.getRequest().getHeaders().getFirst(GlobalConstants.HEADER_AUTHORIZATION));
             if (StringUtils.hasText(token)) {
                 return Mono.just(token);
             }
+            // 无 token 时回退客户端 IP，解析失败则使用匿名兜底 key
             return Mono.just(resolveClientIp(exchange, remoteAddressResolver));
         };
     }
@@ -70,6 +73,7 @@ public class RateLimiterConfiguration {
      */
     private static String resolveClientIp(ServerWebExchange exchange, RemoteAddressResolver remoteAddressResolver) {
         InetSocketAddress addr = remoteAddressResolver.resolve(exchange);
+        // 无法解析远程地址时使用匿名 key，避免 KeyResolver 返回空
         if (addr == null || addr.getAddress() == null) {
             return ANONYMOUS_KEY;
         }

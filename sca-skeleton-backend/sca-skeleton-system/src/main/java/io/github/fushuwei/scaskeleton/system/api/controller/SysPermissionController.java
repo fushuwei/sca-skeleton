@@ -23,18 +23,21 @@ public class SysPermissionController {
 
     private final SysPermissionService permissionService;
 
+    // 查询全部权限树/列表，需 sys:permission:list（平台级权限定义，无租户隔离）
     @GetMapping("/list")
     @RequiresPermission("sys:permission:list")
     public Result<List<SysPermission>> list() {
         return Result.ok(permissionService.listAllPermissions());
     }
 
+    // 按 ID 查询权限详情，需 sys:permission:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:permission:query")
     public Result<SysPermission> getById(@PathVariable String id) {
         return Result.ok(permissionService.getPermissionById(id));
     }
 
+    // 新增权限节点，需 sys:permission:add
     @PostMapping
     @RequiresPermission("sys:permission:add")
     public Result<Void> create(@Validated @RequestBody PermissionSaveRequest request) {
@@ -42,6 +45,7 @@ public class SysPermissionController {
         return Result.ok();
     }
 
+    // 更新权限节点，需 sys:permission:edit
     @PutMapping
     @RequiresPermission("sys:permission:edit")
     public Result<Void> update(@Validated @RequestBody PermissionSaveRequest request) {
@@ -49,6 +53,7 @@ public class SysPermissionController {
         return Result.ok();
     }
 
+    // 删除权限节点，需 sys:permission:delete
     @DeleteMapping("/{id}")
     @RequiresPermission("sys:permission:delete")
     public Result<Void> delete(@PathVariable String id) {

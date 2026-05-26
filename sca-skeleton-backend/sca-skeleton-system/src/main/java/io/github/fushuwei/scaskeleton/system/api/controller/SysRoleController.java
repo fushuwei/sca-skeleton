@@ -24,18 +24,21 @@ public class SysRoleController {
 
     private final SysRoleService roleService;
 
+    // 查询当前租户下角色列表，需 sys:role:list
     @GetMapping("/list")
     @RequiresPermission("sys:role:list")
     public Result<List<SysRole>> list() {
         return Result.ok(roleService.listRoles(SecurityUtils.getTenantId()));
     }
 
+    // 按 ID 查询角色详情，需 sys:role:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:role:query")
     public Result<SysRole> getById(@PathVariable String id) {
         return Result.ok(roleService.getRoleById(id));
     }
 
+    // 在当前租户下创建角色，需 sys:role:add
     @PostMapping
     @RequiresPermission("sys:role:add")
     public Result<Void> create(@Validated @RequestBody RoleSaveRequest request) {
@@ -43,6 +46,7 @@ public class SysRoleController {
         return Result.ok();
     }
 
+    // 更新当前租户下角色信息，需 sys:role:edit
     @PutMapping
     @RequiresPermission("sys:role:edit")
     public Result<Void> update(@Validated @RequestBody RoleSaveRequest request) {
@@ -50,6 +54,7 @@ public class SysRoleController {
         return Result.ok();
     }
 
+    // 删除指定角色，需 sys:role:delete
     @DeleteMapping("/{id}")
     @RequiresPermission("sys:role:delete")
     public Result<Void> delete(@PathVariable String id) {
@@ -57,6 +62,7 @@ public class SysRoleController {
         return Result.ok();
     }
 
+    // 为角色分配权限，需 sys:role:assign-permission；按当前租户隔离
     @PutMapping("/{id}/permissions")
     @RequiresPermission("sys:role:assign-permission")
     public Result<Void> assignPermissions(@PathVariable String id,

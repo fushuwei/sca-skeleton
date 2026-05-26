@@ -16,12 +16,18 @@ import lombok.EqualsAndHashCode;
 @TableName("sys_post")
 public class SysPost extends BaseEntity {
 
+    /** 租户 ID */
     private String tenantId;
+    /** 岗位名称 */
     private String name;
+    /** 岗位编码 */
     private String code;
+    /** 排序号，越小越靠前 */
     private Integer sort;
+    /** 备注 */
     private String remark;
 
+    /** 乐观锁版本号 */
     @Version
     private Integer version;
 }

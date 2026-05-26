@@ -30,6 +30,7 @@ public class MybatisPlusAutoConfiguration {
     @ConditionalOnMissingBean
     public MybatisPlusMetaObjectHandler mybatisPlusMetaObjectHandler(
             @Autowired(required = false) @Nullable CurrentUserProvider currentUserProvider) {
+        // 注册审计字段自动填充处理器，Security 未接入时 currentUserProvider 为 null
         return new MybatisPlusMetaObjectHandler(currentUserProvider);
     }
 }

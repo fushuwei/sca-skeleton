@@ -24,14 +24,17 @@ public class ScaOpaqueAccessTokenClaimsCustomizer implements OAuth2TokenCustomiz
      */
     @Override
     public void customize(OAuth2TokenClaimsContext context) {
+        // 1) 仅处理 access_token，refresh_token / id_token 等类型跳过
         if (!OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
             return;
         }
+        // 2) 从认证主体中提取 ScaUserDetails，非用户登录场景（如 client_credentials）跳过
         Authentication principal = context.getPrincipal();
         Object principalObj = principal.getPrincipal();
         if (!(principalObj instanceof ScaUserDetails userDetails)) {
             return;
         }
+        // 3) 写入标准业务 claims，字段名与资源服务器 OAuth2AccessTokenClaimNames 约定一致
         var claims = context.getClaims();
         claims.subject(userDetails.getUserId());
         claims.claim(OAuth2AccessTokenClaimNames.PREFERRED_USERNAME, userDetails.getUsername());

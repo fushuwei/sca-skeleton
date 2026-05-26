@@ -15,7 +15,10 @@ import lombok.EqualsAndHashCode;
 @TableName("sys_role_permission")
 public class SysRolePermission extends BaseEntity {
 
+    /** 租户 ID */
     private String tenantId;
+    /** 角色 ID */
     private String roleId;
+    /** 权限 ID */
     private String permissionId;
 }

@@ -49,11 +49,13 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
     @Override
     public OAuth2AuthenticatedPrincipal introspect(String token) {
         Assert.hasText(token, "token cannot be empty");
+        // 从 Redis 授权记录解析 access_token 业务 claims
         Map<String, Object> claims = OAuth2AuthorizationClaimsExtractor.resolveAccessTokenClaims(
                 this.authorizationService, token);
         if (claims == null || claims.isEmpty()) {
             throw new BadOpaqueTokenException("Invalid access token");
         }
+        // 补齐 RFC 7662 自省语义：active=true，并与 HTTP 自省响应字段对齐
         Map<String, Object> introspectionClaims = new LinkedHashMap<>(claims);
         introspectionClaims.put(OAuth2TokenIntrospectionClaimNames.ACTIVE, true);
         if (!introspectionClaims.containsKey(OAuth2TokenIntrospectionClaimNames.SUB)) {
@@ -77,6 +79,7 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
         if (sub != null && StringUtils.hasText(sub.toString())) {
             return sub.toString();
         }
+        // sub 缺失时回退 preferred_username
         Object username = claims.get(OAuth2AccessTokenClaimNames.PREFERRED_USERNAME);
         if (username != null && StringUtils.hasText(username.toString())) {
             return username.toString();

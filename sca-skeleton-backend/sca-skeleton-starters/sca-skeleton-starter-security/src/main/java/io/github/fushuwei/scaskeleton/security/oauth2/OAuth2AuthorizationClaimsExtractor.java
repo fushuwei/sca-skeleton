@@ -32,6 +32,7 @@ public final class OAuth2AuthorizationClaimsExtractor {
     public static Map<String, Object> resolveAccessTokenClaims(
             OAuth2AuthorizationService authorizationService,
             String accessTokenValue) {
+        // 按 access_token 类型查 Redis 授权记录
         OAuth2Authorization authorization = authorizationService.findByToken(accessTokenValue,
                 OAuth2TokenType.ACCESS_TOKEN);
         if (authorization == null) {
@@ -41,14 +42,17 @@ public final class OAuth2AuthorizationClaimsExtractor {
         if (accessToken == null || accessToken.getToken() == null) {
             return null;
         }
+        // 已过期视为无效令牌
         if (accessToken.getToken().getExpiresAt() != null
                 && Instant.now().isAfter(accessToken.getToken().getExpiresAt())) {
             return null;
         }
+        // 业务 claims 存放在 access_token metadata 中
         Object claimsObj = accessToken.getMetadata().get(OAuth2Authorization.Token.CLAIMS_METADATA_NAME);
         if (!(claimsObj instanceof Map<?, ?> rawClaims) || rawClaims.isEmpty()) {
             return null;
         }
+        // 过滤 null 键值，保持插入顺序
         Map<String, Object> claims = new LinkedHashMap<>();
         for (Map.Entry<?, ?> entry : rawClaims.entrySet()) {
             if (entry.getKey() != null && entry.getValue() != null) {

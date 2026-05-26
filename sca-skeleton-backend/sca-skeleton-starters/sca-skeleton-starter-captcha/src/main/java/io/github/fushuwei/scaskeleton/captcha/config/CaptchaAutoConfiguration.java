@@ -32,6 +32,7 @@ public class CaptchaAutoConfiguration {
     @ConditionalOnMissingBean(CaptchaService.class)
     public CaptchaService captchaService(CaptchaProperties properties,
                                          StringRedisTemplate stringRedisTemplate) {
+        // 默认使用 AWT 图形验证码实现，验证码答案存入 Redis
         return new ImageCaptchaServiceImpl(properties, stringRedisTemplate);
     }
 }

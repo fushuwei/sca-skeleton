@@ -5,6 +5,7 @@ import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.core.validation.ValidGroup;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserPageRequest;
+import io.github.fushuwei.scaskeleton.system.api.dto.user.UserProfileVO;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserSaveRequest;
 import io.github.fushuwei.scaskeleton.system.application.service.SysUserService;
 import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysUser;
@@ -25,20 +26,28 @@ public class SysUserController {
 
     private final SysUserService userService;
 
+    // 获取当前登录用户资料，无需额外权限码（OAuth2 登录后 SPA 拉取）
+    @GetMapping("/profile")
+    public Result<UserProfileVO> profile() {
+        return Result.ok(userService.getCurrentProfile());
+    }
+
+    // 分页查询当前租户下用户列表，需 sys:user:list；租户 ID 从 SecurityContext 读取
     @GetMapping("/page")
     @RequiresPermission("sys:user:list")
     public Result<IPage<SysUser>> page(@Validated UserPageRequest request) {
-        // 多租户场景下从当前认证主体读取租户标识，避免越权
         String tenantId = SecurityUtils.getTenantId();
         return Result.ok(userService.pageUsers(tenantId, request));
     }
 
+    // 按 ID 查询用户详情，需 sys:user:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:user:query")
     public Result<SysUser> getById(@PathVariable String id) {
         return Result.ok(userService.getUserById(id));
     }
 
+    // 在当前租户下创建用户，需 sys:user:add
     @PostMapping
     @RequiresPermission("sys:user:add")
     public Result<Void> create(
@@ -47,6 +56,7 @@ public class SysUserController {
         return Result.ok();
     }
 
+    // 更新当前租户下用户信息，需 sys:user:edit
     @PutMapping
     @RequiresPermission("sys:user:edit")
     public Result<Void> update(
@@ -55,6 +65,7 @@ public class SysUserController {
         return Result.ok();
     }
 
+    // 删除指定用户，需 sys:user:delete
     @DeleteMapping("/{id}")
     @RequiresPermission("sys:user:delete")
     public Result<Void> delete(@PathVariable String id) {
@@ -62,6 +73,7 @@ public class SysUserController {
         return Result.ok();
     }
 
+    // 重置用户登录密码，需 sys:user:reset-password
     @PutMapping("/{id}/password/reset")
     @RequiresPermission("sys:user:reset-password")
     public Result<Void> resetPassword(@PathVariable String id,
@@ -70,6 +82,7 @@ public class SysUserController {
         return Result.ok();
     }
 
+    // 变更用户状态（启用/禁用等），需 sys:user:edit
     @PutMapping("/{id}/status")
     @RequiresPermission("sys:user:edit")
     public Result<Void> changeStatus(@PathVariable String id,

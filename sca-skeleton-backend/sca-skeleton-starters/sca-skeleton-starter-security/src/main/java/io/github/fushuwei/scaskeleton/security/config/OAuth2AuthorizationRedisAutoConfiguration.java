@@ -33,6 +33,7 @@ public class OAuth2AuthorizationRedisAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(RegisteredClientRepository.class)
     public RegisteredClientRepository redisRegisteredClientRepository(StringRedisTemplate stringRedisTemplate) {
+        // 无 JDBC 时由 Redis 快照只读加载客户端
         return new RedisRegisteredClientRepository(stringRedisTemplate);
     }
 
@@ -48,6 +49,7 @@ public class OAuth2AuthorizationRedisAutoConfiguration {
     public OAuth2AuthorizationService redisOAuth2AuthorizationService(
             RegisteredClientRepository registeredClientRepository,
             StringRedisTemplate stringRedisTemplate) {
+        // 认证中心与资源服务器共用 Redis 授权存储
         return new RedisOAuth2AuthorizationService(registeredClientRepository, stringRedisTemplate);
     }
 
@@ -60,6 +62,7 @@ public class OAuth2AuthorizationRedisAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(OpaqueTokenIntrospector.class)
     public OpaqueTokenIntrospector redisOpaqueTokenIntrospector(OAuth2AuthorizationService authorizationService) {
+        // 基于 findByToken 的本地自省，不走 HTTP /oauth2/introspect
         return new RedisOpaqueTokenIntrospector(authorizationService);
     }
 }

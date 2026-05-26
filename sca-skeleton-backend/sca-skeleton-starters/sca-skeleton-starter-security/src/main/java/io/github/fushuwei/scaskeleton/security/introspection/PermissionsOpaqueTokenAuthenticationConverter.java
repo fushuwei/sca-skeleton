@@ -39,6 +39,7 @@ public class PermissionsOpaqueTokenAuthenticationConverter implements OpaqueToke
     public AbstractAuthenticationToken convert(String introspectedToken, OAuth2AuthenticatedPrincipal principal) {
         // 从 permissions 声明构造 GrantedAuthority 列表，供方法级鉴权使用
         Collection<GrantedAuthority> authorities = extractPermissionAuthorities(principal);
+        // 构造 BearerTokenAuthentication，token 时间与 scope 由自省 claims 承载
         OAuth2AccessToken accessToken = new OAuth2AccessToken(
                 OAuth2AccessToken.TokenType.BEARER, introspectedToken, null, null, Collections.emptySet());
         return new BearerTokenAuthentication(principal, accessToken, authorities);
@@ -55,6 +56,7 @@ public class PermissionsOpaqueTokenAuthenticationConverter implements OpaqueToke
         if (raw == null) {
             return Collections.emptyList();
         }
+        // permissions 为集合时逐项转为 SimpleGrantedAuthority
         if (raw instanceof Collection<?> coll) {
             List<GrantedAuthority> list = new ArrayList<>();
             for (Object o : coll) {
@@ -64,6 +66,7 @@ public class PermissionsOpaqueTokenAuthenticationConverter implements OpaqueToke
             }
             return list;
         }
+        // 单个字符串权限
         if (raw instanceof String s && !s.isEmpty()) {
             return List.of(new SimpleGrantedAuthority(s));
         }

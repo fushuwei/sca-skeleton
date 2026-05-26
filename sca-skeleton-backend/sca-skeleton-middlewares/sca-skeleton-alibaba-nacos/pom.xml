@@ -15,7 +15,8 @@
     <packaging>jar</packaging>
 
     <name>SCA Skeleton Backend :: Middleware :: Alibaba Nacos</name>
-    <description>Alibaba Nacos integration for service discovery, configuration management, and dynamic naming</description>
+    <description>Alibaba Nacos integration for service discovery, configuration management, and dynamic naming
+    </description>
 
     <properties>
         <nacos.version>3.2.1</nacos.version>
@@ -51,4 +52,13 @@
             </exclusions>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

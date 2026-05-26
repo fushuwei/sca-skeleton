@@ -26,6 +26,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusinessException(BusinessException e) {
+        // 直接透传业务异常中的错误码与提示信息
         return Result.of(e.getCode(), e.getMessage(), ResultType.FAILURE);
     }
 
@@ -34,6 +35,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class, ConstraintViolationException.class})
     public Result<Void> handleValidationException(Exception e) {
+        // 统一返回参数校验失败码，附带框架生成的校验提示
         return Result.fail(ResultCode.VALIDATION_ERROR, e.getMessage());
     }
 
@@ -42,6 +44,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public Result<Void> handleMessageNotReadable(HttpMessageNotReadableException e) {
+        // JSON 反序列化失败时使用固定提示，避免暴露底层解析细节
         return Result.fail(ResultCode.VALIDATION_ERROR, "请求体格式错误或字段类型不正确");
     }
 
@@ -50,6 +53,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public Result<Void> handleException(Exception e) {
+        // 记录完整堆栈便于排查，对外仅返回通用 500 提示
         log.error("服务器内部错误", e);
         return Result.fail(ResultCode.INTERNAL_SERVER_ERROR);
     }
@@ -62,6 +66,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Throwable.class)
     public Result<?> handleThrowable(Throwable e) {
+        // 兜底捕获 Error 等非 Exception 类型，避免进程级异常直接暴露给客户端
         log.error("服务器内部错误", e);
         return Result.fail(ResultCode.INTERNAL_SERVER_ERROR);
     }

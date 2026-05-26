@@ -28,6 +28,7 @@ public class FeignAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public FeignHeaderInterceptor feignHeaderInterceptor() {
+        // 创建全局 Feign 请求头拦截器，自动透传 TraceId / Authorization 等上下文头
         return new FeignHeaderInterceptor();
     }
 
@@ -39,6 +40,7 @@ public class FeignAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(ErrorDecoder.class)
     public FeignErrorDecoder feignErrorDecoder() {
+        // 注册统一错误解码器，将下游非 2xx 响应映射为 BusinessException
         return new FeignErrorDecoder();
     }
 }

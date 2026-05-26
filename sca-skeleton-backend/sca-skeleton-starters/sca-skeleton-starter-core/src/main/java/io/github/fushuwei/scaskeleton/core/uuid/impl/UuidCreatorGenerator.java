@@ -42,31 +42,37 @@ public final class UuidCreatorGenerator implements UuidGenerator {
 
     @Override
     public UUID generateV1() {
+        // 基于当前时间戳与 MAC 地址生成 v1 UUID
         return UuidCreator.getTimeBased();
     }
 
     @Override
     public UUID generateV3(UuidNamespace namespace, String name) {
+        // 以命名空间 UUID 与名称的 MD5 哈希生成确定性 v3 UUID
         return UuidCreator.getNameBasedMd5(namespace.value(), name);
     }
 
     @Override
     public UUID generateV4() {
+        // 基于安全随机数生成 v4 UUID
         return UuidCreator.getRandomBased();
     }
 
     @Override
     public UUID generateV5(UuidNamespace namespace, String name) {
+        // 以命名空间 UUID 与名称的 SHA-1 哈希生成确定性 v5 UUID
         return UuidCreator.getNameBasedSha1(namespace.value(), name);
     }
 
     @Override
     public UUID generateV6() {
+        // 生成按时间排序的 v6 UUID，便于索引与范围查询
         return UuidCreator.getTimeOrdered();
     }
 
     @Override
     public UUID generateV7() {
+        // 生成 Unix 纪元时间排序的 v7 UUID，数据库主键首选
         return UuidCreator.getTimeOrderedEpoch();
     }
 }

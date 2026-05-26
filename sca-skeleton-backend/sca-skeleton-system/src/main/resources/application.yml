@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/sca_platform?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:password}
+    password: ${DB_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       minimum-idle: 5
@@ -29,9 +29,12 @@ spring:
 
   cloud:
     nacos:
+      server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:nacos}
       discovery:
-        server-addr: ${NACOS_ADDR:localhost:8848}
-        namespace: ${NACOS_NAMESPACE:}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_DISCOVERY_GROUP:DEFAULT_GROUP}
 
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
@@ -48,6 +51,8 @@ mybatis-plus:
 # SCA Security Starter 配置（不透明令牌经 Redis 本地自省，无需 introspection-uri）
 sca:
   security:
+    resource-server:
+      enabled: true
     user-id-claim-name: sub
     username-claim-name: preferred_username
     # 无需鉴权的路径（Actuator 等）

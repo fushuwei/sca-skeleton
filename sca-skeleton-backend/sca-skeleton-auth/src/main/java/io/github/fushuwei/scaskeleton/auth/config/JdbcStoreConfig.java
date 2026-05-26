@@ -36,7 +36,9 @@ public class JdbcStoreConfig {
     @Bean
     public RegisteredClientRepository registeredClientRepository(DataSource dataSource,
             StringRedisTemplate stringRedisTemplate) {
+        // JDBC 为主存储：读写 oauth2_registered_client 表
         JdbcRegisteredClientRepository jdbc = new JdbcRegisteredClientRepository(new JdbcTemplate(dataSource));
+        // 装饰器同步写入 Redis，供资源服务器只读加载 client 配置
         return new CachingRegisteredClientRepository(jdbc, stringRedisTemplate);
     }
 
@@ -51,6 +53,7 @@ public class JdbcStoreConfig {
     public OAuth2AuthorizationConsentService authorizationConsentService(
             DataSource dataSource,
             RegisteredClientRepository registeredClientRepository) {
+        // consent 仍走 JDBC，与 SAS 官方表 oauth2_authorization_consent 对齐
         return new JdbcOAuth2AuthorizationConsentService(
                 new JdbcTemplate(dataSource), registeredClientRepository);
     }

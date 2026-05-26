@@ -45,7 +45,7 @@ public class NacosApplication {
 	 */
 	private static final String STANDALONE_MODE = "nacos.standalone";
 
-	public static void main(String[] args) {
+	static void main(String[] args) {
 		System.setProperty(STANDALONE_MODE, "true");
 		System.setProperty(CONFIG_PROPERTY, CLASSPATH_URL_PREFIX + "logback-spring.xml");
 

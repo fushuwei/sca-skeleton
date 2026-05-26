@@ -62,13 +62,16 @@ public class ScaUserDetails implements UserDetails {
                           String nickname, String userType, List<String> permissions,
                           boolean enabled, boolean accountNonLocked,
                           boolean accountNonExpired, boolean credentialsNonExpired) {
+        // 业务标识字段：写入 token claims 与 SecurityContext
         this.userId = userId;
         this.tenantId = tenantId;
         this.username = username;
         this.password = password;
         this.nickname = nickname;
         this.userType = userType;
+        // 权限码为空时降级为空列表，避免 NPE
         this.permissions = permissions != null ? permissions : List.of();
+        // Spring Security 账号状态四要素，由 ScaUserDetailsService 预先计算
         this.enabled = enabled;
         this.accountNonLocked = accountNonLocked;
         this.accountNonExpired = accountNonExpired;
@@ -81,6 +84,7 @@ public class ScaUserDetails implements UserDetails {
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        // 权限码直接映射为 authority，供 @PreAuthorize 与 hasAuthority 使用
         return permissions.stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());

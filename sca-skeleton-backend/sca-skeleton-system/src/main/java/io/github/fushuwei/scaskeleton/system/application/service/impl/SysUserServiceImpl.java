@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserPageRequest;
+import io.github.fushuwei.scaskeleton.system.api.dto.user.UserProfileVO;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserSaveRequest;
 import io.github.fushuwei.scaskeleton.system.application.service.SysUserService;
 import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysUser;
@@ -35,22 +37,30 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class SysUserServiceImpl implements SysUserService {
 
+    /** 用户主表 Mapper */
     private final SysUserMapper userMapper;
+    /** 用户-角色关联 Mapper */
     private final SysUserRoleMapper userRoleMapper;
+    /** 用户-部门关联 Mapper */
     private final SysUserDeptMapper userDeptMapper;
+    /** Spring Security 密码加密器 */
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public IPage<SysUser> pageUsers(String tenantId, UserPageRequest req) {
+        // 按请求参数构造分页对象
         Page<SysUser> page = new Page<>(req.getPageNum(), req.getPageSize());
+        // 调用自定义分页查询（含部门关联过滤）
         return userMapper.selectUserPage(page, tenantId,
                 req.getUsername(), req.getNickname(), req.getStatus(), req.getDeptId());
     }
 
     @Override
     public SysUser getUserById(String id) {
+        // 按主键查询用户
         SysUser user = userMapper.selectById(id);
         if (user == null) {
+            // 未命中则抛业务异常
             throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在");
         }
         return user;
@@ -59,7 +69,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createUser(String tenantId, UserSaveRequest req) {
-        // 用户名在同租户内唯一
+        // 用户名在同租户内唯一（仅后台用户类别）
         long count = userMapper.selectCount(new LambdaQueryWrapper<SysUser>()
                 .eq(SysUser::getTenantId, tenantId)
                 .eq(SysUser::getUsername, req.getUsername())
@@ -68,6 +78,7 @@ public class SysUserServiceImpl implements SysUserService {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "用户名已存在");
         }
 
+        // 组装用户实体
         SysUser user = new SysUser();
         user.setTenantId(tenantId);
         user.setUsername(req.getUsername());
@@ -88,13 +99,16 @@ public class SysUserServiceImpl implements SysUserService {
         user.setEffectiveEndTime(req.getEffectiveEndTime());
         user.setRemark(req.getRemark());
 
+        // 持久化用户主表
         userMapper.insert(user);
+        // 同事务内建立角色、部门关联
         saveUserRelations(tenantId, user.getId(), req);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateUser(String tenantId, UserSaveRequest req) {
+        // 校验用户存在并加载当前快照
         SysUser existing = getUserById(req.getId());
 
         // 内置用户不允许修改用户名
@@ -102,6 +116,7 @@ public class SysUserServiceImpl implements SysUserService {
             req.setUsername(existing.getUsername());
         }
 
+        // 更新可编辑字段（用户名由上方分支保护）
         existing.setNickname(req.getNickname());
         existing.setRealName(req.getRealName());
         existing.setGender(req.getGender());
@@ -122,18 +137,23 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteUser(String id) {
+        // 加载待删用户并校验内置保护
         SysUser user = getUserById(id);
         if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
             throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许删除");
         }
+        // 逻辑删除用户主表
         userMapper.deleteById(id);
+        // 同事务内清理角色、部门关联
         deleteUserRelations(user.getTenantId(), id);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void resetPassword(String id, String newPassword) {
+        // 校验用户存在
         getUserById(id);
+        // 更新密码并清除强制改密标记
         userMapper.update(null, new LambdaUpdateWrapper<SysUser>()
                 .eq(SysUser::getId, id)
                 .set(SysUser::getPassword,
@@ -145,10 +165,12 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     public void changeStatus(String id, String status, String reason) {
+        // 加载用户并校验内置保护
         SysUser user = getUserById(id);
         if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
             throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许操作");
         }
+        // 更新状态及变更时间与原因
         userMapper.update(null, new LambdaUpdateWrapper<SysUser>()
                 .eq(SysUser::getId, id)
                 .set(SysUser::getStatus, status)
@@ -159,6 +181,7 @@ public class SysUserServiceImpl implements SysUserService {
 
     /** 保存用户-角色、用户-部门关联。 */
     private void saveUserRelations(String tenantId, String userId, UserSaveRequest req) {
+        // 批量插入用户-角色关联
         if (!CollectionUtils.isEmpty(req.getRoleIds())) {
             req.getRoleIds().forEach(roleId -> {
                 SysUserRole ur = new SysUserRole();
@@ -168,6 +191,7 @@ public class SysUserServiceImpl implements SysUserService {
                 userRoleMapper.insert(ur);
             });
         }
+        // 批量插入用户-部门关联（首个部门标记为主部门）
         if (!CollectionUtils.isEmpty(req.getDeptIds())) {
             for (int i = 0; i < req.getDeptIds().size(); i++) {
                 SysUserDept ud = new SysUserDept();
@@ -182,11 +206,33 @@ public class SysUserServiceImpl implements SysUserService {
 
     /** 逻辑删除用户的所有角色和部门关联。 */
     private void deleteUserRelations(String tenantId, String userId) {
+        // 按租户 + 用户 ID 删除角色关联
         userRoleMapper.delete(new LambdaQueryWrapper<SysUserRole>()
                 .eq(SysUserRole::getTenantId, tenantId)
                 .eq(SysUserRole::getUserId, userId));
+        // 按租户 + 用户 ID 删除部门关联
         userDeptMapper.delete(new LambdaQueryWrapper<SysUserDept>()
                 .eq(SysUserDept::getTenantId, tenantId)
                 .eq(SysUserDept::getUserId, userId));
+    }
+
+    @Override
+    public UserProfileVO getCurrentProfile() {
+        // 从 opaque token 自省后的 SecurityContext 读取用户 ID
+        String userId = SecurityUtils.getCurrentUserId();
+        if (!StringUtils.hasText(userId)) {
+            throw new BusinessException(ResultCode.UNAUTHORIZED, "未登录或令牌无效");
+        }
+        // 按主键查询用户实体
+        SysUser user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在");
+        }
+        // 组装 SPA 所需的最小资料字段
+        return UserProfileVO.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .nickname(user.getNickname())
+                .build();
     }
 }

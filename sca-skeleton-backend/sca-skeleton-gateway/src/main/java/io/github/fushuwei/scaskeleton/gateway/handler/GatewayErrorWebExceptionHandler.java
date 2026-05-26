@@ -110,6 +110,7 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
     private void writeErrorLog(ServerWebExchange exchange, ErrorResult errorResult, Throwable ex) {
         String traceId = exchange.getAttribute(GatewayConstants.EXCHANGE_ATTRIBUTE_TRACE_ID);
         String logMessage = "[Gateway] {}: TraceId => {}, Code => {}, Message => {}, Detail => {}";
+        // 5xx 记 error 便于告警，4xx 记 warn 避免噪声
         if (errorResult.httpStatus().is5xxServerError()) {
             log.error(logMessage, "Error", traceId, errorResult.code, errorResult.message, ex.getMessage());
         } else {
@@ -128,7 +129,7 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
             return Mono.empty();
         }
 
-        // 设置 HTTP 响应状态码与响应内容类型
+        // 设置 HTTP 响应内容类型
         response.getHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
         // 设置响应体
@@ -141,15 +142,22 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
         body.put("timestamp", System.currentTimeMillis());
 
         try {
+            // 序列化为 JSON 并写入响应体
             DataBuffer buffer = response.bufferFactory().wrap(objectMapper.writeValueAsBytes(body));
             return response.writeWith(Mono.just(buffer));
         } catch (Throwable e) {
+            // 序列化失败时仅结束响应，避免二次异常
+            log.error("网关全局异常处理出现 JSON 序列化异常", e);
             return response.setComplete();
         }
     }
 
     /**
      * 异常响应结果
+     *
+     * @param httpStatus HTTP 状态码
+     * @param code       业务错误码
+     * @param message    对外提示信息
      */
     private record ErrorResult(HttpStatus httpStatus, Integer code, String message) {
 

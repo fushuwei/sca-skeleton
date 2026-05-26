@@ -22,7 +22,10 @@ public class SystemSecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+        // 1. 创建 BCrypt 编码器，作为生产环境默认密码哈希算法
         BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
+        // 2. 组装 DelegatingPasswordEncoder，前缀 "bcrypt" 为默认匹配算法
+        // 3. 同时注册 "noop" 适配器，便于本地开发读取 {noop} 前缀密文（与 auth 服务保持一致）
         return new DelegatingPasswordEncoder("bcrypt",
                 Map.of("bcrypt", bcrypt,
                         "noop", org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance()));

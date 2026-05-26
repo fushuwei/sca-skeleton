@@ -1,7 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.config;
 
-import io.github.fushuwei.scaskeleton.auth.config.properties.WebClientProperties;
-import io.github.fushuwei.scaskeleton.auth.extension.password.PasswordGrantAuthenticationToken;
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
 import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,81 +20,97 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 
 /**
- * 默认 OAuth2 注册客户端初始化器。
+ * OAuth2 公共客户端初始化器：为 admin / portal 两个 SPA 注册 Authorization Code + PKCE 客户端。
  * <p>
- * 服务启动时检查 {@code oauth2_registered_client} 表中是否存在 web 前端客户端，
- * 不存在则自动创建，避免首次部署时需要手动插库。
- * <p>
- * 客户端配置由 application.yml {@code sca.auth.client.web.*} 驱动，
- * 修改后重启服务生效（已存在的客户端不会被覆盖配置项，但会在启动时将会话访问令牌格式升级为 REFERENCE）。
+ * 仅在 {@code oauth2_registered_client} 中不存在对应 {@code client_id} 时插入，生产环境建议改为运维预置 SQL。
  *
  * @author Fu Wei
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@EnableConfigurationProperties(WebClientProperties.class)
+@EnableConfigurationProperties(OAuthClientsProperties.class)
 public class RegisteredClientInitializer implements ApplicationRunner {
 
+    /** JDBC + Redis 缓存的客户端仓库 */
     private final RegisteredClientRepository registeredClientRepository;
-    private final WebClientProperties webClientProperties;
+
+    /** admin / portal 客户端外部化配置 */
+    private final OAuthClientsProperties oauthClientsProperties;
 
     @Override
     public void run(ApplicationArguments args) {
-        initWebClient();
-        migrateWebClientToOpaqueAccessTokenIfNeeded();
+        // 初始化管理后台公共客户端
+        initPublicClientIfAbsent(oauthClientsProperties.getAdmin(), "SCA Admin SPA");
+        // 初始化前台门户公共客户端
+        initPublicClientIfAbsent(oauthClientsProperties.getPortal(), "SCA Portal SPA");
+        // 将历史客户端访问令牌格式迁移为 REFERENCE（不透明令牌）
+        migrateToOpaqueAccessTokenIfNeeded(oauthClientsProperties.getAdmin().getClientId());
+        migrateToOpaqueAccessTokenIfNeeded(oauthClientsProperties.getPortal().getClientId());
     }
 
-    private void initWebClient() {
-        String clientId = webClientProperties.getClientId();
-        if (registeredClientRepository.findByClientId(clientId) != null) {
-            log.info("OAuth2 客户端 [{}] 已存在，跳过初始化", clientId);
+    /**
+     * 若 client_id 不存在则注册公共客户端（无 client_secret，强制 PKCE）。
+     *
+     * @param props      客户端配置项
+     * @param clientName 可读名称，写入 client_name 字段
+     */
+    private void initPublicClientIfAbsent(OAuthClientsProperties.ClientProperties props, String clientName) {
+        // 配置缺失时跳过，避免写入空 client_id
+        if (props.getClientId() == null || props.getRedirectUri() == null) {
+            log.warn("OAuth2 客户端配置不完整，跳过初始化：clientId={}", props.getClientId());
             return;
         }
-
-        RegisteredClient webClient = RegisteredClient
-                // 客户端主键使用全局统一 UUID（去连字符 32 位小写），满足主键策略约束
+        // 已存在则不再覆盖（生产由运维预置）
+        if (registeredClientRepository.findByClientId(props.getClientId()) != null) {
+            log.info("OAuth2 客户端 [{}] 已存在，跳过初始化", props.getClientId());
+            return;
+        }
+        RegisteredClient client = RegisteredClient
+                // 主键使用全局 UUID 策略
                 .withId(UuidUtils.nextSimpleStr())
-                .clientId(clientId)
-                .clientSecret(webClientProperties.getClientSecret())
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-                // 自定义密码授权模式
-                .authorizationGrantType(PasswordGrantAuthenticationToken.PASSWORD)
-                // 刷新令牌
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                // 预留授权码模式（future）
+                .clientId(props.getClientId())
+                .clientName(clientName)
+                // 公共客户端：不进行 client_secret 认证
+                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+                // 授权码 + 刷新令牌
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("http://127.0.0.1:8080/login/oauth2/code/sca")
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                // PKCE 回调地址（必须与 SPA 环境变量一致）
+                .redirectUri(props.getRedirectUri())
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
                 .scope("all")
                 .clientSettings(ClientSettings.builder()
+                        // OAuth 2.1：公共客户端强制 PKCE
+                        .requireProofKey(true)
                         .requireAuthorizationConsent(false)
                         .build())
                 .tokenSettings(TokenSettings.builder()
                         .accessTokenFormat(OAuth2TokenFormat.REFERENCE)
-                        .accessTokenTimeToLive(
-                                Duration.ofSeconds(webClientProperties.getAccessTokenTtl()))
-                        .refreshTokenTimeToLive(
-                                Duration.ofSeconds(webClientProperties.getRefreshTokenTtl()))
+                        .accessTokenTimeToLive(Duration.ofSeconds(props.getAccessTokenTtl()))
+                        .refreshTokenTimeToLive(Duration.ofSeconds(props.getRefreshTokenTtl()))
                         .reuseRefreshTokens(false)
                         .build())
                 .build();
-
-        registeredClientRepository.save(webClient);
-        log.info("OAuth2 客户端 [{}] 初始化完成", clientId);
+        registeredClientRepository.save(client);
+        log.info("OAuth2 公共客户端 [{}] 初始化完成，redirect_uri={}", props.getClientId(), props.getRedirectUri());
     }
 
     /**
-     * 将已存在的 web 客户端访问令牌格式升级为不透明（REFERENCE），避免历史库仍为 JWT 自包含格式。
+     * 将已存在客户端的 access_token 格式升级为 REFERENCE（不透明令牌）。
+     *
+     * @param clientId 目标 client_id
      */
-    private void migrateWebClientToOpaqueAccessTokenIfNeeded() {
-        String clientId = webClientProperties.getClientId();
+    private void migrateToOpaqueAccessTokenIfNeeded(String clientId) {
+        if (clientId == null) {
+            return;
+        }
         RegisteredClient client = registeredClientRepository.findByClientId(clientId);
         if (client == null) {
             return;
         }
+        // 已是 REFERENCE 则无需迁移
         if (OAuth2TokenFormat.REFERENCE.equals(client.getTokenSettings().getAccessTokenFormat())) {
             return;
         }
@@ -113,5 +128,4 @@ public class RegisteredClientInitializer implements ApplicationRunner {
         registeredClientRepository.save(RegisteredClient.from(client).tokenSettings(newSettings).build());
         log.info("OAuth2 客户端 [{}] 已升级为不透明访问令牌（REFERENCE）", clientId);
     }
-
 }

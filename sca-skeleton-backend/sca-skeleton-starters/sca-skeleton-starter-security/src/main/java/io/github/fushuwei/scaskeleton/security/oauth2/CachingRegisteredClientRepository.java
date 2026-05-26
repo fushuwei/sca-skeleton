@@ -42,6 +42,7 @@ public class CachingRegisteredClientRepository implements RegisteredClientReposi
         Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
         this.delegate = delegate;
         this.stringRedisTemplate = stringRedisTemplate;
+        // 快照编解码与 RedisRegisteredClientRepository 共用同一格式
         this.redisSerializer = new RegisteredClientRedisSerializer(getClass().getClassLoader());
     }
 
@@ -52,7 +53,9 @@ public class CachingRegisteredClientRepository implements RegisteredClientReposi
      */
     @Override
     public void save(RegisteredClient registeredClient) {
+        // 权威数据写入 JDBC
         this.delegate.save(registeredClient);
+        // 同步刷新 Redis 快照
         cache(registeredClient);
     }
 
@@ -68,9 +71,11 @@ public class CachingRegisteredClientRepository implements RegisteredClientReposi
         String cacheKey = OAuth2AuthorizationRedisKeys.registeredClientIdKey(id);
         String cachedJson = this.stringRedisTemplate.opsForValue().get(cacheKey);
         RegisteredClient cached = deserialize(cachedJson, cacheKey);
+        // 缓存命中直接返回
         if (cached != null) {
             return cached;
         }
+        // 未命中回源 JDBC 并回填
         RegisteredClient client = this.delegate.findById(id);
         if (client != null) {
             cache(client);
@@ -87,6 +92,7 @@ public class CachingRegisteredClientRepository implements RegisteredClientReposi
     @Nullable
     @Override
     public RegisteredClient findByClientId(String clientId) {
+        // client_id -> 主键 id 二级索引
         String id = this.stringRedisTemplate.opsForValue()
                 .get(OAuth2AuthorizationRedisKeys.registeredClientClientIdKey(clientId));
         if (id != null) {
@@ -95,6 +101,7 @@ public class CachingRegisteredClientRepository implements RegisteredClientReposi
                 return cached;
             }
         }
+        // 索引缺失或快照无效时回源 JDBC
         RegisteredClient client = this.delegate.findByClientId(clientId);
         if (client != null) {
             cache(client);
@@ -110,8 +117,10 @@ public class CachingRegisteredClientRepository implements RegisteredClientReposi
     private void cache(RegisteredClient registeredClient) {
         try {
             String json = this.redisSerializer.serialize(registeredClient);
+            // 主键键存完整快照 JSON
             this.stringRedisTemplate.opsForValue()
                     .set(OAuth2AuthorizationRedisKeys.registeredClientIdKey(registeredClient.getId()), json);
+            // client_id 键仅存主键 id，便于按 client_id 反查
             this.stringRedisTemplate.opsForValue()
                     .set(OAuth2AuthorizationRedisKeys.registeredClientClientIdKey(registeredClient.getClientId()),
                             registeredClient.getId());
@@ -134,6 +143,7 @@ public class CachingRegisteredClientRepository implements RegisteredClientReposi
         }
         try {
             RegisteredClient client = this.redisSerializer.deserialize(json);
+            // 格式无效时删除脏缓存，由调用方回源 JDBC
             if (client == null && cacheKey != null) {
                 log.warn("RegisteredClient Redis 缓存格式无效或已过期，将回源 JDBC 并刷新缓存: key={}", cacheKey);
                 this.stringRedisTemplate.delete(cacheKey);

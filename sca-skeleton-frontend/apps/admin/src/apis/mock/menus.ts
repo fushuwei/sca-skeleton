@@ -1,11 +1,7 @@
-import type { ApiEnvelope, LoginPayload, LoginResponse, MenuItem, UserProfile } from "../../types/auth"; // 导入鉴权相关类型定义。
-
-const USERNAME = "admin"; // 定义演示账号用户名常量。
-const PASSWORD = "admin"; // 定义演示账号密码常量。
-const TOKEN = "admin-access-token"; // 定义演示登录返回的固定令牌。
+import type { MenuItem } from "../../types/auth";
 
 /** 演示用树形菜单：贴近数据中台 / 后台常见模块划分，叶子路由由动态注册（工作台走静态路由，不出现在侧栏） */
-const DEMO_MENUS: MenuItem[] = [
+export const DEMO_MENUS: MenuItem[] = [
   {
     name: "ModuleDatasource",
     path: "/datasource",
@@ -92,29 +88,3 @@ const DEMO_MENUS: MenuItem[] = [
     ]
   }
 ];
-
-export async function mockLogin(payload: LoginPayload): Promise<ApiEnvelope<LoginResponse>> { // 定义模拟登录接口函数。
-  await new Promise((resolve) => setTimeout(resolve, 300)); // 模拟网络延迟以贴近真实接口体验。
-
-  if (payload.username !== USERNAME || payload.password !== PASSWORD) { // 校验输入账号密码是否与演示账号一致。
-    return { code: 401, message: "账号或密码错误", data: { token: "", menus: [] } }; // 返回登录失败结果。
-  } // 结束登录失败分支。
-
-  return { // 返回登录成功结果。
-    code: 0, // 返回成功业务码。
-    message: "登录成功", // 返回成功提示语。
-    data: { // 返回业务数据体。
-      token: TOKEN, // 返回固定演示令牌。
-      menus: DEMO_MENUS // 返回树形菜单。
-    } // 结束业务数据体。
-  }; // 结束成功返回对象。
-} // 结束模拟登录接口函数。
-
-export async function mockGetUserProfile(): Promise<ApiEnvelope<UserProfile>> { // 定义模拟获取当前用户信息函数。
-  await new Promise((resolve) => setTimeout(resolve, 200)); // 模拟用户信息接口延迟。
-  return { // 返回用户信息成功结果。
-    code: 0, // 返回成功业务码。
-    message: "获取成功", // 返回成功提示语。
-    data: { id: "1", username: USERNAME, nickname: "系统管理员" } // 返回演示用户资料。
-  }; // 结束成功返回对象。
-} // 结束模拟获取当前用户信息函数。

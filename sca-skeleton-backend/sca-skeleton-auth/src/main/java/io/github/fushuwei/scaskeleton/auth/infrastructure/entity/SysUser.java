@@ -45,6 +45,12 @@ public class SysUser extends BaseEntity {
      */
     private String status;
 
+    /** 状态变更时间（锁定、冻结等） */
+    private LocalDateTime statusTime;
+
+    /** 状态变更原因 */
+    private String statusReason;
+
     /** 连续登录失败次数，失败后累加，成功后清零 */
     private Integer loginFailCount;
 

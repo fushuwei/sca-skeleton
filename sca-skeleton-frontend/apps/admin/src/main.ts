@@ -18,6 +18,8 @@ import "@quasar/extras/material-symbols-rounded/material-symbols-rounded.css"; /
 import "./styles/material-symbols-axes.scss"; // 全站 Material Symbols 默认 FILL=0 等可变轴。
 import "./styles/quasar-flat.scss"; // 导入全局直角风格样式覆盖。
 import "./styles/admin-layout-dark.scss"; // AdminLayout 壳层在 Dark 模式下的颜色修补。
+import { registerAdminTokenSync } from "./apis/http";
+import { useAuthStore } from "./stores/auth";
 
 const app = createApp(App); // 创建 Vue 应用实例。
 const pinia = createPinia(); // 创建 Pinia 状态管理实例。
@@ -28,6 +30,9 @@ const initialQuasarLang = quasarLangForLocale(initialLocale); // Quasar 组件�
 const initialDark = readInitialDark(); // 默认 Light（false）；详见 admin-theme-dark。
 
 app.use(pinia); // 挂载 Pinia 到应用实例。
+registerAdminTokenSync((accessToken, refreshToken) => {
+  useAuthStore().syncOAuthTokens(accessToken, refreshToken);
+});
 app.use(router); // 挂载路由到应用实例。
 app.use(i18n); // 挂载 vue-i18n。
 app.use(Quasar, {

@@ -1,65 +1,79 @@
 package io.github.fushuwei.scaskeleton.auth.config;
 
-import io.github.fushuwei.scaskeleton.auth.security.ScaUserDetailsService;
+import io.github.fushuwei.scaskeleton.auth.security.RoutingUserDetailsService;
+import io.github.fushuwei.scaskeleton.auth.security.filter.LoginChannelFilter;
+import io.github.fushuwei.scaskeleton.auth.web.ChannelAwareAuthenticationFailureHandler;
+import io.github.fushuwei.scaskeleton.auth.web.LoginPageController;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.Map;
 
 /**
- * Spring Security 基础安全配置（默认过滤链，优先级低于授权服务器过滤链）。
- * <p>
- * 职责：
- * <ol>
- *   <li>放行公开端点（健康检查、验证码等）</li>
- *   <li>其余请求要求认证</li>
- *   <li>注册 PasswordEncoder（支持 {bcrypt} 前缀的 DelegatingPasswordEncoder）</li>
- * </ol>
+ * Auth 服务默认安全过滤链：托管 admin / portal 登录页与表单认证（Order=2，低于 SAS 端点链）。
  *
  * @author Fu Wei
  */
 @Configuration(proxyBeanMethods = false)
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class AuthSecurityConfig {
 
+    /** 登录渠道解析过滤器（admin / portal） */
+    private final LoginChannelFilter loginChannelFilter;
+
+    /** 登录失败回跳处理器 */
+    private final ChannelAwareAuthenticationFailureHandler authenticationFailureHandler;
+
     /**
-     * 默认安全过滤链（Order=2，低于授权服务器过滤链）。
-     * 处理所有非 SAS 端点的请求（如 actuator、自定义 API 等）。
+     * 默认安全过滤链：登录页、表单认证、Actuator 健康检查。
+     *
+     * @param http                    HttpSecurity
+     * @param routingUserDetailsService 按渠道路由的用户加载服务
+     * @return Order=2 的 FilterChain
      */
     @Bean
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(
             HttpSecurity http,
-            ScaUserDetailsService userDetailsService) throws Exception {
+            RoutingUserDetailsService routingUserDetailsService) throws Exception {
+
         http
-            .csrf(AbstractHttpConfigurer::disable)
+            // 表单登录启用 CSRF；OAuth2 标准端点由 Order=1 的 SAS 过滤链单独处理
             .authorizeHttpRequests(authorize -> authorize
-                // 健康检查端点无需认证
+                // 健康检查无需认证
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                // 其余请求均需认证（授权服务器端点已由 Order=1 的链处理）
+                // admin / portal 登录页 GET 与表单 POST 放行
+                .requestMatchers("/login/**").permitAll()
+                // 其余请求需 Session 认证（authorize 链路登录成功后持有 Session）
                 .anyRequest().authenticated()
             )
-            .userDetailsService(userDetailsService)
-            // 表单登录（授权码模式的前端跳转登录页）
-            .formLogin(form -> form.loginPage("/login").permitAll());
+            // 在 UsernamePasswordAuthenticationFilter 之前解析 loginChannel
+            .addFilterBefore(loginChannelFilter, UsernamePasswordAuthenticationFilter.class)
+            .userDetailsService(routingUserDetailsService)
+            .formLogin(form -> form
+                // 默认 loginPage（实际入口由 ClientAwareLoginUrlAuthenticationEntryPoint 按 client 分流）
+                .loginPage("/login/admin")
+                // 统一表单处理 URL（admin / portal 表单均 POST 到此）
+                .loginProcessingUrl(LoginPageController.LOGIN_PROCESSING_URL)
+                .failureHandler(authenticationFailureHandler)
+                .permitAll()
+            );
 
         return http.build();
     }
 
     /**
-     * 密码编码器。
-     * <p>
-     * 使用 {@link DelegatingPasswordEncoder}，默认编码算法为 bcrypt，
-     * 同时兼容 {noop}、{sha256} 等历史格式，适合存量数据迁移场景。
-     * 数据库中密码字段格式示例：{bcrypt}$2a$10$...
+     * 密码编码器：支持 {bcrypt} 与 {noop}（仅开发）前缀。
      */
     @Bean
     public PasswordEncoder passwordEncoder() {

@@ -30,6 +30,7 @@ public class RequiresPermissionAuthorizer {
         if (annotation == null || annotation.value() == null || annotation.value().length == 0) {
             return false;
         }
+        // 过滤空白权限码
         String[] permissions = Arrays.stream(annotation.value())
             .filter(StringUtils::hasText)
             .toArray(String[]::new);
@@ -60,6 +61,7 @@ public class RequiresPermissionAuthorizer {
         if (authentication == null || !StringUtils.hasText(permission)) {
             return false;
         }
+        // 精确匹配 GrantedAuthority，权限码不带 ROLE_ 前缀
         for (GrantedAuthority authority : authentication.getAuthorities()) {
             if (permission.equals(authority.getAuthority())) {
                 return true;

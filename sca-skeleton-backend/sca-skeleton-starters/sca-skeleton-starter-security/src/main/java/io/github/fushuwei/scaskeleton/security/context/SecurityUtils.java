@@ -28,6 +28,7 @@ public final class SecurityUtils {
      */
     public static Jwt getCurrentJwt() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 仅 JWT 资源服务器模式返回 token
         if (authentication instanceof JwtAuthenticationToken jwtAuth) {
             return jwtAuth.getToken();
         }
@@ -42,9 +43,11 @@ public final class SecurityUtils {
      */
     public static Map<String, Object> getTokenAttributes() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 不透明令牌：自省 claims 在 tokenAttributes 中
         if (authentication instanceof BearerTokenAuthentication bearer) {
             return bearer.getTokenAttributes();
         }
+        // JWT：claims 在 token 内
         if (authentication instanceof JwtAuthenticationToken jwtAuth) {
             return jwtAuth.getToken().getClaims();
         }
@@ -105,6 +108,7 @@ public final class SecurityUtils {
      */
     public static boolean isAuthenticated() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 排除匿名用户
         return authentication != null && authentication.isAuthenticated()
                 && !(authentication instanceof org.springframework.security.authentication.AnonymousAuthenticationToken);
     }

@@ -37,6 +37,7 @@ public class LoggingAutoConfiguration {
             ObjectMapper objectMapper,
             @Autowired(required = false) @Nullable CurrentUserProvider currentUserProvider,
             @Autowired(required = false) @Nullable OperationLogHandler operationLogHandler) {
+        // 组装操作日志切面：序列化参数/响应，可选注入当前用户与自定义日志处理器
         return new OperationLogAspect(objectMapper, currentUserProvider, operationLogHandler);
     }
 }

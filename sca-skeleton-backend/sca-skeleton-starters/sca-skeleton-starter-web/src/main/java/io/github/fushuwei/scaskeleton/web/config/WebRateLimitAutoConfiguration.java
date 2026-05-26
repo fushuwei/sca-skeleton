@@ -35,6 +35,7 @@ public class WebRateLimitAutoConfiguration {
     public RateLimitAspect rateLimitAspect(
             RedissonClient redissonClient,
             @Autowired(required = false) @Nullable CurrentUserProvider currentUserProvider) {
+        // 组装限流切面：Redisson 提供分布式计数，CurrentUserProvider 可选用于按用户维度限流
         return new RateLimitAspect(redissonClient, currentUserProvider);
     }
 }

@@ -23,6 +23,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 public class SystemApplication {
 
     public static void main(String[] args) {
+        // 启动 Spring Boot 应用：注册 Nacos 服务发现、扫描 MyBatis Mapper、加载资源服务器安全配置
         SpringApplication.run(SystemApplication.class, args);
     }
 }

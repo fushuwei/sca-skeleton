@@ -34,6 +34,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     public RedisRegisteredClientRepository(StringRedisTemplate stringRedisTemplate) {
         Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
         this.stringRedisTemplate = stringRedisTemplate;
+        // 与认证中心 CachingRegisteredClientRepository 使用相同快照格式
         this.redisSerializer = new RegisteredClientRedisSerializer(getClass().getClassLoader());
     }
 
@@ -44,6 +45,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
      */
     @Override
     public void save(RegisteredClient registeredClient) {
+        // 资源服务器只读，写入由认证中心完成
         throw new UnsupportedOperationException(
                 "RedisRegisteredClientRepository is read-only; register clients on the authorization server.");
     }
@@ -59,6 +61,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     public RegisteredClient findById(String id) {
         Assert.hasText(id, "id cannot be empty");
         String json = this.stringRedisTemplate.opsForValue().get(OAuth2AuthorizationRedisKeys.registeredClientIdKey(id));
+        // 从主键键读取快照 JSON 并反序列化
         return deserialize(json);
     }
 
@@ -77,6 +80,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
         if (!StringUtils.hasText(id)) {
             return null;
         }
+        // 通过 client_id 索引定位主键后再加载快照
         return findById(id);
     }
 
@@ -93,6 +97,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
         }
         try {
             RegisteredClient client = this.redisSerializer.deserialize(json);
+            // 快照缺失或格式无效时抛 DataRetrievalFailureException，与 JDBC 语义对齐
             if (client == null) {
                 throw new DataRetrievalFailureException(
                         "RegisteredClient Redis cache is missing, invalid, or uses a legacy format");

@@ -17,6 +17,8 @@ spring:
         group: ${NACOS_CONFIG_GROUP:DEFAULT_GROUP}
   config:
     import:
+      # 本地 classpath 兜底（Nacos 不可用时仍可启动 dev 环境）
+      - optional:classpath:nacos/sca-skeleton-auth-${spring.profiles.active:dev}.yaml
       - optional:nacos:sca-skeleton-common.yaml
       - optional:nacos:${spring.application.name}.yaml
       - optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml

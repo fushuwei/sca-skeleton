@@ -22,6 +22,7 @@ public class RequestHeaderSanitizerGlobalFilter implements GlobalFilter, Ordered
 
     @Override
     public @NonNull Mono<Void> filter(@NonNull ServerWebExchange exchange, GatewayFilterChain chain) {
+        // 清理伪造头、写入 TraceId 与请求起始时间，再交给后续过滤器
         ServerHttpRequest request = sanitizeRequestHeaders(exchange);
         return chain.filter(exchange.mutate().request(request).build());
     }

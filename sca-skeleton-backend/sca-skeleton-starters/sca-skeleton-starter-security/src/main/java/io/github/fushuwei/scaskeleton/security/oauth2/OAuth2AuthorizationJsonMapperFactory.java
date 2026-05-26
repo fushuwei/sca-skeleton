@@ -28,6 +28,7 @@ public final class OAuth2AuthorizationJsonMapperFactory {
      * @return 配置完成的 JsonMapper
      */
     public static JsonMapper create(ClassLoader classLoader) {
+        // 注册 Security Jackson 模块，支持 OAuth2Authorization / settings Map 序列化
         return JsonMapper.builder()
                 .addModules(SecurityJacksonModules.getModules(classLoader))
                 .build();

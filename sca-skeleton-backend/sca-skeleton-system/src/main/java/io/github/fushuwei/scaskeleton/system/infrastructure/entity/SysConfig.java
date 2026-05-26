@@ -19,7 +19,9 @@ import lombok.EqualsAndHashCode;
 @TableName("sys_config")
 public class SysConfig extends BaseEntity {
 
+    /** 租户 ID，全局配置可为空 */
     private String tenantId;
+    /** 配置项显示名称 */
     private String name;
 
     /** 配置键（映射 SQL 保留字列 `key`） */
@@ -32,7 +34,10 @@ public class SysConfig extends BaseEntity {
 
     /** 类型：string / number / boolean / json */
     private String type;
+    /** 状态：0-禁用，1-启用 */
     private Integer status;
+    /** 是否系统内置：0-否，1-是，内置项不允许删除 */
     private Integer isBuiltin;
+    /** 备注 */
     private String remark;
 }

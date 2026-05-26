@@ -70,6 +70,7 @@ public final class RegisteredClientRedisSerializer {
     public String serialize(RegisteredClient registeredClient) {
         Assert.notNull(registeredClient, "registeredClient cannot be null");
         try {
+            // 填充快照 POJO，标量与集合字段用普通 JSON
             RegisteredClientCacheSnapshot snapshot = new RegisteredClientCacheSnapshot();
             snapshot.version = FORMAT_VERSION;
             snapshot.id = registeredClient.getId();
@@ -85,6 +86,7 @@ public final class RegisteredClientRedisSerializer {
             snapshot.redirectUris = new ArrayList<>(registeredClient.getRedirectUris());
             snapshot.postLogoutRedirectUris = new ArrayList<>(registeredClient.getPostLogoutRedirectUris());
             snapshot.scopes = new ArrayList<>(registeredClient.getScopes());
+            // settings 与 SAS JDBC 列一致，使用 Security Jackson 模块
             snapshot.clientSettings = this.settingsJsonMapper.writeValueAsString(
                     registeredClient.getClientSettings().getSettings());
             snapshot.tokenSettings = this.settingsJsonMapper.writeValueAsString(
@@ -106,12 +108,14 @@ public final class RegisteredClientRedisSerializer {
         if (!StringUtils.hasText(json)) {
             return null;
         }
+        // 历史整对象 default typing 格式视为无效，触发回源 JDBC
         if (json.contains(LEGACY_ROOT_TYPE_MARKER)) {
             return null;
         }
         try {
             RegisteredClientCacheSnapshot snapshot = this.snapshotJsonMapper.readValue(json,
                     RegisteredClientCacheSnapshot.class);
+            // 版本或必填字段不匹配时拒绝使用该缓存
             if (snapshot == null || snapshot.version != FORMAT_VERSION || !StringUtils.hasText(snapshot.id)
                     || !StringUtils.hasText(snapshot.clientId)) {
                 return null;
@@ -149,10 +153,12 @@ public final class RegisteredClientRedisSerializer {
         if (snapshot.scopes != null) {
             builder.scopes(scopes -> scopes.addAll(snapshot.scopes));
         }
+        // client_settings / token_settings 反序列化为 Map 后交给 Builder
         Map<String, Object> clientSettingsMap = readSettingsMap(snapshot.clientSettings);
         builder.clientSettings(ClientSettings.withSettings(clientSettingsMap).build());
         Map<String, Object> tokenSettingsMap = readSettingsMap(snapshot.tokenSettings);
         TokenSettings.Builder tokenSettingsBuilder = TokenSettings.withSettings(tokenSettingsMap);
+        // 未显式配置 access_token 格式时，与 SAS JDBC 默认行为一致
         if (!tokenSettingsMap.containsKey(ConfigurationSettingNames.Token.ACCESS_TOKEN_FORMAT)) {
             tokenSettingsBuilder.accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED);
         }
@@ -170,6 +176,7 @@ public final class RegisteredClientRedisSerializer {
         ParameterizedTypeReference<Map<String, Object>> typeReference = new ParameterizedTypeReference<>() {
         };
         JavaType javaType = this.settingsJsonMapper.getTypeFactory().constructType(typeReference.getType());
+        // 与 SAS JDBC client_settings / token_settings 列反序列化方式一致
         return this.settingsJsonMapper.readValue(json, javaType);
     }
 
@@ -199,6 +206,7 @@ public final class RegisteredClientRedisSerializer {
         if (AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(authorizationGrantType)) {
             return AuthorizationGrantType.REFRESH_TOKEN;
         }
+        // 自定义授权类型按字符串构造
         return new AuthorizationGrantType(authorizationGrantType);
     }
 
@@ -212,6 +220,7 @@ public final class RegisteredClientRedisSerializer {
         if (ClientAuthenticationMethod.NONE.getValue().equals(clientAuthenticationMethod)) {
             return ClientAuthenticationMethod.NONE;
         }
+        // 扩展认证方式按字符串构造
         return new ClientAuthenticationMethod(clientAuthenticationMethod);
     }
 

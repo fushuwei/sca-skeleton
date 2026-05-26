@@ -52,6 +52,7 @@ public class ResourceServerAutoConfiguration {
     @Bean(name = "requiresPermissionAuthorizer")
     @ConditionalOnMissingBean(RequiresPermissionAuthorizer.class)
     public RequiresPermissionAuthorizer requiresPermissionAuthorizer() {
+        // 供 @RequiresPermission 元注解 @PreAuthorize SpEL 引用
         return new RequiresPermissionAuthorizer();
     }
 
@@ -73,22 +74,27 @@ public class ResourceServerAutoConfiguration {
             ObjectMapper objectMapper) throws Exception {
 
         http.csrf(AbstractHttpConfigurer::disable);
+        // 无 Session，Bearer 令牌无状态校验
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.authorizeHttpRequests(auth -> {
             String[] permitPaths = securityProperties.getPermitPaths().toArray(String[]::new);
+            // 配置白名单路径免认证
             if (permitPaths.length > 0) {
                 auth.requestMatchers(permitPaths).permitAll();
             }
+            // 其余路径需有效 access_token
             auth.anyRequest().authenticated();
         });
 
+        // Redis 本地自省 + permissions 转 GrantedAuthority；401 返回统一 JSON
         http.oauth2ResourceServer(oauth2 -> oauth2
                 .opaqueToken(opaqueToken -> opaqueToken
                         .introspector(opaqueTokenIntrospector)
                         .authenticationConverter(new PermissionsOpaqueTokenAuthenticationConverter()))
                 .authenticationEntryPoint(new SecurityAuthenticationEntryPoint(objectMapper)));
 
+        // 403 权限不足返回统一 JSON
         http.exceptionHandling(ex ->
                 ex.accessDeniedHandler(new SecurityAccessDeniedHandler(objectMapper)));
 
@@ -104,6 +110,7 @@ public class ResourceServerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(CurrentUserProvider.class)
     public CurrentUserProvider currentUserProvider(SecurityProperties securityProperties) {
+        // 从 BearerTokenAuthentication tokenAttributes 读取用户上下文
         return new CurrentUserProviderImpl(securityProperties);
     }
 }

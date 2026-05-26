@@ -31,6 +31,19 @@ spring:
 
       # 路由配置
       routes:
+        # Token 端点限流（优先匹配，防暴力尝试）
+        - id: sca-skeleton-auth-token
+          uri: lb://sca-skeleton-auth
+          predicates:
+            - Path=/auth/oauth2/token
+          filters:
+            - StripPrefix=1
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+
         # 认证服务路由
         - id: sca-skeleton-auth
           uri: lb://sca-skeleton-auth
@@ -48,7 +61,6 @@ spring:
             # - Method=POST
           filters:
             - StripPrefix=1
-            # 请求限流配置
             - name: RequestRateLimiter
               args:
                 key-resolver: "#{@userKeyResolver}"
@@ -127,7 +139,11 @@ gateway:
   security:
     # 白名单路径，白名单内的请求免认证直接放行
     white-list:
+      - /auth/oauth2/authorize
       - /auth/oauth2/token
+      - /auth/oauth2/jwks
+      - /auth/.well-known/**
+      - /auth/login/**
       - /auth/captcha/**
       - /actuator/health
       - /actuator/info

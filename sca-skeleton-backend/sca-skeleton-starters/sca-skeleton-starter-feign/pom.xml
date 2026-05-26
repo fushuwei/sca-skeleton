@@ -33,6 +33,18 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
+        <!-- Spring Web：Feign 拦截器读取当前 Servlet 请求上下文 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- Servlet API：RequestContextHolder 关联的 HttpServletRequest 类型 -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <optional>true</optional>
+        </dependency>
         <!-- Lombok：简化拦截器与解码器代码 -->
         <dependency>
             <groupId>org.projectlombok</groupId>

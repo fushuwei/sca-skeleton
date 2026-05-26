@@ -204,8 +204,10 @@ public final class RedisUtils {
         RedisConnectionFactory factory = getRedisTemplate().getConnectionFactory();
         Objects.requireNonNull(factory, "RedisConnectionFactory must not be null");
 
+        // 借用底层连接执行 SCAN，避免 KEYS 命令阻塞 Redis
         RedisConnection connection = factory.getConnection();
         try {
+            // count > 0 时指定每次迭代约数，-1 表示不限制
             ScanOptions options = count > 0
                 ? ScanOptions.scanOptions().match(pattern).count(count).build()
                 : ScanOptions.scanOptions().match(pattern).build();
@@ -216,6 +218,7 @@ public final class RedisUtils {
             }
             return result;
         } finally {
+            // 归还连接到连接池，防止连接泄漏
             RedisConnectionUtils.releaseConnection(connection, factory);
         }
     }
@@ -237,12 +240,14 @@ public final class RedisUtils {
             ScanOptions options = ScanOptions.scanOptions().match(pattern).build();
             Cursor<byte[]> cursor = connection.keyCommands().scan(options);
 
+            // 计算当前页在全局迭代结果中的起止下标
             int fromIndex = page * size;
             int toIndex = fromIndex + size;
             List<String> result = new ArrayList<>(size);
             int index = 0;
 
             while (cursor.hasNext()) {
+                // 已收集足够条目，提前终止 SCAN 迭代
                 if (index >= toIndex) {
                     break;
                 }

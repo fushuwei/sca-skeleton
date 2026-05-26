@@ -5,24 +5,22 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import io.github.fushuwei.scaskeleton.auth.extension.password.PasswordGrantAuthenticationConverter;
-import io.github.fushuwei.scaskeleton.auth.extension.password.PasswordGrantAuthenticationProvider;
-import io.github.fushuwei.scaskeleton.auth.security.ScaUserDetailsService;
+import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLockProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.AuthJwtProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
 import io.github.fushuwei.scaskeleton.auth.token.ScaOpaqueAccessTokenClaimsCustomizer;
-import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
+import io.github.fushuwei.scaskeleton.auth.web.ClientAwareLoginUrlAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
@@ -30,150 +28,100 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Acce
 import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
 /**
- * Spring Authorization Server 核心配置。
- * <p>
- * 本项目认证中心基于 Spring Authorization Server starter（Spring Boot 4 内置工件
- * {@code spring-boot-starter-security-oauth2-authorization-server}），以标准 OAuth2 协议提供
- * {@code /oauth2/token}、{@code /oauth2/introspect}、{@code /oauth2/revoke}、{@code /oauth2/jwks} 等端点。
- * <p>
- * 配置职责：
- * <ol>
- *   <li>启用授权服务器标准端点与对应安全过滤链（最高优先级）</li>
- *   <li>注册自定义 password 授权模式扩展（Converter + Provider）</li>
- *   <li>提供 JWK（仅用于 OIDC id_token 等 JWT 场景；access_token 为不透明令牌不依赖 JWK）</li>
- *   <li>装配不透明 access_token 生成链（REFERENCE 格式）+ 业务 Claims customizer + refresh_token 生成器</li>
- *   <li>统一通过外部化配置注入 issuer，禁止硬编码到代码</li>
- * </ol>
+ * Spring Authorization Server 核心配置（Authorization Code + PKCE，无 Password Grant）。
  *
  * @author Fu Wei
  */
 @Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
+@EnableConfigurationProperties({OAuthClientsProperties.class, AuthJwtProperties.class, AuthLockProperties.class})
 public class AuthorizationServerConfig {
 
-    /**
-     * 用户加载服务：自定义 password 授权 Provider 通过它加载并校验用户。
-     */
-    private final ScaUserDetailsService userDetailsService;
-
-    /**
-     * 授权记录存储：自定义 password 授权 Provider 在颁发令牌后将授权写入此存储（项目实现为 Redis）。
-     */
-    private final OAuth2AuthorizationService authorizationService;
-
-    /**
-     * 授权服务器对外发布的 issuer，外部化配置注入；OIDC 元数据与令牌 claims 中均使用该值。
-     */
-    @Value("${sca.auth.issuer:http://localhost:9000}")
+    /** OAuth2 授权服务器 issuer，用于 OIDC 元数据与 JWT 签发者声明 */
+    @Value("${sca.auth.issuer:http://localhost:9999/auth}")
     private String issuer;
 
+    /** RSA 密钥加载器（外部配置或内存生成） */
+    private final AuthJwkKeyLoader authJwkKeyLoader;
+
     /**
-     * 授权服务器安全过滤链（最高优先级）。
-     * 处理 /oauth2/token、/oauth2/jwks、/oauth2/introspect 等标准端点。
+     * SAS 标准端点过滤链：applyDefaultSecurity 负责 token 端点等默认放行规则。
      */
     @Bean
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(
             HttpSecurity http,
-            PasswordEncoder passwordEncoder,
-            OAuth2TokenGenerator<?> tokenGenerator) throws Exception {
+            OAuthClientsProperties oauthClientsProperties) throws Exception {
 
+        // Spring Authorization Server 端点配置器（Boot 4 / Security 7 新写法，替代 applyDefaultSecurity）
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
                 new OAuth2AuthorizationServerConfigurer();
 
         http
-            .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-            .with(authorizationServerConfigurer, configurer -> configurer
-                // 注册自定义密码授权模式
-                .tokenEndpoint(tokenEndpoint -> tokenEndpoint
-                    .accessTokenRequestConverter(new PasswordGrantAuthenticationConverter())
-                    .authenticationProvider(new PasswordGrantAuthenticationProvider(
-                            userDetailsService, passwordEncoder,
-                            authorizationService, tokenGenerator))
-                )
-                // 开启 OIDC（/userinfo 端点）
-                .oidc(Customizer.withDefaults())
-            )
+            // 仅匹配 OAuth2 / OIDC 标准端点（显式 pattern，避免 configurer 未初始化时 matcher 为空）
+            .securityMatcher("/oauth2/**", "/.well-known/**")
+            .with(authorizationServerConfigurer, Customizer.withDefaults())
             .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
-            // 未认证时跳转至登录页（授权码模式）；密码模式通过 API 直接调用
             .exceptionHandling(exceptions -> exceptions
-                .defaultAuthenticationEntryPointFor(
-                    new LoginUrlAuthenticationEntryPoint("/login"),
-                    new MediaTypeRequestMatcher(MediaType.TEXT_HTML))
-            );
+                // 未登录访问 /oauth2/authorize 时，按 client_id 重定向到网关登录页（不用 MediaType 限制，避免 curl/浏览器 Accept 差异）
+                .authenticationEntryPoint(new ClientAwareLoginUrlAuthenticationEntryPoint(
+                        oauthClientsProperties,
+                        oauthClientsProperties.resolveExternalLoginUrl(
+                                oauthClientsProperties.getAdmin().getClientId())))
+            )
+            .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()));
+
+        // 启用 OIDC 端点（/.well-known/openid-configuration 等）
+        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+            .oidc(Customizer.withDefaults());
 
         return http.build();
     }
 
-    /**
-     * RSA 密钥对：仅用于 OIDC id_token 等 JWT 场景的签名与验签；不透明 access_token 不依赖 JWK。
-     * <p>
-     * 生产环境必须从 KMS 或外部密钥文件加载，此处在内存中动态生成会导致服务重启后旧 id_token 全部失效，
-     * 仅适合本地开发与 CI 冒烟验证。替换方式：注入 PEM/PKCS12 文件路径后构建 RSAKey。
-     */
     @Bean
     public JWKSource<SecurityContext> jwkSource() {
-        KeyPair keyPair = generateRsaKeyPair();
+        // 1) 优先加载外部持久化 RSA 密钥，否则本地内存生成
+        KeyPair keyPair = authJwkKeyLoader.loadKeyPair();
         RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
         RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
+        // 2) 构建 RSA JWK，kid 外部配置优先
         RSAKey rsaKey = new RSAKey.Builder(publicKey)
                 .privateKey(privateKey)
-                // 密钥 ID 统一使用 32 位 UUID 字符串，遵循全局 ID 策略
-                .keyID(UuidUtils.nextSimpleStr())
+                .keyID(authJwkKeyLoader.resolveKeyId())
                 .build();
+        // 3) 封装为不可变 JWK 源，供 JWT 编码与 JWKS 端点使用
         return new ImmutableJWKSet<>(new JWKSet(rsaKey));
     }
 
-    /** JWT 解码器（授权服务器自身验证 token 时使用，如 introspect 端点）。 */
     @Bean
     public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
         return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
     }
 
-    /**
-     * Token 生成器：不透明 access_token（REFERENCE）+ JWT（如 id_token）+ refresh_token 的委托链。
-     * 访问令牌业务字段由 {@link ScaOpaqueAccessTokenClaimsCustomizer} 写入，经自省返回给资源服务器。
-     */
     @Bean
     public OAuth2TokenGenerator<?> tokenGenerator(JWKSource<SecurityContext> jwkSource) {
+        // 1) 不透明 access_token 生成器，挂载业务 claims 扩展
         OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
         accessTokenGenerator.setAccessTokenCustomizer(new ScaOpaqueAccessTokenClaimsCustomizer());
+        // 2) JWT 生成器（用于 OIDC id_token 等场景，非默认 access_token 格式）
         JwtGenerator jwtGenerator = new JwtGenerator(
                 new org.springframework.security.oauth2.jwt.NimbusJwtEncoder(jwkSource));
+        // 3) 委托生成器：按 RegisteredClient 的 token 格式选择具体生成器
         return new DelegatingOAuth2TokenGenerator(
                 accessTokenGenerator, jwtGenerator, new OAuth2RefreshTokenGenerator());
     }
 
-    /**
-     * 授权服务器全局设置：issuer 写入 OIDC discovery 元数据与 JWT 类令牌 claims；
-     * 资源服务器通过 {@code /oauth2/introspect} 校验不透明 access_token，不依赖 JWK 验签。
-     * <p>
-     * issuer 通过外部化配置注入（{@code sca.auth.issuer}），不同环境（本地/容器/网关回环）应在
-     * application-{profile}.yml 或环境变量中覆盖，禁止硬编码到代码中。
-     */
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
+        // 构建授权服务器全局设置，issuer 决定 OIDC 发现文档与各端点 URL 前缀
         return AuthorizationServerSettings.builder()
                 .issuer(issuer)
                 .build();
-    }
-
-    private KeyPair generateRsaKeyPair() {
-        try {
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-            generator.initialize(2048);
-            return generator.generateKeyPair();
-        } catch (Exception ex) {
-            throw new IllegalStateException("RSA 密钥对生成失败", ex);
-        }
     }
 }

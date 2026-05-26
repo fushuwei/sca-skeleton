@@ -15,7 +15,7 @@
     <packaging>jar</packaging>
 
     <name>SCA Skeleton Backend :: Auth</name>
-    <description>Authentication service: OAuth2 Authorization Server, custom password grant, opaque access token
+    <description>Authentication service: OAuth2 Authorization Server (Authorization Code + PKCE), opaque access token
     </description>
 
     <dependencies>
@@ -41,6 +41,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-oauth2-authorization-server</artifactId>
+        </dependency>
+
+        <!-- Thymeleaf：Auth 服务托管 admin / portal 登录页 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
         <!-- Nacos 注册中心客户端（服务注册与发现） -->

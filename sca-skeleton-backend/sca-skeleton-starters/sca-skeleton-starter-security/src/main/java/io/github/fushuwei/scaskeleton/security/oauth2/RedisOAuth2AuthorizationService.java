@@ -122,7 +122,9 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
         Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
         this.registeredClientRepository = registeredClientRepository;
         this.stringRedisTemplate = stringRedisTemplate;
+        // 创建与 SAS JDBC 对齐的 JsonMapper，用于 attributes / metadata 等 JSON 字段
         this.authorizationJsonMapper = OAuth2AuthorizationJsonMapperFactory.create(getClass().getClassLoader());
+        // 复用官方参数映射器，保证 Hash 字段顺序与 JDBC 插入语句一致
         this.parametersMapper = new JdbcOAuth2AuthorizationService.JsonMapperOAuth2AuthorizationParametersMapper(
                 this.authorizationJsonMapper);
     }
@@ -140,22 +142,26 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
         if (existing != null) {
             removeIndexes(existing);
         }
+        // 将授权对象转为与 JDBC 相同顺序的 SQL 参数列表
         List<SqlParameterValue> parameters = this.parametersMapper.apply(authorization);
         if (parameters.size() != AUTHORIZATION_HASH_FIELDS.length) {
             throw new IllegalStateException(
                     "OAuth2Authorization SQL parameter count mismatch: expected " + AUTHORIZATION_HASH_FIELDS.length
                             + ", actual " + parameters.size());
         }
+        // 按列名映射写入 Redis Hash
         String key = authKey(authorization.getId());
         Map<String, String> hash = new LinkedHashMap<>();
         for (int i = 0; i < AUTHORIZATION_HASH_FIELDS.length; i++) {
             hash.put(AUTHORIZATION_HASH_FIELDS[i], sqlParameterToRedisString(parameters.get(i)));
         }
         this.stringRedisTemplate.opsForHash().putAll(key, hash);
+        // 根据 access / refresh 过期时间设置 Hash TTL
         long ttlSeconds = computeAuthorizationTtlSeconds(authorization);
         if (ttlSeconds > 0) {
             this.stringRedisTemplate.expire(key, ttlSeconds, TimeUnit.SECONDS);
         }
+        // 建立各类令牌值到授权 id 的二级索引
         addIndexes(authorization, ttlSeconds);
     }
 
@@ -167,6 +173,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
     @Override
     public void remove(OAuth2Authorization authorization) {
         Assert.notNull(authorization, "authorization cannot be null");
+        // 先删令牌索引，再删授权主 Hash
         removeIndexes(authorization);
         this.stringRedisTemplate.delete(authKey(authorization.getId()));
     }
@@ -182,9 +189,11 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
     public OAuth2Authorization findById(String id) {
         Assert.hasText(id, "id cannot be empty");
         Map<Object, Object> entries = this.stringRedisTemplate.opsForHash().entries(authKey(id));
+        // Hash 不存在或已过期
         if (entries.isEmpty()) {
             return null;
         }
+        // 将 Hash 还原为 OAuth2Authorization
         return mapHashToAuthorization(stringMap(entries));
     }
 
@@ -199,6 +208,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
     @Override
     public OAuth2Authorization findByToken(String token, @Nullable OAuth2TokenType tokenType) {
         Assert.hasText(token, "token cannot be empty");
+        // 未指定令牌类型时，按 SAS JDBC 相同优先级依次尝试
         if (tokenType == null) {
             String id = this.stringRedisTemplate.opsForValue().get(idxKey("state", token));
             if (id != null) {
@@ -227,6 +237,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
             id = this.stringRedisTemplate.opsForValue().get(idxKey("device_code", token));
             return id != null ? findById(id) : null;
         }
+        // 已知令牌类型时，直接查对应索引
         if (OAuth2ParameterNames.STATE.equals(tokenType.getValue())) {
             String id = this.stringRedisTemplate.opsForValue().get(idxKey("state", token));
             return id != null ? findById(id) : null;
@@ -255,6 +266,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
             String id = this.stringRedisTemplate.opsForValue().get(idxKey("device_code", token));
             return id != null ? findById(id) : null;
         }
+        // 不支持的令牌类型
         return null;
     }
 
@@ -304,9 +316,11 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
             return "";
         }
         Object val = v.getValue();
+        // JDBC Timestamp 存 epoch 毫秒
         if (val instanceof Timestamp ts) {
             return Long.toString(ts.toInstant().toEpochMilli());
         }
+        // 二进制列按 UTF-8 文本写入
         if (val instanceof byte[] bytes) {
             return new String(bytes, StandardCharsets.UTF_8);
         }
@@ -326,6 +340,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
             latest = at.getToken().getExpiresAt();
         }
         OAuth2Authorization.Token<OAuth2RefreshToken> rt = authorization.getRefreshToken();
+        // 取 access 与 refresh 中较晚的过期时刻
         if (rt != null && rt.getToken().getExpiresAt() != null) {
             Instant exp = rt.getToken().getExpiresAt();
             latest = latest == null || exp.isAfter(latest) ? exp : latest;
@@ -334,6 +349,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
             return 0;
         }
         long seconds = Duration.between(Instant.now(), latest).getSeconds();
+        // 至少保留 1 秒，避免 TTL 为 0 导致键永不过期
         return Math.max(1, seconds);
     }
 
@@ -357,6 +373,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
         OAuth2Authorization.Token<OAuth2AccessToken> access = authorization.getAccessToken();
         if (access != null) {
             long ttl = tokenTtlSeconds(access.getToken().getExpiresAt(), fallbackTtl);
+            // access_token 索引供资源服务器 findByToken 自省
             setIndex(idxKey("access", access.getToken().getTokenValue()), id, ttl);
         }
         OAuth2Authorization.Token<OidcIdToken> idToken = authorization.getToken(OidcIdToken.class);
@@ -425,6 +442,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
      * @param ttlSeconds  过期秒数
      */
     private void setIndex(String redisKey, String id, long ttlSeconds) {
+        // 索引值指向授权主键 id
         this.stringRedisTemplate.opsForValue().set(redisKey, id);
         if (ttlSeconds > 0) {
             this.stringRedisTemplate.expire(redisKey, ttlSeconds, TimeUnit.SECONDS);
@@ -454,6 +472,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
      */
     @SuppressWarnings("unchecked")
     private OAuth2Authorization mapHashToAuthorization(Map<String, String> cols) {
+        // 加载注册客户端，缺失则无法重建授权
         String registeredClientId = cols.get("registered_client_id");
         RegisteredClient registeredClient = this.registeredClientRepository.findById(registeredClientId);
         if (registeredClient == null) {
@@ -475,12 +494,14 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
                 .authorizationGrantType(new AuthorizationGrantType(authorizationGrantType))
                 .authorizedScopes(authorizedScopes)
                 .attributes(attrs -> attrs.putAll(attributes));
+        // 可选 state 属性
         String state = emptyToNull(cols.get("state"));
         if (StringUtils.hasText(state)) {
             builder.attribute(OAuth2ParameterNames.STATE, state);
         }
         Instant tokenIssuedAt;
         Instant tokenExpiresAt;
+        // 授权码
         String authorizationCodeValue = emptyToNull(cols.get("authorization_code_value"));
         if (StringUtils.hasText(authorizationCodeValue)) {
             tokenIssuedAt = parseInstantMillis(cols.get("authorization_code_issued_at"));
@@ -490,6 +511,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
                     new OAuth2AuthorizationCode(authorizationCodeValue, tokenIssuedAt, tokenExpiresAt);
             builder.token(authorizationCode, metadata -> metadata.putAll(authorizationCodeMetadata));
         }
+        // access_token
         String accessTokenValue = emptyToNull(cols.get("access_token_value"));
         if (StringUtils.hasText(accessTokenValue)) {
             tokenIssuedAt = parseInstantMillis(cols.get("access_token_issued_at"));
@@ -511,6 +533,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
                     tokenExpiresAt, scopes);
             builder.token(accessToken, metadata -> metadata.putAll(accessTokenMetadata));
         }
+        // OIDC id_token
         String oidcIdTokenValue = emptyToNull(cols.get("oidc_id_token_value"));
         if (StringUtils.hasText(oidcIdTokenValue)) {
             tokenIssuedAt = parseInstantMillis(cols.get("oidc_id_token_issued_at"));
@@ -523,6 +546,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
             OidcIdToken oidcToken = new OidcIdToken(oidcIdTokenValue, tokenIssuedAt, tokenExpiresAt, idClaims);
             builder.token(oidcToken, metadata -> metadata.putAll(oidcTokenMetadata));
         }
+        // refresh_token
         String refreshTokenValue = emptyToNull(cols.get("refresh_token_value"));
         if (StringUtils.hasText(refreshTokenValue)) {
             tokenIssuedAt = parseInstantMillis(cols.get("refresh_token_issued_at"));
@@ -535,6 +559,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
             OAuth2RefreshToken refreshToken = new OAuth2RefreshToken(refreshTokenValue, tokenIssuedAt, tokenExpiresAt);
             builder.token(refreshToken, metadata -> metadata.putAll(refreshTokenMetadata));
         }
+        // user_code（设备流）
         String userCodeValue = emptyToNull(cols.get("user_code_value"));
         if (StringUtils.hasText(userCodeValue)) {
             tokenIssuedAt = parseInstantMillis(cols.get("user_code_issued_at"));
@@ -543,6 +568,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
             OAuth2UserCode userCode = new OAuth2UserCode(userCodeValue, tokenIssuedAt, tokenExpiresAt);
             builder.token(userCode, metadata -> metadata.putAll(userCodeMetadata));
         }
+        // device_code（设备流）
         String deviceCodeValue = emptyToNull(cols.get("device_code_value"));
         if (StringUtils.hasText(deviceCodeValue)) {
             tokenIssuedAt = parseInstantMillis(cols.get("device_code_issued_at"));
@@ -597,6 +623,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
             ParameterizedTypeReference<Map<String, Object>> typeRef = new ParameterizedTypeReference<>() {
             };
             JavaType javaType = this.authorizationJsonMapper.constructType(typeRef.getType());
+            // 反序列化为 Map，供 attributes / metadata 使用
             return this.authorizationJsonMapper.readValue(json, javaType);
         } catch (Exception ex) {
             throw new IllegalArgumentException("Failed to parse OAuth2 JSON map: " + ex.getMessage(), ex);

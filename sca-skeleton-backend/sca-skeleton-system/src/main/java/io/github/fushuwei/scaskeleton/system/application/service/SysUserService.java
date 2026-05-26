@@ -2,6 +2,7 @@ package io.github.fushuwei.scaskeleton.system.application.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserPageRequest;
+import io.github.fushuwei.scaskeleton.system.api.dto.user.UserProfileVO;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserSaveRequest;
 import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysUser;
 
@@ -32,4 +33,7 @@ public interface SysUserService {
 
     /** 修改账号状态（启用/禁用/锁定等） */
     void changeStatus(String id, String status, String reason);
+
+    /** 获取当前登录用户资料（从 SecurityContext / token claims 解析） */
+    UserProfileVO getCurrentProfile();
 }

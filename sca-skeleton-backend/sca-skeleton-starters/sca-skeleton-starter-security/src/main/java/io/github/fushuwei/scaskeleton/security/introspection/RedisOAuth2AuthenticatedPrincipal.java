@@ -38,11 +38,13 @@ public class RedisOAuth2AuthenticatedPrincipal implements OAuth2AuthenticatedPri
 
     @Override
     public Map<String, Object> getAttributes() {
+        // 返回自省 claims，供 SecurityUtils / CurrentUserProvider 读取
         return this.attributes;
     }
 
     @Override
     public Collection<? extends org.springframework.security.core.GrantedAuthority> getAuthorities() {
+        // 权限由 PermissionsOpaqueTokenAuthenticationConverter 单独映射，此处保持空集合
         return Collections.emptyList();
     }
 
