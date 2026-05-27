@@ -23,11 +23,12 @@ public class OAuthClientsProperties {
     private String publicPathPrefix = "/auth";
 
     /**
-     * OAuth2 issuer（与 {@code AuthorizationServerSettings} 一致，如 {@code http://localhost:9999/auth}）。
+     * OAuth2 issuer（与 {@code AuthorizationServerSettings} 一致）。
      * <p>
+     * 由 {@code sca.auth.issuer} / 环境变量 {@code AUTH_ISSUER} 注入，禁止在代码中写死默认值。
      * 用于生成浏览器可见的绝对登录 URL，避免重定向到 Auth 内网端口。
      */
-    private String issuer = "http://localhost:9999/auth";
+    private String issuer;
 
     /** admin / portal 客户端注册参数 */
     private Clients clients = new Clients();
@@ -132,7 +133,7 @@ public class OAuthClientsProperties {
      * 解析浏览器可见的绝对登录页 URL（经 API 网关）。
      *
      * @param clientId OAuth2 client_id；可为 null（回退 admin）
-     * @return 如 {@code http://localhost:9999/auth/login/portal}
+     * @return 如 {@code {issuer}/login/portal}
      */
     public String resolveExternalLoginUrl(String clientId) {
         return normalizeIssuer() + resolveLoginPath(clientId);
@@ -152,7 +153,7 @@ public class OAuthClientsProperties {
      * 解析登录失败后的绝对回跳 URL（经 API 网关）。
      *
      * @param clientId OAuth2 client_id 或渠道映射后的 clientId
-     * @return 如 {@code http://localhost:9999/auth/login/admin?error}
+     * @return 如 {@code {issuer}/login/admin?error}
      */
     public String resolveExternalLoginFailureUrl(String clientId) {
         return resolveExternalLoginUrl(clientId) + "?error";

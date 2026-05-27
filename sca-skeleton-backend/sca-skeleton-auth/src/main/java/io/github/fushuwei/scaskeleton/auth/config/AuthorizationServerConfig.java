@@ -11,7 +11,6 @@ import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsPropert
 import io.github.fushuwei.scaskeleton.auth.token.ScaOpaqueAccessTokenClaimsCustomizer;
 import io.github.fushuwei.scaskeleton.auth.web.ClientAwareLoginUrlAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,9 +42,8 @@ import java.security.interfaces.RSAPublicKey;
 @EnableConfigurationProperties({OAuthClientsProperties.class, AuthJwtProperties.class, AuthLockProperties.class})
 public class AuthorizationServerConfig {
 
-    /** OAuth2 授权服务器 issuer，用于 OIDC 元数据与 JWT 签发者声明 */
-    @Value("${sca.auth.issuer:http://localhost:9999/auth}")
-    private String issuer;
+    /** OAuth2 客户端与 issuer 等对外 URL 配置（issuer 默认值见 {@code sca-skeleton-auth-*.yaml}） */
+    private final OAuthClientsProperties oauthClientsProperties;
 
     /** RSA 密钥加载器（外部配置或内存生成） */
     private final AuthJwkKeyLoader authJwkKeyLoader;
@@ -119,9 +117,9 @@ public class AuthorizationServerConfig {
 
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
-        // 构建授权服务器全局设置，issuer 决定 OIDC 发现文档与各端点 URL 前缀
+        // issuer 与登录重定向同源，均来自 sca.auth.issuer（YAML / AUTH_ISSUER）
         return AuthorizationServerSettings.builder()
-                .issuer(issuer)
+                .issuer(oauthClientsProperties.getIssuer())
                 .build();
     }
 }

@@ -46,7 +46,8 @@ sca:
     resource-server:
       enabled: false
   auth:
-    # 经 API 网关对外暴露的 issuer（与网关 /auth/** 路由一致）
+    # 经 API 网关对外暴露的 issuer（浏览器可见的 OAuth/OIDC 根 URL，与网关 /auth/** 一致）
+    # 远程网关开发示例：AUTH_ISSUER=http://192.168.1.105:9999/auth
     issuer: ${AUTH_ISSUER:http://localhost:9999/auth}
     # 浏览器访问 Auth 登录页/表单时的 URL 前缀（网关 /auth/** → StripPrefix=1）
     public-path-prefix: ${AUTH_PUBLIC_PATH_PREFIX:/auth}
