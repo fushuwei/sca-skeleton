@@ -34,12 +34,36 @@ sca-skeleton-frontend/
 - `vitest@4.1.5`：单元测试运行器
 - `@vue/test-utils@2.4.9`：Vue 组件测试工具
 
+## 开发环境网关代理
+
+本地 `pnpm dev` 时，`/api-dev` 由 Vite 代理到 `VITE_DEV_PROXY_TARGET`（默认 `http://localhost:9999`）。
+
+联调远程网关时，在各 app 目录复制 `.env.development.local.example` 为 `.env.development.local`，仅改网关地址，例如：
+
+```bash
+# apps/admin 或 apps/portal
+cp .env.development.local.example .env.development.local
+# 编辑 VITE_DEV_PROXY_TARGET=http://<远程网关 IP>:9999
+```
+
+OAuth 与 API 均经 `http://localhost:5173|5174/api-dev` 走同一代理，无需单独改 OAuth 地址。
+
 ## 启动命令
 
 - 安装依赖：`pnpm install`
 - 启动全部应用（并行）：`pnpm dev`
 - 启动后台管理：`pnpm dev:admin`
 - 启动前台门户：`pnpm dev:portal`
+
+### 环境变量说明
+
+| 变量 | development | test / production |
+|------|-------------|-------------------|
+| `VITE_DEV_PROXY_TARGET` | 有。仅 `pnpm dev` 时 Vite 把 `/api-dev` 转发到该网关地址 | 无。构建产物不走 Vite，由 Nginx 将 `/api`、`/api-test` 反代到网关 |
+| `VITE_API_BASE_URL` | `/api-dev` | `/api-test` 或 `/api` |
+| OAuth 授权/换票地址 | 由 `VITE_API_BASE_URL` + 当前站点 origin 自动拼接 | 同上（需 Nginx 与 API 同源路径） |
+
+联调远程网关时，只改 `apps/<app>/.env.development` 中的 `VITE_DEV_PROXY_TARGET` 即可。
 - 项目构建：`pnpm build`
 - 代码检查：`pnpm lint`
 - 单元测试：`pnpm test`

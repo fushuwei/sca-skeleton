@@ -249,25 +249,42 @@ function resolveRevokeUrl(tokenUrl: string): string {
 }
 
 /**
+ * 将 API 基地址规范为可用于拼接 OAuth 端点的绝对前缀。
+ * 相对路径（如 `/api-dev`）在浏览器中取当前站点 origin。
+ */
+function resolveApiBasePrefix(apiBase: string): string {
+  const trimmed = apiBase.trim().replace(/\/$/, "");
+  if (!trimmed) {
+    return "";
+  }
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  const path = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  return `${origin}${path}`;
+}
+
+/**
  * 从 Vite 环境变量读取 OAuth 应用配置。
+ * authorize / token 由 {@code VITE_API_BASE_URL} 推导，与业务 API 同源。
  *
  * @param env ImportMeta.env
  */
 export function readOAuthConfigFromEnv(env: ImportMetaEnv): OAuthAppConfig {
+  const apiPrefix = resolveApiBasePrefix(env.VITE_API_BASE_URL ?? "");
   return {
     clientId: env.VITE_OAUTH_CLIENT_ID,
-    authorizeUrl: env.VITE_OAUTH_AUTHORIZE_URL,
-    tokenUrl: env.VITE_OAUTH_TOKEN_URL,
+    authorizeUrl: `${apiPrefix}/auth/oauth2/authorize`,
+    tokenUrl: `${apiPrefix}/auth/oauth2/token`,
     redirectUri: env.VITE_OAUTH_REDIRECT_URI,
-    scope: env.VITE_OAUTH_SCOPE ?? "openid profile all"
+    scope: "openid profile all"
   };
 }
 
 /** Vite 环境变量扩展（各 SPA 的 env.d.ts 应引用相同字段）。 */
 export interface ImportMetaEnv {
+  readonly VITE_API_BASE_URL: string;
   readonly VITE_OAUTH_CLIENT_ID: string;
-  readonly VITE_OAUTH_AUTHORIZE_URL: string;
-  readonly VITE_OAUTH_TOKEN_URL: string;
   readonly VITE_OAUTH_REDIRECT_URI: string;
-  readonly VITE_OAUTH_SCOPE?: string;
 }
