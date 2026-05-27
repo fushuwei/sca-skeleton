@@ -1,11 +1,8 @@
 import { request } from "./http";
-import { mockGetCaptcha } from "./mock/captcha";
 import type { CaptchaData } from "../types/auth";
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
-
-const rawPath = import.meta.env.VITE_AUTH_CAPTCHA_PATH;
-const CAPTCHA_PATH = typeof rawPath === "string" && rawPath.length > 0 ? rawPath : "/auth/captcha";
+/** 经网关转发至 auth 的验证码接口（与 gateway 白名单 /auth/captcha/** 一致） */
+const CAPTCHA_PATH = "/auth/captcha";
 
 function normalizeCaptchaImage(image: string): string {
   const trimmed = image.trim();
@@ -21,11 +18,9 @@ function normalizeCaptchaImage(image: string): string {
   return `data:image/png;base64,${trimmed}`;
 }
 
-/** 拉取图形验证码；后端路径默认 `VITE_AUTH_CAPTCHA_PATH` 或 `/auth/captcha`。 */
+/** 拉取图形验证码（后端生成并校验）。 */
 export async function fetchCaptcha(): Promise<{ captchaId: string; imageSrc: string }> {
-  const envelope = USE_MOCK
-    ? await mockGetCaptcha()
-    : await request<CaptchaData>({ method: "GET", url: CAPTCHA_PATH });
+  const envelope = await request<CaptchaData>({ method: "GET", url: CAPTCHA_PATH });
   return {
     captchaId: envelope.data.captchaId,
     imageSrc: normalizeCaptchaImage(envelope.data.image)
