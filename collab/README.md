@@ -16,7 +16,7 @@
 collab/
 ├── README.md
 └── features/
-    └── {编号}-{feature-slug}/
+    └── {编号}_{feature-slug}/
         ├── spec.md
         ├── qa-report.md
         ├── dev-response.md

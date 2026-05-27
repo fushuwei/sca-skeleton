@@ -42,7 +42,13 @@
             <artifactId>sca-skeleton-starter-logging</artifactId>
         </dependency>
 
-        <!-- Nacos 服务注册与发现 -->
+        <!-- Nacos 注册中心客户端（服务注册与发现） -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+
+        <!-- Nacos 配置中心客户端（动态配置管理） -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
