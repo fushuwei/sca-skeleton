@@ -17,7 +17,7 @@ spring:
         group: ${NACOS_CONFIG_GROUP:DEFAULT_GROUP}
   config:
     import:
-      - optional:classpath:${spring.application.name}-${spring.profiles.active:dev}.yaml
+      - optional:classpath:${spring.application.name}-${spring.profiles.active}.yaml
       - optional:nacos:sca-skeleton-common.yaml
       - optional:nacos:${spring.application.name}.yaml
       - optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml
