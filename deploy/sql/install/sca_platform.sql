@@ -561,6 +561,75 @@ CREATE TABLE IF NOT EXISTS oauth2_registered_client (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='OAuth2 注册客户端表：存储接入授权服务器的客户端应用配置信息';
 
 
+-- 内置 OAuth2 客户端：管理后台（公共客户端 + PKCE）
+INSERT INTO oauth2_registered_client (
+    id,
+    client_id,
+    client_id_issued_at,
+    client_secret,
+    client_secret_expires_at,
+    client_name,
+    client_authentication_methods,
+    authorization_grant_types,
+    redirect_uris,
+    post_logout_redirect_uris,
+    scopes,
+    client_settings,
+    token_settings
+)
+SELECT
+    REPLACE(UUID(), '-', ''),
+    'sca-admin-client',
+    CURRENT_TIMESTAMP,
+    NULL,
+    NULL,
+    'SCA Admin SPA',
+    'none',
+    'authorization_code,refresh_token',
+    'http://localhost:5173/oauth/callback',
+    NULL,
+    'openid,profile,all',
+    '{"settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
+    '{"settings.token.access-token-format":{"value":"reference"},"settings.token.access-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",604800.000000000],"settings.token.reuse-refresh-tokens":false}'
+WHERE NOT EXISTS (
+    SELECT 1 FROM oauth2_registered_client WHERE client_id = 'sca-admin-client'
+);
+
+-- 内置 OAuth2 客户端：前台门户（公共客户端 + PKCE）
+INSERT INTO oauth2_registered_client (
+    id,
+    client_id,
+    client_id_issued_at,
+    client_secret,
+    client_secret_expires_at,
+    client_name,
+    client_authentication_methods,
+    authorization_grant_types,
+    redirect_uris,
+    post_logout_redirect_uris,
+    scopes,
+    client_settings,
+    token_settings
+)
+SELECT
+    REPLACE(UUID(), '-', ''),
+    'sca-portal-client',
+    CURRENT_TIMESTAMP,
+    NULL,
+    NULL,
+    'SCA Portal SPA',
+    'none',
+    'authorization_code,refresh_token',
+    'http://localhost:5174/oauth/callback',
+    NULL,
+    'openid,profile,all',
+    '{"settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
+    '{"settings.token.access-token-format":{"value":"reference"},"settings.token.access-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",604800.000000000],"settings.token.reuse-refresh-tokens":false}'
+WHERE NOT EXISTS (
+    SELECT 1 FROM oauth2_registered_client WHERE client_id = 'sca-portal-client'
+);
+
+
 -- ---------------------------------------------------
 -- OAuth2 授权记录表
 -- ---------------------------------------------------
