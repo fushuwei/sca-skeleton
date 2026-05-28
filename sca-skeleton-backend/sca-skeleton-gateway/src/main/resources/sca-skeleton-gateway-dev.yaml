@@ -158,6 +158,7 @@ gateway:
       - /auth/oauth2/jwks
       - /auth/.well-known/**
       - /auth/login/**
+      - /auth/logout
       - /auth/captcha/**
       - /actuator/health
       - /actuator/info

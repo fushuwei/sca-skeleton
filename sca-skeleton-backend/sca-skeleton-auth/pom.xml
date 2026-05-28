@@ -49,6 +49,12 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
+        <!-- Spring Session Redis：Auth 集群多副本共享登录会话 -->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
+
         <!-- Nacos 注册中心客户端（服务注册与发现） -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>

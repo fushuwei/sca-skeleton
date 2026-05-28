@@ -5,6 +5,7 @@ import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -31,6 +32,10 @@ public class OAuthAuthorizeLoginSuccessHandler implements AuthenticationSuccessH
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
+        // 登录成功后将渠道写入 Session，后续 authorize 请求据此做 admin/portal 会话隔离。
+        HttpSession session = request.getSession(true);
+        session.setAttribute(AuthSessionAttributes.LOGIN_CHANNEL,
+                LoginChannel.fromValue(request.getParameter("loginChannel")).getValue());
         String target = redirectResolver.resolvePostLoginRedirectUrl(request, response);
         if (StringUtils.hasText(target)) {
             redirectResolver.removeSavedRequest(request, response);

@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import type { Router } from "vue-router";
-import { revokeOAuthToken, startOAuthLogin } from "@repo/shared";
 import { getAdminOAuthConfig } from "../config/oauth";
 import { getUserProfileApi } from "../apis/user";
 import { ensureDynamicRoutes, resetDynamicRoutes } from "../router/dynamic";
@@ -79,15 +78,11 @@ export const useAuthStore = defineStore("auth", {
       ensureDynamicRoutes(router, this.menus);
       this.dynamicReady = true;
     },
-    /** 退出：吊销令牌、清理本地状态并强制重新登录。 */
+    /** 退出：前端仅调用统一退出端点，认证服务完成会话与令牌清理。 */
     async logout(router: Router): Promise<void> {
       const oauthConfig = getAdminOAuthConfig();
-      if (this.token) {
-        await revokeOAuthToken(oauthConfig, this.token, "access_token");
-      }
-      if (this.refreshToken) {
-        await revokeOAuthToken(oauthConfig, this.refreshToken, "refresh_token");
-      }
+      const accessToken = this.token;
+      const refreshToken = this.refreshToken;
       this.token = "";
       this.refreshToken = "";
       this.menus = [];
@@ -97,7 +92,27 @@ export const useAuthStore = defineStore("auth", {
       localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
       localStorage.removeItem(MENUS_STORAGE_KEY);
       resetDynamicRoutes(router);
-      void startOAuthLogin(oauthConfig, "/dashboard", { prompt: "login" });
+      const logoutUrl = oauthConfig.authorizeUrl.replace("/oauth2/authorize", "/logout");
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = logoutUrl;
+      form.style.display = "none";
+      const appendInput = (name: string, value: string) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      };
+      appendInput("channel", "admin");
+      if (accessToken) {
+        appendInput("access_token", accessToken);
+      }
+      if (refreshToken) {
+        appendInput("refresh_token", refreshToken);
+      }
+      document.body.appendChild(form);
+      form.submit();
     }
   }
 });

@@ -4,6 +4,7 @@ import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsPropert
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -98,7 +99,30 @@ public class LoginPageController {
                 || authentication instanceof AnonymousAuthenticationToken) {
             return null;
         }
+        // 已认证但渠道不匹配时必须强制退出，阻断 admin 与 portal 的静默串登。
+        if (!isAuthenticatedChannelMatched(request)) {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+            }
+            SecurityContextHolder.clearContext();
+            return null;
+        }
         String target = redirectResolver.resolvePostLoginRedirectUrl(request, response);
         return StringUtils.hasText(target) ? target : null;
+    }
+
+    /** 校验当前会话登录渠道是否与当前登录页一致。 */
+    private boolean isAuthenticatedChannelMatched(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return false;
+        }
+        Object value = session.getAttribute(AuthSessionAttributes.LOGIN_CHANNEL);
+        if (!(value instanceof String channel) || !StringUtils.hasText(channel)) {
+            return false;
+        }
+        LoginChannel expected = request.getRequestURI().endsWith("/portal") ? LoginChannel.PORTAL : LoginChannel.ADMIN;
+        return expected.getValue().equals(channel);
     }
 }

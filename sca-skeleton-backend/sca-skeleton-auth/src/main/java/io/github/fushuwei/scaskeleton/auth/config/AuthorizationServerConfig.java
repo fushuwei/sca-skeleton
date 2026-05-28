@@ -8,6 +8,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLockProperties;
 import io.github.fushuwei.scaskeleton.auth.config.properties.AuthJwtProperties;
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
+import io.github.fushuwei.scaskeleton.auth.security.filter.AuthorizeChannelIsolationFilter;
 import io.github.fushuwei.scaskeleton.auth.token.ScaOpaqueAccessTokenClaimsCustomizer;
 import io.github.fushuwei.scaskeleton.auth.web.ClientAwareLoginUrlAuthenticationEntryPoint;
 import io.github.fushuwei.scaskeleton.auth.web.OAuthPendingAuthorizeStore;
@@ -30,6 +31,7 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -60,6 +62,8 @@ public class AuthorizationServerConfig {
 
     /** pending authorize Session 存储 */
     private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
+    /** 授权端点渠道隔离过滤器（阻断 admin/portal 静默串登） */
+    private final AuthorizeChannelIsolationFilter authorizeChannelIsolationFilter;
 
     /**
      * 未登录访问 authorize 时的登录入口（按 client_id 分流 admin / portal 登录页）。
@@ -91,6 +95,8 @@ public class AuthorizationServerConfig {
             .securityMatcher("/oauth2/**", "/.well-known/**")
             .with(authorizationServerConfigurer, Customizer.withDefaults())
             .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+            // 在匿名认证前执行渠道隔离校验，已登录但渠道不匹配时清空会话并触发重新登录
+            .addFilterBefore(authorizeChannelIsolationFilter, AnonymousAuthenticationFilter.class)
             .requestCache(cache -> cache.requestCache(httpSessionRequestCache))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .exceptionHandling(exceptions -> exceptions

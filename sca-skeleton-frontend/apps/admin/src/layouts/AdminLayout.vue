@@ -540,9 +540,8 @@ function closeRightDrawerOnMainClick() {
   }
 }
 
-function handleLogout() {
-  authStore.logout(router);
-  router.replace("/login");
+async function handleLogout() {
+  await authStore.logout(router);
 }
 
 function clampDrawerWidth(n, min, max) {

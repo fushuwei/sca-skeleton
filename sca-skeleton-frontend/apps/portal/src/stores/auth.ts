@@ -1,5 +1,4 @@
 import { defineStore } from "pinia";
-import { revokeOAuthToken, startOAuthLogin } from "@repo/shared";
 import { getPortalOAuthConfig } from "../config/oauth";
 import { getUserProfileApi } from "../apis/user";
 import {
@@ -52,18 +51,34 @@ export const usePortalAuthStore = defineStore("portal-auth", {
     },
     async logout() {
       const oauthConfig = getPortalOAuthConfig();
-      if (this.token) {
-        await revokeOAuthToken(oauthConfig, this.token, "access_token");
-      }
-      if (this.refreshToken) {
-        await revokeOAuthToken(oauthConfig, this.refreshToken, "refresh_token");
-      }
+      const accessToken = this.token;
+      const refreshToken = this.refreshToken;
       this.token = "";
       this.refreshToken = "";
       this.profile = null;
       localStorage.removeItem(TOKEN_STORAGE_KEY);
       localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
-      void startOAuthLogin(oauthConfig, "/", { prompt: "login" });
+      const logoutUrl = oauthConfig.authorizeUrl.replace("/oauth2/authorize", "/logout");
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = logoutUrl;
+      form.style.display = "none";
+      const appendInput = (name: string, value: string) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      };
+      appendInput("channel", "portal");
+      if (accessToken) {
+        appendInput("access_token", accessToken);
+      }
+      if (refreshToken) {
+        appendInput("refresh_token", refreshToken);
+      }
+      document.body.appendChild(form);
+      form.submit();
     }
   }
 });
