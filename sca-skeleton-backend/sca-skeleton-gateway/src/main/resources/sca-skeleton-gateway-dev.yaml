@@ -76,8 +76,8 @@ spring:
         - AddResponseHeader=X-Frame-Options, DENY
         - AddResponseHeader=X-Content-Type-Options, nosniff
         - AddResponseHeader=Referrer-Policy, no-referrer
-        # 删除不应透传的 Header
-        - RemoveRequestHeader=Cookie
+        # 禁止全局剥离 Cookie：/auth/login/** 与 /auth/oauth2/authorize 依赖 Session 完成授权码登录
+        # - RemoveRequestHeader=Cookie
 
       # 全局 CORS 配置
       globalcors:

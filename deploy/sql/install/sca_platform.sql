@@ -191,7 +191,7 @@ CREATE TABLE IF NOT EXISTS `sys_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
 
--- 内置管理员账号
+-- 内置管理员账号（密码 123456）
 INSERT INTO `sys_user` (
     `id`, `tenant_id`, `username`, `password`, `nickname`, `real_name`, `gender`, `avatar`, `phone`, `email`,
     `user_category`, `user_type`, `status`, `status_time`, `status_reason`, `login_fail_count`, `must_change_password`,
@@ -200,7 +200,7 @@ INSERT INTO `sys_user` (
 )
 SELECT
     '1', '1', 'admin',
-    '{bcrypt}$2a$10$7EqJtq98hPqEX7fNZaFWoO5S6rWQK4fA8FAdZkGouVp21HbQJseb',
+    '{bcrypt}$2a$10$8Rds7xz3FD18mgAe5/eJSe2ew6GquBV.tB4SIbLiCEZHizO6ApYhG',
     '管理员', '系统管理员', NULL, NULL, NULL, NULL,
     'backend', 'superadmin', 'active', NULL, NULL, 0, 0,
     NOW(), NOW(), NULL, NULL, NULL,
@@ -210,7 +210,7 @@ WHERE NOT EXISTS (
     WHERE `tenant_id` = '1' AND `username` = 'admin' AND `is_deleted` = 0
 );
 
--- 内置前台门户演示账号（密码 123456，与 admin 相同 BCrypt 哈希）
+-- 内置前台门户演示账号（密码 123456）
 INSERT INTO `sys_user` (
     `id`, `tenant_id`, `username`, `password`, `nickname`, `real_name`, `gender`, `avatar`, `phone`, `email`,
     `user_category`, `user_type`, `status`, `status_time`, `status_reason`, `login_fail_count`, `must_change_password`,
@@ -219,7 +219,7 @@ INSERT INTO `sys_user` (
 )
 SELECT
     '2', '1', 'portal',
-    '{bcrypt}$2a$10$7EqJtq98hPqEX7fNZaFWoO5S6rWQK4fA8FAdZkGouVp21HbQJseb',
+    '{bcrypt}$2a$10$8Rds7xz3FD18mgAe5/eJSe2ew6GquBV.tB4SIbLiCEZHizO6ApYhG',
     '门户用户', '前台演示用户', NULL, NULL, NULL, NULL,
     'frontend', 'member', 'active', NULL, NULL, 0, 0,
     NOW(), NOW(), NULL, NULL, NULL,

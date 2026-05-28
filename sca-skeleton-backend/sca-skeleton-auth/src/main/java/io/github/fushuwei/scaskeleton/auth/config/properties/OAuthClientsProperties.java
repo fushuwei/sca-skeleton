@@ -1,7 +1,9 @@
 package io.github.fushuwei.scaskeleton.auth.config.properties;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * OAuth2 公共客户端（admin / portal）及 Auth 对外路径配置。
@@ -11,6 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * @author Fu Wei
  */
+@Validated
 @Data
 @ConfigurationProperties(prefix = "sca.auth")
 public class OAuthClientsProperties {
@@ -25,9 +28,10 @@ public class OAuthClientsProperties {
     /**
      * OAuth2 issuer（与 {@code AuthorizationServerSettings} 一致）。
      * <p>
-     * 由 {@code sca.auth.issuer} / 环境变量 {@code AUTH_ISSUER} 注入，禁止在代码中写死默认值。
+     * 由 {@code sca.auth.issuer} / 环境变量 {@code AUTH_ISSUER} 注入，必须在 {@code sca-skeleton-backend/.env} 中配置。
      * 用于生成浏览器可见的绝对登录 URL，避免重定向到 Auth 内网端口。
      */
+    @NotBlank(message = "必须在 sca-skeleton-backend/.env 中配置 AUTH_ISSUER（API 网关对外 /auth 根 URL，例如 http://localhost:9999/auth）")
     private String issuer;
 
     /** admin / portal 客户端注册参数 */

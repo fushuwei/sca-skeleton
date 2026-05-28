@@ -1,3 +1,7 @@
+server:
+  # 经网关访问时根据 X-Forwarded-* 还原对外 URL，避免登录成功后 SavedRequest 回跳到内网地址
+  forward-headers-strategy: framework
+
 spring:
   # 数据源配置（用于 SAS JDBC 存储 + MyBatis-Plus 用户查询）
   datasource:
