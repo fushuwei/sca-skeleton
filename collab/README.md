@@ -19,7 +19,7 @@ collab/
     └── {编号}_{feature-slug}/
         ├── spec.md
         ├── qa-report.md
-        ├── dev-response.md
+        ├── revise-report.md
         └── close-report.md
 ```
 
@@ -47,7 +47,7 @@ collab/
 ```text
 01-spec.md
 02-qa-report.md
-03-dev-response.md
+03-revise-report.md
 04-close-report.md
 ```
 
@@ -62,7 +62,7 @@ Cursor 开发（代码在 backend/frontend）
    ↓
 OpenCode → qa-report.md
    ↓
-Cursor → dev-response.md + 代码修复
+Cursor → revise-report.md + 代码修复
    ↓
 OpenCode → close-report.md
    ├─ CLOSED → 闭环
@@ -75,14 +75,14 @@ OpenCode → close-report.md
 |------|------|--------|----------|-----|
 | `spec.md` | 人 | 只读 | 只读 | 可写 |
 | `qa-report.md` | OpenCode | 只读 | 可写 | 只读 |
-| `dev-response.md` | Cursor | 可写 | 只读 | 只读 |
+| `revise-report.md` | Cursor | 可写 | 只读 | 只读 |
 | `close-report.md` | OpenCode | 只读 | 可写 | 只读 |
 
 **规则：**
 
 - Cursor 不得修改 `qa-report.md`、`close-report.md`
-- OpenCode 不得修改 `dev-response.md`
-- 对 QA 的异议写在 `dev-response.md`；OpenCode 在 `close-report.md` 中裁决
+- OpenCode 不得修改 `revise-report.md`
+- 对 QA 的异议写在 `revise-report.md`；OpenCode 在 `close-report.md` 中裁决
 - 只有 OpenCode 能在 `close-report.md` 中将 feature 标记为 `CLOSED`
 
 ## 多轮 QA
@@ -90,7 +90,7 @@ OpenCode → close-report.md
 当 `close-report.md` 结论为 `REOPEN` 时：
 
 1. OpenCode 更新 `qa-report.md`（仅保留未关闭项，或标注新一轮）
-2. Cursor 更新 `dev-response.md` 并修复代码
+2. Cursor 更新 `revise-report.md` 并修复代码
 3. OpenCode 重写 `close-report.md`
 
 默认覆盖当前文件，历史版本靠 Git 追溯。重要节点可选手动快照：`qa-report.YYYYMMDD.md`。
@@ -108,7 +108,7 @@ OpenCode → close-report.md
 - 仅列问题，不写修复状态
 - 每条：编号、级别、描述、影响文件
 
-### dev-response.md
+### revise-report.md
 
 对 `qa-report.md` 逐条回应：
 
@@ -122,7 +122,7 @@ OpenCode → close-report.md
 ### close-report.md
 
 - 逐条验证 `qa-report.md` 中的问题
-- 裁决 `dev-response.md` 中的 `disputed` / `need-clarification`
+- 裁决 `revise-report.md` 中的 `disputed` / `need-clarification`
 - 每条结果：`pass` | `fail` | `spec-update-required`
 - 最终结论：`CLOSED` | `REOPEN`
 

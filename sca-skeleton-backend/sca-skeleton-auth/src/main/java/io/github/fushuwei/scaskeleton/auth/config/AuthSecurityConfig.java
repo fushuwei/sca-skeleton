@@ -12,15 +12,12 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-
-import java.util.Map;
 
 /**
  * Auth 服务默认安全过滤链：托管 admin / portal 登录页与表单认证（Order=2，低于 SAS 端点链）。
@@ -95,17 +92,9 @@ public class AuthSecurityConfig {
         };
     }
 
-    /**
-     * 密码编码器：支持 {bcrypt} 与 {noop}（仅开发）前缀。
-     */
+    /** 密码编码器：使用 Spring Security 默认委托实现。 */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
-        DelegatingPasswordEncoder encoder = new DelegatingPasswordEncoder(
-                "bcrypt", Map.of("bcrypt", bcrypt, "noop",
-                org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance())
-        );
-        encoder.setDefaultPasswordEncoderForMatches(bcrypt);
-        return encoder;
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 }

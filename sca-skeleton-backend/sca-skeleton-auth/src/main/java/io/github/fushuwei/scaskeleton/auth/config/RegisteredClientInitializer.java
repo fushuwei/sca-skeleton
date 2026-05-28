@@ -32,6 +32,9 @@ import java.time.Duration;
 @EnableConfigurationProperties(OAuthClientsProperties.class)
 public class RegisteredClientInitializer implements ApplicationRunner {
 
+    /** 授权码有效期：缩短窗口降低 code interception 风险。 */
+    private static final Duration AUTHORIZATION_CODE_TTL = Duration.ofSeconds(60);
+
     /** JDBC + Redis 缓存的客户端仓库 */
     private final RegisteredClientRepository registeredClientRepository;
 
@@ -88,6 +91,7 @@ public class RegisteredClientInitializer implements ApplicationRunner {
                         .build())
                 .tokenSettings(TokenSettings.builder()
                         .accessTokenFormat(OAuth2TokenFormat.REFERENCE)
+                        .authorizationCodeTimeToLive(AUTHORIZATION_CODE_TTL)
                         .accessTokenTimeToLive(Duration.ofSeconds(props.getAccessTokenTtl()))
                         .refreshTokenTimeToLive(Duration.ofSeconds(props.getRefreshTokenTtl()))
                         .reuseRefreshTokens(false)

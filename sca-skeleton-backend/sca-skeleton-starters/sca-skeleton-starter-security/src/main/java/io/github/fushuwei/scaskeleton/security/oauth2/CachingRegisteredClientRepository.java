@@ -100,6 +100,8 @@ public class CachingRegisteredClientRepository implements RegisteredClientReposi
             if (cached != null) {
                 return cached;
             }
+            // client_id 索引命中但主键缓存已失效时，清理脏索引避免重复 miss
+            this.stringRedisTemplate.delete(OAuth2AuthorizationRedisKeys.registeredClientClientIdKey(clientId));
         }
         // 索引缺失或快照无效时回源 JDBC
         RegisteredClient client = this.delegate.findByClientId(clientId);

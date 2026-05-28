@@ -98,8 +98,7 @@ public class AuthorizationServerConfig {
                 .defaultAuthenticationEntryPointFor(
                         clientAwareLoginUrlAuthenticationEntryPoint,
                         oauth2AuthorizeEndpointMatcher())
-            )
-            .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()));
+            );
 
         // 启用 OIDC 端点（/.well-known/openid-configuration 等）
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)

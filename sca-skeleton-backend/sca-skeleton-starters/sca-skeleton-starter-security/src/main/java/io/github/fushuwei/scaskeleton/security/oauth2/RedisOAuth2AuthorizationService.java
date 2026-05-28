@@ -440,11 +440,12 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
      * @param ttlSeconds  过期秒数
      */
     private void setIndex(String redisKey, String id, long ttlSeconds) {
-        // 索引值指向授权主键 id
-        this.stringRedisTemplate.opsForValue().set(redisKey, id);
+        // 原子写入 value + TTL，避免 set 与 expire 分离导致索引永久驻留
         if (ttlSeconds > 0) {
-            this.stringRedisTemplate.expire(redisKey, ttlSeconds, TimeUnit.SECONDS);
+            this.stringRedisTemplate.opsForValue().set(redisKey, id, ttlSeconds, TimeUnit.SECONDS);
+            return;
         }
+        this.stringRedisTemplate.opsForValue().set(redisKey, id);
     }
 
     /**

@@ -44,6 +44,19 @@ spring:
                 redis-rate-limiter.replenishRate: 10
                 redis-rate-limiter.burstCapacity: 20
 
+        # Authorize 端点限流（防批量构造授权请求压垮 Session/Redis）
+        - id: sca-skeleton-auth-authorize
+          uri: lb://sca-skeleton-auth
+          predicates:
+            - Path=/auth/oauth2/authorize
+          filters:
+            - StripPrefix=1
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+
         # 认证服务路由
         - id: sca-skeleton-auth
           uri: lb://sca-skeleton-auth
@@ -141,6 +154,7 @@ gateway:
     white-list:
       - /auth/oauth2/authorize
       - /auth/oauth2/token
+      - /auth/oauth2/revoke
       - /auth/oauth2/jwks
       - /auth/.well-known/**
       - /auth/login/**

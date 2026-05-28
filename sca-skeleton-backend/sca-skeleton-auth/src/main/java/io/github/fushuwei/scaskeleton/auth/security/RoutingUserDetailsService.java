@@ -24,11 +24,14 @@ public class RoutingUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // 读取当前登录渠道（Filter 已写入 ThreadLocal）
         LoginChannel channel = LoginChannelContext.get();
+        if (channel == null) {
+            throw new UsernameNotFoundException("Login channel missing");
+        }
         // portal 走前台用户表过滤条件
         if (LoginChannel.PORTAL == channel) {
             return scaUserDetailsService.loadFrontendUserByUsername(username);
         }
-        // 默认 admin：后台用户
+        // admin：后台用户
         return scaUserDetailsService.loadUserByUsername(username);
     }
 }

@@ -27,12 +27,10 @@ public final class LoginChannelContext {
     }
 
     /**
-     * @return 当前登录渠道；未设置时默认 admin
+     * @return 当前登录渠道；未设置时返回 null
      */
     public static LoginChannel get() {
-        LoginChannel channel = CURRENT.get();
-        // 未显式设置时回退 admin，兼容旧链路与直接访问 /login/admin
-        return channel != null ? channel : LoginChannel.ADMIN;
+        return CURRENT.get();
     }
 
     /** 清理线程变量，防止线程池复用时串号。 */
