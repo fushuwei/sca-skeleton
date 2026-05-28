@@ -182,6 +182,7 @@ export async function exchangeAuthorizationCode(
   });
   const response = await fetch(config.tokenUrl, {
     method: "POST",
+    credentials: "omit",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: body.toString()
   });
@@ -206,6 +207,7 @@ export async function refreshAccessToken(
   });
   const response = await fetch(config.tokenUrl, {
     method: "POST",
+    credentials: "omit",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: body.toString()
   });
@@ -233,6 +235,7 @@ export async function revokeOAuthToken(
   try {
     await fetch(revokeUrl, {
       method: "POST",
+      credentials: "omit",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: body.toString()
     });
@@ -267,19 +270,32 @@ function resolveApiBasePrefix(apiBase: string): string {
 
 /**
  * 从 Vite 环境变量读取 OAuth 应用配置。
- * authorize / token 由 {@code VITE_API_BASE_URL} 推导，与业务 API 同源。
+ * authorize 整页跳转在 dev 下直连 {@code VITE_DEV_PROXY_TARGET} 网关，与登录页 Session 同源；
+ * token / revoke 仍走 {@code VITE_API_BASE_URL} 代理，供 fetch 使用。
  *
  * @param env ImportMeta.env
  */
 export function readOAuthConfigFromEnv(env: ImportMetaEnv): OAuthAppConfig {
   const apiPrefix = resolveApiBasePrefix(env.VITE_API_BASE_URL ?? "");
+  const browserOAuthBase = resolveOAuthBrowserBase(env);
   return {
     clientId: env.VITE_OAUTH_CLIENT_ID,
-    authorizeUrl: `${apiPrefix}/auth/oauth2/authorize`,
+    authorizeUrl: `${browserOAuthBase}/auth/oauth2/authorize`,
     tokenUrl: `${apiPrefix}/auth/oauth2/token`,
     redirectUri: env.VITE_OAUTH_REDIRECT_URI,
     scope: "openid profile all"
   };
+}
+
+/**
+ * 浏览器整页 OAuth 跳转使用的 API 根（须与网关登录页同源 Cookie，dev 下不可走 Vite /api-dev 代理）。
+ */
+function resolveOAuthBrowserBase(env: ImportMetaEnv): string {
+  const directGateway = env.VITE_DEV_PROXY_TARGET?.trim();
+  if (typeof import.meta !== "undefined" && import.meta.env?.DEV && directGateway) {
+    return directGateway.replace(/\/$/, "");
+  }
+  return resolveApiBasePrefix(env.VITE_API_BASE_URL ?? "");
 }
 
 /** Vite 环境变量扩展（各 SPA 的 env.d.ts 应引用相同字段）。 */
@@ -287,4 +303,6 @@ export interface ImportMetaEnv {
   readonly VITE_API_BASE_URL: string;
   readonly VITE_OAUTH_CLIENT_ID: string;
   readonly VITE_OAUTH_REDIRECT_URI: string;
+  /** dev 本地网关地址；authorize 整页跳转直连此地址，避免 Session 与登录页分裂 */
+  readonly VITE_DEV_PROXY_TARGET?: string;
 }

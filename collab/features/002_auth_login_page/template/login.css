@@ -1,0 +1,846 @@
+/* Material Design 3 变量 */
+:root {
+    /* 调色板 */
+    --md-sys-color-primary: #006494;
+    --md-sys-color-on-primary: #ffffff;
+    --md-sys-color-primary-container: #c8e6ff;
+    --md-sys-color-on-primary-container: #001e30;
+    
+    --md-sys-color-secondary: #50606e;
+    --md-sys-color-on-secondary: #ffffff;
+    --md-sys-color-secondary-container: #d3e5f5;
+    --md-sys-color-on-secondary-container: #0c1d29;
+    
+    --md-sys-color-tertiary: #66587b;
+    --md-sys-color-on-tertiary: #ffffff;
+    --md-sys-color-tertiary-container: #ecdcff;
+    --md-sys-color-on-tertiary-container: #221533;
+    
+    --md-sys-color-error: #ba1a1a;
+    --md-sys-color-on-error: #ffffff;
+    --md-sys-color-error-container: #ffdad6;
+    --md-sys-color-on-error-container: #410002;
+    
+    --md-sys-color-success: #006e1c;
+    --md-sys-color-on-success: #ffffff;
+    --md-sys-color-success-container: #98f990;
+    --md-sys-color-on-success-container: #002204;
+    
+    --md-sys-color-background: #fcfcff;
+    --md-sys-color-on-background: #1a1c1e;
+    --md-sys-color-surface: #fcfcff;
+    --md-sys-color-on-surface: #1a1c1e;
+    
+    --md-sys-color-surface-variant: #dee3eb;
+    --md-sys-color-on-surface-variant: #42474e;
+    --md-sys-color-outline: #72777f;
+    --md-sys-color-outline-variant: #c2c7cf;
+    
+    /* 阴影 */
+    --md-shadow-1: 0px 1px 3px 0px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+    --md-shadow-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+    --md-shadow-3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.3);
+    --md-shadow-4: 0px 6px 10px 4px rgba(0, 0, 0, 0.15), 0px 2px 3px 0px rgba(0, 0, 0, 0.3);
+    --md-shadow-5: 0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px 0px rgba(0, 0, 0, 0.3);
+    
+    /* 形状 */
+    --md-sys-shape-corner-small: 4px;
+    --md-sys-shape-corner-medium: 8px;
+    --md-sys-shape-corner-large: 16px;
+    --md-sys-shape-corner-extra-large: 28px;
+    
+    /* 状态 */
+    --md-state-hover-opacity: 0.08;
+    --md-state-focus-opacity: 0.12;
+    --md-state-pressed-opacity: 0.12;
+    --md-state-dragged-opacity: 0.16;
+    
+    /* 排版 */
+    /* --md-ref-typeface-brand: 'Roboto', sans-serif; */
+    /* --md-ref-typeface-plain: 'Roboto', sans-serif; */
+    --md-ref-typeface-brand: "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "AlibabaPuHuiTi-3-55-Regular", Tahoma, Consolas, Arial, "Microsoft YaHei", "微软雅黑", "sans-serif" !important;
+    --md-ref-typeface-plain: "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "AlibabaPuHuiTi-3-55-Regular", Tahoma, Consolas, Arial, "Microsoft YaHei", "微软雅黑", "sans-serif" !important;
+    
+    /* 间距 */
+    --md-spacing-unit: 8px;
+}
+
+/* 通用样式 */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--md-ref-typeface-plain);
+    background-color: var(--md-sys-color-background);
+    color: var(--md-sys-color-on-background);
+}
+
+/* Material Design 3 排版样式 */
+.md3-display-large {
+    font-family: var(--md-ref-typeface-brand);
+    font-size: 57px;
+    line-height: 64px;
+    font-weight: 400;
+}
+
+.md3-display-medium {
+    font-family: var(--md-ref-typeface-brand);
+    font-size: 45px;
+    line-height: 52px;
+    font-weight: 400;
+}
+
+.md3-display-small {
+    font-family: var(--md-ref-typeface-brand);
+    font-size: 36px;
+    line-height: 44px;
+    font-weight: 400;
+}
+
+.md3-headline-large {
+    font-family: var(--md-ref-typeface-brand);
+    font-size: 32px;
+    line-height: 40px;
+    font-weight: 400;
+}
+
+.md3-headline-medium {
+    font-family: var(--md-ref-typeface-brand);
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 400;
+}
+
+.md3-headline-small {
+    font-family: var(--md-ref-typeface-brand);
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 400;
+}
+
+.md3-title-large {
+    font-family: var(--md-ref-typeface-brand);
+    font-size: 22px;
+    line-height: 28px;
+    font-weight: 400;
+}
+
+.md3-title-medium {
+    font-family: var(--md-ref-typeface-plain);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 500;
+    letter-spacing: 0.15px;
+}
+
+.md3-title-small {
+    font-family: var(--md-ref-typeface-plain);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+}
+
+.md3-body-large {
+    font-family: var(--md-ref-typeface-plain);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.md3-body-medium {
+    font-family: var(--md-ref-typeface-plain);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    letter-spacing: 0.25px;
+}
+
+.md3-body-small {
+    font-family: var(--md-ref-typeface-plain);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+    letter-spacing: 0.4px;
+}
+
+.md3-label-large {
+    font-family: var(--md-ref-typeface-plain);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+}
+
+.md3-label-medium {
+    font-family: var(--md-ref-typeface-plain);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.md3-label-small {
+    font-family: var(--md-ref-typeface-plain);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* MD3 元素样式 */
+.md3-surface {
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    border-radius: var(--md-sys-shape-corner-medium);
+}
+
+.elevation-1 {
+    box-shadow: var(--md-shadow-1);
+}
+
+.elevation-2 {
+    box-shadow: var(--md-shadow-2);
+}
+
+.elevation-3 {
+    box-shadow: var(--md-shadow-3);
+}
+
+/* MD3 按钮样式 */
+.md3-button {
+    font-family: var(--md-ref-typeface-plain);
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1px;
+    height: 48px;
+    padding: 0 24px;
+    border-radius: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    overflow: hidden;
+    transition: all 0.2s ease-in-out;
+}
+
+.md3-filled-button {
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+}
+
+.md3-filled-button:hover {
+    background-color: var(--md-sys-color-primary);
+    opacity: 0.92;
+    box-shadow: var(--md-shadow-2);
+}
+
+.md3-filled-button:active {
+    background-color: var(--md-sys-color-primary);
+    opacity: 0.85;
+    box-shadow: var(--md-shadow-1);
+}
+
+.md3-filled-tonal-button {
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    font-size: 16px;
+    font-weight: 500;
+    text-transform: none;
+    box-shadow: var(--md-shadow-1);
+    letter-spacing: 0.5px;
+}
+
+.md3-filled-tonal-button:hover {
+    background-color: var(--md-sys-color-secondary-container);
+    opacity: 0.92;
+    box-shadow: var(--md-shadow-2);
+    transform: translateY(-1px);
+}
+
+.md3-filled-tonal-button:active {
+    background-color: var(--md-sys-color-secondary-container);
+    opacity: 0.85;
+    box-shadow: var(--md-shadow-1);
+    transform: translateY(0);
+}
+
+.md3-outlined-button {
+    background-color: transparent;
+    color: var(--md-sys-color-primary);
+    border: 1px solid var(--md-sys-color-outline);
+}
+
+.md3-outlined-button:hover {
+    background-color: rgba(0, 100, 148, var(--md-state-hover-opacity));
+}
+
+.md3-outlined-button:active {
+    background-color: rgba(0, 100, 148, var(--md-state-pressed-opacity));
+}
+
+.md3-text-button {
+    background-color: transparent;
+    color: var(--md-sys-color-primary);
+    padding: 0 12px;
+}
+
+.md3-text-button:hover {
+    background-color: rgba(0, 100, 148, var(--md-state-hover-opacity));
+}
+
+.md3-text-button:active {
+    background-color: rgba(0, 100, 148, var(--md-state-pressed-opacity));
+}
+
+.md3-icon-button {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.md3-icon-button:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.md3-icon-button:active {
+    background-color: rgba(255, 255, 255, 0.4);
+    transform: scale(0.95);
+}
+
+/* MD3 文本字段样式 */
+.md3-text-field-container {
+    margin-bottom: calc(var(--md-spacing-unit) * 4);
+    position: relative;
+}
+
+.md3-text-field-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.md3-text-field {
+    width: 100%;
+    height: 56px;
+    padding: 0 16px;
+    font-family: var(--md-ref-typeface-plain);
+    font-size: 16px;
+    background-color: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface);
+    border: none;
+    border-radius: 12px;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.md3-text-field::placeholder {
+    color: var(--md-sys-color-on-surface-variant);
+    opacity: 0.7;
+}
+
+.md3-text-field.with-icon {
+    padding-left: 56px;
+    padding-right: 56px;
+}
+
+.field-icon {
+    position: absolute;
+    left: 16px;
+    color: var(--md-sys-color-on-surface-variant);
+    pointer-events: none;
+    font-size: 24px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--md-sys-color-on-surface-variant);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    z-index: 2;
+}
+
+.md3-text-field:focus {
+    background-color: var(--md-sys-color-surface);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 0 0 2px var(--md-sys-color-primary);
+}
+
+/* 表单验证样式 */
+.md3-text-field.error {
+    box-shadow: 0 4px 8px rgba(186, 26, 26, 0.1), 0 0 0 2px var(--md-sys-color-error);
+    background-color: var(--md-sys-color-error-container);
+}
+
+.error-message {
+    color: var(--md-sys-color-error);
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+    position: absolute;
+    left: 16px;
+    bottom: -22px;
+    font-weight: 500;
+    align-items: center;
+    gap: 4px;
+}
+
+.error-icon {
+    font-size: 14px;
+    color: var(--md-sys-color-error);
+}
+
+/* 登录消息样式 */
+.login-message {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: var(--md-sys-shape-corner-small);
+    font-size: 14px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeInUp 0.3s forwards;
+}
+
+.login-message.error {
+    background-color: var(--md-sys-color-error-container);
+    color: var(--md-sys-color-on-error-container);
+}
+
+.login-message.success {
+    background-color: var(--md-sys-color-success-container);
+    color: var(--md-sys-color-on-success-container);
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* MD3 复选框样式 */
+.md3-checkbox-container {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+}
+
+.md3-checkbox-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.md3-checkbox {
+    position: relative;
+    height: 18px;
+    width: 18px;
+    border: 2px solid var(--md-sys-color-outline);
+    border-radius: 2px;
+    margin-right: 6px;
+    transition: all 0.2s ease-in-out;
+    background-color: transparent;
+}
+
+.md3-checkbox.enhanced {
+    height: 16px;
+    width: 16px;
+    border-radius: 3px;
+    border: 2px solid var(--md-sys-color-primary);
+    box-shadow: 0 1px 2px rgba(0, 100, 148, 0.1);
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+.md3-checkbox-container:hover .md3-checkbox {
+    border-color: var(--md-sys-color-primary);
+    background-color: rgba(0, 100, 148, 0.04);
+}
+
+.md3-checkbox-container:hover .md3-checkbox.enhanced {
+    background-color: rgba(0, 100, 148, 0.08);
+    transform: scale(1.05);
+}
+
+.md3-checkbox-container input:checked ~ .md3-checkbox {
+    background-color: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
+}
+
+.md3-checkbox-container input:checked ~ .md3-checkbox.enhanced {
+    background-color: var(--md-sys-color-primary);
+    box-shadow: 0 2px 8px rgba(0, 100, 148, 0.3);
+}
+
+.md3-checkbox-container input:checked ~ .md3-checkbox::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid var(--md-sys-color-on-primary);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    animation: checkmark 0.2s ease-in-out forwards;
+}
+
+.md3-checkbox-container input:checked ~ .md3-checkbox.enhanced::after {
+    left: 5px;
+    top: 2px;
+    width: 4px;
+    height: 8px;
+    border-width: 0 2px 2px 0;
+}
+
+@keyframes checkmark {
+    0% {
+        opacity: 0;
+        transform: rotate(45deg) scale(0.5);
+    }
+    100% {
+        opacity: 1;
+        transform: rotate(45deg) scale(1);
+    }
+}
+
+.md3-checkbox-label {
+    font-family: var(--md-ref-typeface-plain);
+    color: var(--md-sys-color-on-surface-variant);
+    font-weight: 500;
+}
+
+/* MD3 链接样式 */
+.md3-link {
+    color: var(--md-sys-color-on-surface-variant);
+    text-decoration: none;
+    transition: opacity 0.2s;
+    font-weight: 500;
+}
+
+.md3-link:hover {
+    opacity: 0.8;
+    text-decoration: none;
+}
+
+/* 全屏登录页样式 */
+.fullscreen-login {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
+}
+
+.fullscreen-carousel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.carousel-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+}
+
+.carousel-item.active {
+    opacity: 1;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.7);
+}
+
+.carousel-caption {
+    position: absolute;
+    bottom: 15%;
+    left: 10%;
+    max-width: 50%;
+    text-align: left;
+    color: white;
+    padding: calc(var(--md-spacing-unit) * 3);
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--md-sys-shape-corner-large);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--md-shadow-2);
+    animation: fadeIn 0.5s ease-in-out 0.3s forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.carousel-controls {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: calc(var(--md-spacing-unit) * 2);
+    z-index: 3;
+}
+
+.carousel-prev, 
+.carousel-next {
+    color: white;
+    background-color: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(4px);
+    box-shadow: var(--md-shadow-2);
+}
+
+.carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.indicator.active {
+    width: 24px;
+    border-radius: 4px;
+    background: white;
+}
+
+.floating-login-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: calc(var(--md-spacing-unit) * 4);
+    padding-right: calc(var(--md-spacing-unit) * 15);
+    z-index: 2;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 420px;
+    padding: calc(var(--md-spacing-unit) * 5);
+    border-radius: var(--md-sys-shape-corner-large);
+    backdrop-filter: blur(16px);
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: var(--md-shadow-5);
+    transform: translateX(0);
+    animation: floatIn 0.5s ease-out;
+    pointer-events: auto;
+}
+
+@keyframes floatIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: calc(var(--md-spacing-unit) * 5);
+}
+
+.login-logo {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto calc(var(--md-spacing-unit) * 3);
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--md-shadow-2);
+}
+
+.logo-icon {
+    font-size: 42px;
+}
+
+.login-title {
+    color: var(--md-sys-color-on-surface-variant);
+    margin-top: calc(var(--md-spacing-unit) * 1.5);
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.login-subtitle {
+    color: var(--md-sys-color-on-surface-variant);
+    margin-top: calc(var(--md-spacing-unit) * 1.5);
+}
+
+.login-button {
+    width: 100%;
+    margin-top: calc(var(--md-spacing-unit) * 4);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    height: 52px;
+    text-transform: none;
+    border-radius: 26px;
+    background: linear-gradient(135deg, var(--md-sys-color-primary), #3a89c9);
+    box-shadow: 0 4px 12px rgba(0, 100, 148, 0.3);
+    transition: all 0.3s ease;
+}
+
+.login-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 100, 148, 0.4);
+}
+
+.login-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 100, 148, 0.3);
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: calc(var(--md-spacing-unit) * 2) 5px;
+}
+
+.additional-options {
+    margin-top: calc(var(--md-spacing-unit) * 5);
+    text-align: center;
+}
+
+.additional-options p {
+    margin-bottom: calc(var(--md-spacing-unit) * 2);
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.social-login {
+    display: flex;
+    justify-content: center;
+    gap: calc(var(--md-spacing-unit) * 3);
+}
+
+.social-login-button {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: var(--md-shadow-1);
+}
+
+.social-login-button:hover {
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    box-shadow: var(--md-shadow-2);
+    transform: translateY(-2px);
+}
+
+.social-login-button:active {
+    transform: translateY(0);
+    box-shadow: var(--md-shadow-1);
+}
+
+/* 登录中按钮状态 */
+.login-button.loading {
+    position: relative;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.login-button.loading::before {
+    content: "";
+    position: absolute;
+    left: -100%;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    100% {
+        left: 100%;
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .floating-login-container {
+        justify-content: center;
+        padding: calc(var(--md-spacing-unit) * 2);
+    }
+    
+    .carousel-caption {
+        left: 5%;
+        right: 5%;
+        max-width: 90%;
+        bottom: auto;
+        top: 15%;
+    }
+} 

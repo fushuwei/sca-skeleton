@@ -20,14 +20,20 @@ public class ClientAwareLoginUrlAuthenticationEntryPoint extends LoginUrlAuthent
     /** OAuth2 客户端配置，用于 client_id → 登录页 URL 映射 */
     private final OAuthClientsProperties oauthClientsProperties;
 
+    /** 显式保存待恢复的 authorize URL，避免 SavedRequest 被登录页覆盖或 Session 跨端口丢失 */
+    private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
+
     /**
      * @param oauthClientsProperties 客户端配置（admin / portal）
+     * @param pendingAuthorizeStore  pending authorize Session 存储
      * @param defaultLoginUrl        未知 client_id 时的默认登录页绝对 URL
      */
     public ClientAwareLoginUrlAuthenticationEntryPoint(OAuthClientsProperties oauthClientsProperties,
+            OAuthPendingAuthorizeStore pendingAuthorizeStore,
             String defaultLoginUrl) {
         super(defaultLoginUrl);
         this.oauthClientsProperties = oauthClientsProperties;
+        this.pendingAuthorizeStore = pendingAuthorizeStore;
     }
 
     /**
@@ -38,6 +44,8 @@ public class ClientAwareLoginUrlAuthenticationEntryPoint extends LoginUrlAuthent
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException authException) throws IOException {
+        // 在跳转登录页前写入 pending authorize，供表单登录成功后恢复（不依赖 SavedRequest 单槽位）
+        pendingAuthorizeStore.savePendingAuthorizeRequest(request);
         // 从 authorize 请求 query 读取 client_id，映射 admin / portal 登录页
         String clientId = request.getParameter("client_id");
         String loginUrl = oauthClientsProperties.resolveExternalLoginUrl(clientId);

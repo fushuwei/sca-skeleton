@@ -4,17 +4,21 @@ import io.github.fushuwei.scaskeleton.auth.security.RoutingUserDetailsService;
 import io.github.fushuwei.scaskeleton.auth.security.filter.LoginChannelFilter;
 import io.github.fushuwei.scaskeleton.auth.web.ChannelAwareAuthenticationFailureHandler;
 import io.github.fushuwei.scaskeleton.auth.web.LoginPageController;
+import io.github.fushuwei.scaskeleton.auth.web.OAuthAuthorizeLoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.util.Map;
 
@@ -34,6 +38,12 @@ public class AuthSecurityConfig {
     /** 登录失败回跳处理器 */
     private final ChannelAwareAuthenticationFailureHandler authenticationFailureHandler;
 
+    /** 登录成功后恢复 OAuth2 authorize SavedRequest */
+    private final OAuthAuthorizeLoginSuccessHandler oauthAuthorizeLoginSuccessHandler;
+
+    /** 与 SAS 过滤链共享的 SavedRequest 缓存 */
+    private final HttpSessionRequestCache httpSessionRequestCache;
+
     /**
      * 默认安全过滤链：登录页、表单认证、Actuator 健康检查。
      *
@@ -48,6 +58,8 @@ public class AuthSecurityConfig {
             RoutingUserDetailsService routingUserDetailsService) throws Exception {
 
         http
+            // 不处理 OAuth2 / OIDC 端点，避免与 Order=1 的 SAS 链争抢匹配
+            .securityMatcher(oauthEndpointsExcludedMatcher())
             // 表单登录启用 CSRF；OAuth2 标准端点由 Order=1 的 SAS 过滤链单独处理
             .authorizeHttpRequests(authorize -> authorize
                 // 健康检查无需认证
@@ -60,16 +72,27 @@ public class AuthSecurityConfig {
             // 在 UsernamePasswordAuthenticationFilter 之前解析 loginChannel
             .addFilterBefore(loginChannelFilter, UsernamePasswordAuthenticationFilter.class)
             .userDetailsService(routingUserDetailsService)
+            .requestCache(cache -> cache.requestCache(httpSessionRequestCache))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .formLogin(form -> form
                 // 默认 loginPage（实际入口由 ClientAwareLoginUrlAuthenticationEntryPoint 按 client 分流）
                 .loginPage("/login/admin")
                 // 统一表单处理 URL（admin / portal 表单均 POST 到此）
                 .loginProcessingUrl(LoginPageController.LOGIN_PROCESSING_URL)
+                .successHandler(oauthAuthorizeLoginSuccessHandler)
                 .failureHandler(authenticationFailureHandler)
                 .permitAll()
             );
 
         return http.build();
+    }
+
+    /** 排除 SAS 端点，仅供 Order(2) 表单登录链使用。 */
+    private RequestMatcher oauthEndpointsExcludedMatcher() {
+        return request -> {
+            String uri = request.getRequestURI();
+            return !uri.startsWith("/oauth2/") && !uri.startsWith("/.well-known/");
+        };
     }
 
     /**

@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.core.OAuth2UserCode;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
-import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationCode;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
@@ -40,8 +39,8 @@ import java.util.concurrent.TimeUnit;
  * 基于 Redis 的 {@link OAuth2AuthorizationService} 实现。
  * <p>
  * 将 {@link OAuth2Authorization} 以 Hash 结构持久化，字段名与 SAS JDBC 表 {@code oauth2_authorization} 列名一致，
- * 序列化方式复用 {@link JdbcOAuth2AuthorizationService.JsonMapperOAuth2AuthorizationParametersMapper}，
- * 保证与官方 JDBC 实现语义对齐。另维护 access / refresh / code / state 等令牌值到授权主键的二级索引，
+ * 序列化方式与 SAS JDBC 参数映射语义对齐（见 {@link RedisOAuth2AuthorizationParametersMapper}）。
+ * 另维护 access / refresh / code / state 等令牌值到授权主键的二级索引，
  * 以支持 {@link #findByToken(String, OAuth2TokenType)} 高效查询。
  * <p>
  * 说明：启用本实现后，MySQL 中的 {@code oauth2_authorization} 表不再写入；注册客户端与 consent 仍建议保留在 JDBC。
@@ -51,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationService {
 
     /**
-     * 与 {@link JdbcOAuth2AuthorizationService.JsonMapperOAuth2AuthorizationParametersMapper#apply} 返回顺序严格一致的列名，
+     * 与 {@link RedisOAuth2AuthorizationParametersMapper#apply} 返回顺序严格一致的列名，
      * 用于将 SQL 参数列表映射为 Redis Hash 的 field。
      */
     private static final String[] AUTHORIZATION_HASH_FIELDS = new String[] {
@@ -108,7 +107,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
     /**
      * 将 {@link OAuth2Authorization} 转为与 JDBC 插入语句相同顺序的 SQL 参数列表（官方实现）。
      */
-    private final JdbcOAuth2AuthorizationService.JsonMapperOAuth2AuthorizationParametersMapper parametersMapper;
+    private final RedisOAuth2AuthorizationParametersMapper parametersMapper;
 
     /**
      * 构造 Redis 授权存储：初始化 JsonMapper、参数映射器与 Redis 访问。
@@ -124,9 +123,8 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
         this.stringRedisTemplate = stringRedisTemplate;
         // 创建与 SAS JDBC 对齐的 JsonMapper，用于 attributes / metadata 等 JSON 字段
         this.authorizationJsonMapper = OAuth2AuthorizationJsonMapperFactory.create(getClass().getClassLoader());
-        // 复用官方参数映射器，保证 Hash 字段顺序与 JDBC 插入语句一致
-        this.parametersMapper = new JdbcOAuth2AuthorizationService.JsonMapperOAuth2AuthorizationParametersMapper(
-                this.authorizationJsonMapper);
+        // 独立参数映射器，避免依赖 JdbcOAuth2AuthorizationService 静态 columnMetadataMap
+        this.parametersMapper = new RedisOAuth2AuthorizationParametersMapper(this.authorizationJsonMapper);
     }
 
     /**

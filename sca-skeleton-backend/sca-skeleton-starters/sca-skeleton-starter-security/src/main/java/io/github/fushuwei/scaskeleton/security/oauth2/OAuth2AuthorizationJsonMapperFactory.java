@@ -1,6 +1,8 @@
 package io.github.fushuwei.scaskeleton.security.oauth2;
 
+import io.github.fushuwei.scaskeleton.auth.security.jackson.ScaUserDetailsJacksonModule;
 import org.springframework.security.jackson.SecurityJacksonModules;
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -28,9 +30,11 @@ public final class OAuth2AuthorizationJsonMapperFactory {
      * @return 配置完成的 JsonMapper
      */
     public static JsonMapper create(ClassLoader classLoader) {
-        // 注册 Security Jackson 模块，支持 OAuth2Authorization / settings Map 序列化
+        BasicPolymorphicTypeValidator.Builder typeValidatorBuilder = BasicPolymorphicTypeValidator.builder()
+                .allowIfSubType("io.github.fushuwei.scaskeleton.auth.security");
         return JsonMapper.builder()
-                .addModules(SecurityJacksonModules.getModules(classLoader))
+                .addModules(SecurityJacksonModules.getModules(classLoader, typeValidatorBuilder))
+                .addModule(new ScaUserDetailsJacksonModule())
                 .build();
     }
 }

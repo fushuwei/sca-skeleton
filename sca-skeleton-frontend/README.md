@@ -46,7 +46,7 @@ cp .env.development.local.example .env.development.local
 # 编辑 VITE_DEV_PROXY_TARGET=http://<远程网关 IP>:9999
 ```
 
-OAuth 与 API 均经 `http://localhost:5173|5174/api-dev` 走同一代理，无需单独改 OAuth 地址。
+OAuth **authorize 整页跳转**在 development 下直连 `VITE_DEV_PROXY_TARGET`（网关 `http://localhost:9999`），与登录页 Session 同源；**token 换票**仍经 `/api-dev` 代理（fetch 同源）。test/production 下 authorize 与 API 均走 Nginx 同源路径。
 
 ## 启动命令
 
@@ -61,7 +61,8 @@ OAuth 与 API 均经 `http://localhost:5173|5174/api-dev` 走同一代理，无�
 |------|-------------|-------------------|
 | `VITE_DEV_PROXY_TARGET` | 有。仅 `pnpm dev` 时 Vite 把 `/api-dev` 转发到该网关地址 | 无。构建产物不走 Vite，由 Nginx 将 `/api`、`/api-test` 反代到网关 |
 | `VITE_API_BASE_URL` | `/api-dev` | `/api-test` 或 `/api` |
-| OAuth 授权/换票地址 | 由 `VITE_API_BASE_URL` + 当前站点 origin 自动拼接 | 同上（需 Nginx 与 API 同源路径） |
+| OAuth 授权跳转 | dev：`VITE_DEV_PROXY_TARGET` + `/auth/oauth2/authorize`（直连网关） | 由 `VITE_API_BASE_URL` + 当前站点 origin 拼接 |
+| OAuth token / API | `/api-dev` 经 Vite 代理 | `/api-test` 或 `/api`（Nginx 反代） |
 
 联调远程网关时，只改 `apps/<app>/.env.development` 中的 `VITE_DEV_PROXY_TARGET` 即可。
 - 项目构建：`pnpm build`

@@ -10,6 +10,7 @@ import io.github.fushuwei.scaskeleton.auth.config.properties.AuthJwtProperties;
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
 import io.github.fushuwei.scaskeleton.auth.token.ScaOpaqueAccessTokenClaimsCustomizer;
 import io.github.fushuwei.scaskeleton.auth.web.ClientAwareLoginUrlAuthenticationEntryPoint;
+import io.github.fushuwei.scaskeleton.auth.web.OAuthPendingAuthorizeStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +27,13 @@ import org.springframework.security.oauth2.server.authorization.token.JwtGenerat
 import org.springframework.security.oauth2.server.authorization.token.OAuth2AccessTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.security.KeyPair;
 import java.security.interfaces.RSAPrivateKey;
@@ -48,6 +55,24 @@ public class AuthorizationServerConfig {
     /** RSA 密钥加载器（外部配置或内存生成） */
     private final AuthJwkKeyLoader authJwkKeyLoader;
 
+    /** 与表单登录链共享的 SavedRequest 缓存 */
+    private final HttpSessionRequestCache httpSessionRequestCache;
+
+    /** pending authorize Session 存储 */
+    private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
+
+    /**
+     * 未登录访问 authorize 时的登录入口（按 client_id 分流 admin / portal 登录页）。
+     */
+    @Bean
+    public ClientAwareLoginUrlAuthenticationEntryPoint clientAwareLoginUrlAuthenticationEntryPoint() {
+        return new ClientAwareLoginUrlAuthenticationEntryPoint(
+                oauthClientsProperties,
+                pendingAuthorizeStore,
+                oauthClientsProperties.resolveExternalLoginUrl(
+                        oauthClientsProperties.getAdmin().getClientId()));
+    }
+
     /**
      * SAS 标准端点过滤链：applyDefaultSecurity 负责 token 端点等默认放行规则。
      */
@@ -55,7 +80,7 @@ public class AuthorizationServerConfig {
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(
             HttpSecurity http,
-            OAuthClientsProperties oauthClientsProperties) throws Exception {
+            ClientAwareLoginUrlAuthenticationEntryPoint clientAwareLoginUrlAuthenticationEntryPoint) throws Exception {
 
         // Spring Authorization Server 端点配置器（Boot 4 / Security 7 新写法，替代 applyDefaultSecurity）
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
@@ -66,12 +91,13 @@ public class AuthorizationServerConfig {
             .securityMatcher("/oauth2/**", "/.well-known/**")
             .with(authorizationServerConfigurer, Customizer.withDefaults())
             .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+            .requestCache(cache -> cache.requestCache(httpSessionRequestCache))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .exceptionHandling(exceptions -> exceptions
-                // 未登录访问 /oauth2/authorize 时，按 client_id 重定向到网关登录页（不用 MediaType 限制，避免 curl/浏览器 Accept 差异）
-                .authenticationEntryPoint(new ClientAwareLoginUrlAuthenticationEntryPoint(
-                        oauthClientsProperties,
-                        oauthClientsProperties.resolveExternalLoginUrl(
-                                oauthClientsProperties.getAdmin().getClientId())))
+                // 仅 authorize 端点跳转登录页；token 等端点保留 SAS 默认 401/OAuth2 错误，避免换票 POST 被 302 到登录页
+                .defaultAuthenticationEntryPointFor(
+                        clientAwareLoginUrlAuthenticationEntryPoint,
+                        oauth2AuthorizeEndpointMatcher())
             )
             .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()));
 
@@ -80,6 +106,13 @@ public class AuthorizationServerConfig {
             .oidc(Customizer.withDefaults());
 
         return http.build();
+    }
+
+    /** 仅匹配浏览器授权端点（GET 发起授权、POST 提交 consent），不含 token 等机器端点。 */
+    private static RequestMatcher oauth2AuthorizeEndpointMatcher() {
+        return new OrRequestMatcher(
+                PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, "/oauth2/authorize"),
+                PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/oauth2/authorize"));
     }
 
     @Bean
