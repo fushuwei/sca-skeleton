@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserProfileVO;
@@ -225,14 +226,25 @@ public class SysUserServiceImpl implements SysUserService {
         }
         // 按主键查询用户实体
         SysUser user = userMapper.selectById(userId);
-        if (user == null) {
+        if (user != null) {
+            // 命中数据库时返回持久化资料，确保后台管理能力使用最新主数据
+            return UserProfileVO.builder()
+                    .id(user.getId())
+                    .username(user.getUsername())
+                    .nickname(user.getNickname())
+                    .build();
+        }
+
+        // 未命中数据库时回退 token claims，兼容 portal 等仅在认证域存在的用户
+        String username = SecurityUtils.getUsername();
+        String nickname = SecurityUtils.getClaim(OAuth2AccessTokenClaimNames.NICKNAME);
+        if (!StringUtils.hasText(username)) {
             throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在");
         }
-        // 组装 SPA 所需的最小资料字段
         return UserProfileVO.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .nickname(user.getNickname())
+                .id(userId)
+                .username(username)
+                .nickname(StringUtils.hasText(nickname) ? nickname : username)
                 .build();
     }
 }
