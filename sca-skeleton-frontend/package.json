@@ -16,6 +16,7 @@
     "test": "turbo run test"
   },
   "devDependencies": {
+    "@types/node": "^24.10.1",
     "@eslint/js": "^9.39.1",
     "@vitejs/plugin-vue": "6.0.6",
     "@vue/test-utils": "2.4.9",
