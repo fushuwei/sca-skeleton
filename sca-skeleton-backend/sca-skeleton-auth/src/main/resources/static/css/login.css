@@ -5,62 +5,62 @@
     --md-sys-color-on-primary: #ffffff;
     --md-sys-color-primary-container: #c8e6ff;
     --md-sys-color-on-primary-container: #001e30;
-    
+
     --md-sys-color-secondary: #50606e;
     --md-sys-color-on-secondary: #ffffff;
     --md-sys-color-secondary-container: #d3e5f5;
     --md-sys-color-on-secondary-container: #0c1d29;
-    
+
     --md-sys-color-tertiary: #66587b;
     --md-sys-color-on-tertiary: #ffffff;
     --md-sys-color-tertiary-container: #ecdcff;
     --md-sys-color-on-tertiary-container: #221533;
-    
+
     --md-sys-color-error: #ba1a1a;
     --md-sys-color-on-error: #ffffff;
     --md-sys-color-error-container: #ffdad6;
     --md-sys-color-on-error-container: #410002;
-    
+
     --md-sys-color-success: #006e1c;
     --md-sys-color-on-success: #ffffff;
     --md-sys-color-success-container: #98f990;
     --md-sys-color-on-success-container: #002204;
-    
+
     --md-sys-color-background: #fcfcff;
     --md-sys-color-on-background: #1a1c1e;
     --md-sys-color-surface: #fcfcff;
     --md-sys-color-on-surface: #1a1c1e;
-    
+
     --md-sys-color-surface-variant: #dee3eb;
     --md-sys-color-on-surface-variant: #42474e;
     --md-sys-color-outline: #72777f;
     --md-sys-color-outline-variant: #c2c7cf;
-    
+
     /* 阴影 */
     --md-shadow-1: 0px 1px 3px 0px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
     --md-shadow-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
     --md-shadow-3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.3);
     --md-shadow-4: 0px 6px 10px 4px rgba(0, 0, 0, 0.15), 0px 2px 3px 0px rgba(0, 0, 0, 0.3);
     --md-shadow-5: 0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px 0px rgba(0, 0, 0, 0.3);
-    
+
     /* 形状 */
     --md-sys-shape-corner-small: 4px;
     --md-sys-shape-corner-medium: 8px;
     --md-sys-shape-corner-large: 16px;
     --md-sys-shape-corner-extra-large: 28px;
-    
+
     /* 状态 */
     --md-state-hover-opacity: 0.08;
     --md-state-focus-opacity: 0.12;
     --md-state-pressed-opacity: 0.12;
     --md-state-dragged-opacity: 0.16;
-    
+
     /* 排版 */
     /* --md-ref-typeface-brand: 'Roboto', sans-serif; */
     /* --md-ref-typeface-plain: 'Roboto', sans-serif; */
     --md-ref-typeface-brand: "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "AlibabaPuHuiTi-3-55-Regular", Tahoma, Consolas, Arial, "Microsoft YaHei", "微软雅黑", "sans-serif" !important;
     --md-ref-typeface-plain: "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "AlibabaPuHuiTi-3-55-Regular", Tahoma, Consolas, Arial, "Microsoft YaHei", "微软雅黑", "sans-serif" !important;
-    
+
     /* 间距 */
     --md-spacing-unit: 8px;
 }
@@ -622,7 +622,7 @@ body {
     z-index: 3;
 }
 
-.carousel-prev, 
+.carousel-prev,
 .carousel-next {
     color: white;
     background-color: rgba(0, 0, 0, 0.2);
@@ -835,7 +835,7 @@ body {
         justify-content: center;
         padding: calc(var(--md-spacing-unit) * 2);
     }
-    
+
     .carousel-caption {
         left: 5%;
         right: 5%;
@@ -907,7 +907,7 @@ body {
 .captcha-img-wrapper {
     flex-shrink: 0;
     min-width: 120px;
-    height: 44px;
+    height: 54px;
     padding: 0;
     border: none;
     border-radius: 12px;
@@ -940,7 +940,7 @@ body {
     display: block;
     vertical-align: top;
     width: 120px;
-    height: 36px;
+    height: 54px;
     padding: 0;
     margin: 0;
     background-color: #eceff4;

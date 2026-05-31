@@ -1,8 +1,8 @@
 package io.github.fushuwei.scaskeleton.auth.web;
 
 import tools.jackson.databind.ObjectMapper;
-import io.github.fushuwei.scaskeleton.captcha.CaptchaService;
-import io.github.fushuwei.scaskeleton.captcha.model.CaptchaResult;
+import io.github.fushuwei.scaskeleton.auth.captcha.CaptchaService;
+import io.github.fushuwei.scaskeleton.auth.captcha.model.CaptchaResult;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;

@@ -49,10 +49,10 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
-        <!-- 项目验证码 Starter：登录页图形验证码生成与校验 -->
+        <!-- 验证码生成工具（支持算术、中文、GIF 等多种类型） -->
         <dependency>
-            <groupId>io.github.fushuwei</groupId>
-            <artifactId>sca-skeleton-starter-captcha</artifactId>
+            <groupId>com.github.whvcse</groupId>
+            <artifactId>easy-captcha</artifactId>
         </dependency>
 
         <!-- Spring Session Redis：Auth 集群多副本共享登录会话 -->

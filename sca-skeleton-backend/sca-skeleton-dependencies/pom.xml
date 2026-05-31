@@ -25,6 +25,7 @@
         <uuid-creator.version>6.1.1</uuid-creator.version>
         <hutool.version>5.8.44</hutool.version>
         <springdoc.version>3.0.3</springdoc.version>
+        <captcha.version>1.6.2</captcha.version>
     </properties>
 
     <dependencyManagement>
@@ -91,6 +92,13 @@
                 <version>${hutool.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- 验证码生成工具（支持算术、中文、GIF 等多种类型） -->
+            <dependency>
+                <groupId>com.github.whvcse</groupId>
+                <artifactId>easy-captcha</artifactId>
+                <version>${captcha.version}</version>
             </dependency>
 
             <!-- SpringDoc OpenAPI 依赖版本管理（BOM） -->

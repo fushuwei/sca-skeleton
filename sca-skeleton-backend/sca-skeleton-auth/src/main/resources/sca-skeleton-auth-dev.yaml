@@ -51,14 +51,6 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
-# 验证码配置
-captcha:
-  width: 120
-  height: 44
-  code-length: 4
-  expire-seconds: 300
-  redis-key-prefix: "captcha:"
-
 # SCA 自定义认证服务配置
 sca:
   security:
@@ -101,6 +93,14 @@ sca:
         - "https://images.pexels.com/photos/29612112/pexels-photo-29612112.jpeg"
         - "https://images.pexels.com/photos/4253272/pexels-photo-4253272.jpeg"
         - "https://images.pexels.com/photos/36752381/pexels-photo-36752381.jpeg"
+
+  # 验证码配置
+  captcha:
+    width: 120
+    height: 44
+    code-length: 4
+    expire-seconds: 120
+    redis-key-prefix: "captcha:"
 
 management:
   endpoints:

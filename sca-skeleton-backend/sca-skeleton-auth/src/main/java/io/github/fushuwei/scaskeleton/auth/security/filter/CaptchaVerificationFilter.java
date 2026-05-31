@@ -2,7 +2,7 @@ package io.github.fushuwei.scaskeleton.auth.security.filter;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
-import io.github.fushuwei.scaskeleton.captcha.CaptchaService;
+import io.github.fushuwei.scaskeleton.auth.captcha.CaptchaService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
