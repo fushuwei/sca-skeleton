@@ -183,7 +183,7 @@ public class ImageCaptchaServiceImpl implements CaptchaService {
         }
 
         // 绘制验证码字符，每个字符使用不同颜色和微小旋转
-        Font font = new Font("Arial", Font.BOLD, height - 10);
+        Font font = new Font("Arial", Font.BOLD, height - 15);
         g.setFont(font);
         int charWidth = width / code.length();
         for (int i = 0; i < code.length(); i++) {
@@ -193,7 +193,7 @@ public class ImageCaptchaServiceImpl implements CaptchaService {
             g.rotate(angle, charWidth * i + charWidth / 2.0, height / 2.0);
             g.drawString(String.valueOf(code.charAt(i)),
                     charWidth * i + (charWidth - g.getFontMetrics().charWidth(code.charAt(i))) / 2,
-                    height - 8);
+                    height - 12);
             // 旋转复位，避免影响后续字符
             g.rotate(-angle, charWidth * i + charWidth / 2.0, height / 2.0);
         }

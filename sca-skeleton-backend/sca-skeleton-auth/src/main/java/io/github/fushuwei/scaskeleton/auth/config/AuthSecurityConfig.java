@@ -1,6 +1,7 @@
 package io.github.fushuwei.scaskeleton.auth.config;
 
 import io.github.fushuwei.scaskeleton.auth.security.RoutingUserDetailsService;
+import io.github.fushuwei.scaskeleton.auth.security.filter.CaptchaVerificationFilter;
 import io.github.fushuwei.scaskeleton.auth.security.filter.LoginChannelFilter;
 import io.github.fushuwei.scaskeleton.auth.web.ChannelAwareAuthenticationFailureHandler;
 import io.github.fushuwei.scaskeleton.auth.web.LoginPageController;
@@ -31,6 +32,9 @@ public class AuthSecurityConfig {
 
     /** 登录渠道解析过滤器（admin / portal） */
     private final LoginChannelFilter loginChannelFilter;
+
+    /** 验证码校验过滤器（在认证前验证图形验证码） */
+    private final CaptchaVerificationFilter captchaVerificationFilter;
 
     /** 登录失败回跳处理器 */
     private final ChannelAwareAuthenticationFailureHandler authenticationFailureHandler;
@@ -65,11 +69,16 @@ public class AuthSecurityConfig {
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                 // admin / portal 登录页 GET 与表单 POST 放行
                 .requestMatchers("/login/**").permitAll()
+                // 验证码生成接口放行（同时兼容网关 StripPrefix 后的路径和直连路径）
+                .requestMatchers("/captcha/**", "/auth/captcha/**").permitAll()
+                // 静态资源放行（同时兼容网关 StripPrefix 后的路径和直连路径）
+                .requestMatchers("/css/**", "/js/**", "/auth/css/**", "/auth/js/**").permitAll()
                 // 其余请求需 Session 认证（authorize 链路登录成功后持有 Session）
                 .anyRequest().authenticated()
             )
-            // 在 UsernamePasswordAuthenticationFilter 之前解析 loginChannel
+            // 在 UsernamePasswordAuthenticationFilter 之前：① 解析 loginChannel → ② 校验验证码 → ③ 认证
             .addFilterBefore(loginChannelFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(captchaVerificationFilter, UsernamePasswordAuthenticationFilter.class)
             .userDetailsService(routingUserDetailsService)
             .requestCache(cache -> cache.requestCache(httpSessionRequestCache))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))

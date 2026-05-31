@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLockProperties;
 import io.github.fushuwei.scaskeleton.auth.config.properties.AuthJwtProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLoginProperties;
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
 import io.github.fushuwei.scaskeleton.auth.security.filter.AuthorizeChannelIsolationFilter;
 import io.github.fushuwei.scaskeleton.auth.token.ScaOpaqueAccessTokenClaimsCustomizer;
@@ -48,7 +49,7 @@ import java.security.interfaces.RSAPublicKey;
  */
 @Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
-@EnableConfigurationProperties({OAuthClientsProperties.class, AuthJwtProperties.class, AuthLockProperties.class})
+@EnableConfigurationProperties({OAuthClientsProperties.class, AuthJwtProperties.class, AuthLockProperties.class, AuthLoginProperties.class})
 public class AuthorizationServerConfig {
 
     /** OAuth2 客户端与 issuer 等对外 URL 配置（issuer 默认值见 {@code sca-skeleton-auth-*.yaml}） */

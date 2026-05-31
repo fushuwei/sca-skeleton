@@ -160,6 +160,8 @@ gateway:
       - /auth/login/**
       - /auth/logout
       - /auth/captcha/**
+      - /auth/css/**
+      - /auth/js/**
       - /actuator/health
       - /actuator/info
 

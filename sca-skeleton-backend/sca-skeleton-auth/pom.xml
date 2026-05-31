@@ -49,6 +49,12 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
+        <!-- 项目验证码 Starter：登录页图形验证码生成与校验 -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-captcha</artifactId>
+        </dependency>
+
         <!-- Spring Session Redis：Auth 集群多副本共享登录会话 -->
         <dependency>
             <groupId>org.springframework.session</groupId>

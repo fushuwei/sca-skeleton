@@ -59,18 +59,29 @@
                     <h1 class="md3-display-small login-title">用户登录</h1>
                 </div>
 
-                <form action="/userLogin" method="post">
+                <form id="loginForm" onsubmit="return false">
                     <div class="md3-text-field-container">
                         <div class="md3-text-field-wrapper">
                             <span class="material-symbols-rounded field-icon">person</span>
-                            <input class="md3-text-field with-icon" type="text" name="username" placeholder="请输入用户名/邮箱/手机号">
+                            <input class="md3-text-field with-icon" type="text" id="username" placeholder="请输入用户名/邮箱/手机号">
+                            <div class="error-message" id="username-error" style="display: none;">
+                                <span class="material-symbols-rounded error-icon">error</span>
+                                <span class="error-text"></span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="md3-text-field-container">
                         <div class="md3-text-field-wrapper">
                             <span class="material-symbols-rounded field-icon">lock</span>
-                            <input class="md3-text-field with-icon" type="password" name="password" placeholder="请输入密码">
+                            <input class="md3-text-field with-icon" type="password" id="password" placeholder="请输入密码">
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">
+                                <span class="material-symbols-rounded">visibility</span>
+                            </button>
+                            <div class="error-message" id="password-error" style="display: none;">
+                                <span class="material-symbols-rounded error-icon">error</span>
+                                <span class="error-text"></span>
+                            </div>
                         </div>
                     </div>
 

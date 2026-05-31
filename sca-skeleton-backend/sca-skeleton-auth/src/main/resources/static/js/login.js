@@ -133,7 +133,15 @@ function initFormValidation() {
         const isUsernameValid = validateUsername(usernameInput, usernameError);
         const isPasswordValid = validatePassword(passwordInput, passwordError);
 
-        if (isUsernameValid && isPasswordValid) {
+        // Portal 页面需要额外验证验证码
+        const captchaCodeInput = document.getElementById('captchaCode');
+        const captchaCodeError = document.getElementById('captchaCode-error');
+        let isCaptchaValid = true;
+        if (captchaCodeInput && captchaCodeError) {
+            isCaptchaValid = validateCaptchaCode(captchaCodeInput, captchaCodeError);
+        }
+
+        if (isUsernameValid && isPasswordValid && isCaptchaValid) {
             // 表单验证通过，可以提交
             handleLoginProcess();
         }
@@ -178,6 +186,24 @@ function validatePassword(input, errorElement) {
     }
 }
 
+// 验证码验证（仅 portal 页面）
+function validateCaptchaCode(input, errorElement) {
+    if (!input || !errorElement) return false;
+
+    const captchaCode = input.value.trim();
+
+    if (captchaCode === '') {
+        setError(input, errorElement, '验证码不能为空');
+        return false;
+    } else if (captchaCode.length !== 6) {
+        setError(input, errorElement, '请输入6位验证码');
+        return false;
+    } else {
+        clearError(input, errorElement);
+        return true;
+    }
+}
+
 // 设置错误
 function setError(input, errorElement, message) {
     if (!input || !errorElement) return;
@@ -204,6 +230,11 @@ function handleLoginProcess() {
     const password = document.getElementById('password').value;
     const remember = document.getElementById('remember').checked;
     const loginBtn = document.getElementById('loginBtn');
+    const loginForm = document.getElementById('loginForm');
+
+    // 检查是否是 portal 页面，如果是则添加验证码字段
+    const captchaCodeInput = document.getElementById('captchaCode');
+    const captchaKeyInput = document.getElementById('captchaKey');
 
     // 显示登录中状态
     if (loginBtn) {
@@ -220,8 +251,17 @@ function handleLoginProcess() {
         formData.append('remember-me', 'true');
     }
 
+    // 如果存在验证码字段，添加到表单数据
+    if (captchaCodeInput && captchaKeyInput) {
+        formData.append('captchaCode', captchaCodeInput.value);
+        formData.append('captchaKey', captchaKeyInput.value);
+    }
+
+    // 获取表单的 action URL
+    const actionUrl = loginForm ? loginForm.getAttribute('action') : '/login';
+
     // 使用Fetch API提交登录请求
-    fetch('/login', {
+    fetch(actionUrl, {
         method: 'POST',
         body: formData,
         credentials: 'same-origin' // 确保Cookie随请求发送
@@ -251,6 +291,11 @@ function handleLoginProcess() {
             document.body.removeChild(errorElement);
         }, 3000);
 
+        // 刷新验证码（如果是 portal 页面）
+        if (captchaCodeInput) {
+            refreshCaptcha();
+        }
+
         // 重置登录按钮状态
         if (loginBtn) {
             loginBtn.classList.remove('loading');
@@ -260,6 +305,40 @@ function handleLoginProcess() {
     });
 }
 
+// 验证码刷新
+function refreshCaptcha() {
+    const captchaImg = document.getElementById('captchaImg');
+    const captchaKeyInput = document.getElementById('captchaKey');
+    if (!captchaImg || !captchaKeyInput) return;
+
+    const newKey = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            const r = Math.random() * 16 | 0;
+            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+    captchaKeyInput.value = newKey;
+
+    const baseUrl = captchaImg.getAttribute('data-captcha-url') || '/auth/captcha/generate';
+    captchaImg.src = baseUrl + '?key=' + newKey + '&t=' + Date.now();
+
+    const captchaCodeInput = document.getElementById('captchaCode');
+    if (captchaCodeInput) {
+        captchaCodeInput.value = '';
+        captchaCodeInput.focus();
+    }
+}
+
+// 隐藏 loading 遮罩
+function hidePageLoader() {
+    const loader = document.getElementById('pageLoader');
+    if (loader) {
+        setTimeout(() => {
+            loader.classList.add('hidden');
+        }, 600);
+    }
+}
+
 // 页面加载完成后初始化所有功能
 document.addEventListener('DOMContentLoaded', () => {
     // 初始化轮播图
@@ -267,4 +346,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 初始化表单验证
     initFormValidation();
+
+    // 绑定验证码刷新
+    const captchaImg = document.getElementById('captchaImg');
+    if (captchaImg) {
+        captchaImg.addEventListener('click', refreshCaptcha);
+    }
+
+    // 隐藏 loading
+    hidePageLoader();
+});
+
+// 页面完全加载后确保 loading 隐藏
+window.addEventListener('load', () => {
+    hidePageLoader();
 });

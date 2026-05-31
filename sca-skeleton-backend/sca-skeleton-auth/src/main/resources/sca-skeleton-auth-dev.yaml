@@ -51,6 +51,14 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
+# 验证码配置
+captcha:
+  width: 120
+  height: 44
+  code-length: 4
+  expire-seconds: 300
+  redis-key-prefix: "captcha:"
+
 # SCA 自定义认证服务配置
 sca:
   security:
@@ -81,6 +89,18 @@ sca:
     lock:
       max-fail-count: 5
       lock-duration-seconds: 1800
+    # 登录页动态配置（通过 Thymeleaf 注入；未来可扩展为数据库驱动）
+    login:
+      system-name: "SCA Skeleton"
+      logo-url: ""
+      copyright: "© 2025 SCA Skeleton. All rights reserved."
+      # 表单提交 URL：网关模式下使用 /auth/login/authenticate（浏览器经网关 POST），
+      # 直连模式下使用 /login/authenticate
+      login-processing-url: "/auth/login/authenticate"
+      carousel-images:
+        - "https://images.pexels.com/photos/29612112/pexels-photo-29612112.jpeg"
+        - "https://images.pexels.com/photos/4253272/pexels-photo-4253272.jpeg"
+        - "https://images.pexels.com/photos/36752381/pexels-photo-36752381.jpeg"
 
 management:
   endpoints:

@@ -1,0 +1,17 @@
+package io.github.fushuwei.scaskeleton.auth.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration(proxyBeanMethods = false)
+public class AuthWebMvcConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/auth/css/**")
+                .addResourceLocations("classpath:/static/css/");
+        registry.addResourceHandler("/auth/js/**")
+                .addResourceLocations("classpath:/static/js/");
+    }
+}
