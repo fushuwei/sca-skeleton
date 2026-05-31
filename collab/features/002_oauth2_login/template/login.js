@@ -26,8 +26,6 @@ function showSlide(slideIndex) {
     indicators[slideIndex].classList.add('active');
 
     currentSlide = slideIndex;
-
-    console.log('Changed to slide:', slideIndex);
 }
 
 // 移动轮播图
