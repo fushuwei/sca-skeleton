@@ -195,8 +195,8 @@ function validateCaptchaCode(input, errorElement) {
     if (captchaCode === '') {
         setError(input, errorElement, '验证码不能为空');
         return false;
-    } else if (captchaCode.length !== 6) {
-        setError(input, errorElement, '请输入6位验证码');
+    } else if (captchaCode.length !== 4) {
+        setError(input, errorElement, '请输入4位验证码');
         return false;
     } else {
         clearError(input, errorElement);
