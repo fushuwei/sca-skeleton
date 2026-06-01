@@ -224,15 +224,12 @@ function clearError(input, errorElement) {
 
 // 登录处理过程
 function handleLoginProcess() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
     const remember = document.getElementById('remember').checked;
     const loginBtn = document.getElementById('loginBtn');
     const loginForm = document.getElementById('loginForm');
 
-    // 检查是否是 portal 页面，如果是则添加验证码字段
+    // 检查是否是 portal 页面，如果是则有验证码字段
     const captchaCodeInput = document.getElementById('captchaCode');
-    const captchaKeyInput = document.getElementById('captchaKey');
 
     // 显示登录中状态
     if (loginBtn) {
@@ -241,18 +238,10 @@ function handleLoginProcess() {
         loginBtn.disabled = true;
     }
 
-    // 创建表单数据
-    const formData = new FormData();
-    formData.append('username', username);
-    formData.append('password', password);
+    // 从表单构建 FormData，自动包含 CSRF Token、loginChannel、username、password 及验证码等所有字段
+    const formData = new FormData(loginForm);
     if (remember) {
         formData.append('remember-me', 'true');
-    }
-
-    // 如果存在验证码字段，添加到表单数据
-    if (captchaCodeInput && captchaKeyInput) {
-        formData.append('captchaCode', captchaCodeInput.value);
-        formData.append('captchaKey', captchaKeyInput.value);
     }
 
     // 获取表单的 action URL
