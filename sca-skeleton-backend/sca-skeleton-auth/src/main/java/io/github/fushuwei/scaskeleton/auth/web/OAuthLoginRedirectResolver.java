@@ -34,11 +34,13 @@ public class OAuthLoginRedirectResolver {
      *
      * @param request  当前请求
      * @param response 当前响应
+     * @param channel  当前渠道标识（admin / portal），用于从渠道感知的 pending map 中精准取值
      * @return 经网关可访问的 authorize URL；无可用恢复目标时返回 null
      */
-    public String resolvePostLoginRedirectUrl(HttpServletRequest request, HttpServletResponse response) {
-        // 1) 优先使用 entry point 写入的 pending authorize（跨 Session 分裂场景更可靠）
-        String pending = pendingAuthorizeStore.peekPendingAuthorizeUrl(request);
+    public String resolvePostLoginRedirectUrl(HttpServletRequest request, HttpServletResponse response,
+            String channel) {
+        // 1) 优先使用 entry point 写入的 pending authorize（按渠道隔离，跨 Session 分裂场景更可靠）
+        String pending = pendingAuthorizeStore.peekPendingAuthorizeUrl(request, channel);
         if (StringUtils.hasText(pending) && pending.contains("/oauth2/")) {
             return pending;
         }
@@ -56,9 +58,11 @@ public class OAuthLoginRedirectResolver {
 
     /**
      * 登录成功并完成跳转后清除 pending 与 SavedRequest，避免重复消费。
+     *
+     * @param channel 当前渠道标识（admin / portal），仅清除对应渠道的 pending
      */
-    public void removeSavedRequest(HttpServletRequest request, HttpServletResponse response) {
-        pendingAuthorizeStore.clearPendingAuthorizeUrl(request);
+    public void removeSavedRequest(HttpServletRequest request, HttpServletResponse response, String channel) {
+        pendingAuthorizeStore.clearPendingAuthorizeUrl(request, channel);
         requestCache.removeRequest(request, response);
     }
 

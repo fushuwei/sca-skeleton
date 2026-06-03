@@ -3,6 +3,7 @@ package io.github.fushuwei.scaskeleton.auth.security.filter;
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
 import io.github.fushuwei.scaskeleton.auth.web.AuthSessionAttributes;
+import io.github.fushuwei.scaskeleton.auth.web.OAuthPendingAuthorizeStore;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +19,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * 授权端点渠道隔离过滤器：阻断 admin 与 portal 共用同一 Auth 登录会话。
@@ -33,6 +35,12 @@ public class AuthorizeChannelIsolationFilter extends OncePerRequestFilter {
 
     /** OAuth2 客户端配置（用于 client_id -> channel 映射）。 */
     private final OAuthClientsProperties oauthClientsProperties;
+
+    /** Pending authorize 存储（用于 session.invalidate 前保存渠道级 pending 数据）。 */
+    private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
+
+    /** Request attribute：暂存从旧 Session 迁出的 pending authorize map，供 EntryPoint 恢复到新 Session。 */
+    public static final String PRESERVED_PENDING_MAP_ATTR = "SCA_PRESERVED_PENDING_AUTHORIZE_MAP";
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -50,13 +58,20 @@ public class AuthorizeChannelIsolationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        // 已登录但 session 记录渠道与 authorize client_id 不一致时，清理会话后要求重新登录。
+        // 已登录但 session 记录渠道与 authorize client_id 不一致时，
+        // 销毁旧 Session（刷新 CSRF token），但通过 request attribute 保留 pending authorize map，
+        // 供 ClientAwareLoginUrlAuthenticationEntryPoint 恢复到新 Session。
         if (!isChannelMatched(request)) {
+            Map<String, String> preservedPendingMap = pendingAuthorizeStore.readPendingMap(request);
             HttpSession session = request.getSession(false);
             if (session != null) {
                 session.invalidate();
             }
             SecurityContextHolder.clearContext();
+            // 暂存到 request attribute，后续 EntryPoint 的 savePendingAuthorizeRequest 会合并到新 Session
+            if (preservedPendingMap != null && !preservedPendingMap.isEmpty()) {
+                request.setAttribute(PRESERVED_PENDING_MAP_ATTR, preservedPendingMap);
+            }
         }
         filterChain.doFilter(request, response);
     }

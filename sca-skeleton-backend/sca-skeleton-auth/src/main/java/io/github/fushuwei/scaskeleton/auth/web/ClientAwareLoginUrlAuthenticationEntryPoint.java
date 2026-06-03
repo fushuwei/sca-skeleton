@@ -1,12 +1,14 @@
 package io.github.fushuwei.scaskeleton.auth.web;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
+import io.github.fushuwei.scaskeleton.auth.security.filter.AuthorizeChannelIsolationFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * 客户端感知的登录入口：根据 OAuth2 authorize 请求中的 {@code client_id} 跳转到不同登录页。
@@ -44,12 +46,27 @@ public class ClientAwareLoginUrlAuthenticationEntryPoint extends LoginUrlAuthent
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException authException) throws IOException {
-        // 在跳转登录页前写入 pending authorize，供表单登录成功后恢复（不依赖 SavedRequest 单槽位）
+        // 若 AuthorizeChannelIsolationFilter 因渠道不匹配销毁了旧 Session，
+        // 它会把旧 Session 的 pending authorize map 暂存到 request attribute。
+        // 这里先恢复到新 Session，确保其他渠道的 pending 不丢失。
+        restorePreservedPendingMap(request);
+        // 在跳转登录页前写入当前渠道的 pending authorize，供表单登录成功后恢复（不依赖 SavedRequest 单槽位）
         pendingAuthorizeStore.savePendingAuthorizeRequest(request);
         // 从 authorize 请求 query 读取 client_id，映射 admin / portal 登录页
         String clientId = request.getParameter("client_id");
         String loginUrl = oauthClientsProperties.resolveExternalLoginUrl(clientId);
         // 302 到网关登录页（浏览器后续请求仍走网关 /auth/**）
         response.sendRedirect(loginUrl);
+    }
+
+    /**
+     * 将 {@link AuthorizeChannelIsolationFilter} 暂存的 pending authorize map 恢复到新 Session。
+     */
+    @SuppressWarnings("unchecked")
+    private void restorePreservedPendingMap(HttpServletRequest request) {
+        Object preserved = request.getAttribute(AuthorizeChannelIsolationFilter.PRESERVED_PENDING_MAP_ATTR);
+        if (preserved instanceof Map) {
+            pendingAuthorizeStore.writePendingMap(request, (Map<String, String>) preserved);
+        }
     }
 }

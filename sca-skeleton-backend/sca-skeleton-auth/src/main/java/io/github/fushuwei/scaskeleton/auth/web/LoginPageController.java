@@ -135,7 +135,13 @@ public class LoginPageController {
             SecurityContextHolder.clearContext();
             return null;
         }
-        String target = redirectResolver.resolvePostLoginRedirectUrl(request, response);
+        // 从 Session 中获取当前渠道（如果已登录）
+        String channel = null;
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            channel = (String) session.getAttribute(AuthSessionAttributes.LOGIN_CHANNEL);
+        }
+        String target = redirectResolver.resolvePostLoginRedirectUrl(request, response, channel);
         if (StringUtils.hasText(target)) {
             return target;
         }

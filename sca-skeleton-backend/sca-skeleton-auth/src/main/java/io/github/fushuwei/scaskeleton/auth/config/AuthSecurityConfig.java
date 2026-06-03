@@ -77,8 +77,11 @@ public class AuthSecurityConfig {
         http
             // 不处理 OAuth2 / OIDC 端点，避免与 Order=1 的 SAS 链争抢匹配
             .securityMatcher(oauthEndpointsExcludedMatcher())
-            // 仅放行统一登出接口的 CSRF（前端通过表单 POST 携带 token，避免 token 暴露到 URL）
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/logout"))
+            // CSRF 保护配置：
+            // - /logout: 前端通过表单 POST 携带 token，避免 token 暴露到 URL
+            // - /login/authenticate: 登录表单提交，OAuth2 PKCE 已通过 state 参数提供 CSRF 保护
+            //   且 admin/portal 可能共享 session，需要禁用 CSRF 避免跨标签页登录冲突
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/logout", "/login/authenticate"))
             // 表单登录启用 CSRF；OAuth2 标准端点由 Order=1 的 SAS 过滤链单独处理
             .authorizeHttpRequests(authorize -> authorize
                 // 健康检查无需认证

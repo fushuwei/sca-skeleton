@@ -37,9 +37,9 @@ public class OAuthAuthorizeLoginSuccessHandler implements AuthenticationSuccessH
         String loginChannel = request.getParameter("loginChannel");
         session.setAttribute(AuthSessionAttributes.LOGIN_CHANNEL,
                 LoginChannel.fromValue(loginChannel).getValue());
-        String target = redirectResolver.resolvePostLoginRedirectUrl(request, response);
+        String target = redirectResolver.resolvePostLoginRedirectUrl(request, response, loginChannel);
         if (StringUtils.hasText(target)) {
-            redirectResolver.removeSavedRequest(request, response);
+            redirectResolver.removeSavedRequest(request, response, loginChannel);
             response.sendRedirect(target);
             return;
         }
