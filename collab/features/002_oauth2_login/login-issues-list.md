@@ -12,7 +12,7 @@
 
 5. 在 admin 登录页面，输入正确的用户名和密码，点击登录，页面不要出现空白页然后中间显示几个正在跳转的的文案，请一律使用全局 loading 效果，我已经在 template 目录下提供了 loading.html 效果，如果你还没有将其封装到整个前端公共组件，请你先封装一下，然后应用到该需求中
 
-6. 关于登录过程存在的一个体验问题（以后台 admin 页面为例）：访问 localhost:5173，浏览器跳转到 auth 的登录页，当在这个登录页停留一段时间，然后输入正确的用户名和密码，点击登录后，页面没有任何提示，浏览器会刷新，但是刷新后依旧停留在登录页，此时浏览器地址：
+6. 关于登录过程存在的一个体验问题（以后台 admin 页面为例）：访问 localhost:5173，浏览器跳转到 auth 的登录页，当在这个登录页停留一段时间，然后输入正确的用户名和密码，点击登录后，页面没有任何提示，浏览器会刷新，但是刷新后依旧停留在登录页，此时浏览器地址：http://localhost:9999/auth/login/authenticate
 
 7. 在以上问题的基础上，有时候登录退出多了，在同一个浏览器中再次访问 localhost:5173，浏览器地址会跳转到：http://localhost:5173/oauth/callback?code=__PTsrKoN-5AdikFOrxGCv27LLJtr2loKgmaaIRJskO_OibCNgvg2UKyIMg0RBzM-RwTgawUdODOBPh6vl2VtYH0kYxn3a0i3iMyYKz-H2igJkLM3LHXlQQZOGfqwX4v&state=yBIeUJB3mQeRUMHqB816F-2mdIv~dWkm ，此时页面是白色背景，中间提示一行字：授权回调参数无效，请重新登录
 

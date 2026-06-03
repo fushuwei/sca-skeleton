@@ -230,6 +230,12 @@ function handleLoginProcess() {
 
     if (!loginForm) return;
 
+    // 按钮切换为“登录中...”并禁用，防止重复提交
+    if (loginBtn) {
+        loginBtn.textContent = '登录中...';
+        loginBtn.disabled = true;
+    }
+
     // 如果勾选了"记住我"，动态追加 remember-me 隐藏字段
     if (remember) {
         let rememberInput = loginForm.querySelector('input[name="remember-me"]');
@@ -242,17 +248,26 @@ function handleLoginProcess() {
         rememberInput.value = 'true';
     }
 
-    // 显示登录中状态
-    if (loginBtn) {
-        loginBtn.classList.add('loading');
-        loginBtn.textContent = '登录中...';
-        loginBtn.disabled = true;
+    // 立即移除 Toast Tips（不用过渡动画，因为 submit 会立即跳转页面）
+    const toast = document.querySelector('.login-toast');
+    if (toast) toast.remove();
+    if (toastTimer) {
+        clearTimeout(toastTimer);
+        toastTimer = null;
     }
 
     // 直接提交 HTML 表单，让浏览器自然跟随服务端的 302 重定向
     // 登录成功后 OAuthAuthorizeLoginSuccessHandler 会 302 到 authorize URL，
     // 进而回调到前端的 OAuthCallbackView 完成 token 交换和最终跳转
     loginForm.submit();
+}
+
+// 显示页面加载遮罩
+function showPageLoader() {
+    const loader = document.getElementById('pageLoader');
+    if (loader) {
+        loader.classList.remove('hidden');
+    }
 }
 
 // 验证码刷新
@@ -289,6 +304,87 @@ function hidePageLoader() {
     }
 }
 
+// 读取 URL 查询参数并在浏览器中间顶部显示黑色 Toast Tips（5 秒后自动关闭）
+function handleServerErrors() {
+    const params = new URLSearchParams(window.location.search);
+
+    // 验证码错误优先展示（避免与用户名密码错误重复）
+    if (params.has('captcha-error')) {
+        showToast('验证码错误，请重新输入');
+        return;
+    }
+
+    // 用户名密码错误
+    if (params.has('error')) {
+        showToast('用户名或密码错误，请重试');
+        return;
+    }
+}
+
+/** 当前 toast 的自动关闭定时器 */
+let toastTimer = null;
+
+/**
+ * 在浏览器中间顶部显示黑色 Toast Tips，5 秒后自动消失。
+ * @param {string} message 提示文本
+ */
+function showToast(message) {
+    // 先移除旧 toast
+    dismissToast();
+
+    const toast = document.createElement('div');
+    toast.className = 'login-toast';
+
+    // 左侧错误/警告图标
+    const icon = document.createElement('span');
+    icon.className = 'material-symbols-rounded toast-icon';
+    icon.textContent = 'error';
+
+    // 文本
+    const text = document.createElement('span');
+    text.textContent = message;
+
+    // 右侧关闭按钮 — 用 button 确保可点击，区域不小于 24×24
+    const closeWrapper = document.createElement('button');
+    closeWrapper.className = 'toast-close-btn';
+    closeWrapper.type = 'button';
+    const closeIcon = document.createElement('span');
+    closeIcon.className = 'material-symbols-rounded';
+    closeIcon.textContent = 'close';
+    closeWrapper.appendChild(closeIcon);
+    closeWrapper.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dismissToast();
+    });
+
+    toast.appendChild(icon);
+    toast.appendChild(text);
+    toast.appendChild(closeWrapper);
+    document.body.appendChild(toast);
+
+    // 显示动画
+    toast.style.animation = 'toastFadeIn 0.25s ease forwards';
+
+    // 5 秒后自动关闭
+    toastTimer = setTimeout(() => dismissToast(), 5000);
+}
+
+/**
+ * 立即关闭当前 Toast（带淡出过渡）
+ */
+function dismissToast() {
+    if (toastTimer) {
+        clearTimeout(toastTimer);
+        toastTimer = null;
+    }
+    const toast = document.querySelector('.login-toast');
+    if (toast) {
+        toast.style.opacity = '0';
+        toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+    }
+}
+
 // 页面加载完成后初始化所有功能
 document.addEventListener('DOMContentLoaded', () => {
     // 初始化轮播图
@@ -302,6 +398,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (captchaImg) {
         captchaImg.addEventListener('click', refreshCaptcha);
     }
+
+    // 读取 URL 参数并显示服务端错误（如 ?error 或 ?captcha-error）
+    handleServerErrors();
 
     // 隐藏 loading
     hidePageLoader();

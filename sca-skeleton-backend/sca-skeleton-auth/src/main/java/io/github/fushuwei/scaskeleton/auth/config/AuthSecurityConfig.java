@@ -83,6 +83,8 @@ public class AuthSecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 // 健康检查无需认证
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                // 统一退出端点：LogoutFilter 已配置 permitAll，此处作为 AuthorizationFilter 的兜底放行
+                .requestMatchers("/logout").permitAll()
                 // admin / portal 登录页 GET 与表单 POST 放行
                 .requestMatchers("/login/**").permitAll()
                 // 验证码生成接口放行（同时兼容网关 StripPrefix 后的路径和直连路径）

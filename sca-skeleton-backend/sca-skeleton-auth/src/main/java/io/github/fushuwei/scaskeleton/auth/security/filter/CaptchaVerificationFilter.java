@@ -98,13 +98,16 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 验证码校验失败时，302 重定向回登录页并携带 {@code captcha-error} 标记。
+     * 验证码校验失败时，302 重定向回登录页并仅携带 {@code captcha-error} 标记。
+     * <p>
+     * 不使用 {@code resolveExternalLoginFailureUrl}（该方法固定携带 {@code ?error}），
+     * 否则会导致登录页同时展示“用户名密码错误”与“验证码错误”两条提示。
      */
     private void redirectWithCaptchaError(HttpServletRequest request, HttpServletResponse response,
             String loginChannel) throws IOException {
         String clientId = resolveClientId(loginChannel);
-        String failureUrl = oauthClientsProperties.resolveExternalLoginFailureUrl(clientId)
-                + "&" + CAPTCHA_ERROR_PARAM;
+        String failureUrl = oauthClientsProperties.resolveExternalLoginUrl(clientId)
+                + "?captcha-error";
         response.sendRedirect(failureUrl);
     }
 

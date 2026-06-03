@@ -34,19 +34,50 @@ public class OAuthAuthorizeLoginSuccessHandler implements AuthenticationSuccessH
             Authentication authentication) throws IOException, ServletException {
         // 登录成功后将渠道写入 Session，后续 authorize 请求据此做 admin/portal 会话隔离。
         HttpSession session = request.getSession(true);
+        String loginChannel = request.getParameter("loginChannel");
         session.setAttribute(AuthSessionAttributes.LOGIN_CHANNEL,
-                LoginChannel.fromValue(request.getParameter("loginChannel")).getValue());
+                LoginChannel.fromValue(loginChannel).getValue());
         String target = redirectResolver.resolvePostLoginRedirectUrl(request, response);
         if (StringUtils.hasText(target)) {
             redirectResolver.removeSavedRequest(request, response);
             response.sendRedirect(target);
             return;
         }
-        // 无 OAuth 恢复目标时回到登录页并提示（禁止回退 SavedRequestAwareAuthenticationSuccessHandler 以免跳内网地址）
-        String loginChannel = request.getParameter("loginChannel");
+        // 无 OAuth 恢复目标（如退出后直接访问登录页，或 SavedRequest 超时过期）：
+        // 跳转到 SPA 根路径，由 SPA 路由守卫检测无本地 token 后自动发起 PKCE → authorize 流程。
+        // 此时 Auth 服务已有有效 Session，authorize 请求将直接通过，回调 SPA 完成令牌交换。
         String clientId = LoginChannel.PORTAL.getValue().equals(loginChannel)
                 ? oauthClientsProperties.getPortal().getClientId()
                 : oauthClientsProperties.getAdmin().getClientId();
-        response.sendRedirect(oauthClientsProperties.resolveExternalLoginFailureUrl(clientId) + "&reason=oauth_session");
+        String redirectUri = LoginChannel.PORTAL.getValue().equals(loginChannel)
+                ? oauthClientsProperties.getPortal().getRedirectUri()
+                : oauthClientsProperties.getAdmin().getRedirectUri();
+        // 从 redirect_uri 提取 SPA 根路径（如 http://localhost:5173/oauth/callback → http://localhost:5173/）
+        String spaRoot = extractSpaRoot(redirectUri);
+        if (StringUtils.hasText(spaRoot)) {
+            response.sendRedirect(spaRoot);
+        } else {
+            // 兜底：跳转到对应登录页（此分支仅在 redirectUri 配置异常时触发）
+            response.sendRedirect(oauthClientsProperties.resolveExternalLoginUrl(clientId));
+        }
+    }
+
+    /** 从 OAuth redirect_uri 提取 SPA 根路径（如 {@code http://localhost:5173/oauth/callback} → {@code http://localhost:5173/}）。 */
+    private String extractSpaRoot(String redirectUri) {
+        if (!StringUtils.hasText(redirectUri)) {
+            return null;
+        }
+        try {
+            java.net.URI uri = java.net.URI.create(redirectUri);
+            String path = uri.getPath();
+            if (StringUtils.hasText(path) && !"/".equals(path)) {
+                // 去掉回调路径部分，保留 SPA 根路径
+                String root = redirectUri.substring(0, redirectUri.indexOf(path)) + "/";
+                return root.endsWith("//") ? root.substring(0, root.length() - 1) : root;
+            }
+            return redirectUri;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }

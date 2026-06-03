@@ -750,6 +750,11 @@ body {
     box-shadow: 0 2px 8px rgba(0, 100, 148, 0.3);
 }
 
+.login-button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
 .form-options {
     display: flex;
     justify-content: space-between;
@@ -978,4 +983,72 @@ body {
     font-size: 12px;
     color: var(--md-sys-color-on-surface-variant);
     opacity: 0.6;
+}
+
+/* 错误提示 Toast Tips —— 固定在浏览器中间顶部，黑色无圆角长方形 */
+.login-toast {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    height: 64px;
+    padding: 0 12px;
+    background-color: #000;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 64px;
+    border-radius: 0;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: auto;
+    white-space: nowrap;
+}
+
+.login-toast .toast-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-right: 8px;
+}
+
+.login-toast .toast-close-btn {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    margin-left: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0.7;
+    padding: 0;
+}
+
+.login-toast .toast-close-btn:hover {
+    opacity: 1;
+}
+
+.login-toast .toast-close-btn .material-symbols-rounded {
+    font-size: 20px;
+}
+
+.login-toast.visible {
+    opacity: 1;
+}
+
+@keyframes toastFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
