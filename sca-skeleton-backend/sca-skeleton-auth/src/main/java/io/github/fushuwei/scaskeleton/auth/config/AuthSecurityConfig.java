@@ -1,11 +1,13 @@
 package io.github.fushuwei.scaskeleton.auth.config;
 
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
 import io.github.fushuwei.scaskeleton.auth.security.RoutingUserDetailsService;
 import io.github.fushuwei.scaskeleton.auth.security.filter.CaptchaVerificationFilter;
 import io.github.fushuwei.scaskeleton.auth.security.filter.LoginChannelFilter;
 import io.github.fushuwei.scaskeleton.auth.web.ChannelAwareAuthenticationFailureHandler;
 import io.github.fushuwei.scaskeleton.auth.web.LoginPageController;
 import io.github.fushuwei.scaskeleton.auth.web.OAuthAuthorizeLoginSuccessHandler;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,12 +15,20 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.util.StringUtils;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Auth 服务默认安全过滤链：托管 admin / portal 登录页与表单认证（Order=2，低于 SAS 端点链）。
@@ -44,6 +54,12 @@ public class AuthSecurityConfig {
 
     /** 与 SAS 过滤链共享的 SavedRequest 缓存 */
     private final HttpSessionRequestCache httpSessionRequestCache;
+
+    /** OAuth 客户端配置（用于退出后按渠道重定向） */
+    private final OAuthClientsProperties oauthClientsProperties;
+
+    /** OAuth2 授权存储服务（用于退出时吊销令牌） */
+    private final OAuth2AuthorizationService oAuth2AuthorizationService;
 
     /**
      * 默认安全过滤链：登录页、表单认证、Actuator 健康检查。
@@ -90,6 +106,14 @@ public class AuthSecurityConfig {
                 .successHandler(oauthAuthorizeLoginSuccessHandler)
                 .failureHandler(authenticationFailureHandler)
                 .permitAll()
+            )
+            // 统一退出配置：LogoutFilter 在 AuthorizationFilter 之前拦截 POST /logout，
+            // 完成令牌吊销 → Session 销毁 → 按渠道重定向到经网关的正确登录页
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .permitAll()   // 允许未认证用户执行退出（前端通过表单参数提交 token）
+                .addLogoutHandler(this::revokeTokens)
+                .logoutSuccessHandler(this::onLogoutSuccess)
             );
 
         return http.build();
@@ -101,6 +125,58 @@ public class AuthSecurityConfig {
             String uri = request.getRequestURI();
             return !uri.startsWith("/oauth2/") && !uri.startsWith("/.well-known/");
         };
+    }
+
+    /**
+     * 退出 LogoutHandler：根据表单参数吊销 access_token / refresh_token。
+     */
+    private void revokeTokens(jakarta.servlet.http.HttpServletRequest request,
+            jakarta.servlet.http.HttpServletResponse response,
+            org.springframework.security.core.Authentication authentication) {
+        String accessToken = request.getParameter("access_token");
+        String refreshToken = request.getParameter("refresh_token");
+        // 防止 access / refresh 指向同一 authorization 时重复删除
+        Set<String> removedIds = new HashSet<>();
+        revokeTokenIfPresent(accessToken, OAuth2TokenType.ACCESS_TOKEN, removedIds);
+        revokeTokenIfPresent(refreshToken, OAuth2TokenType.REFRESH_TOKEN, removedIds);
+    }
+
+    private void revokeTokenIfPresent(String tokenValue, OAuth2TokenType tokenType, Set<String> removedIds) {
+        if (!StringUtils.hasText(tokenValue)) {
+            return;
+        }
+        OAuth2Authorization authorization = oAuth2AuthorizationService.findByToken(tokenValue, tokenType);
+        if (authorization == null || !removedIds.add(authorization.getId())) {
+            return;
+        }
+        oAuth2AuthorizationService.remove(authorization);
+    }
+
+    /**
+     * 退出 LogoutSuccessHandler：销毁 Session → 清理 SecurityContext → 重定向到对应登录页。
+     */
+    private void onLogoutSuccess(jakarta.servlet.http.HttpServletRequest request,
+            jakarta.servlet.http.HttpServletResponse response,
+            org.springframework.security.core.Authentication authentication) throws java.io.IOException {
+        // 销毁服务端 Session（含 pending authorize 与登录渠道信息）
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        // 清理线程上下文
+        SecurityContextHolder.clearContext();
+        // 按渠道回到对应登录页
+        String channel = request.getParameter("channel");
+        String clientId = resolveClientId(channel);
+        response.sendRedirect(oauthClientsProperties.resolveExternalLoginUrl(clientId));
+    }
+
+    /** 将 channel 参数映射为对应 clientId，未知值默认 admin。 */
+    private String resolveClientId(String channel) {
+        if (StringUtils.hasText(channel) && "portal".equalsIgnoreCase(channel)) {
+            return oauthClientsProperties.getPortal().getClientId();
+        }
+        return oauthClientsProperties.getAdmin().getClientId();
     }
 
     /** 密码编码器：使用 Spring Security 默认委托实现。 */
