@@ -18,7 +18,8 @@ import java.io.IOException;
 /**
  * 验证码校验过滤器：在表单认证前验证图形验证码。
  * <p>
- * 仅拦截 {@code POST /login/authenticate}，读取 {@code captchaKey} 与
+ * 仅拦截 {@code POST /login/authenticate} 且当前登录渠道为 {@link LoginChannel#PORTAL} 时生效；
+ * admin 渠道不要求验证码（管理后台运维场景，简化登录流程）。校验时读取 {@code captchaKey} 与
  * {@code captchaCode} 表单字段，调用 {@link CaptchaService#verify} 进行校验。
  * 校验失败时根据 {@code loginChannel} 参数回跳对应登录页并携带
  * {@code captcha-error} 标记；校验通过后继续过滤器链。
@@ -60,20 +61,27 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // 仅 portal 渠道强制校验图形验证码：admin 登录页不展示验证码，无需校验。
+        String loginChannel = request.getParameter(PARAM_LOGIN_CHANNEL);
+        if (!LoginChannel.PORTAL.getValue().equals(loginChannel)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // 读取表单中的验证码字段
         String captchaKey = request.getParameter(PARAM_CAPTCHA_KEY);
         String captchaCode = request.getParameter(PARAM_CAPTCHA_CODE);
 
-        // 验证码为空时直接放行（前端已做非空校验；后端再次校验避免绕过）
+        // portal 渠道未提交验证码时回跳登录页并携带 captcha-error 标记
         if (!StringUtils.hasText(captchaKey) || !StringUtils.hasText(captchaCode)) {
-            redirectWithCaptchaError(request, response);
+            redirectWithCaptchaError(request, response, loginChannel);
             return;
         }
 
         // 调用验证码服务校验（内部校验后立即删除 Redis key，一次性使用）
         boolean verified = captchaService.verify(captchaKey, captchaCode);
         if (!verified) {
-            redirectWithCaptchaError(request, response);
+            redirectWithCaptchaError(request, response, loginChannel);
             return;
         }
 
@@ -92,9 +100,8 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
     /**
      * 验证码校验失败时，302 重定向回登录页并携带 {@code captcha-error} 标记。
      */
-    private void redirectWithCaptchaError(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        String loginChannel = request.getParameter(PARAM_LOGIN_CHANNEL);
+    private void redirectWithCaptchaError(HttpServletRequest request, HttpServletResponse response,
+            String loginChannel) throws IOException {
         String clientId = resolveClientId(loginChannel);
         String failureUrl = oauthClientsProperties.resolveExternalLoginFailureUrl(clientId)
                 + "&" + CAPTCHA_ERROR_PARAM;
