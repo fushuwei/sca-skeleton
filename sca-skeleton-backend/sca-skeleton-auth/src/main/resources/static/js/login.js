@@ -228,8 +228,19 @@ function handleLoginProcess() {
     const loginBtn = document.getElementById('loginBtn');
     const loginForm = document.getElementById('loginForm');
 
-    // 检查是否是 portal 页面，如果是则有验证码字段
-    const captchaCodeInput = document.getElementById('captchaCode');
+    if (!loginForm) return;
+
+    // 如果勾选了"记住我"，动态追加 remember-me 隐藏字段
+    if (remember) {
+        let rememberInput = loginForm.querySelector('input[name="remember-me"]');
+        if (!rememberInput) {
+            rememberInput = document.createElement('input');
+            rememberInput.type = 'hidden';
+            rememberInput.name = 'remember-me';
+            loginForm.appendChild(rememberInput);
+        }
+        rememberInput.value = 'true';
+    }
 
     // 显示登录中状态
     if (loginBtn) {
@@ -238,58 +249,10 @@ function handleLoginProcess() {
         loginBtn.disabled = true;
     }
 
-    // 从表单构建 FormData，自动包含 CSRF Token、loginChannel、username、password 及验证码等所有字段
-    const formData = new FormData(loginForm);
-    if (remember) {
-        formData.append('remember-me', 'true');
-    }
-
-    // 获取表单的 action URL
-    const actionUrl = loginForm ? loginForm.getAttribute('action') : '/login';
-
-    // 使用Fetch API提交登录请求
-    fetch(actionUrl, {
-        method: 'POST',
-        body: formData,
-        credentials: 'same-origin' // 确保Cookie随请求发送
-    })
-    .then(response => {
-        if (response.ok) {
-            // 登录成功，跳转到首页
-            window.location.href = '/';
-        } else {
-            // 登录失败，显示错误信息
-            return response.text().then(errorMessage => {
-                throw new Error(errorMessage);
-            });
-        }
-    })
-    .catch(error => {
-        console.error('登录失败:', error);
-        // 显示错误提示
-        const errorElement = document.createElement('div');
-        errorElement.className = 'md3-snackbar md3-snackbar-error';
-        errorElement.textContent = '登录失败，请检查用户名和密码';
-        errorElement.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;';
-        document.body.appendChild(errorElement);
-
-        // 3秒后自动移除错误提示
-        setTimeout(() => {
-            document.body.removeChild(errorElement);
-        }, 3000);
-
-        // 刷新验证码（如果是 portal 页面）
-        if (captchaCodeInput) {
-            refreshCaptcha();
-        }
-
-        // 重置登录按钮状态
-        if (loginBtn) {
-            loginBtn.classList.remove('loading');
-            loginBtn.textContent = '登录';
-            loginBtn.disabled = false;
-        }
-    });
+    // 直接提交 HTML 表单，让浏览器自然跟随服务端的 302 重定向
+    // 登录成功后 OAuthAuthorizeLoginSuccessHandler 会 302 到 authorize URL，
+    // 进而回调到前端的 OAuthCallbackView 完成 token 交换和最终跳转
+    loginForm.submit();
 }
 
 // 验证码刷新

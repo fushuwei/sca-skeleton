@@ -108,10 +108,10 @@ pnpm install
 pnpm dev
 
 # 启动后台管理
-pnpm dev:admin
+nohup pnpm dev:admin > dev.log 2>&1 &
 
 # 启动前台门户
-pnpm dev:portal
+nohup pnpm dev:portal > dev.log 2>&1 &
 ```
 
 ### 后端启动
