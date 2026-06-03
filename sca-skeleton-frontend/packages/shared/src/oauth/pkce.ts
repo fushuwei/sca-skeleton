@@ -283,7 +283,7 @@ export function readOAuthConfigFromEnv(env: ImportMetaEnv): OAuthAppConfig {
     authorizeUrl: `${browserOAuthBase}/auth/oauth2/authorize`,
     tokenUrl: `${apiPrefix}/auth/oauth2/token`,
     redirectUri: env.VITE_OAUTH_REDIRECT_URI,
-    scope: "openid profile all"
+    scope: "openid profile offline_access all"  // 添加 offline_access 以请求 refresh token
   };
 }
 
