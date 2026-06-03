@@ -1,6 +1,7 @@
 package io.github.fushuwei.scaskeleton.auth.web;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLoginProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,6 +16,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.net.URI;
 import java.util.UUID;
 
 /**
@@ -36,6 +38,9 @@ public class LoginPageController {
 
     /** 已登录用户从登录页恢复到 authorize SavedRequest */
     private final OAuthLoginRedirectResolver redirectResolver;
+
+    /** OAuth2 客户端配置（用于已登录但无 pending authorize 时自动跳转 SPA） */
+    private final OAuthClientsProperties oauthClientsProperties;
 
     /**
      * 管理后台登录页（简单占位 UI，后续可按产品需求替换样式）。
@@ -112,7 +117,7 @@ public class LoginPageController {
     }
 
     /**
-     * 若当前用户已认证且 Session 中仍有 authorize SavedRequest，则返回应恢复的绝对 URL。
+     * 若当前用户已认证，则优先恢复 pending authorize；无可恢复请求时自动跳转 SPA，由路由守卫发起 PKCE。
      */
     private String resolveResumeAuthorizeUrl(HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -131,7 +136,35 @@ public class LoginPageController {
             return null;
         }
         String target = redirectResolver.resolvePostLoginRedirectUrl(request, response);
-        return StringUtils.hasText(target) ? target : null;
+        if (StringUtils.hasText(target)) {
+            return target;
+        }
+        // 已登录但无可恢复的 authorize（如新开 Tab 直接访问登录页）：
+        // 跳转到 SPA 根路径，SPA 路由守卫检测无本地 token 后自动发起 PKCE → authorize 流程。
+        // 此时 Auth 已有有效 Session，authorize 直接通过，用户无缝进入系统。
+        return buildSpaAutoRedirectUrl(request);
+    }
+
+    /** 从 OAuth2 redirect_uri 提取 SPA 根路径（如 {@code http://localhost:5173/oauth/callback} → {@code http://localhost:5173/}）。 */
+    private String buildSpaAutoRedirectUrl(HttpServletRequest request) {
+        boolean isPortal = request.getRequestURI().endsWith("/portal");
+        String redirectUri = isPortal
+                ? oauthClientsProperties.getPortal().getRedirectUri()
+                : oauthClientsProperties.getAdmin().getRedirectUri();
+        if (!StringUtils.hasText(redirectUri)) {
+            return null;
+        }
+        try {
+            URI uri = URI.create(redirectUri);
+            String path = uri.getPath();
+            if (StringUtils.hasText(path) && !"/".equals(path)) {
+                String root = redirectUri.substring(0, redirectUri.indexOf(path)) + "/";
+                return root.endsWith("//") ? root.substring(0, root.length() - 1) : root;
+            }
+            return redirectUri;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     /** 校验当前会话登录渠道是否与当前登录页一致。 */

@@ -76,6 +76,7 @@ onMounted(() => {
     <template v-if="processing">
       <div class="loading-box">
         <div class="spinner"></div>
+        <p class="loading-text">正在登录，请稍等...</p>
       </div>
     </template>
     <!-- 错误并倒计时重试 -->
@@ -116,6 +117,11 @@ onMounted(() => {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 16px;
+  color: #666;
 }
 
 .error-box {
