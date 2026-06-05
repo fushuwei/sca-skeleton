@@ -65,13 +65,13 @@ sca:
       admin:
         client-id: sca-admin-client
         redirect-uri: ${AUTH_ADMIN_REDIRECT_URI:http://localhost:5173/oauth/callback}
-        access-token-ttl: 7200
-        refresh-token-ttl: 604800
+        access-token-ttl: 900
+        refresh-token-ttl: 7200
       portal:
         client-id: sca-portal-client
         redirect-uri: ${AUTH_PORTAL_REDIRECT_URI:http://localhost:5174/oauth/callback}
-        access-token-ttl: 7200
-        refresh-token-ttl: 604800
+        access-token-ttl: 900
+        refresh-token-ttl: 7200
     jwt:
       key-size: 2048
       # 生产环境通过环境变量或 Nacos 注入持久化密钥（PEM 或 Base64）

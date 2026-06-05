@@ -83,6 +83,7 @@ public class RegisteredClientInitializer implements ApplicationRunner {
                 .redirectUri(props.getRedirectUri())
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
+                .scope("offline_access")
                 .scope("all")
                 .clientSettings(ClientSettings.builder()
                         // OAuth 2.1：公共客户端强制 PKCE

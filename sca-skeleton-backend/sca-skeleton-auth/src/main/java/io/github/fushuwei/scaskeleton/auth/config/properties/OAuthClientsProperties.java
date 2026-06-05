@@ -73,10 +73,10 @@ public class OAuthClientsProperties {
         private String redirectUri;
 
         /** 访问令牌有效期（秒） */
-        private long accessTokenTtl = 7200;
+        private long accessTokenTtl = 900;
 
         /** 刷新令牌有效期（秒） */
-        private long refreshTokenTtl = 604800;
+        private long refreshTokenTtl = 7200;
     }
 
     /**
