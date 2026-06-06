@@ -588,9 +588,9 @@ SELECT
     'authorization_code,refresh_token',
     'http://localhost:5173/oauth/callback',
     NULL,
-    'openid,profile,all',
+    'openid,profile,offline_access,all',
     '{"settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
-    '{"settings.token.access-token-format":{"value":"reference"},"settings.token.authorization-code-time-to-live":["java.time.Duration",60.000000000],"settings.token.access-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",604800.000000000],"settings.token.reuse-refresh-tokens":false}'
+    '{"settings.token.access-token-format":{"value":"reference"},"settings.token.authorization-code-time-to-live":["java.time.Duration",60.000000000],"settings.token.access-token-time-to-live":["java.time.Duration",900.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.reuse-refresh-tokens":false}'
 WHERE NOT EXISTS (
     SELECT 1 FROM oauth2_registered_client WHERE client_id = 'sca-admin-client'
 );
@@ -622,9 +622,9 @@ SELECT
     'authorization_code,refresh_token',
     'http://localhost:5174/oauth/callback',
     NULL,
-    'openid,profile,all',
+    'openid,profile,offline_access,all',
     '{"settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
-    '{"settings.token.access-token-format":{"value":"reference"},"settings.token.authorization-code-time-to-live":["java.time.Duration",60.000000000],"settings.token.access-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",604800.000000000],"settings.token.reuse-refresh-tokens":false}'
+    '{"settings.token.access-token-format":{"value":"reference"},"settings.token.authorization-code-time-to-live":["java.time.Duration",60.000000000],"settings.token.access-token-time-to-live":["java.time.Duration",900.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.reuse-refresh-tokens":false}'
 WHERE NOT EXISTS (
     SELECT 1 FROM oauth2_registered_client WHERE client_id = 'sca-portal-client'
 );
