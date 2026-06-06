@@ -11,6 +11,7 @@ import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLoginProperties
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
 import io.github.fushuwei.scaskeleton.auth.security.filter.AuthorizeChannelIsolationFilter;
 import io.github.fushuwei.scaskeleton.auth.token.ScaOpaqueAccessTokenClaimsCustomizer;
+import io.github.fushuwei.scaskeleton.auth.token.ScaRefreshTokenGenerator;
 import io.github.fushuwei.scaskeleton.auth.web.ClientAwareLoginUrlAuthenticationEntryPoint;
 import io.github.fushuwei.scaskeleton.auth.web.OAuthPendingAuthorizeStore;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,6 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2AccessTokenGenerator;
-import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -149,9 +149,10 @@ public class AuthorizationServerConfig {
         // 2) JWT 生成器（用于 OIDC id_token 等场景，非默认 access_token 格式）
         JwtGenerator jwtGenerator = new JwtGenerator(
                 new org.springframework.security.oauth2.jwt.NimbusJwtEncoder(jwkSource));
-        // 3) 委托生成器：按 RegisteredClient 的 token 格式选择具体生成器
+        // 3) refresh_token 生成器：使用自定义实现，允许向公共客户端签发 refresh_token（SAS 7.0 默认会拒绝）
+        // 4) 委托生成器：按 RegisteredClient 的 token 格式选择具体生成器
         return new DelegatingOAuth2TokenGenerator(
-                accessTokenGenerator, jwtGenerator, new OAuth2RefreshTokenGenerator());
+                accessTokenGenerator, jwtGenerator, new ScaRefreshTokenGenerator());
     }
 
     @Bean
