@@ -36,17 +36,9 @@ sca-skeleton-frontend/
 
 ## 开发环境网关代理
 
-本地 `pnpm dev` 时，`/api-dev` 由 Vite 代理到 `VITE_DEV_PROXY_TARGET`（默认 `http://localhost:9999`）。
+本地 `pnpm dev` 搭配 Nginx 联调时，所有 `/api`、`/auth` 请求由 Nginx 直接转发到网关，Vite 仅开发 SPA + HMR，不配代理。
 
-联调远程网关时，在各 app 目录复制 `.env.development.local.example` 为 `.env.development.local`，仅改网关地址，例如：
-
-```bash
-# apps/admin 或 apps/portal
-cp .env.development.local.example .env.development.local
-# 编辑 VITE_DEV_PROXY_TARGET=http://<远程网关 IP>:9999
-```
-
-OAuth **authorize 整页跳转**在 development 下直连 `VITE_DEV_PROXY_TARGET`（网关 `http://localhost:9999`），与登录页 Session 同源；**token 换票**仍经 `/api-dev` 代理（fetch 同源）。test/production 下 authorize 与 API 均走 Nginx 同源路径。
+OAuth **authorize 整页跳转**与 token 换票均走 Nginx 同域路径（`/auth/oauth2/authorize`），登录页与 SPA 始终同域。
 
 ## 启动命令
 
@@ -59,12 +51,9 @@ OAuth **authorize 整页跳转**在 development 下直连 `VITE_DEV_PROXY_TARGET
 
 | 变量 | development | test / production |
 |------|-------------|-------------------|
-| `VITE_DEV_PROXY_TARGET` | 有。仅 `pnpm dev` 时 Vite 把 `/api-dev` 转发到该网关地址 | 无。构建产物不走 Vite，由 Nginx 将 `/api`、`/api-test` 反代到网关 |
-| `VITE_API_BASE_URL` | `/api-dev` | `/api-test` 或 `/api` |
-| OAuth 授权跳转 | dev：`VITE_DEV_PROXY_TARGET` + `/auth/oauth2/authorize`（直连网关） | 由 `VITE_API_BASE_URL` + 当前站点 origin 拼接 |
-| OAuth token / API | `/api-dev` 经 Vite 代理 | `/api-test` 或 `/api`（Nginx 反代） |
-
-联调远程网关时，只改 `apps/<app>/.env.development` 中的 `VITE_DEV_PROXY_TARGET` 即可。
+| `VITE_API_BASE_URL` | `/api` | `/api` |
+| OAuth 授权跳转 | `window.location.origin + "/auth/oauth2/authorize"`（同域经 Nginx 反代） | `window.location.origin + "/auth/oauth2/authorize"`（同域经 Nginx 反代） |
+| OAuth token / API | `/api`（Nginx 反代） | `/api`（Nginx 反代） |
 - 项目构建：`pnpm build`
 - 代码检查：`pnpm lint`
 - 单元测试：`pnpm test`

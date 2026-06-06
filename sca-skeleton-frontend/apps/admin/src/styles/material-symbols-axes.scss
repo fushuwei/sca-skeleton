@@ -1,3 +1,9 @@
+// 覆盖 Quasar extras 中 font-display: block → swap，避免慢网络下文字隐 3s 或 Chrome 报 Slow network warning。
+@font-face {
+  font-family: "Material Symbols Rounded";
+  font-display: swap;
+}
+
 // 全站 Material Symbols 默认可变轴：覆盖 woff 内建默认（多为 FILL=1 的填充形态），与 Google Fonts 常见 FILL=0 线框效果对齐。
 // 若个别场景需要实心，可在局部覆写 font-variation-settings 将 "FILL" 设为 1。
 // 当前 main 引入 Rounded 包时，以 .material-symbols-rounded 为主；以下含 Outlined/Sharp 类名以便混用多字体包时轴一致。

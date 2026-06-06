@@ -1,4 +1,4 @@
-import type { NavigationGuardNext, RouteLocationNormalized, Router } from "vue-router";
+import type { Router } from "vue-router";
 import { startOAuthLogin } from "@repo/shared";
 import { getAdminOAuthConfig } from "../config/oauth";
 import { WHITE_LIST_ROUTE_NAMES } from "./routes";
@@ -17,7 +17,7 @@ function redirectToOAuthLogin(returnUrl: string): void {
 }
 
 export function setupRouterGuards(router: Router): void {
-  router.beforeEach(async (to, _from, next) => {
+  router.beforeEach(async (to, _from) => {
     const authStore = useAuthStore();
     const routeName = String(to.name ?? "");
     const isWhiteRoute = WHITE_LIST_ROUTE_NAMES.has(routeName);
@@ -26,8 +26,7 @@ export function setupRouterGuards(router: Router): void {
 
     if (!authStore.isLoggedIn && !isWhiteRoute) {
       redirectToOAuthLogin(to.fullPath);
-      next(false);
-      return;
+      return false;
     }
 
     if (authStore.isLoggedIn) {
@@ -45,16 +44,12 @@ export function setupRouterGuards(router: Router): void {
           localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
           localStorage.removeItem(MENUS_STORAGE_KEY);
           redirectToOAuthLogin(to.fullPath);
-          next(false);
-          return;
+          return false;
         }
       }
       if (routeName === "NotFound" && mayBeDynamicPath) {
-        next({ path: to.fullPath, replace: true });
-        return;
+        return { path: to.fullPath, replace: true };
       }
     }
-
-    next();
   });
 }

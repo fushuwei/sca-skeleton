@@ -89,6 +89,8 @@ spring:
         - AddResponseHeader=X-Frame-Options, DENY
         - AddResponseHeader=X-Content-Type-Options, nosniff
         - AddResponseHeader=Referrer-Policy, no-referrer
+        # CSP：限制资源加载来源，降低 XSS 风险
+        - "AddResponseHeader=Content-Security-Policy, default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none';"
         # 禁止全局剥离 Cookie：/auth/login/** 与 /auth/oauth2/authorize 依赖 Session 完成授权码登录
         # - RemoveRequestHeader=Cookie
 

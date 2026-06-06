@@ -64,7 +64,7 @@
                     <h1 class="md3-display-small login-title">用户登录</h1>
                 </div>
 
-                <form id="loginForm" th:action="${loginProcessingUrl}" method="post" onsubmit="return false">
+                <form id="loginForm" th:action="${loginProcessingUrl}" method="post">
                     <!-- CSRF Token -->
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <!-- 登录渠道标识 -->
@@ -85,7 +85,7 @@
                         <div class="md3-text-field-wrapper">
                             <span class="material-symbols-rounded field-icon">lock</span>
                             <input class="md3-text-field with-icon" type="password" id="password" name="password" placeholder="请输入密码" value="admin">
-                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">
+                            <button type="button" class="toggle-password" id="togglePassword">
                                 <span class="material-symbols-rounded">visibility</span>
                             </button>
                             <div class="error-message" id="password-error" style="display: none;">

@@ -29,8 +29,8 @@ admin 和 portal 共享同一个 `JSESSIONID` cookie。当 admin 登录成功后
 如果看到 `{"code":40400,"message":"请求的资源不存在"}` 错误，可能是：
 
 1. **前端API路径配置问题**：
-   - Admin 使用 `/api-dev` 作为 base URL
-   - Vite 代理将 `/api-dev` 转发到网关并去掉前缀
+   - Admin 使用 `/api` 作为 base URL
+   - Vite 代理将 `/api` 转发到网关并去掉前缀
    - 如果后端服务未正确启动或路由配置错误，会返回404
 
 2. **System服务未启动**：

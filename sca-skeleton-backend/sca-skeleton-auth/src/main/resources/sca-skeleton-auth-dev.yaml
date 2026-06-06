@@ -58,18 +58,18 @@ sca:
       enabled: false
   auth:
     # 经 API 网关对外暴露的 issuer（浏览器可见的 OAuth/OIDC 根 URL，与网关 /auth/** 一致）
-    issuer: ${AUTH_ISSUER:http://localhost:9999/auth}
+    issuer: ${AUTH_ISSUER:http://localhost:8080/auth}
     # 浏览器访问 Auth 登录页/表单时的 URL 前缀（网关 /auth/** → StripPrefix=1）
     public-path-prefix: ${AUTH_PUBLIC_PATH_PREFIX:/auth}
     clients:
       admin:
         client-id: sca-admin-client
-        redirect-uri: ${AUTH_ADMIN_REDIRECT_URI:http://localhost:5173/oauth/callback}
+        redirect-uri: ${AUTH_ADMIN_REDIRECT_URI:http://localhost:8080/admin/oauth/callback}
         access-token-ttl: 900
         refresh-token-ttl: 7200
       portal:
         client-id: sca-portal-client
-        redirect-uri: ${AUTH_PORTAL_REDIRECT_URI:http://localhost:5174/oauth/callback}
+        redirect-uri: ${AUTH_PORTAL_REDIRECT_URI:http://localhost:8080/oauth/callback}
         access-token-ttl: 900
         refresh-token-ttl: 7200
     jwt:

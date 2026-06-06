@@ -393,6 +393,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 初始化表单验证
     initFormValidation();
 
+    // 绑定密码可见性切换
+    const togglePwd = document.getElementById('togglePassword');
+    if (togglePwd) {
+        togglePwd.addEventListener('click', togglePasswordVisibility);
+    }
+
     // 绑定验证码刷新
     const captchaImg = document.getElementById('captchaImg');
     if (captchaImg) {
