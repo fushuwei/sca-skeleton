@@ -93,7 +93,7 @@ public class AuthSecurityConfig {
                 // 验证码生成接口放行（同时兼容网关 StripPrefix 后的路径和直连路径）
                 .requestMatchers("/captcha/**", "/auth/captcha/**").permitAll()
                 // 静态资源放行（同时兼容网关 StripPrefix 后的路径和直连路径）
-                .requestMatchers("/css/**", "/js/**", "/auth/css/**", "/auth/js/**").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                 // 其余请求需 Session 认证（authorize 链路登录成功后持有 Session）
                 .anyRequest().authenticated()
             )

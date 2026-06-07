@@ -96,16 +96,16 @@ function handleSwipe() {
 // 切换密码可见性
 function togglePasswordVisibility() {
     const passwordInput = document.getElementById('password');
-    const toggleButton = document.querySelector('.toggle-password .material-symbols-rounded');
+    const toggleIcon = document.querySelector('.toggle-password .login-icon');
 
-    if (!passwordInput || !toggleButton) return;
+    if (!passwordInput || !toggleIcon) return;
 
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
-        toggleButton.textContent = 'visibility_off';
+        toggleIcon.classList.replace('login-icon-visibility', 'login-icon-visibility_off');
     } else {
         passwordInput.type = 'password';
-        toggleButton.textContent = 'visibility';
+        toggleIcon.classList.replace('login-icon-visibility_off', 'login-icon-visibility');
     }
 }
 
@@ -336,9 +336,8 @@ function showToast(message) {
     toast.className = 'login-toast';
 
     // 左侧错误/警告图标
-    const icon = document.createElement('span');
-    icon.className = 'material-symbols-rounded toast-icon';
-    icon.textContent = 'error';
+    const icon = document.createElement('i');
+    icon.className = 'login-icon login-icon-error toast-icon';
 
     // 文本
     const text = document.createElement('span');
@@ -348,9 +347,8 @@ function showToast(message) {
     const closeWrapper = document.createElement('button');
     closeWrapper.className = 'toast-close-btn';
     closeWrapper.type = 'button';
-    const closeIcon = document.createElement('span');
-    closeIcon.className = 'material-symbols-rounded';
-    closeIcon.textContent = 'close';
+    const closeIcon = document.createElement('i');
+    closeIcon.className = 'login-icon login-icon-close';
     closeWrapper.appendChild(closeIcon);
     closeWrapper.addEventListener('click', (e) => {
         e.preventDefault();

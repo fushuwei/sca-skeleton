@@ -164,6 +164,7 @@ gateway:
       - /auth/captcha/**
       - /auth/css/**
       - /auth/js/**
+      - /auth/images/**
       - /actuator/health
       - /actuator/info
 
