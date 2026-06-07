@@ -8,7 +8,7 @@ import { useAuthStore } from "../stores/auth";
 import { getIconForMenuRouteName } from "../utils/menu-tree";
 import { persistDark, persistLocale, quasarLangForLocale } from "../i18n";
 
-const LOGO_URL = "/images/logo.png";
+const LOGO_URL = import.meta.env.BASE_URL + "images/logo.png";
 
 /** 与 `.top-toolbar` 高度一致，用于用户菜单纵向对齐 */
 const TOP_HEADER_HEIGHT_PX = 64;

@@ -64,9 +64,8 @@ public class RegisteredClientInitializer implements ApplicationRunner {
 
     /**
      * 若 DB 中的客户端记录因 JSON 格式不兼容导致反序列化失败，先删除再让后续逻辑重建。
-     * <p>
-     * 触发场景：{@code deploy/sql/install/sca_platform.sql} 中的旧 JSON 不含 Jackson
-     * {@code @class} 类型标识，与 SAS 7.0 的 {@code SecurityJacksonModules} 不兼容。
+     *
+     * @param clientId OAuth2 client_id
      */
     private void repairCorruptedClientIfNeeded(String clientId) {
         if (clientId == null) {
@@ -75,14 +74,8 @@ public class RegisteredClientInitializer implements ApplicationRunner {
         try {
             registeredClientRepository.findByClientId(clientId);
         } catch (Exception ex) {
-            if (ex.getMessage() != null && ex.getMessage().contains("@class")) {
-                log.warn("OAuth2 客户端 [{}] 记录格式不兼容（缺少 @class），将在 DB 中删除后重建", clientId);
-                jdbcTemplate.update("DELETE FROM oauth2_registered_client WHERE client_id = ?", clientId);
-                // 清理 Redis 中的二级索引缓存（主键缓存因无主键无法精准删除，依赖 TTL 自然过期）
-            } else {
-                // 非预期异常重新抛出，避免静默吞掉真实错误
-                throw new IllegalStateException("Failed to read OAuth2 client [" + clientId + "]: " + ex.getMessage(), ex);
-            }
+            log.warn("OAuth2 客户端 [{}] 记录格式不兼容，将在 DB 中删除后重建：{}", clientId, ex.getMessage());
+            jdbcTemplate.update("DELETE FROM oauth2_registered_client WHERE client_id = ?", clientId);
         }
     }
 
