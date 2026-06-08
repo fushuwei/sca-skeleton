@@ -5,7 +5,6 @@ import io.github.fushuwei.scaskeleton.core.util.BearerTokenUtils;
 import io.github.fushuwei.scaskeleton.gateway.config.GatewaySecurityProperties;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -24,7 +23,6 @@ import reactor.core.publisher.Mono;
  */
 @Component
 @RequiredArgsConstructor
-@EnableConfigurationProperties(GatewaySecurityProperties.class)
 public class GatewaySecurityGlobalFilter implements GlobalFilter, Ordered {
 
     /**
