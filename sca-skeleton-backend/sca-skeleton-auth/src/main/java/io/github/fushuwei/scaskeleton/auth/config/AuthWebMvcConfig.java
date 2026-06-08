@@ -13,5 +13,7 @@ public class AuthWebMvcConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/static/css/");
         registry.addResourceHandler("/auth/js/**")
                 .addResourceLocations("classpath:/static/js/");
+        registry.addResourceHandler("/auth/images/**")
+                .addResourceLocations("classpath:/static/images/");
     }
 }

@@ -45,6 +45,12 @@ app.use(Quasar, {
 
 app.mount("#app"); // 将应用挂载到页面根节点。
 
-router.isReady().finally(() => {
-  document.getElementById("app-loading")?.remove(); // 路由就绪后移除首屏 loading 遮罩。
-});
+router.isReady()
+  .catch(() => {
+    // 导航守卫因 OAuth 登录跳转而中止导航（return false）时，
+    // isReady() 的 Promise 会 reject，此处静默吞掉预期的导航中止错误，
+    // 避免 Firefox 报告 Uncaught (in promise) 错误。
+  })
+  .finally(() => {
+    document.getElementById("app-loading")?.remove(); // 路由就绪后移除首屏 loading 遮罩。
+  });
