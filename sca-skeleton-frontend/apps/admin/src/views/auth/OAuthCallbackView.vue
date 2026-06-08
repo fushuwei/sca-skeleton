@@ -107,6 +107,7 @@ onMounted(() => {
 }
 
 .spinner {
+  box-sizing: content-box;
   width: 40px;
   height: 40px;
   border: 3px solid #e0e0e0;
