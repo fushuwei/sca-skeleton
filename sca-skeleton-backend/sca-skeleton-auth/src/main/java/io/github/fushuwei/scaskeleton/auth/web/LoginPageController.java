@@ -16,7 +16,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.net.URI;
 import java.util.UUID;
 
 /**
@@ -151,26 +150,13 @@ public class LoginPageController {
         return buildSpaAutoRedirectUrl(request);
     }
 
-    /** 从 OAuth2 redirect_uri 提取 SPA 根路径（如 {@code http://localhost:5173/oauth/callback} → {@code http://localhost:5173/}）。 */
+    /** 从 OAuth2 redirect_uri 提取 SPA 根路径，通过 {@link OAuthClientsProperties#extractSpaRootUrl} 正确处理 admin / portal 的不同 base path。 */
     private String buildSpaAutoRedirectUrl(HttpServletRequest request) {
         boolean isPortal = request.getRequestURI().endsWith("/portal");
         String redirectUri = isPortal
                 ? oauthClientsProperties.getPortal().getRedirectUri()
                 : oauthClientsProperties.getAdmin().getRedirectUri();
-        if (!StringUtils.hasText(redirectUri)) {
-            return null;
-        }
-        try {
-            URI uri = URI.create(redirectUri);
-            String path = uri.getPath();
-            if (StringUtils.hasText(path) && !"/".equals(path)) {
-                String root = redirectUri.substring(0, redirectUri.indexOf(path)) + "/";
-                return root.endsWith("//") ? root.substring(0, root.length() - 1) : root;
-            }
-            return redirectUri;
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+        return oauthClientsProperties.extractSpaRootUrl(redirectUri);
     }
 
     /** 校验当前会话登录渠道是否与当前登录页一致。 */

@@ -175,4 +175,46 @@ public class OAuthClientsProperties {
         }
         return issuer.endsWith("/") ? issuer.substring(0, issuer.length() - 1) : issuer;
     }
+
+    /**
+     * 从 OAuth redirect_uri 提取 SPA 根 URL（如 {@code http://localhost:8080/admin/oauth/callback} → {@code http://localhost:8080/admin/}）。
+     * <p>
+     * 通过在 path 中定位 {@code /oauth/} 来区分不同 base path 的 SPA：
+     * <ul>
+     *   <li>admin：{@code /admin/oauth/callback} → 提取 {@code /admin/}</li>
+     *   <li>portal：{@code /oauth/callback} → 提取 {@code /}</li>
+     * </ul>
+     *
+     * @param redirectUri OAuth2 回调地址
+     * @return SPA 根 URL；无法解析时返回 null
+     */
+    public String extractSpaRootUrl(String redirectUri) {
+        if (!org.springframework.util.StringUtils.hasText(redirectUri)) {
+            return null;
+        }
+        try {
+            java.net.URI uri = java.net.URI.create(redirectUri);
+            String path = uri.getPath();
+            if (!org.springframework.util.StringUtils.hasText(path)) {
+                return redirectUri;
+            }
+            // 通过 /oauth/ 在路径中的位置来识别 SPA 的 base path
+            int oauthIdx = path.indexOf("/oauth/");
+            String spaPath;
+            if (oauthIdx > 0) {
+                // 有 base path（如 /admin）：保留 /oauth/ 之前的部分
+                spaPath = path.substring(0, oauthIdx);
+                if (!spaPath.endsWith("/")) {
+                    spaPath = spaPath + "/";
+                }
+            } else {
+                // 无 base path（如 /oauth/callback）或未找到 /oauth/
+                spaPath = "/";
+            }
+            String schemeAndHost = redirectUri.substring(0, redirectUri.indexOf(path));
+            return schemeAndHost + spaPath;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
 }

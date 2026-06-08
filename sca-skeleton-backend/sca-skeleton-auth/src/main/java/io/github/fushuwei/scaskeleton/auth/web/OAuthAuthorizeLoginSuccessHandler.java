@@ -52,32 +52,13 @@ public class OAuthAuthorizeLoginSuccessHandler implements AuthenticationSuccessH
         String redirectUri = LoginChannel.PORTAL.getValue().equals(loginChannel)
                 ? oauthClientsProperties.getPortal().getRedirectUri()
                 : oauthClientsProperties.getAdmin().getRedirectUri();
-        // 从 redirect_uri 提取 SPA 根路径（如 http://localhost:5173/oauth/callback → http://localhost:5173/）
-        String spaRoot = extractSpaRoot(redirectUri);
+        // 从 redirect_uri 提取 SPA 根路径（如 http://localhost:8080/admin/oauth/callback → http://localhost:8080/admin/）
+        String spaRoot = oauthClientsProperties.extractSpaRootUrl(redirectUri);
         if (StringUtils.hasText(spaRoot)) {
             response.sendRedirect(spaRoot);
         } else {
             // 兜底：跳转到对应登录页（此分支仅在 redirectUri 配置异常时触发）
             response.sendRedirect(oauthClientsProperties.resolveExternalLoginUrl(clientId));
-        }
-    }
-
-    /** 从 OAuth redirect_uri 提取 SPA 根路径（如 {@code http://localhost:5173/oauth/callback} → {@code http://localhost:5173/}）。 */
-    private String extractSpaRoot(String redirectUri) {
-        if (!StringUtils.hasText(redirectUri)) {
-            return null;
-        }
-        try {
-            java.net.URI uri = java.net.URI.create(redirectUri);
-            String path = uri.getPath();
-            if (StringUtils.hasText(path) && !"/".equals(path)) {
-                // 去掉回调路径部分，保留 SPA 根路径
-                String root = redirectUri.substring(0, redirectUri.indexOf(path)) + "/";
-                return root.endsWith("//") ? root.substring(0, root.length() - 1) : root;
-            }
-            return redirectUri;
-        } catch (IllegalArgumentException e) {
-            return null;
         }
     }
 }
