@@ -877,24 +877,35 @@ body {
 }
 
 .page-loader .loader {
-    width: fit-content;
-    font-size: 40px;
-    font-family: monospace;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: #0000;
-    -webkit-text-stroke: 1px #000;
-    background: linear-gradient(90deg, #0000 33%, #000 0 67%, #0000 0) 100%/300% 100% no-repeat text;
-    animation: l12 4s steps(14) infinite;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
 }
 
-.page-loader .loader:before {
-    content: "Loading";
+.page-loader .loader::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--md-sys-color-outline-variant, #e0e0e0);
+    border-top-color: var(--md-sys-color-primary, #1976d2);
+    border-radius: 50%;
+    animation: loader-spin 0.8s linear infinite;
 }
 
-@keyframes l12 {
+.page-loader .loader::after {
+    content: "正在加载...";
+    font-size: 16px;
+    color: var(--md-sys-color-on-surface-variant, #666);
+    font-family: system-ui, -apple-system, sans-serif;
+    font-weight: normal;
+    text-transform: none;
+}
+
+@keyframes loader-spin {
     to {
-        background-position: 0;
+        transform: rotate(360deg);
     }
 }
 
