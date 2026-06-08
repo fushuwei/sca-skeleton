@@ -19,7 +19,7 @@ sca-skeleton-frontend/
 ## 技术栈和版本以及用途
 
 - `vue@3.5.33`：前端核心框架
-- `vite@8.0.10`：构建与本地开发服务
+- `vite@8.0.16`：构建与本地开发服务
 - `typescript@6.0.3`：类型系统
 - `turbo@2.9.6`：Monorepo 任务编排与缓存
 - `pnpm@10.33.2`：包管理与 workspace 管理

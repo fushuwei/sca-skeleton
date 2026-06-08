@@ -72,19 +72,19 @@ sca-skeleton/
 
 ### 前端
 
-| 类别 | 技术 | 版本 | 说明 |
-|------|------|------|------|
-| 框架 | Vue | 3.5.33 | 核心框架 |
-| 构建 | Vite | 8.0.10 | 构建与开发服务 |
-| 类型 | TypeScript | 6.0.3 | 类型系统 |
-| 状态 | Pinia | 3.0.4 | 状态管理 |
-| 路由 | Vue Router | 5.0.6 | 路由管理 |
+| 类别 | 技术 | 版本      | 说明 |
+|------|------|---------|------|
+| 框架 | Vue | 3.5.33  | 核心框架 |
+| 构建 | Vite | 8.0.16  | 构建与开发服务 |
+| 类型 | TypeScript | 6.0.3   | 类型系统 |
+| 状态 | Pinia | 3.0.4   | 状态管理 |
+| 路由 | Vue Router | 5.0.6   | 路由管理 |
 | 包管理 | pnpm | 10.33.2 | 包管理与 workspace |
-| 编排 | Turborepo | 2.9.6 | Monorepo 任务编排 |
-| Admin UI | Quasar | 2.19.3 | 后台管理 UI 框架 |
-| Portal UI | ant-design-vue | 4.2.6 | 前台门户 UI 组件库 |
-| | unocss | 66.6.8 | 原子化 CSS |
-| HTTP | axios | 1.15.2 | HTTP 请求 |
+| 编排 | Turborepo | 2.9.6   | Monorepo 任务编排 |
+| Admin UI | Quasar | 2.19.3  | 后台管理 UI 框架 |
+| Portal UI | ant-design-vue | 4.2.6   | 前台门户 UI 组件库 |
+| | unocss | 66.6.8  | 原子化 CSS |
+| HTTP | axios | 1.15.2  | HTTP 请求 |
 | 国际化 | vue-i18n | ^10.0.7 | 国际化支持 |
 
 ## 架构特点
