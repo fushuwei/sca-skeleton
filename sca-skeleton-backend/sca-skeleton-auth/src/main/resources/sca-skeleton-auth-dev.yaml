@@ -32,10 +32,11 @@ spring:
     cache: false
 
   # Spring Session：分布式集群共享 Session（替代单机内存 HttpSession）
+  # Spring Boot 4.0 移除了 spring.session.store-type，自动按 classpath 推断（Redis 优先）
   session:
-    store-type: redis
-    redis:
-      namespace: sca:auth:session
+    data:
+      redis:
+        namespace: spring:session
     timeout: 30m
 
 # MyBatis-Plus 配置

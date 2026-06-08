@@ -49,16 +49,16 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
+        <!-- Spring Boot Session Data Redis 自动配置（Auth 集群多副本共享登录会话） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-session-data-redis</artifactId>
+        </dependency>
+
         <!-- 验证码生成工具（支持算术、中文、GIF 等多种类型） -->
         <dependency>
             <groupId>com.github.whvcse</groupId>
             <artifactId>easy-captcha</artifactId>
-        </dependency>
-
-        <!-- Spring Session Redis：Auth 集群多副本共享登录会话 -->
-        <dependency>
-            <groupId>org.springframework.session</groupId>
-            <artifactId>spring-session-data-redis</artifactId>
         </dependency>
 
         <!-- Nacos 注册中心客户端（服务注册与发现） -->
