@@ -41,6 +41,9 @@ public class LoginPageController {
     /** OAuth2 客户端配置（用于已登录但无 pending authorize 时自动跳转 SPA） */
     private final OAuthClientsProperties oauthClientsProperties;
 
+    /** Pending authorize Session 存储（区分 OAuth2 authorize 流程内的合法跳转与手动访问） */
+    private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
+
     /**
      * 管理后台登录页（简单占位 UI，后续可按产品需求替换样式）。
      *
@@ -56,6 +59,16 @@ public class LoginPageController {
         String resumeAuthorize = resolveResumeAuthorizeUrl(request, response);
         if (resumeAuthorize != null) {
             return "redirect:" + resumeAuthorize;
+        }
+        // 未认证时：检查是否是 OAuth2 authorize 流程内的合法跳转。
+        // 有 pending authorize → 正常的 OAuth2 授权流程 → 显示登录页。
+        // 无 pending authorize → 手动访问登录页 URL → 302 到 SPA，由 SPA 的 token 管理判断登录状态。
+        if (!hasPendingAuthorize(request, LoginChannel.ADMIN)) {
+            String spaRoot = oauthClientsProperties.extractSpaRootUrl(
+                    oauthClientsProperties.getAdmin().getRedirectUri());
+            if (StringUtils.hasText(spaRoot)) {
+                return "redirect:" + spaRoot;
+            }
         }
         // 页面标题用于模板展示
         model.addAttribute("pageTitle", authLoginProperties.getSystemName() + " 管理后台");
@@ -93,6 +106,14 @@ public class LoginPageController {
         String resumeAuthorize = resolveResumeAuthorizeUrl(request, response);
         if (resumeAuthorize != null) {
             return "redirect:" + resumeAuthorize;
+        }
+        // 未认证时：检查是否是 OAuth2 authorize 流程内的合法跳转
+        if (!hasPendingAuthorize(request, LoginChannel.PORTAL)) {
+            String spaRoot = oauthClientsProperties.extractSpaRootUrl(
+                    oauthClientsProperties.getPortal().getRedirectUri());
+            if (StringUtils.hasText(spaRoot)) {
+                return "redirect:" + spaRoot;
+            }
         }
         // 门户页标题
         model.addAttribute("pageTitle", authLoginProperties.getSystemName() + " 前台门户");
@@ -171,5 +192,22 @@ public class LoginPageController {
         }
         LoginChannel expected = request.getRequestURI().endsWith("/portal") ? LoginChannel.PORTAL : LoginChannel.ADMIN;
         return expected.getValue().equals(channel);
+    }
+
+    /**
+     * 判断当前请求是否来自 OAuth2 authorize 流程（有 pending authorize）。
+     * <p>
+     * OAuth2 authorize 流程中，{@link ClientAwareLoginUrlAuthenticationEntryPoint}
+     * 会在 Session 中写入 pending authorize URL 再 302 到登录页。
+     * 如果 Session 中无 pending authorize，说明用户是手动访问登录页 URL，
+     * 此时应跳转到 SPA 由前端 token 管理来判断登录状态。
+     *
+     * @param request 当前请求
+     * @param channel 登录渠道
+     * @return true 表示当前是 OAuth2 流程中的合法跳转（应显示登录页）
+     */
+    private boolean hasPendingAuthorize(HttpServletRequest request, LoginChannel channel) {
+        return StringUtils.hasText(
+                pendingAuthorizeStore.peekPendingAuthorizeUrl(request, channel.getValue()));
     }
 }
