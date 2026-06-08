@@ -149,16 +149,52 @@ export function buildAuthorizeUrl(
  * @param config    OAuth 应用配置
  * @param returnUrl 登录成功后回跳的 SPA 路径
  */
+/** 防止快速刷新时重复发起 PKCE，覆盖 sessionStorage 中未消费的 state 导致校验失败。 */
+let loginRedirectLock = false;
+
 export async function startOAuthLogin(
   config: OAuthAppConfig,
   returnUrl: string,
   options?: OAuthLoginOptions
 ): Promise<void> {
-  const codeVerifier = generateCodeVerifier();
-  const codeChallenge = await generateCodeChallenge(codeVerifier);
-  const state = generateState();
-  savePkceSession(config.clientId, { codeVerifier, state, returnUrl });
-  window.location.href = buildAuthorizeUrl(config, codeChallenge, state, options);
+  // 已有进行中的登录跳转（当前页面生命周期内），忽略重复调用
+  if (loginRedirectLock) {
+    return;
+  }
+  loginRedirectLock = true;
+
+  try {
+    // 若 sessionStorage 中已有未消费的 PKCE session（上一次刷新遗留），直接沿用，
+    // 避免覆盖 state 导致回调时 state 校验失败
+    const existingRaw = sessionStorage.getItem(pkceStorageKey(config.clientId));
+    let codeVerifier: string;
+    let state: string;
+
+    if (existingRaw) {
+      try {
+        const existing = JSON.parse(existingRaw) as PkceSession;
+        codeVerifier = existing.codeVerifier;
+        state = existing.state;
+        // 更新 returnUrl（用户可能刷新后改变了目标页面）
+        existing.returnUrl = returnUrl;
+        savePkceSession(config.clientId, existing);
+      } catch {
+        // 解析失败，走正常流程
+        codeVerifier = generateCodeVerifier();
+        state = generateState();
+        savePkceSession(config.clientId, { codeVerifier, state, returnUrl });
+      }
+    } else {
+      codeVerifier = generateCodeVerifier();
+      state = generateState();
+      savePkceSession(config.clientId, { codeVerifier, state, returnUrl });
+    }
+
+    const codeChallenge = await generateCodeChallenge(codeVerifier);
+    window.location.href = buildAuthorizeUrl(config, codeChallenge, state, options);
+  } finally {
+    loginRedirectLock = false;
+  }
 }
 
 /**
