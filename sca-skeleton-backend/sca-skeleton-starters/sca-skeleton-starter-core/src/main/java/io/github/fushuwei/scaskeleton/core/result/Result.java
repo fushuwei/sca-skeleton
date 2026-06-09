@@ -13,7 +13,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * 响应结果
+ * 响应结果类
  *
  * @param <T> 响应数据类型
  * @author Fu Wei

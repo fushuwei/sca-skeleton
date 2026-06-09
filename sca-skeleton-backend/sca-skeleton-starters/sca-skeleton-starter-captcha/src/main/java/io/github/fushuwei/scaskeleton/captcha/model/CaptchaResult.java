@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * 验证码生成结果（Base64 模式）。
+ * 验证码响应结果类
  *
  * @author Fu Wei
  */
@@ -12,9 +12,13 @@ import lombok.Data;
 @AllArgsConstructor
 public class CaptchaResult {
 
-    /** 验证码唯一标识，前端校验时需回传此 key */
+    /**
+     * 验证码唯一标识
+     */
     private String captchaKey;
 
-    /** 验证码图片的 Base64 编码字符串，格式：data:image/png;base64,{base64} */
+    /**
+     * 验证码图片的 Base64 编码字符串
+     */
     private String imageBase64;
 }

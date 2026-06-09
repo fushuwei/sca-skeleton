@@ -18,27 +18,31 @@
     <description>Image captcha generation (Java AWT), Redis storage and verification</description>
 
     <dependencies>
-        <!-- 核心基础：UuidUtils（验证码 Key 生成）等 -->
+        <!-- 项目核心 Starter（自定义基础组件封装） -->
         <dependency>
             <groupId>io.github.fushuwei</groupId>
             <artifactId>sca-skeleton-starter-core</artifactId>
         </dependency>
-        <!-- Spring Data Redis：验证码结果存储（含过期时间控制） -->
+
+        <!-- Spring Boot Web MVC 核心启动器 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
-        <!-- Spring Web：验证码图片通过 HTTP 响应流输出 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <!-- 配置元数据处理器：支持 IDE 对 captcha.* 配置项的自动补全 -->
+
+        <!-- 配置元数据处理器（生成 spring-configuration-metadata.json，支持 IDE 自动补全） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- 验证码生成工具（支持算术、中文、GIF 等多种类型） -->
+        <dependency>
+            <groupId>com.github.whvcse</groupId>
+            <artifactId>easy-captcha</artifactId>
+        </dependency>
+
         <!-- Lombok：简化 POJO 样板代码 -->
         <dependency>
             <groupId>org.projectlombok</groupId>

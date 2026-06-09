@@ -37,6 +37,12 @@
             <artifactId>sca-skeleton-starter-mybatis-plus</artifactId>
         </dependency>
 
+        <!-- 项目验证码 Starter（自定义验证码组件封装） -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-captcha</artifactId>
+        </dependency>
+
         <!-- Spring Authorization Server（OAuth2.1 / OIDC 认证授权中心） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -53,12 +59,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-session-data-redis</artifactId>
-        </dependency>
-
-        <!-- 验证码生成工具（支持算术、中文、GIF 等多种类型） -->
-        <dependency>
-            <groupId>com.github.whvcse</groupId>
-            <artifactId>easy-captcha</artifactId>
         </dependency>
 
         <!-- Nacos 注册中心客户端（服务注册与发现） -->

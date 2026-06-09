@@ -2,27 +2,24 @@ package io.github.fushuwei.scaskeleton.captcha.config;
 
 import io.github.fushuwei.scaskeleton.captcha.CaptchaService;
 import io.github.fushuwei.scaskeleton.captcha.impl.ImageCaptchaServiceImpl;
-import io.github.fushuwei.scaskeleton.captcha.properties.CaptchaProperties;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
- * Captcha Starter 自动配置入口。
- * <p>
- * 注册图形验证码服务 Bean，默认实现为 {@link ImageCaptchaServiceImpl}（Java AWT 渲染）。
- * 业务模块可通过注册自定义 {@link CaptchaService} Bean 替换默认实现。
+ * 验证码配置类
  *
  * @author Fu Wei
  */
-@AutoConfiguration
+// @AutoConfiguration
+@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(CaptchaProperties.class)
-public class CaptchaAutoConfiguration {
+public class CaptchaConfiguration {
 
     /**
-     * 注册图形验证码服务，依赖 CaptchaProperties 和 StringRedisTemplate。
+     * 注册图形验证码服务
      *
      * @param properties          验证码配置属性
      * @param stringRedisTemplate Spring Data Redis 字符串模板
@@ -32,7 +29,13 @@ public class CaptchaAutoConfiguration {
     @ConditionalOnMissingBean(CaptchaService.class)
     public CaptchaService captchaService(CaptchaProperties properties,
                                          StringRedisTemplate stringRedisTemplate) {
-        // 默认使用 AWT 图形验证码实现，验证码答案存入 Redis
-        return new ImageCaptchaServiceImpl(properties, stringRedisTemplate);
+        return new ImageCaptchaServiceImpl(
+            properties.getWidth(),
+            properties.getHeight(),
+            properties.getCodeLength(),
+            properties.getExpireSeconds(),
+            properties.getRedisKeyPrefix(),
+            stringRedisTemplate
+        );
     }
 }
