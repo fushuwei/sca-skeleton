@@ -1,6 +1,7 @@
-package io.github.fushuwei.scaskeleton.auth.web;
+package io.github.fushuwei.scaskeleton.auth.security.handler;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
+import io.github.fushuwei.scaskeleton.auth.security.OAuthPendingAuthorizeStore;
 import io.github.fushuwei.scaskeleton.auth.security.filter.AuthorizeChannelIsolationFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

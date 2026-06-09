@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.auth.config;
+package io.github.fushuwei.scaskeleton.auth.initializer;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;

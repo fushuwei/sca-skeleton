@@ -2,8 +2,8 @@ package io.github.fushuwei.scaskeleton.auth.security.filter;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
-import io.github.fushuwei.scaskeleton.auth.web.AuthSessionAttributes;
-import io.github.fushuwei.scaskeleton.auth.web.OAuthPendingAuthorizeStore;
+import io.github.fushuwei.scaskeleton.auth.constants.AuthSessionAttributes;
+import io.github.fushuwei.scaskeleton.auth.security.OAuthPendingAuthorizeStore;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

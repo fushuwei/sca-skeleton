@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.auth.config;
+package io.github.fushuwei.scaskeleton.auth.jwk;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.AuthJwtProperties;
 import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;

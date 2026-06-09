@@ -2,7 +2,10 @@ package io.github.fushuwei.scaskeleton.auth.web;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLoginProperties;
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
+import io.github.fushuwei.scaskeleton.auth.constants.AuthSessionAttributes;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
+import io.github.fushuwei.scaskeleton.auth.security.OAuthLoginRedirectResolver;
+import io.github.fushuwei.scaskeleton.auth.security.OAuthPendingAuthorizeStore;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;

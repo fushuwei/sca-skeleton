@@ -1,7 +1,9 @@
-package io.github.fushuwei.scaskeleton.auth.web;
+package io.github.fushuwei.scaskeleton.auth.security.handler;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
+import io.github.fushuwei.scaskeleton.auth.constants.AuthSessionAttributes;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
+import io.github.fushuwei.scaskeleton.auth.security.OAuthLoginRedirectResolver;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

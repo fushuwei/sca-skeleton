@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.auth.web;
+package io.github.fushuwei.scaskeleton.auth.constants;
 
 /**
  * Auth 会话属性常量：统一管理 Session 键名，避免多处硬编码。

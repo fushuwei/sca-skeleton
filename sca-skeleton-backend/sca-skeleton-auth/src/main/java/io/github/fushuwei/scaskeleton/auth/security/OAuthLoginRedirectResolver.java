@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.auth.web;
+package io.github.fushuwei.scaskeleton.auth.security;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import jakarta.servlet.http.HttpServletRequest;

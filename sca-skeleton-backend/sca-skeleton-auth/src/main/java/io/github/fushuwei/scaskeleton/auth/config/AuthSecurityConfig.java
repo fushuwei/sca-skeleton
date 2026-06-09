@@ -4,9 +4,9 @@ import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientPropert
 import io.github.fushuwei.scaskeleton.auth.security.RoutingUserDetailsService;
 import io.github.fushuwei.scaskeleton.auth.security.filter.CaptchaVerificationFilter;
 import io.github.fushuwei.scaskeleton.auth.security.filter.LoginChannelFilter;
-import io.github.fushuwei.scaskeleton.auth.web.ChannelAwareAuthenticationFailureHandler;
+import io.github.fushuwei.scaskeleton.auth.security.handler.ChannelAwareAuthenticationFailureHandler;
 import io.github.fushuwei.scaskeleton.auth.web.LoginPageController;
-import io.github.fushuwei.scaskeleton.auth.web.OAuthAuthorizeLoginSuccessHandler;
+import io.github.fushuwei.scaskeleton.auth.security.handler.OAuthAuthorizeLoginSuccessHandler;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
