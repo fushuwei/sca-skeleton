@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.web;
 
-import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.security.filter.AuthorizeChannelIsolationFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,21 +20,21 @@ import java.util.Map;
 public class ClientAwareLoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
 
     /** OAuth2 客户端配置，用于 client_id → 登录页 URL 映射 */
-    private final OAuthClientsProperties oauthClientsProperties;
+    private final OAuth2ClientProperties oauth2ClientProperties;
 
     /** 显式保存待恢复的 authorize URL，避免 SavedRequest 被登录页覆盖或 Session 跨端口丢失 */
     private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
 
     /**
-     * @param oauthClientsProperties 客户端配置（admin / portal）
+     * @param oauth2ClientProperties 客户端配置（admin / portal）
      * @param pendingAuthorizeStore  pending authorize Session 存储
      * @param defaultLoginUrl        未知 client_id 时的默认登录页绝对 URL
      */
-    public ClientAwareLoginUrlAuthenticationEntryPoint(OAuthClientsProperties oauthClientsProperties,
-            OAuthPendingAuthorizeStore pendingAuthorizeStore,
-            String defaultLoginUrl) {
+    public ClientAwareLoginUrlAuthenticationEntryPoint(OAuth2ClientProperties oauth2ClientProperties,
+                                                       OAuthPendingAuthorizeStore pendingAuthorizeStore,
+                                                       String defaultLoginUrl) {
         super(defaultLoginUrl);
-        this.oauthClientsProperties = oauthClientsProperties;
+        this.oauth2ClientProperties = oauth2ClientProperties;
         this.pendingAuthorizeStore = pendingAuthorizeStore;
     }
 
@@ -54,7 +54,7 @@ public class ClientAwareLoginUrlAuthenticationEntryPoint extends LoginUrlAuthent
         pendingAuthorizeStore.savePendingAuthorizeRequest(request);
         // 从 authorize 请求 query 读取 client_id，映射 admin / portal 登录页
         String clientId = request.getParameter("client_id");
-        String loginUrl = oauthClientsProperties.resolveExternalLoginUrl(clientId);
+        String loginUrl = oauth2ClientProperties.resolveExternalLoginUrl(clientId);
         // 302 到网关登录页（浏览器后续请求仍走网关 /auth/**）
         response.sendRedirect(loginUrl);
     }

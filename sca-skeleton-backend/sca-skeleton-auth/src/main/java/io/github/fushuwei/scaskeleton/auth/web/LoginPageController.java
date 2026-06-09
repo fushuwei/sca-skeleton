@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.auth.web;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLoginProperties;
-import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,7 +39,7 @@ public class LoginPageController {
     private final OAuthLoginRedirectResolver redirectResolver;
 
     /** OAuth2 客户端配置（用于已登录但无 pending authorize 时自动跳转 SPA） */
-    private final OAuthClientsProperties oauthClientsProperties;
+    private final OAuth2ClientProperties oauth2ClientProperties;
 
     /** Pending authorize Session 存储（区分 OAuth2 authorize 流程内的合法跳转与手动访问） */
     private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
@@ -64,8 +64,8 @@ public class LoginPageController {
         // 有 pending authorize → 正常的 OAuth2 授权流程 → 显示登录页。
         // 无 pending authorize → 手动访问登录页 URL → 302 到 SPA，由 SPA 的 token 管理判断登录状态。
         if (!hasPendingAuthorize(request, LoginChannel.ADMIN)) {
-            String spaRoot = oauthClientsProperties.extractSpaRootUrl(
-                    oauthClientsProperties.getAdmin().getRedirectUri());
+            String spaRoot = oauth2ClientProperties.extractSpaRootUrl(
+                    oauth2ClientProperties.getAdmin().getRedirectUri());
             if (StringUtils.hasText(spaRoot)) {
                 return "redirect:" + spaRoot;
             }
@@ -109,8 +109,8 @@ public class LoginPageController {
         }
         // 未认证时：检查是否是 OAuth2 authorize 流程内的合法跳转
         if (!hasPendingAuthorize(request, LoginChannel.PORTAL)) {
-            String spaRoot = oauthClientsProperties.extractSpaRootUrl(
-                    oauthClientsProperties.getPortal().getRedirectUri());
+            String spaRoot = oauth2ClientProperties.extractSpaRootUrl(
+                    oauth2ClientProperties.getPortal().getRedirectUri());
             if (StringUtils.hasText(spaRoot)) {
                 return "redirect:" + spaRoot;
             }
@@ -171,13 +171,13 @@ public class LoginPageController {
         return buildSpaAutoRedirectUrl(request);
     }
 
-    /** 从 OAuth2 redirect_uri 提取 SPA 根路径，通过 {@link OAuthClientsProperties#extractSpaRootUrl} 正确处理 admin / portal 的不同 base path。 */
+    /** 从 OAuth2 redirect_uri 提取 SPA 根路径，通过 {@link OAuth2ClientProperties#extractSpaRootUrl} 正确处理 admin / portal 的不同 base path。 */
     private String buildSpaAutoRedirectUrl(HttpServletRequest request) {
         boolean isPortal = request.getRequestURI().endsWith("/portal");
         String redirectUri = isPortal
-                ? oauthClientsProperties.getPortal().getRedirectUri()
-                : oauthClientsProperties.getAdmin().getRedirectUri();
-        return oauthClientsProperties.extractSpaRootUrl(redirectUri);
+                ? oauth2ClientProperties.getPortal().getRedirectUri()
+                : oauth2ClientProperties.getAdmin().getRedirectUri();
+        return oauth2ClientProperties.extractSpaRootUrl(redirectUri);
     }
 
     /** 校验当前会话登录渠道是否与当前登录页一致。 */

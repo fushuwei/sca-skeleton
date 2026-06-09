@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.web;
 
-import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class OAuthLoginRedirectResolver {
     private final HttpSessionRequestCache requestCache;
 
     /** issuer / 对外路径前缀配置 */
-    private final OAuthClientsProperties oauthClientsProperties;
+    private final OAuth2ClientProperties oauth2ClientProperties;
 
     /** 显式 pending authorize Session 存储（优先于 SavedRequest） */
     private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
@@ -73,7 +73,7 @@ public class OAuthLoginRedirectResolver {
         if (!StringUtils.hasText(redirectUrl)) {
             return null;
         }
-        String issuer = normalizeIssuer();
+        String issuer = oauth2ClientProperties.normalizeIssuer();
         if (!StringUtils.hasText(issuer)) {
             return null;
         }
@@ -91,7 +91,7 @@ public class OAuthLoginRedirectResolver {
             if (path == null || !path.contains("/oauth2/")) {
                 return null;
             }
-            String publicPrefix = oauthClientsProperties.getPublicPathPrefix();
+            String publicPrefix = oauth2ClientProperties.getPublicPathPrefix();
             // 绝对 URL 已带 /auth 前缀且 host 与 issuer 一致则原样返回
             if (StringUtils.hasText(publicPrefix) && path.startsWith(publicPrefix + "/oauth2")
                     && redirectUrl.startsWith(issuer)) {
@@ -105,14 +105,5 @@ public class OAuthLoginRedirectResolver {
         } catch (IllegalArgumentException ex) {
             return null;
         }
-    }
-
-    /** 去掉 issuer 末尾斜杠。 */
-    private String normalizeIssuer() {
-        String issuer = oauthClientsProperties.getIssuer();
-        if (!StringUtils.hasText(issuer)) {
-            return "";
-        }
-        return issuer.endsWith("/") ? issuer.substring(0, issuer.length() - 1) : issuer;
     }
 }

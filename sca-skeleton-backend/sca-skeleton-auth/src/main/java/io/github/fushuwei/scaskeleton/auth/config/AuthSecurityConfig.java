@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.config;
 
-import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.security.RoutingUserDetailsService;
 import io.github.fushuwei.scaskeleton.auth.security.filter.CaptchaVerificationFilter;
 import io.github.fushuwei.scaskeleton.auth.security.filter.LoginChannelFilter;
@@ -56,7 +56,7 @@ public class AuthSecurityConfig {
     private final HttpSessionRequestCache httpSessionRequestCache;
 
     /** OAuth 客户端配置（用于退出后按渠道重定向） */
-    private final OAuthClientsProperties oauthClientsProperties;
+    private final OAuth2ClientProperties oauth2ClientProperties;
 
     /** OAuth2 授权存储服务（用于退出时吊销令牌） */
     private final OAuth2AuthorizationService oAuth2AuthorizationService;
@@ -173,15 +173,15 @@ public class AuthSecurityConfig {
         // 按渠道回到对应登录页
         String channel = request.getParameter("channel");
         String clientId = resolveClientId(channel);
-        response.sendRedirect(oauthClientsProperties.resolveExternalLoginUrl(clientId));
+        response.sendRedirect(oauth2ClientProperties.resolveExternalLoginUrl(clientId));
     }
 
     /** 将 channel 参数映射为对应 clientId，未知值默认 admin。 */
     private String resolveClientId(String channel) {
         if (StringUtils.hasText(channel) && "portal".equalsIgnoreCase(channel)) {
-            return oauthClientsProperties.getPortal().getClientId();
+            return oauth2ClientProperties.getPortal().getClientId();
         }
-        return oauthClientsProperties.getAdmin().getClientId();
+        return oauth2ClientProperties.getAdmin().getClientId();
     }
 
     /** 密码编码器：使用 Spring Security 默认委托实现。 */

@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.config;
 
-import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ import java.time.Duration;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@EnableConfigurationProperties(OAuthClientsProperties.class)
+@EnableConfigurationProperties(OAuth2ClientProperties.class)
 public class RegisteredClientInitializer implements ApplicationRunner {
 
     /** 授权码有效期：缩短窗口降低 code interception 风险。 */
@@ -40,7 +40,7 @@ public class RegisteredClientInitializer implements ApplicationRunner {
     private final RegisteredClientRepository registeredClientRepository;
 
     /** admin / portal 客户端外部化配置 */
-    private final OAuthClientsProperties oauthClientsProperties;
+    private final OAuth2ClientProperties oauth2ClientProperties;
 
     /** JDBC 模板：用于清理 DB 中格式损坏的历史客户端记录 */
     private final JdbcTemplate jdbcTemplate;
@@ -48,18 +48,18 @@ public class RegisteredClientInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         // 清理 DB 中由旧 SQL 安装脚本写入的格式不兼容记录（JSON 缺少 @class 类型信息）
-        repairCorruptedClientIfNeeded(oauthClientsProperties.getAdmin().getClientId());
-        repairCorruptedClientIfNeeded(oauthClientsProperties.getPortal().getClientId());
+        repairCorruptedClientIfNeeded(oauth2ClientProperties.getAdmin().getClientId());
+        repairCorruptedClientIfNeeded(oauth2ClientProperties.getPortal().getClientId());
         // 初始化管理后台公共客户端
-        initPublicClientIfAbsent(oauthClientsProperties.getAdmin(), "SCA Admin SPA");
+        initPublicClientIfAbsent(oauth2ClientProperties.getAdmin(), "SCA Admin SPA");
         // 初始化前台门户公共客户端
-        initPublicClientIfAbsent(oauthClientsProperties.getPortal(), "SCA Portal SPA");
+        initPublicClientIfAbsent(oauth2ClientProperties.getPortal(), "SCA Portal SPA");
         // 若 redirect_uri 发生变更（如 nginx 统一入口改造），自动同步已有客户端
-        syncRedirectUriIfChanged(oauthClientsProperties.getAdmin());
-        syncRedirectUriIfChanged(oauthClientsProperties.getPortal());
+        syncRedirectUriIfChanged(oauth2ClientProperties.getAdmin());
+        syncRedirectUriIfChanged(oauth2ClientProperties.getPortal());
         // 将历史客户端访问令牌格式迁移为 REFERENCE（不透明令牌）
-        migrateToOpaqueAccessTokenIfNeeded(oauthClientsProperties.getAdmin().getClientId());
-        migrateToOpaqueAccessTokenIfNeeded(oauthClientsProperties.getPortal().getClientId());
+        migrateToOpaqueAccessTokenIfNeeded(oauth2ClientProperties.getAdmin().getClientId());
+        migrateToOpaqueAccessTokenIfNeeded(oauth2ClientProperties.getPortal().getClientId());
     }
 
     /**
@@ -85,7 +85,7 @@ public class RegisteredClientInitializer implements ApplicationRunner {
      * @param props      客户端配置项
      * @param clientName 可读名称，写入 client_name 字段
      */
-    private void initPublicClientIfAbsent(OAuthClientsProperties.ClientProperties props, String clientName) {
+    private void initPublicClientIfAbsent(OAuth2ClientProperties.ClientProperties props, String clientName) {
         // 配置缺失时跳过，避免写入空 client_id
         if (props.getClientId() == null || props.getRedirectUri() == null) {
             log.warn("OAuth2 客户端配置不完整，跳过初始化：clientId={}", props.getClientId());
@@ -136,7 +136,7 @@ public class RegisteredClientInitializer implements ApplicationRunner {
      *
      * @param props 当前配置中的客户端参数
      */
-    private void syncRedirectUriIfChanged(OAuthClientsProperties.ClientProperties props) {
+    private void syncRedirectUriIfChanged(OAuth2ClientProperties.ClientProperties props) {
         if (props.getClientId() == null || props.getRedirectUri() == null) {
             return;
         }

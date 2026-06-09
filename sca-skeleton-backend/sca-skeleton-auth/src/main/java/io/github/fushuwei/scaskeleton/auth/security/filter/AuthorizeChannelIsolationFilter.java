@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.security.filter;
 
-import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
 import io.github.fushuwei.scaskeleton.auth.web.AuthSessionAttributes;
 import io.github.fushuwei.scaskeleton.auth.web.OAuthPendingAuthorizeStore;
@@ -34,7 +34,7 @@ import java.util.Map;
 public class AuthorizeChannelIsolationFilter extends OncePerRequestFilter {
 
     /** OAuth2 客户端配置（用于 client_id -> channel 映射）。 */
-    private final OAuthClientsProperties oauthClientsProperties;
+    private final OAuth2ClientProperties oauth2ClientProperties;
 
     /** Pending authorize 存储（用于 session.invalidate 前保存渠道级 pending 数据）。 */
     private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
@@ -98,7 +98,7 @@ public class AuthorizeChannelIsolationFilter extends OncePerRequestFilter {
 
     /** 将 authorize 请求的 client_id 映射为预期渠道。 */
     private LoginChannel resolveExpectedChannel(String clientId) {
-        if (StringUtils.hasText(clientId) && clientId.equals(oauthClientsProperties.getPortal().getClientId())) {
+        if (StringUtils.hasText(clientId) && clientId.equals(oauth2ClientProperties.getPortal().getClientId())) {
             return LoginChannel.PORTAL;
         }
         return LoginChannel.ADMIN;

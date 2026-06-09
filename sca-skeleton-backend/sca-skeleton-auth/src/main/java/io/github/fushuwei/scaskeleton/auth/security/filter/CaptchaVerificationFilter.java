@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.security.filter;
 
-import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
 import io.github.fushuwei.scaskeleton.captcha.CaptchaService;
 import jakarta.servlet.FilterChain;
@@ -49,7 +49,7 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
 
     private final CaptchaService captchaService;
 
-    private final OAuthClientsProperties oauthClientsProperties;
+    private final OAuth2ClientProperties oauth2ClientProperties;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -106,7 +106,7 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
     private void redirectWithCaptchaError(HttpServletRequest request, HttpServletResponse response,
             String loginChannel) throws IOException {
         String clientId = resolveClientId(loginChannel);
-        String failureUrl = oauthClientsProperties.resolveExternalLoginUrl(clientId)
+        String failureUrl = oauth2ClientProperties.resolveExternalLoginUrl(clientId)
                 + "?captcha-error";
         response.sendRedirect(failureUrl);
     }
@@ -116,8 +116,8 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
      */
     private String resolveClientId(String loginChannel) {
         if (LoginChannel.PORTAL.getValue().equals(loginChannel)) {
-            return oauthClientsProperties.getPortal().getClientId();
+            return oauth2ClientProperties.getPortal().getClientId();
         }
-        return oauthClientsProperties.getAdmin().getClientId();
+        return oauth2ClientProperties.getAdmin().getClientId();
     }
 }

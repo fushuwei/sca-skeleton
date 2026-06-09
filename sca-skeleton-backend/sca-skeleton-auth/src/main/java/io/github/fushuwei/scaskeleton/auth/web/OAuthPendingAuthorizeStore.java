@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.web;
 
-import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -29,7 +29,7 @@ public class OAuthPendingAuthorizeStore {
     static final String SESSION_ATTRIBUTE = "SCA_OAUTH2_PENDING_AUTHORIZE_MAP";
 
     /** issuer / 对外路径前缀配置 */
-    private final OAuthClientsProperties oauthClientsProperties;
+    private final OAuth2ClientProperties oauth2ClientProperties;
 
     /**
      * 未登录访问 {@code /oauth2/authorize} 并重定向到登录页之前，保存经网关可访问的 authorize URL。
@@ -155,7 +155,7 @@ public class OAuthPendingAuthorizeStore {
     private String resolveChannel(HttpServletRequest request) {
         String clientId = request.getParameter("client_id");
         if (StringUtils.hasText(clientId)
-                && clientId.equals(oauthClientsProperties.getPortal().getClientId())) {
+                && clientId.equals(oauth2ClientProperties.getPortal().getClientId())) {
             return LoginChannel.PORTAL.getValue();
         }
         return LoginChannel.ADMIN.getValue();
@@ -165,21 +165,12 @@ public class OAuthPendingAuthorizeStore {
      * 将当前 authorize 请求拼成浏览器经网关访问的绝对 URL。
      */
     private String buildExternalAuthorizeUrl(HttpServletRequest request) {
-        String issuer = normalizeIssuer();
+        String issuer = oauth2ClientProperties.normalizeIssuer();
         String query = request.getQueryString();
         String authorizePath = "/oauth2/authorize";
         if (!StringUtils.hasText(issuer)) {
             return authorizePath + (StringUtils.hasText(query) ? "?" + query : "");
         }
         return issuer + authorizePath + (StringUtils.hasText(query) ? "?" + query : "");
-    }
-
-    /** 去掉 issuer 末尾斜杠。 */
-    private String normalizeIssuer() {
-        String issuer = oauthClientsProperties.getIssuer();
-        if (!StringUtils.hasText(issuer)) {
-            return "";
-        }
-        return issuer.endsWith("/") ? issuer.substring(0, issuer.length() - 1) : issuer;
     }
 }

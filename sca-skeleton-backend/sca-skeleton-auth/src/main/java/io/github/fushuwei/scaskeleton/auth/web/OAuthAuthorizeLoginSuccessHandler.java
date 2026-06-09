@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.web;
 
-import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +27,7 @@ public class OAuthAuthorizeLoginSuccessHandler implements AuthenticationSuccessH
     private final OAuthLoginRedirectResolver redirectResolver;
 
     /** OAuth2 客户端与 issuer 配置 */
-    private final OAuthClientsProperties oauthClientsProperties;
+    private final OAuth2ClientProperties oauth2ClientProperties;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -47,18 +47,18 @@ public class OAuthAuthorizeLoginSuccessHandler implements AuthenticationSuccessH
         // 跳转到 SPA 根路径，由 SPA 路由守卫检测无本地 token 后自动发起 PKCE → authorize 流程。
         // 此时 Auth 服务已有有效 Session，authorize 请求将直接通过，回调 SPA 完成令牌交换。
         String clientId = LoginChannel.PORTAL.getValue().equals(loginChannel)
-                ? oauthClientsProperties.getPortal().getClientId()
-                : oauthClientsProperties.getAdmin().getClientId();
+                ? oauth2ClientProperties.getPortal().getClientId()
+                : oauth2ClientProperties.getAdmin().getClientId();
         String redirectUri = LoginChannel.PORTAL.getValue().equals(loginChannel)
-                ? oauthClientsProperties.getPortal().getRedirectUri()
-                : oauthClientsProperties.getAdmin().getRedirectUri();
+                ? oauth2ClientProperties.getPortal().getRedirectUri()
+                : oauth2ClientProperties.getAdmin().getRedirectUri();
         // 从 redirect_uri 提取 SPA 根路径（如 http://localhost:8080/admin/oauth/callback → http://localhost:8080/admin/）
-        String spaRoot = oauthClientsProperties.extractSpaRootUrl(redirectUri);
+        String spaRoot = oauth2ClientProperties.extractSpaRootUrl(redirectUri);
         if (StringUtils.hasText(spaRoot)) {
             response.sendRedirect(spaRoot);
         } else {
             // 兜底：跳转到对应登录页（此分支仅在 redirectUri 配置异常时触发）
-            response.sendRedirect(oauthClientsProperties.resolveExternalLoginUrl(clientId));
+            response.sendRedirect(oauth2ClientProperties.resolveExternalLoginUrl(clientId));
         }
     }
 }

@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.web;
 
-import io.github.fushuwei.scaskeleton.auth.config.properties.OAuthClientsProperties;
+import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +25,7 @@ public class ChannelAwareAuthenticationFailureHandler implements AuthenticationF
     private static final String PARAM_LOGIN_CHANNEL = "loginChannel";
 
     /** OAuth2 客户端配置，用于解析失败回跳路径 */
-    private final OAuthClientsProperties oauthClientsProperties;
+    private final OAuth2ClientProperties oauth2ClientProperties;
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request,
@@ -34,7 +34,7 @@ public class ChannelAwareAuthenticationFailureHandler implements AuthenticationF
         // 读取表单提交的登录渠道，决定回到哪个登录页
         String loginChannel = request.getParameter(PARAM_LOGIN_CHANNEL);
         // 将 loginChannel 映射为 clientId 后解析经网关的对外失败回跳 URL
-        String failureUrl = oauthClientsProperties.resolveExternalLoginFailureUrl(
+        String failureUrl = oauth2ClientProperties.resolveExternalLoginFailureUrl(
                 loginChannelToClientId(loginChannel));
         // 302 重定向到对应登录页并携带 error 查询参数
         response.sendRedirect(failureUrl);
@@ -43,7 +43,7 @@ public class ChannelAwareAuthenticationFailureHandler implements AuthenticationF
     /**
      * 将 loginChannel 字符串映射为用于路径解析的伪 client 标识。
      * <p>
-     * {@link OAuthClientsProperties#resolveLoginFailurePath(String)} 内部通过 portal clientId 比较实现分支。
+     * {@link OAuth2ClientProperties#resolveLoginFailurePath(String)} 内部通过 portal clientId 比较实现分支。
      *
      * @param loginChannel 表单 hidden 字段值
      * @return portal 渠道返回 portal clientId，否则返回 null（走 admin 默认页）
@@ -51,9 +51,9 @@ public class ChannelAwareAuthenticationFailureHandler implements AuthenticationF
     private String loginChannelToClientId(String loginChannel) {
         // portal 渠道时使用 portal 的 clientId 触发门户登录页
         if (LoginChannel.PORTAL.getValue().equals(loginChannel)) {
-            return oauthClientsProperties.getPortal().getClientId();
+            return oauth2ClientProperties.getPortal().getClientId();
         }
         // admin 或其它情况返回 admin clientId
-        return oauthClientsProperties.getAdmin().getClientId();
+        return oauth2ClientProperties.getAdmin().getClientId();
     }
 }
