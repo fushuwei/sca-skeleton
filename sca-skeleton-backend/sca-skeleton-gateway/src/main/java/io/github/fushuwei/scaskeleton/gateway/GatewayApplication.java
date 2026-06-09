@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
- * API 网关启动类
+ * 网关服务启动类
  *
  * @author Fu Wei
  */
