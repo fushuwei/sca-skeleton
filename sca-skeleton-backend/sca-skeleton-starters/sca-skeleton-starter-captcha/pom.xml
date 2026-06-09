@@ -15,7 +15,7 @@
     <packaging>jar</packaging>
 
     <name>SCA Skeleton Backend :: Starter :: Captcha</name>
-    <description>Image captcha generation (Java AWT), Redis storage and verification</description>
+    <description>SCA Skeleton Backend :: 验证码 Starter</description>
 
     <dependencies>
         <!-- 项目核心 Starter（自定义基础组件封装） -->
@@ -30,7 +30,7 @@
             <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
 
-        <!-- 配置元数据处理器（生成 spring-configuration-metadata.json，支持 IDE 自动补全） -->
+        <!-- 配置元数据处理器（为自定义配置类提供 IDE 自动补全与元数据生成功能） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>

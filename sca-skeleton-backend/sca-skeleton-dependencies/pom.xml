@@ -164,7 +164,7 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- 项目验证码 Starter（自定义验证码组件封装） -->
+            <!-- 项目验证码 Starter（验证码组件封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-captcha</artifactId>
