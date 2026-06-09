@@ -15,8 +15,7 @@
     <packaging>jar</packaging>
 
     <name>SCA Skeleton Backend :: Auth</name>
-    <description>Authentication service: OAuth2 Authorization Server (Authorization Code + PKCE), opaque access token
-    </description>
+    <description>SCA Skeleton Backend :: 认证授权服务</description>
 
     <dependencies>
         <!-- 项目 Web 层 Starter（自定义 Web 组件封装） -->
@@ -43,22 +42,22 @@
             <artifactId>sca-skeleton-starter-captcha</artifactId>
         </dependency>
 
-        <!-- Spring Authorization Server（OAuth2.1 / OIDC 认证授权中心） -->
+        <!-- OAuth 2.1 授权服务器（OAuth2.1 / OIDC 认证授权中心） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-oauth2-authorization-server</artifactId>
         </dependency>
 
-        <!-- Thymeleaf：Auth 服务托管 admin / portal 登录页 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-        </dependency>
-
-        <!-- Spring Boot Session Data Redis 自动配置（Auth 集群多副本共享登录会话） -->
+        <!-- Spring Session（基于 Redis 存储会话，支持分布式环境下的登录态共享） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-session-data-redis</artifactId>
+        </dependency>
+
+        <!-- Thymeleaf 模板引擎（用于渲染登录页等服务端页面） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
         <!-- Nacos 注册中心客户端（服务注册与发现） -->
@@ -73,7 +72,7 @@
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
         </dependency>
 
-        <!-- Spring Cloud 客户端负载均衡（支持 lb://sca-skeleton-system 格式的路由 URI） -->
+        <!-- Spring Cloud 客户端负载均衡（支持 lb://service-name 格式的路由 URI） -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
@@ -95,7 +94,6 @@
 
     <build>
         <plugins>
-            <!-- Spring Boot 打包插件：生成可执行 Fat Jar -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

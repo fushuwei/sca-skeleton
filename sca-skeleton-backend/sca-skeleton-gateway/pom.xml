@@ -42,7 +42,7 @@
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
         </dependency>
 
-        <!-- Spring Cloud 客户端负载均衡（支持 lb://sca-skeleton-system 格式的路由 URI） -->
+        <!-- Spring Cloud 客户端负载均衡（支持 lb://service-name 格式的路由 URI） -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
