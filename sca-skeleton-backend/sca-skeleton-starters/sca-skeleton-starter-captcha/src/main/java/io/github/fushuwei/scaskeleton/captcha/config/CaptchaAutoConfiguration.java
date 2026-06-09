@@ -2,10 +2,10 @@ package io.github.fushuwei.scaskeleton.captcha.config;
 
 import io.github.fushuwei.scaskeleton.captcha.CaptchaService;
 import io.github.fushuwei.scaskeleton.captcha.impl.ImageCaptchaServiceImpl;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
@@ -13,10 +13,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
  *
  * @author Fu Wei
  */
-// @AutoConfiguration
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @EnableConfigurationProperties(CaptchaProperties.class)
-public class CaptchaConfiguration {
+public class CaptchaAutoConfiguration {
 
     /**
      * 注册图形验证码服务

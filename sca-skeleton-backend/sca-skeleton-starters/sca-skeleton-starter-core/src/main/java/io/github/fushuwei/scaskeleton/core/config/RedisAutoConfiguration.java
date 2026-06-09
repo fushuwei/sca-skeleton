@@ -25,7 +25,7 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
 @AutoConfiguration
 @ConditionalOnBean(RedisConnectionFactory.class)  // 只有当用户配置了 Redis 连接信息，这个配置类才生效，否则跳过，避免因找不到连接工厂而报错
 @ConditionalOnWebApplication(type = SERVLET)  // 只允许在 Servlet 应用中加载该配置，如果是响应式服务（比如网关）则跳过此配置
-public class RedisConfiguration {
+public class RedisAutoConfiguration {
 
     /**
      * 创建并配置默认的 RedisTemplate Bean

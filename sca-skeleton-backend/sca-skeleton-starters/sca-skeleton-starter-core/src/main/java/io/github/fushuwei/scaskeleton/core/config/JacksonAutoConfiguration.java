@@ -3,9 +3,7 @@ package io.github.fushuwei.scaskeleton.core.config;
 import io.github.fushuwei.scaskeleton.core.jackson.JavaLangModule;
 import io.github.fushuwei.scaskeleton.core.jackson.JavaTimeModule;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import tools.jackson.databind.DeserializationFeature;
@@ -16,14 +14,11 @@ import java.util.TimeZone;
 
 /**
  * Jackson 3 全局配置
- * <p>
- * 本类在 {@link JacksonAutoConfiguration} 之后执行，以便在默认模块之上追加项目级约定
  *
  * @author Fu Wei
  */
 @AutoConfiguration
-@AutoConfigureAfter(JacksonAutoConfiguration.class)
-public class JacksonConfiguration {
+public class JacksonAutoConfiguration {
 
     /**
      * 统一序列化/反序列化策略
