@@ -3,7 +3,7 @@ package io.github.fushuwei.scaskeleton.auth.security.filter;
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
 import io.github.fushuwei.scaskeleton.auth.constants.AuthSessionAttributes;
-import io.github.fushuwei.scaskeleton.auth.security.OAuthPendingAuthorizeStore;
+import io.github.fushuwei.scaskeleton.auth.security.OAuth2PendingAuthorizeStore;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,7 +37,7 @@ public class AuthorizeChannelIsolationFilter extends OncePerRequestFilter {
     private final OAuth2ClientProperties oauth2ClientProperties;
 
     /** Pending authorize 存储（用于 session.invalidate 前保存渠道级 pending 数据）。 */
-    private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
+    private final OAuth2PendingAuthorizeStore pendingAuthorizeStore;
 
     /** Request attribute：暂存从旧 Session 迁出的 pending authorize map，供 EntryPoint 恢复到新 Session。 */
     public static final String PRESERVED_PENDING_MAP_ATTR = "SCA_PRESERVED_PENDING_AUTHORIZE_MAP";

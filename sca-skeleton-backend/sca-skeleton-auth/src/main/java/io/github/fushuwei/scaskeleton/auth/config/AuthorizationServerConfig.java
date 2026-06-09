@@ -14,7 +14,7 @@ import io.github.fushuwei.scaskeleton.auth.security.filter.AuthorizeChannelIsola
 import io.github.fushuwei.scaskeleton.auth.token.ScaOpaqueAccessTokenClaimsCustomizer;
 import io.github.fushuwei.scaskeleton.auth.token.ScaRefreshTokenGenerator;
 import io.github.fushuwei.scaskeleton.auth.security.handler.ClientAwareLoginUrlAuthenticationEntryPoint;
-import io.github.fushuwei.scaskeleton.auth.security.OAuthPendingAuthorizeStore;
+import io.github.fushuwei.scaskeleton.auth.security.OAuth2PendingAuthorizeStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -71,7 +71,7 @@ public class AuthorizationServerConfig {
     /**
      * pending authorize Session 存储
      */
-    private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
+    private final OAuth2PendingAuthorizeStore pendingAuthorizeStore;
     /**
      * 授权端点渠道隔离过滤器（阻断 admin/portal 静默串登）
      */

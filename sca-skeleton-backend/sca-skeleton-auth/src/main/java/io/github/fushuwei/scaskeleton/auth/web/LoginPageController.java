@@ -4,8 +4,8 @@ import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLoginProperties
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.constants.AuthSessionAttributes;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
-import io.github.fushuwei.scaskeleton.auth.security.OAuthLoginRedirectResolver;
-import io.github.fushuwei.scaskeleton.auth.security.OAuthPendingAuthorizeStore;
+import io.github.fushuwei.scaskeleton.auth.security.OAuth2LoginRedirectResolver;
+import io.github.fushuwei.scaskeleton.auth.security.OAuth2PendingAuthorizeStore;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -39,13 +39,13 @@ public class LoginPageController {
     private final AuthLoginProperties authLoginProperties;
 
     /** 已登录用户从登录页恢复到 authorize SavedRequest */
-    private final OAuthLoginRedirectResolver redirectResolver;
+    private final OAuth2LoginRedirectResolver redirectResolver;
 
     /** OAuth2 客户端配置（用于已登录但无 pending authorize 时自动跳转 SPA） */
     private final OAuth2ClientProperties oauth2ClientProperties;
 
     /** Pending authorize Session 存储（区分 OAuth2 authorize 流程内的合法跳转与手动访问） */
-    private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
+    private final OAuth2PendingAuthorizeStore pendingAuthorizeStore;
 
     /**
      * 管理后台登录页（简单占位 UI，后续可按产品需求替换样式）。

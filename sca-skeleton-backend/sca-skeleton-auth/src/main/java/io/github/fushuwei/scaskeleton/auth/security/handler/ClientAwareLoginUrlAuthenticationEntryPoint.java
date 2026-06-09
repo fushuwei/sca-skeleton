@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.auth.security.handler;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
-import io.github.fushuwei.scaskeleton.auth.security.OAuthPendingAuthorizeStore;
+import io.github.fushuwei.scaskeleton.auth.security.OAuth2PendingAuthorizeStore;
 import io.github.fushuwei.scaskeleton.auth.security.filter.AuthorizeChannelIsolationFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,7 +24,7 @@ public class ClientAwareLoginUrlAuthenticationEntryPoint extends LoginUrlAuthent
     private final OAuth2ClientProperties oauth2ClientProperties;
 
     /** 显式保存待恢复的 authorize URL，避免 SavedRequest 被登录页覆盖或 Session 跨端口丢失 */
-    private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
+    private final OAuth2PendingAuthorizeStore pendingAuthorizeStore;
 
     /**
      * @param oauth2ClientProperties 客户端配置（admin / portal）
@@ -32,7 +32,7 @@ public class ClientAwareLoginUrlAuthenticationEntryPoint extends LoginUrlAuthent
      * @param defaultLoginUrl        未知 client_id 时的默认登录页绝对 URL
      */
     public ClientAwareLoginUrlAuthenticationEntryPoint(OAuth2ClientProperties oauth2ClientProperties,
-                                                       OAuthPendingAuthorizeStore pendingAuthorizeStore,
+                                                       OAuth2PendingAuthorizeStore pendingAuthorizeStore,
                                                        String defaultLoginUrl) {
         super(defaultLoginUrl);
         this.oauth2ClientProperties = oauth2ClientProperties;

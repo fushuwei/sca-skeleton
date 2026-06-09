@@ -18,7 +18,7 @@ import java.net.URI;
  */
 @Component
 @RequiredArgsConstructor
-public class OAuthLoginRedirectResolver {
+public class OAuth2LoginRedirectResolver {
 
     /** 与两条 SecurityFilterChain 共享的 SavedRequest 存储 */
     private final HttpSessionRequestCache requestCache;
@@ -27,7 +27,7 @@ public class OAuthLoginRedirectResolver {
     private final OAuth2ClientProperties oauth2ClientProperties;
 
     /** 显式 pending authorize Session 存储（优先于 SavedRequest） */
-    private final OAuthPendingAuthorizeStore pendingAuthorizeStore;
+    private final OAuth2PendingAuthorizeStore pendingAuthorizeStore;
 
     /**
      * 解析登录成功后浏览器应跳转的绝对 URL（通常为 {@code {issuer}/oauth2/authorize?...}）。

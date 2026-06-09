@@ -6,7 +6,7 @@ import io.github.fushuwei.scaskeleton.auth.security.filter.CaptchaVerificationFi
 import io.github.fushuwei.scaskeleton.auth.security.filter.LoginChannelFilter;
 import io.github.fushuwei.scaskeleton.auth.security.handler.ChannelAwareAuthenticationFailureHandler;
 import io.github.fushuwei.scaskeleton.auth.web.LoginPageController;
-import io.github.fushuwei.scaskeleton.auth.security.handler.OAuthAuthorizeLoginSuccessHandler;
+import io.github.fushuwei.scaskeleton.auth.security.handler.OAuth2AuthorizeLoginSuccessHandler;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -50,7 +50,7 @@ public class AuthSecurityConfig {
     private final ChannelAwareAuthenticationFailureHandler authenticationFailureHandler;
 
     /** 登录成功后恢复 OAuth2 authorize SavedRequest */
-    private final OAuthAuthorizeLoginSuccessHandler oauthAuthorizeLoginSuccessHandler;
+    private final OAuth2AuthorizeLoginSuccessHandler oauthAuthorizeLoginSuccessHandler;
 
     /** 与 SAS 过滤链共享的 SavedRequest 缓存 */
     private final HttpSessionRequestCache httpSessionRequestCache;

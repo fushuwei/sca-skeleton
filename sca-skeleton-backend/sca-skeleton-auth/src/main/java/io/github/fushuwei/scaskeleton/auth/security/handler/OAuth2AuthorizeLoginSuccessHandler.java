@@ -3,7 +3,7 @@ package io.github.fushuwei.scaskeleton.auth.security.handler;
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.constants.AuthSessionAttributes;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
-import io.github.fushuwei.scaskeleton.auth.security.OAuthLoginRedirectResolver;
+import io.github.fushuwei.scaskeleton.auth.security.OAuth2LoginRedirectResolver;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,10 +23,10 @@ import java.io.IOException;
  */
 @Component
 @RequiredArgsConstructor
-public class OAuthAuthorizeLoginSuccessHandler implements AuthenticationSuccessHandler {
+public class OAuth2AuthorizeLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     /** 解析并规范化 authorize 回跳 URL */
-    private final OAuthLoginRedirectResolver redirectResolver;
+    private final OAuth2LoginRedirectResolver redirectResolver;
 
     /** OAuth2 客户端与 issuer 配置 */
     private final OAuth2ClientProperties oauth2ClientProperties;

@@ -1,7 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.security;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
-import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,7 @@ import java.util.Map;
  */
 @Component
 @RequiredArgsConstructor
-public class OAuthPendingAuthorizeStore {
+public class OAuth2PendingAuthorizeStore {
 
     /** Session 键：待恢复的 authorize 绝对 URL Map（渠道 → 经网关 URL） */
     static final String SESSION_ATTRIBUTE = "SCA_OAUTH2_PENDING_AUTHORIZE_MAP";
