@@ -100,7 +100,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
     private final RegisteredClientRepository registeredClientRepository;
 
     /**
-     * Spring Data Redis 字符串模板：读写 Hash 与索引键。
+     * Redis 字符串模板
      */
     private final StringRedisTemplate stringRedisTemplate;
 

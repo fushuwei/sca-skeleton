@@ -47,7 +47,7 @@ public class ImageCaptchaServiceImpl implements CaptchaService {
     private final String redisKeyPrefix;
 
     /**
-     * Redis 字符串操作模板（Key/Value 均为 String 类型）
+     * Redis 字符串模板
      */
     private final StringRedisTemplate stringRedisTemplate;
 

@@ -1,6 +1,5 @@
 package io.github.fushuwei.scaskeleton.security.oauth2.client;
 
-import io.github.fushuwei.scaskeleton.security.oauth2.authorization.OAuth2AuthorizationJsonMapperFactory;
 import io.github.fushuwei.scaskeleton.security.oauth2.authorization.OAuth2AuthorizationRedisKeys;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
@@ -12,13 +11,17 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * 基于 Redis 的 {@link RegisteredClientRepository} 实现。
+ * 基于 Redis 的 {@link RegisteredClientRepository} 实现
  * <p>
- * 根据不同部署场景提供两种模式：
+ * 提供两种使用场景：
  * <ol>
- *   <li><b>认证中心模式</b>（提供 delegate）— JDBC 为主存储，Redis 为缓存：
- *       {@code save} 写入 JDBC + 同步刷新 Redis 快照，{@code find} 优先读 Redis 未命中则回源 JDBC 并回填。</li>
- *   <li><b>资源服务器模式</b>（不提供 delegate）— Redis 只读加载，写入抛异常。</li>
+ *   <li>
+ *       <b>「认证中心」使用场景：</b>（提供 delegate）— JDBC 为主存储，Redis 为缓存：
+ *       {@code save} 写入 JDBC + 同步刷新 Redis 快照，{@code find} 优先读 Redis 未命中则回源 JDBC 并回填
+ *   </li>
+ *   <li>
+ *       <b>「资源服务器」使用场景：</b>（不提供 delegate）— Redis 只读加载，写入抛异常
+ *   </li>
  * </ol>
  *
  * @author Fu Wei
@@ -27,23 +30,22 @@ import org.springframework.util.StringUtils;
 public class RedisRegisteredClientRepository implements RegisteredClientRepository {
 
     /**
-     * 委托的 JDBC 或其它权威数据源（认证中心模式时非 null，资源服务器模式时为 null）。
+     * 委托的 JDBC 或其它权威存储库
      */
-    @Nullable
     private final RegisteredClientRepository delegate;
 
     /**
-     * Redis 字符串模板。
+     * Redis 字符串模板
      */
     private final StringRedisTemplate stringRedisTemplate;
 
     /**
-     * 注册客户端 Redis 快照编解码器。
+     * 注册客户端 Redis 序列化器
      */
     private final RegisteredClientRedisSerializer redisSerializer;
 
     /**
-     * 认证中心模式构造器。
+     * 认证中心模式构造器
      *
      * @param delegate            权威客户端仓库（通常为 {@code JdbcRegisteredClientRepository}）
      * @param stringRedisTemplate 与授权记录共用的 Redis
@@ -59,7 +61,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     }
 
     /**
-     * 资源服务器模式构造器（只读 Redis）。
+     * 资源服务器模式构造器（只读 Redis）
      *
      * @param stringRedisTemplate Redis 模板，不可为 null
      */
@@ -71,10 +73,10 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     }
 
     /**
-     * 持久化客户端。
+     * 持久化客户端
      * <p>
-     * 认证中心模式：写入 JDBC 并同步刷新 Redis 缓存。<br>
-     * 资源服务器模式：不支持写入。
+     * 认证中心模式：写入 JDBC 并同步刷新 Redis 缓存<br>
+     * 资源服务器模式：不支持写入
      *
      * @param registeredClient 客户端
      */
@@ -93,10 +95,10 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     }
 
     /**
-     * 按主键加载注册客户端。
+     * 按主键加载注册客户端
      * <p>
-     * 认证中心模式：优先读 Redis，未命中再回源 JDBC 并回填缓存。<br>
-     * 资源服务器模式：仅读 Redis。
+     * 认证中心模式：优先读 Redis，未命中再回源 JDBC 并回填缓存<br>
+     * 资源服务器模式：仅读 Redis
      *
      * @param id 客户端主键
      * @return 客户端；不存在时返回 null
@@ -126,10 +128,10 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     }
 
     /**
-     * 按 OAuth2 client_id 加载注册客户端。
+     * 按 OAuth2 client_id 加载注册客户端
      * <p>
-     * 认证中心模式：优先读 Redis 索引，未命中再回源 JDBC 并回填缓存。<br>
-     * 资源服务器模式：仅读 Redis 索引。
+     * 认证中心模式：优先读 Redis 索引，未命中再回源 JDBC 并回填缓存<br>
+     * 资源服务器模式：仅读 Redis 索引
      *
      * @param clientId client_id
      * @return 客户端；不存在时返回 null
@@ -169,7 +171,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     // ── 认证中心模式专用方法 ──
 
     /**
-     * 将客户端快照写入 Redis（主键与 client_id 双索引）。
+     * 将客户端快照写入 Redis（主键与 client_id 双索引）
      *
      * @param registeredClient 客户端
      */
@@ -189,7 +191,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     }
 
     /**
-     * 反序列化 Redis 中的客户端快照（认证中心模式，带脏缓存清理）。
+     * 反序列化 Redis 中的客户端快照（认证中心模式，带脏缓存清理）
      *
      * @param json     JSON 文本
      * @param cacheKey 当前缓存键；解析失败或历史格式时用于失效旧数据
@@ -218,7 +220,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     }
 
     /**
-     * 将 JSON 反序列化为 {@link RegisteredClient}（资源服务器模式，失败抛异常）。
+     * 将 JSON 反序列化为 {@link RegisteredClient}（资源服务器模式，失败抛异常）
      *
      * @param json 缓存 JSON
      * @return 客户端；空输入返回 null
