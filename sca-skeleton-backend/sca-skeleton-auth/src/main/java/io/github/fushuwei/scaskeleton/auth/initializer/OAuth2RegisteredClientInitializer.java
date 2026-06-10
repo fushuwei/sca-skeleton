@@ -21,9 +21,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 
 /**
- * OAuth2 公共客户端初始化器：为 admin / portal 两个 SPA 注册 Authorization Code + PKCE 客户端。
- * <p>
- * 仅在 {@code oauth2_registered_client} 中不存在对应 {@code client_id} 时插入，生产环境建议改为运维预置 SQL。
+ * OAuth2 客户端初始化程序
  *
  * @author Fu Wei
  */
@@ -31,18 +29,26 @@ import java.time.Duration;
 @Component
 @RequiredArgsConstructor
 @EnableConfigurationProperties(OAuth2ClientProperties.class)
-public class RegisteredClientInitializer implements ApplicationRunner {
+public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
 
-    /** 授权码有效期：缩短窗口降低 code interception 风险。 */
+    /**
+     * 授权码有效期：缩短窗口降低 code interception 风险。
+     */
     private static final Duration AUTHORIZATION_CODE_TTL = Duration.ofSeconds(60);
 
-    /** JDBC + Redis 缓存的客户端仓库 */
+    /**
+     * JDBC + Redis 缓存的客户端仓库
+     */
     private final RegisteredClientRepository registeredClientRepository;
 
-    /** admin / portal 客户端外部化配置 */
+    /**
+     * admin / portal 客户端外部化配置
+     */
     private final OAuth2ClientProperties oauth2ClientProperties;
 
-    /** JDBC 模板：用于清理 DB 中格式损坏的历史客户端记录 */
+    /**
+     * JDBC 模板：用于清理 DB 中格式损坏的历史客户端记录
+     */
     private final JdbcTemplate jdbcTemplate;
 
     @Override
@@ -97,34 +103,34 @@ public class RegisteredClientInitializer implements ApplicationRunner {
             return;
         }
         RegisteredClient client = RegisteredClient
-                // 主键使用全局 UUID 策略
-                .withId(UuidUtils.nextSimpleStr())
-                .clientId(props.getClientId())
-                .clientName(clientName)
-                // 公共客户端：不进行 client_secret 认证
-                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
-                // 授权码 + 刷新令牌
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                // PKCE 回调地址（必须与 SPA 环境变量一致）
-                .redirectUri(props.getRedirectUri())
-                .scope(OidcScopes.OPENID)
-                .scope(OidcScopes.PROFILE)
-                .scope("offline_access")
-                .scope("all")
-                .clientSettings(ClientSettings.builder()
-                        // OAuth 2.1：公共客户端强制 PKCE
-                        .requireProofKey(true)
-                        .requireAuthorizationConsent(false)
-                        .build())
-                .tokenSettings(TokenSettings.builder()
-                        .accessTokenFormat(OAuth2TokenFormat.REFERENCE)
-                        .authorizationCodeTimeToLive(AUTHORIZATION_CODE_TTL)
-                        .accessTokenTimeToLive(Duration.ofSeconds(props.getAccessTokenTtl()))
-                        .refreshTokenTimeToLive(Duration.ofSeconds(props.getRefreshTokenTtl()))
-                        .reuseRefreshTokens(false)
-                        .build())
-                .build();
+            // 主键使用全局 UUID 策略
+            .withId(UuidUtils.nextSimpleStr())
+            .clientId(props.getClientId())
+            .clientName(clientName)
+            // 公共客户端：不进行 client_secret 认证
+            .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+            // 授权码 + 刷新令牌
+            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+            // PKCE 回调地址（必须与 SPA 环境变量一致）
+            .redirectUri(props.getRedirectUri())
+            .scope(OidcScopes.OPENID)
+            .scope(OidcScopes.PROFILE)
+            .scope("offline_access")
+            .scope("all")
+            .clientSettings(ClientSettings.builder()
+                // OAuth 2.1：公共客户端强制 PKCE
+                .requireProofKey(true)
+                .requireAuthorizationConsent(false)
+                .build())
+            .tokenSettings(TokenSettings.builder()
+                .accessTokenFormat(OAuth2TokenFormat.REFERENCE)
+                .authorizationCodeTimeToLive(AUTHORIZATION_CODE_TTL)
+                .accessTokenTimeToLive(Duration.ofSeconds(props.getAccessTokenTtl()))
+                .refreshTokenTimeToLive(Duration.ofSeconds(props.getRefreshTokenTtl()))
+                .reuseRefreshTokens(false)
+                .build())
+            .build();
         registeredClientRepository.save(client);
         log.info("OAuth2 公共客户端 [{}] 初始化完成，redirect_uri={}", props.getClientId(), props.getRedirectUri());
     }
@@ -150,13 +156,13 @@ public class RegisteredClientInitializer implements ApplicationRunner {
             return;
         }
         log.warn("OAuth2 客户端 [{}] redirect_uri 不一致，当前 DB={}，配置={}，自动同步",
-                props.getClientId(), existing.getRedirectUris(), configuredUri);
+            props.getClientId(), existing.getRedirectUris(), configuredUri);
         RegisteredClient updated = RegisteredClient.from(existing)
-                .redirectUris(uris -> {
-                    uris.clear();
-                    uris.add(configuredUri);
-                })
-                .build();
+            .redirectUris(uris -> {
+                uris.clear();
+                uris.add(configuredUri);
+            })
+            .build();
         registeredClientRepository.save(updated);
         log.info("OAuth2 客户端 [{}] redirect_uri 已同步为 {}", props.getClientId(), configuredUri);
     }
@@ -180,15 +186,15 @@ public class RegisteredClientInitializer implements ApplicationRunner {
         }
         TokenSettings old = client.getTokenSettings();
         TokenSettings newSettings = TokenSettings.builder()
-                .accessTokenFormat(OAuth2TokenFormat.REFERENCE)
-                .accessTokenTimeToLive(old.getAccessTokenTimeToLive())
-                .refreshTokenTimeToLive(old.getRefreshTokenTimeToLive())
-                .reuseRefreshTokens(old.isReuseRefreshTokens())
-                .authorizationCodeTimeToLive(old.getAuthorizationCodeTimeToLive())
-                .deviceCodeTimeToLive(old.getDeviceCodeTimeToLive())
-                .idTokenSignatureAlgorithm(old.getIdTokenSignatureAlgorithm())
-                .x509CertificateBoundAccessTokens(old.isX509CertificateBoundAccessTokens())
-                .build();
+            .accessTokenFormat(OAuth2TokenFormat.REFERENCE)
+            .accessTokenTimeToLive(old.getAccessTokenTimeToLive())
+            .refreshTokenTimeToLive(old.getRefreshTokenTimeToLive())
+            .reuseRefreshTokens(old.isReuseRefreshTokens())
+            .authorizationCodeTimeToLive(old.getAuthorizationCodeTimeToLive())
+            .deviceCodeTimeToLive(old.getDeviceCodeTimeToLive())
+            .idTokenSignatureAlgorithm(old.getIdTokenSignatureAlgorithm())
+            .x509CertificateBoundAccessTokens(old.isX509CertificateBoundAccessTokens())
+            .build();
         registeredClientRepository.save(RegisteredClient.from(client).tokenSettings(newSettings).build());
         log.info("OAuth2 客户端 [{}] 已升级为不透明访问令牌（REFERENCE）", clientId);
     }
