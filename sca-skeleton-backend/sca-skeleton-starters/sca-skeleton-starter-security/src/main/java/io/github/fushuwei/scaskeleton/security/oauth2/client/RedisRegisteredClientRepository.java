@@ -40,14 +40,14 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     private final StringRedisTemplate stringRedisTemplate;
 
     /**
-     * 注册客户端 Redis 序列化器
+     * 注册客户端 Redis 存储库数据序列化器
      */
     private final RegisteredClientRedisSerializer redisSerializer;
 
     /**
-     * 认证中心模式构造器
+     * 认证中心使用场景构造器
      *
-     * @param delegate            权威客户端仓库（通常为 {@code JdbcRegisteredClientRepository}）
+     * @param delegate            注册客户端存储库（通常为 {@code JdbcRegisteredClientRepository}）
      * @param stringRedisTemplate 与授权记录共用的 Redis
      */
     public RedisRegisteredClientRepository(RegisteredClientRepository delegate,
@@ -56,12 +56,11 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
         Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
         this.delegate = delegate;
         this.stringRedisTemplate = stringRedisTemplate;
-        // 快照编解码与资源服务器共用同一格式
         this.redisSerializer = new RegisteredClientRedisSerializer(getClass().getClassLoader());
     }
 
     /**
-     * 资源服务器模式构造器（只读 Redis）
+     * 资源服务器使用场景构造器（只读 Redis）
      *
      * @param stringRedisTemplate Redis 模板，不可为 null
      */
