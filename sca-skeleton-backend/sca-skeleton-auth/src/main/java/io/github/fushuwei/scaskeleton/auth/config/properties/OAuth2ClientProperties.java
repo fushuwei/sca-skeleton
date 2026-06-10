@@ -68,6 +68,11 @@ public class OAuth2ClientProperties {
     public static class ClientProperties {
 
         /**
+         * OAuth2 客户端主键 ID
+         */
+        private String id;
+
+        /**
          * OAuth2 客户端 ID
          */
         private String clientId;

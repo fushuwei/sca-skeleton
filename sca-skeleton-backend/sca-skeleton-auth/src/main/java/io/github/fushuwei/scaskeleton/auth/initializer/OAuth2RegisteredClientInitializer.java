@@ -1,7 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.initializer;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
-import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -20,7 +19,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 
 /**
- * OAuth2 客户端初始化程序
+ * OAuth2 内置公共客户端初始化程序
  *
  * @author Fu Wei
  */
@@ -101,8 +100,7 @@ public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
             return;
         }
         RegisteredClient client = RegisteredClient
-            // 主键使用全局 UUID 策略
-            .withId(UuidUtils.nextSimpleStr())
+            .withId(props.getId())
             .clientId(props.getClientId())
             .clientName(clientName)
             // 公共客户端：不进行 client_secret 认证
@@ -130,7 +128,8 @@ public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
                 .build())
             .build();
         registeredClientRepository.save(client);
-        log.info("OAuth2 公共客户端 [{}] 初始化完成，redirect_uri={}", props.getClientId(), props.getRedirectUri());
+        log.info("OAuth2 内置客户端 [{}] 初始化完成，id={}，redirect_uri={}",
+                props.getClientId(), props.getId(), props.getRedirectUri());
     }
 
     /**

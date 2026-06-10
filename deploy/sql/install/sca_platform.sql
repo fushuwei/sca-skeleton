@@ -578,7 +578,7 @@ INSERT INTO oauth2_registered_client (
     token_settings
 )
 SELECT
-    REPLACE(UUID(), '-', ''),
+    '100',
     'sca-admin-client',
     CURRENT_TIMESTAMP,
     NULL,
@@ -589,8 +589,8 @@ SELECT
     'http://localhost:8080/admin/oauth/callback',
     NULL,
     'openid,profile,offline_access,all',
-    '{"@class":"java.util.Collections$UnmodifiableMap","settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
-    '{"@class":"java.util.Collections$UnmodifiableMap","settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat","value":"reference"},"settings.token.authorization-code-time-to-live":["java.time.Duration",60.000000000],"settings.token.access-token-time-to-live":["java.time.Duration",900.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.reuse-refresh-tokens":false}'
+    '{"settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
+    '{"settings.token.reuse-refresh-tokens":false}'
 WHERE NOT EXISTS (
     SELECT 1 FROM oauth2_registered_client WHERE client_id = 'sca-admin-client'
 );
@@ -612,7 +612,7 @@ INSERT INTO oauth2_registered_client (
     token_settings
 )
 SELECT
-    REPLACE(UUID(), '-', ''),
+    '200',
     'sca-portal-client',
     CURRENT_TIMESTAMP,
     NULL,
@@ -623,8 +623,8 @@ SELECT
     'http://localhost:8080/oauth/callback',
     NULL,
     'openid,profile,offline_access,all',
-    '{"@class":"java.util.Collections$UnmodifiableMap","settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
-    '{"@class":"java.util.Collections$UnmodifiableMap","settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat","value":"reference"},"settings.token.authorization-code-time-to-live":["java.time.Duration",60.000000000],"settings.token.access-token-time-to-live":["java.time.Duration",900.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.reuse-refresh-tokens":false}'
+    '{"settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
+    '{"settings.token.reuse-refresh-tokens":false}'
 WHERE NOT EXISTS (
     SELECT 1 FROM oauth2_registered_client WHERE client_id = 'sca-portal-client'
 );
