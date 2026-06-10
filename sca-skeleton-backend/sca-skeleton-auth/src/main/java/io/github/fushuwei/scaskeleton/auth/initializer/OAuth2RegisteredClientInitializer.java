@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -28,26 +27,25 @@ import java.time.Duration;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@EnableConfigurationProperties(OAuth2ClientProperties.class)
 public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
 
     /**
-     * 授权码有效期：缩短窗口降低 code interception 风险。
+     * 授权码有效期
      */
     private static final Duration AUTHORIZATION_CODE_TTL = Duration.ofSeconds(60);
 
     /**
-     * JDBC + Redis 缓存的客户端仓库
+     * JDBC + Redis 缓存的客户端存储库
      */
     private final RegisteredClientRepository registeredClientRepository;
 
     /**
-     * admin / portal 客户端外部化配置
+     * 公共客户端配置属性
      */
     private final OAuth2ClientProperties oauth2ClientProperties;
 
     /**
-     * JDBC 模板：用于清理 DB 中格式损坏的历史客户端记录
+     * JDBC 模板
      */
     private final JdbcTemplate jdbcTemplate;
 
@@ -69,7 +67,7 @@ public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
     }
 
     /**
-     * 若 DB 中的客户端记录因 JSON 格式不兼容导致反序列化失败，先删除再让后续逻辑重建。
+     * 若 DB 中的客户端记录因 JSON 格式不兼容导致反序列化失败，先删除再让后续逻辑重建
      *
      * @param clientId OAuth2 client_id
      */
@@ -86,7 +84,7 @@ public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
     }
 
     /**
-     * 若 client_id 不存在则注册公共客户端（无 client_secret，强制 PKCE）。
+     * 若 client_id 不存在则注册公共客户端（无 client_secret，强制 PKCE）
      *
      * @param props      客户端配置项
      * @param clientName 可读名称，写入 client_name 字段
@@ -136,9 +134,9 @@ public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
     }
 
     /**
-     * 若已存在客户端的 redirect_uri 与当前配置不一致，自动同步更新。
+     * 若已存在客户端的 redirect_uri 与当前配置不一致，自动同步更新
      * <p>
-     * 解决 nginx 统一入口改造后 backend 配置已更新但 DB 中留存旧 Vite 直连地址的问题。
+     * 解决 nginx 统一入口改造后 backend 配置已更新但 DB 中留存旧 Vite 直连地址的问题
      *
      * @param props 当前配置中的客户端参数
      */
@@ -168,7 +166,7 @@ public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
     }
 
     /**
-     * 将已存在客户端的 access_token 格式升级为 REFERENCE（不透明令牌）。
+     * 将已存在客户端的 access_token 格式升级为 REFERENCE（不透明令牌）
      *
      * @param clientId 目标 client_id
      */
