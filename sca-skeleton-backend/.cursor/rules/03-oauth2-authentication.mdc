@@ -90,7 +90,7 @@ alwaysApply: true
   - 字段语义与 SAS JDBC schema 严格对齐
   - 提供与 access_token / refresh_token 过期时间一致的 TTL 自动清理
   - 同步维护各类令牌值到授权主键的反向索引以支持 `findByToken`
-  - 键前缀与 `sca-skeleton-starter-security` 中 `OAuth2AuthorizationRedisKeys` 保持一致；注册客户端快照由 `CachingRegisteredClientRepository` 同步至 Redis 供资源服务器加载
+  - 键前缀与 `sca-skeleton-starter-security` 中 `OAuth2AuthorizationRedisKeys` 保持一致；注册客户端快照由 `RedisRegisteredClientRepository`（认证中心模式）同步至 Redis 供资源服务器加载
 
 ## OIDC 与 JWK（强制）
 
