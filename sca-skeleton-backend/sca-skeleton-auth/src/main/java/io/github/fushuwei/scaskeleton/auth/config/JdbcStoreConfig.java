@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.config;
 
-import io.github.fushuwei.scaskeleton.security.oauth2.client.CachingRegisteredClientRepository;
+import io.github.fushuwei.scaskeleton.security.oauth2.client.RedisRegisteredClientRepository;
 import io.github.fushuwei.scaskeleton.security.oauth2.authorization.RedisOAuth2AuthorizationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +39,7 @@ public class JdbcStoreConfig {
         // JDBC 为主存储：读写 oauth2_registered_client 表
         JdbcRegisteredClientRepository jdbc = new JdbcRegisteredClientRepository(new JdbcTemplate(dataSource));
         // 装饰器同步写入 Redis，供资源服务器只读加载 client 配置
-        return new CachingRegisteredClientRepository(jdbc, stringRedisTemplate);
+        return new RedisRegisteredClientRepository(jdbc, stringRedisTemplate);
     }
 
     /**
