@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.auth.security.jackson;
+package io.github.fushuwei.scaskeleton.security.user.jackson;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

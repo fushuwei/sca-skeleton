@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.security;
 
+import io.github.fushuwei.scaskeleton.security.user.ScaUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;

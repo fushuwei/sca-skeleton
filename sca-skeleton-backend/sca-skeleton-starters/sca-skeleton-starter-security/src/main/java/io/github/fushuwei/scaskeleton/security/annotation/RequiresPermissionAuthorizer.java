@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.security.authorization;
+package io.github.fushuwei.scaskeleton.security.annotation;
 
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import org.springframework.security.core.Authentication;

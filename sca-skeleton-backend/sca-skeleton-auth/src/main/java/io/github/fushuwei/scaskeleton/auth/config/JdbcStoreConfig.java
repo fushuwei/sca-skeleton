@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.auth.config;
 
-import io.github.fushuwei.scaskeleton.security.oauth2.CachingRegisteredClientRepository;
-import io.github.fushuwei.scaskeleton.security.oauth2.RedisOAuth2AuthorizationService;
+import io.github.fushuwei.scaskeleton.security.oauth2.client.CachingRegisteredClientRepository;
+import io.github.fushuwei.scaskeleton.security.oauth2.authorization.RedisOAuth2AuthorizationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;

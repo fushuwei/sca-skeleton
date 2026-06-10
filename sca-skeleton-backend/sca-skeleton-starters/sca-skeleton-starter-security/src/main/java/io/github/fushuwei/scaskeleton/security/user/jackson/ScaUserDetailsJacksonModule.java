@@ -1,6 +1,6 @@
-package io.github.fushuwei.scaskeleton.auth.security.jackson;
+package io.github.fushuwei.scaskeleton.security.user.jackson;
 
-import io.github.fushuwei.scaskeleton.auth.security.ScaUserDetails;
+import io.github.fushuwei.scaskeleton.security.user.ScaUserDetails;
 import org.springframework.security.jackson.SecurityJacksonModule;
 import tools.jackson.core.Version;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;

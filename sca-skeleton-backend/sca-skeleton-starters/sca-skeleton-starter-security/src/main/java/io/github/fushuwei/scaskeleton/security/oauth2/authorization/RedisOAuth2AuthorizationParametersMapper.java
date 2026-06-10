@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.security.oauth2;
+package io.github.fushuwei.scaskeleton.security.oauth2.authorization;
 
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;

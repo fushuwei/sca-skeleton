@@ -1,5 +1,6 @@
-package io.github.fushuwei.scaskeleton.security.oauth2;
+package io.github.fushuwei.scaskeleton.security.oauth2.client;
 
+import io.github.fushuwei.scaskeleton.security.oauth2.authorization.OAuth2AuthorizationJsonMapperFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;

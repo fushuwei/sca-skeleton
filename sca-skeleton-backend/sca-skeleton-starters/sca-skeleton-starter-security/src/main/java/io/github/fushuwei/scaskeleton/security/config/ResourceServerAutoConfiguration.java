@@ -3,7 +3,7 @@ package io.github.fushuwei.scaskeleton.security.config;
 import io.github.fushuwei.scaskeleton.security.introspection.RedisOpaqueTokenIntrospector;
 import tools.jackson.databind.ObjectMapper;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
-import io.github.fushuwei.scaskeleton.security.authorization.RequiresPermissionAuthorizer;
+import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermissionAuthorizer;
 import io.github.fushuwei.scaskeleton.security.handler.SecurityAccessDeniedHandler;
 import io.github.fushuwei.scaskeleton.security.handler.SecurityAuthenticationEntryPoint;
 import io.github.fushuwei.scaskeleton.security.introspection.PermissionsOpaqueTokenAuthenticationConverter;

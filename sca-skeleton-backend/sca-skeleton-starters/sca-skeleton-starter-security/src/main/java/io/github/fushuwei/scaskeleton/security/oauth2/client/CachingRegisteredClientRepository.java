@@ -1,5 +1,7 @@
-package io.github.fushuwei.scaskeleton.security.oauth2;
+package io.github.fushuwei.scaskeleton.security.oauth2.client;
 
+import io.github.fushuwei.scaskeleton.security.oauth2.authorization.OAuth2AuthorizationJsonMapperFactory;
+import io.github.fushuwei.scaskeleton.security.oauth2.authorization.OAuth2AuthorizationRedisKeys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.Nullable;

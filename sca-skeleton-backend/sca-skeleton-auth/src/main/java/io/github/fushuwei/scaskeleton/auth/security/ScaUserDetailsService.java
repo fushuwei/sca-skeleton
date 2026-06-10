@@ -3,6 +3,7 @@ package io.github.fushuwei.scaskeleton.auth.security;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.github.fushuwei.scaskeleton.auth.infrastructure.entity.SysUser;
 import io.github.fushuwei.scaskeleton.auth.infrastructure.mapper.SysUserMapper;
+import io.github.fushuwei.scaskeleton.security.user.ScaUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;

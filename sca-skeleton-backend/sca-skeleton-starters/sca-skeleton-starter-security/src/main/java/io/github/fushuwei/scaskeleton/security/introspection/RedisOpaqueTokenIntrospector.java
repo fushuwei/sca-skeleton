@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.security.introspection;
 
 import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
-import io.github.fushuwei.scaskeleton.security.oauth2.OAuth2AuthorizationClaimsExtractor;
+import io.github.fushuwei.scaskeleton.security.oauth2.authorization.OAuth2AuthorizationClaimsExtractor;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;

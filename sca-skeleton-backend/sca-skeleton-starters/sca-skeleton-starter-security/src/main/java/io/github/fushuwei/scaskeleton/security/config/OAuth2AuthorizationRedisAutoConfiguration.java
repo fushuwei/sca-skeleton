@@ -1,8 +1,8 @@
 package io.github.fushuwei.scaskeleton.security.config;
 
 import io.github.fushuwei.scaskeleton.security.introspection.RedisOpaqueTokenIntrospector;
-import io.github.fushuwei.scaskeleton.security.oauth2.RedisOAuth2AuthorizationService;
-import io.github.fushuwei.scaskeleton.security.oauth2.RedisRegisteredClientRepository;
+import io.github.fushuwei.scaskeleton.security.oauth2.authorization.RedisOAuth2AuthorizationService;
+import io.github.fushuwei.scaskeleton.security.oauth2.client.RedisRegisteredClientRepository;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

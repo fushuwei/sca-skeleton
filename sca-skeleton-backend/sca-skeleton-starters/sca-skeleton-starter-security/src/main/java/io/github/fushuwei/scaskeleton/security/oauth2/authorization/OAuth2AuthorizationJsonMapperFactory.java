@@ -1,6 +1,6 @@
-package io.github.fushuwei.scaskeleton.security.oauth2;
+package io.github.fushuwei.scaskeleton.security.oauth2.authorization;
 
-import io.github.fushuwei.scaskeleton.auth.security.jackson.ScaUserDetailsJacksonModule;
+import io.github.fushuwei.scaskeleton.security.user.jackson.ScaUserDetailsJacksonModule;
 import org.springframework.security.jackson.SecurityJacksonModules;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import tools.jackson.databind.json.JsonMapper;

@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.auth.security;
+package io.github.fushuwei.scaskeleton.security.user;
 
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;

@@ -1,6 +1,6 @@
-package io.github.fushuwei.scaskeleton.auth.security.jackson;
+package io.github.fushuwei.scaskeleton.security.user.jackson;
 
-import io.github.fushuwei.scaskeleton.auth.security.ScaUserDetails;
+import io.github.fushuwei.scaskeleton.security.user.ScaUserDetails;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;

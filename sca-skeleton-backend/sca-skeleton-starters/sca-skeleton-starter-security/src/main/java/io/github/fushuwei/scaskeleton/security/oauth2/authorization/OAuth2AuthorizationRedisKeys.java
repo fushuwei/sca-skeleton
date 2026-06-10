@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.security.oauth2;
+package io.github.fushuwei.scaskeleton.security.oauth2.authorization;
 
 /**
  * OAuth2 授权与注册客户端在 Redis 中的键名约定。

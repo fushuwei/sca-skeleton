@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.token;
 
-import io.github.fushuwei.scaskeleton.auth.security.ScaUserDetails;
+import io.github.fushuwei.scaskeleton.security.user.ScaUserDetails;
 import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
