@@ -32,6 +32,21 @@ public class SecurityUtils {
     }
 
     /**
+     * 从 token 自省属性中读取指定字段的声明
+     *
+     * @param claimName 字段名
+     * @return 指定声明的值，缺失或未认证时返回 null
+     */
+    public static String getClaim(String claimName) {
+        Map<String, Object> attrs = getTokenAttributes();
+        if (attrs == null) {
+            return null;
+        }
+        Object claim = attrs.get(claimName);
+        return claim != null ? claim.toString() : null;
+    }
+
+    /**
      * 从 token 自省属性中获取租户 ID
      *
      * @return 租户 ID，未认证时返回 null
@@ -56,21 +71,6 @@ public class SecurityUtils {
      */
     public static String getUsername() {
         return getClaim("preferred_username");
-    }
-
-    /**
-     * 从 token 自省属性中读取指定字段的声明
-     *
-     * @param claimName 字段名
-     * @return 指定声明的值，缺失或未认证时返回 null
-     */
-    public static String getClaim(String claimName) {
-        Map<String, Object> attrs = getTokenAttributes();
-        if (attrs == null) {
-            return null;
-        }
-        Object claim = attrs.get(claimName);
-        return claim != null ? claim.toString() : null;
     }
 
     /**
