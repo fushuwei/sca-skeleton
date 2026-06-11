@@ -9,16 +9,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 方法级权限校验注解（{@link PreAuthorize} 的语法糖）。
+ * 方法级权限校验注解
  * <p>
- * 底层仍使用 Spring Security 标准 {@code GrantedAuthority} 匹配语义（与 {@code hasAuthority} /
- * {@code hasAnyAuthority} 一致），不引入自定义权限模型。
- * <p>
- * {@link #value()} 为数组类型，遵循 Java 注解简写规则：
+ * {@link PreAuthorize} 语法糖，底层仍使用 Spring Security 标准 {@code GrantedAuthority} 匹配语义，用法如下：
  * <ul>
- *   <li>单个权限：{@code @RequiresPermission("sys:user:list")}（可省略花括号）</li>
- *   <li>多个权限：{@code @RequiresPermission({"sys:user:list", "sys:user:edit"})}</li>
- *   <li>全部满足：{@code @RequiresPermission(value = {"a", "b"}, match = MatchMode.ALL)}</li>
+ *   <li>单个权限（直接精确匹配）：{@code @RequiresPermission("sys:user:list")}</li>
+ *   <li>多个权限（满足任意一个）：{@code @RequiresPermission({"sys:user:list", "sys:user:edit"})}</li>
+ *   <li>多个权限（必须全部满足）：{@code @RequiresPermission(value = {"a", "b"}, match = MatchMode.ALL)}</li>
  * </ul>
  *
  * @author Fu Wei
@@ -30,27 +27,27 @@ import java.lang.annotation.Target;
 public @interface RequiresPermission {
 
     /**
-     * 权限码列表。仅一个元素时等价于单权限 {@code hasAuthority}；多个元素时由 {@link #match()} 决定 AND / OR。
+     * 权限编码，支持多个权限
      */
     String[] value();
 
     /**
-     * 当 {@link #value()} 包含多个权限时的匹配方式，默认满足任意一个即可。
+     * 当 {@link #value()} 包含多个权限时的匹配方式，默认满足任意一个权限即可
      */
     MatchMode match() default MatchMode.ANY;
 
     /**
-     * 多权限匹配策略。
+     * 多权限匹配策略
      */
     enum MatchMode {
 
         /**
-         * 满足任意一个权限即可（等价于 {@code hasAnyAuthority}）。
+         * 满足任意一个权限即可
          */
         ANY,
 
         /**
-         * 必须同时拥有全部权限（等价于多个 {@code hasAuthority} 的 AND）。
+         * 必须同时拥有全部权限
          */
         ALL
     }
