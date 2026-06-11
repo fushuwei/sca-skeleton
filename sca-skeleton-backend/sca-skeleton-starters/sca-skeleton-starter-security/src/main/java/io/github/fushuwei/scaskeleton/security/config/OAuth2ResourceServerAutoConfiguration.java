@@ -7,7 +7,7 @@ import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermissionAuth
 import io.github.fushuwei.scaskeleton.security.handler.SecurityAccessDeniedHandler;
 import io.github.fushuwei.scaskeleton.security.handler.SecurityAuthenticationEntryPoint;
 import io.github.fushuwei.scaskeleton.security.introspection.PermissionsOpaqueTokenAuthenticationConverter;
-import io.github.fushuwei.scaskeleton.security.properties.SecurityProperties;
+import io.github.fushuwei.scaskeleton.security.properties.OAuth2ResourceServerProperties;
 import io.github.fushuwei.scaskeleton.security.user.CurrentUserProviderImpl;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -28,7 +28,7 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @AutoConfiguration(after = OAuth2AuthorizationRedisAutoConfiguration.class)
 @EnableMethodSecurity
-@EnableConfigurationProperties(SecurityProperties.class)
+@EnableConfigurationProperties(OAuth2ResourceServerProperties.class)
 @ConditionalOnProperty(prefix = "sca.security.resource-server", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class OAuth2ResourceServerAutoConfiguration {
 
@@ -56,7 +56,7 @@ public class OAuth2ResourceServerAutoConfiguration {
     @ConditionalOnMissingBean(SecurityFilterChain.class)
     public SecurityFilterChain resourceServerSecurityFilterChain(
         HttpSecurity http,
-        SecurityProperties securityProperties,
+        OAuth2ResourceServerProperties securityProperties,
         OpaqueTokenIntrospector opaqueTokenIntrospector,
         ObjectMapper objectMapper) throws Exception {
 
@@ -96,7 +96,7 @@ public class OAuth2ResourceServerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(CurrentUserProvider.class)
-    public CurrentUserProvider currentUserProvider(SecurityProperties securityProperties) {
+    public CurrentUserProvider currentUserProvider(OAuth2ResourceServerProperties securityProperties) {
         // 从 BearerTokenAuthentication tokenAttributes 读取用户上下文
         return new CurrentUserProviderImpl(securityProperties);
     }

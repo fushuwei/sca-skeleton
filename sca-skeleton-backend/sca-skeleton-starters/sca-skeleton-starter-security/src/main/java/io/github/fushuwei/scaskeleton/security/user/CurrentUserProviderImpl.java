@@ -2,7 +2,7 @@ package io.github.fushuwei.scaskeleton.security.user;
 
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
-import io.github.fushuwei.scaskeleton.security.properties.SecurityProperties;
+import io.github.fushuwei.scaskeleton.security.properties.OAuth2ResourceServerProperties;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 public class CurrentUserProviderImpl implements CurrentUserProvider {
 
     // 注入 Security 配置属性，用于获取自定义的 Claims 字段名配置
-    private final SecurityProperties securityProperties;
+    private final OAuth2ResourceServerProperties securityProperties;
 
     /**
      * 获取当前请求用户的 ID
