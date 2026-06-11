@@ -81,7 +81,7 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
             return null;
         }
         try {
-            return currentUserProvider.getCurrentUserId();
+            return currentUserProvider.getUserId();
         } catch (Exception e) {
             // 审计字段填充失败不应中断业务操作，仅打印警告
             log.warn("[MyBatisPlus] failed to get current user id for audit fill", e);

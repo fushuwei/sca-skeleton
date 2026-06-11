@@ -14,12 +14,12 @@ public interface CurrentUserProvider {
      *
      * @return 用户 ID，未认证时返回 null
      */
-    String getCurrentUserId();
+    String getUserId();
 
     /**
      * 获取当前请求用户的用户名
      *
      * @return 用户名，未认证时返回 null
      */
-    String getCurrentUsername();
+    String getUsername();
 }

@@ -72,8 +72,8 @@ public class OperationLogAspect {
 
         // 填充当前用户信息（依赖 Security Starter 的 CurrentUserProvider 实现）
         if (currentUserProvider != null) {
-            record.setUserId(currentUserProvider.getCurrentUserId());
-            record.setUsername(currentUserProvider.getCurrentUsername());
+            record.setUserId(currentUserProvider.getUserId());
+            record.setUsername(currentUserProvider.getUsername());
         }
 
         // 从 Spring Web 请求上下文中提取 HTTP 信息

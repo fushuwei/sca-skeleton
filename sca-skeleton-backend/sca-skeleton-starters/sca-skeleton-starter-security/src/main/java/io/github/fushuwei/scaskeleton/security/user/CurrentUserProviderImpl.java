@@ -16,7 +16,7 @@ public class CurrentUserProviderImpl implements CurrentUserProvider {
      * @return 用户 ID，未认证时返回 null
      */
     @Override
-    public String getCurrentUserId() {
+    public String getUserId() {
         return SecurityUtils.getUserId();
     }
 
@@ -26,7 +26,7 @@ public class CurrentUserProviderImpl implements CurrentUserProvider {
      * @return 用户名，未认证时返回 null
      */
     @Override
-    public String getCurrentUsername() {
+    public String getUsername() {
         return SecurityUtils.getUsername();
     }
 }

@@ -93,7 +93,7 @@ public class RateLimitAspect {
             case USER -> {
                 // 按用户 ID 隔离，未认证时以 "anonymous" 兜底
                 String userId = (currentUserProvider != null)
-                        ? currentUserProvider.getCurrentUserId() : null;
+                        ? currentUserProvider.getUserId() : null;
                 yield base + ":user:" + (userId != null ? userId : "anonymous");
             }
             case IP -> base + ":ip:" + resolveClientIp();
