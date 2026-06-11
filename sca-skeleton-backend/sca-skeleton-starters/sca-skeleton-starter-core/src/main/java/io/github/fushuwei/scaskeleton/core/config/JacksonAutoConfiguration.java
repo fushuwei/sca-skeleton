@@ -13,7 +13,7 @@ import java.time.ZoneId;
 import java.util.TimeZone;
 
 /**
- * Jackson 3 全局配置
+ * Jackson3 自动配置类
  *
  * @author Fu Wei
  */

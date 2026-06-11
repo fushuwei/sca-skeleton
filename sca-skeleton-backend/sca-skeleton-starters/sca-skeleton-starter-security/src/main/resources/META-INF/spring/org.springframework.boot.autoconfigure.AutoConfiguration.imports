@@ -1,2 +1,2 @@
 io.github.fushuwei.scaskeleton.security.config.OAuth2AuthorizationRedisAutoConfiguration
-io.github.fushuwei.scaskeleton.security.config.ResourceServerAutoConfiguration
+io.github.fushuwei.scaskeleton.security.config.OAuth2ResourceServerAutoConfiguration

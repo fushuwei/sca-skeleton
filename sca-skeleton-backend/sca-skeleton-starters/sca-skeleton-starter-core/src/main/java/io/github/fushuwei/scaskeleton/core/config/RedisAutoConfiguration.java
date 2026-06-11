@@ -15,15 +15,12 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
 
 /**
  * Redis 自动配置类
- * <p>
- * 启用 Spring 缓存抽象，并配置默认的 {@link RedisTemplate} Bean：
- * Key / HashKey 使用 String 序列化，Value / HashValue 使用 JSON 序列化
  *
  * @author Fu Wei
  */
 @EnableCaching
 @AutoConfiguration
-@ConditionalOnBean(RedisConnectionFactory.class)  // 只有当用户配置了 Redis 连接信息，这个配置类才生效，否则跳过，避免因找不到连接工厂而报错
+@ConditionalOnBean(RedisConnectionFactory.class)
 @ConditionalOnWebApplication(type = SERVLET)  // 只允许在 Servlet 应用中加载该配置，如果是响应式服务（比如网关）则跳过此配置
 public class RedisAutoConfiguration {
 
