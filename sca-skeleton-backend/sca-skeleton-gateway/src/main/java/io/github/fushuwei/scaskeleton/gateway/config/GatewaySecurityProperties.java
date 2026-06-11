@@ -23,5 +23,5 @@ public class GatewaySecurityProperties {
     /**
      * 白名单路径列表，Ant 风格匹配，命中后跳过 Bearer Token 校验，无需携带 Access Token 即可访问相关资源
      */
-    private List<String> whiteList = new ArrayList<>();
+    private List<String> permitPaths = new ArrayList<>();
 }

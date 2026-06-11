@@ -58,7 +58,7 @@ public class GatewaySecurityGlobalFilter implements GlobalFilter, Ordered {
      */
     private boolean matchesWhiteList(ServerWebExchange exchange) {
         String path = exchange.getRequest().getPath().pathWithinApplication().value();
-        for (String pattern : gatewaySecurityProperties.getWhiteList()) {
+        for (String pattern : gatewaySecurityProperties.getPermitPaths()) {
             if (PATH_MATCHER.match(pattern, path)) {
                 return true;
             }

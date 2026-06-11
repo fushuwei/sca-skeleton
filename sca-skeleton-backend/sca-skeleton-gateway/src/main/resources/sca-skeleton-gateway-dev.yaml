@@ -153,7 +153,7 @@ spring:
 gateway:
   security:
     # 白名单路径，白名单内的请求免认证直接放行
-    white-list:
+    permit-paths:
       - /auth/oauth2/authorize
       - /auth/oauth2/token
       - /auth/oauth2/revoke
