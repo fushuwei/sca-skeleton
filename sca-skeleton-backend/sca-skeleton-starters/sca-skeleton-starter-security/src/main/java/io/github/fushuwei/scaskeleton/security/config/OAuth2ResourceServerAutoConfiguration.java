@@ -7,7 +7,6 @@ import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermissionAuth
 import io.github.fushuwei.scaskeleton.security.handler.SecurityAccessDeniedHandler;
 import io.github.fushuwei.scaskeleton.security.handler.SecurityAuthenticationEntryPoint;
 import io.github.fushuwei.scaskeleton.security.introspection.PermissionsOpaqueTokenAuthenticationConverter;
-import io.github.fushuwei.scaskeleton.security.properties.OAuth2ResourceServerProperties;
 import io.github.fushuwei.scaskeleton.security.user.CurrentUserProviderImpl;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

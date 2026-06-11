@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.security.properties;
+package io.github.fushuwei.scaskeleton.security.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -2,7 +2,7 @@ package io.github.fushuwei.scaskeleton.security.user;
 
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
-import io.github.fushuwei.scaskeleton.security.properties.OAuth2ResourceServerProperties;
+import io.github.fushuwei.scaskeleton.security.config.OAuth2ResourceServerProperties;
 import lombok.RequiredArgsConstructor;
 
 /**
