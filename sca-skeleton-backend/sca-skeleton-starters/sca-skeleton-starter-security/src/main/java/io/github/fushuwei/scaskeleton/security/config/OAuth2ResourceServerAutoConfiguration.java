@@ -46,7 +46,7 @@ public class OAuth2ResourceServerAutoConfiguration {
      * 注册资源服务 SecurityFilterChain：Redis 不透明令牌自省、白名单、异常响应
      *
      * @param http                    HttpSecurity
-     * @param securityProperties      sca.security.*（白名单、claims 字段名）
+     * @param securityProperties      sca.security.*（白名单）
      * @param opaqueTokenIntrospector Redis 自省器（由 OAuth2RedisIntrospectionConfiguration 提供）
      * @param objectMapper            JSON 异常响应
      * @return SecurityFilterChain

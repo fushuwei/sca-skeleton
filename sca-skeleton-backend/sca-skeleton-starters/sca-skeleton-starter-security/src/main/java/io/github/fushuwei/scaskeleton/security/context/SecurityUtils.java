@@ -60,7 +60,7 @@ public class SecurityUtils {
      *
      * @return 用户 ID，未认证时返回 null
      */
-    public static String getCurrentUserId() {
+    public static String getUserId() {
         return getClaim("sub");
     }
 

@@ -220,7 +220,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public UserProfileVO getCurrentProfile() {
         // 从 opaque token 自省后的 SecurityContext 读取用户 ID
-        String userId = SecurityUtils.getCurrentUserId();
+        String userId = SecurityUtils.getUserId();
         if (!StringUtils.hasText(userId)) {
             throw new BusinessException(ResultCode.UNAUTHORIZED, "未登录或令牌无效");
         }

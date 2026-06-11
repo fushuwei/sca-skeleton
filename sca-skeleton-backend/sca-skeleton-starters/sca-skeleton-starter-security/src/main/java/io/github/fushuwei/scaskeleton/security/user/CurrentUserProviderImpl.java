@@ -2,14 +2,12 @@ package io.github.fushuwei.scaskeleton.security.user;
 
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
-import lombok.RequiredArgsConstructor;
 
 /**
  * 基于 Spring Security 资源服务器的当前用户信息提供者
  *
  * @author Fu Wei
  */
-@RequiredArgsConstructor
 public class CurrentUserProviderImpl implements CurrentUserProvider {
 
     /**
@@ -19,7 +17,7 @@ public class CurrentUserProviderImpl implements CurrentUserProvider {
      */
     @Override
     public String getCurrentUserId() {
-        return SecurityUtils.getCurrentUserId();
+        return SecurityUtils.getUserId();
     }
 
     /**
