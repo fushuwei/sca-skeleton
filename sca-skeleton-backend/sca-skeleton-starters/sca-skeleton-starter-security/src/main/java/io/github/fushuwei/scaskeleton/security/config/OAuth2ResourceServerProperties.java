@@ -19,12 +19,5 @@ public class OAuth2ResourceServerProperties {
      * 免认证路径白名单，支持 Ant 风格匹配
      * 默认包含 actuator 监控、OpenAPI 文档、验证码等基础路径
      */
-    private List<String> permitPaths = new ArrayList<>(List.of(
-        "/actuator/**",
-        "/v3/api-docs/**",
-        "/swagger-ui/**",
-        "/doc.html",
-        "/webjars/**",
-        "/captcha/**"
-    ));
+    private List<String> permitPaths = new ArrayList<>();
 }
