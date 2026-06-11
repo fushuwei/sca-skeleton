@@ -2,7 +2,6 @@ package io.github.fushuwei.scaskeleton.security.user;
 
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
-import io.github.fushuwei.scaskeleton.security.config.OAuth2ResourceServerProperties;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -13,9 +12,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CurrentUserProviderImpl implements CurrentUserProvider {
 
-    // 注入 Security 配置属性，用于获取自定义的 Claims 字段名配置
-    private final OAuth2ResourceServerProperties securityProperties;
-
     /**
      * 获取当前请求用户的 ID
      *
@@ -23,7 +19,7 @@ public class CurrentUserProviderImpl implements CurrentUserProvider {
      */
     @Override
     public String getCurrentUserId() {
-        return SecurityUtils.getClaim(securityProperties.getUserIdClaimName());
+        return SecurityUtils.getCurrentUserId();
     }
 
     /**
@@ -33,6 +29,6 @@ public class CurrentUserProviderImpl implements CurrentUserProvider {
      */
     @Override
     public String getCurrentUsername() {
-        return SecurityUtils.getClaim(securityProperties.getUsernameClaimName());
+        return SecurityUtils.getUsername();
     }
 }

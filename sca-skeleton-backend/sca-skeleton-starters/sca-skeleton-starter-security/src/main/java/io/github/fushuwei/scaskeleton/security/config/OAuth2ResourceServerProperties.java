@@ -34,16 +34,6 @@ public class OAuth2ResourceServerProperties {
     ));
 
     /**
-     * 自省返回的 token 属性中用户 ID 字段名，默认 "sub"（与认证服务写入的 opaque claims 一致）
-     */
-    private String userIdClaimName = "sub";
-
-    /**
-     * 自省返回的 token 属性中用户名字段名，默认 "preferred_username"
-     */
-    private String usernameClaimName = "preferred_username";
-
-    /**
      * 资源服务器自动配置开关；认证中心进程应设为 {@code false}，仅复用 OAuth2 Redis 存储 Bean
      */
     @Data

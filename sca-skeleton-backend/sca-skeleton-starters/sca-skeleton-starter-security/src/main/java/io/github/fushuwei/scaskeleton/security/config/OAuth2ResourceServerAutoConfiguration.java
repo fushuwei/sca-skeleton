@@ -90,13 +90,12 @@ public class OAuth2ResourceServerAutoConfiguration {
     /**
      * 注册 CurrentUserProvider：从 BearerTokenAuthentication 的 token 属性读取用户信息
      *
-     * @param securityProperties 字段名配置
      * @return CurrentUserProviderImpl
      */
     @Bean
     @ConditionalOnMissingBean(CurrentUserProvider.class)
-    public CurrentUserProvider currentUserProvider(OAuth2ResourceServerProperties securityProperties) {
+    public CurrentUserProvider currentUserProvider() {
         // 从 BearerTokenAuthentication tokenAttributes 读取用户上下文
-        return new CurrentUserProviderImpl(securityProperties);
+        return new CurrentUserProviderImpl();
     }
 }
