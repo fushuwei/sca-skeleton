@@ -47,9 +47,6 @@ sca:
   security:
     resource-server:
       enabled: true
-    user-id-claim-name: sub
-    username-claim-name: preferred_username
-    # 无需鉴权的路径（Actuator 等）
     permit-paths:
       - /actuator/health
       - /actuator/info
