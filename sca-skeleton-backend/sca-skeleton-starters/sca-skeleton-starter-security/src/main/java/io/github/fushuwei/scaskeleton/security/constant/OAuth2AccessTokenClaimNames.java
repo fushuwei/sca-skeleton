@@ -10,7 +10,7 @@ import lombok.experimental.UtilityClass;
  * @author Fu Wei
  */
 @UtilityClass
-public final class OAuth2AccessTokenClaimNames {
+public class OAuth2AccessTokenClaimNames {
 
     /**
      * 用户业务主键（UUID 32 位小写）

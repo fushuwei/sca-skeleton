@@ -6,13 +6,7 @@ import io.github.fushuwei.scaskeleton.security.properties.SecurityProperties;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 基于 Spring Security 资源服务器的当前用户信息提供者。
- * <p>
- * 从 SecurityContext 的 {@link org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication}
- * token 属性（或 JWT 模式下的 Claims）中读取用户 ID 与用户名。
- * <p>
- * 字段名由 {@link SecurityProperties} 的 {@code userIdClaimName}、{@code usernameClaimName} 控制，
- * 默认 {@code sub}、{@code preferred_username}。
+ * 基于 Spring Security 资源服务器的当前用户信息提供者
  *
  * @author Fu Wei
  */
@@ -23,9 +17,9 @@ public class CurrentUserProviderImpl implements CurrentUserProvider {
     private final SecurityProperties securityProperties;
 
     /**
-     * 从 token 属性中获取当前用户 ID（配置项 userIdClaimName，默认 sub）。
+     * 获取当前请求用户的 ID
      *
-     * @return 用户 ID，未认证时返回 {@code null}
+     * @return 用户 ID，未认证时返回 null
      */
     @Override
     public String getCurrentUserId() {
@@ -33,9 +27,9 @@ public class CurrentUserProviderImpl implements CurrentUserProvider {
     }
 
     /**
-     * 从 token 属性中获取当前用户名（配置项 usernameClaimName）。
+     * 获取当前请求用户的用户名
      *
-     * @return 用户名，未认证时返回 {@code null}
+     * @return 用户名，未认证时返回 null
      */
     @Override
     public String getCurrentUsername() {

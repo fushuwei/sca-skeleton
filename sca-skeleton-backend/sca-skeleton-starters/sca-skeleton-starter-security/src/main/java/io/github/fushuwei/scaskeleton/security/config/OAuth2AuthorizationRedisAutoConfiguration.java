@@ -13,7 +13,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 
 /**
- * 基于 Redis 实现的 OAuth2 授权自动配置类
+ * OAuth2 授权服务器 Redis 存储自动配置类
  *
  * @author Fu Wei
  */
@@ -34,7 +34,7 @@ public class OAuth2AuthorizationRedisAutoConfiguration {
     }
 
     /**
-     * OAuth2 授权服务的 Redis 实现
+     * OAuth2 授权服务的 Redis 实现，替代 SAS 默认的 JDBC 存储
      *
      * @param registeredClientRepository 注册客户端存储库
      * @param stringRedisTemplate        Redis 字符串模板
@@ -48,7 +48,7 @@ public class OAuth2AuthorizationRedisAutoConfiguration {
     }
 
     /**
-     * 基于 Redis 授权服务的 {@link OpaqueTokenIntrospector}
+     * 基于 Redis 授权服务的不透明令牌本地自省器
      *
      * @param authorizationService OAuth2 授权服务
      * @return Redis 本地自省器，不走 /oauth2/introspect 请求端点

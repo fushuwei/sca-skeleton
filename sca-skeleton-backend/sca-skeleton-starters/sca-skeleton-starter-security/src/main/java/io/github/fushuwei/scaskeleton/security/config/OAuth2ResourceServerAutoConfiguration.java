@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.security.config;
 
+import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import tools.jackson.databind.ObjectMapper;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermissionAuthorizer;
@@ -26,20 +27,19 @@ import org.springframework.security.web.SecurityFilterChain;
  * @author Fu Wei
  */
 @AutoConfiguration(after = OAuth2AuthorizationRedisAutoConfiguration.class)
-@EnableMethodSecurity(securedEnabled = true)
+@EnableMethodSecurity
 @EnableConfigurationProperties(SecurityProperties.class)
 @ConditionalOnProperty(prefix = "sca.security.resource-server", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class OAuth2ResourceServerAutoConfiguration {
 
     /**
-     * 注册 {@link RequiresPermission} 的 SpEL 校验 Bean（固定 bean 名供元注解引用）
+     * {@link RequiresPermission} 的 SpEL 委托校验器 Bean
      *
      * @return 权限校验委托器
      */
     @Bean(name = "requiresPermissionAuthorizer")
     @ConditionalOnMissingBean(RequiresPermissionAuthorizer.class)
     public RequiresPermissionAuthorizer requiresPermissionAuthorizer() {
-        // 供 @RequiresPermission 元注解 @PreAuthorize SpEL 引用
         return new RequiresPermissionAuthorizer();
     }
 

@@ -30,7 +30,7 @@ public final class TraceContext {
     /**
      * 从 MDC 读取当前 traceId。
      *
-     * @return 当前线程的 traceId，未设置时返回 {@code null}
+     * @return 当前线程的 traceId，未设置时返回 null
      */
     public static String get() {
         return MDC.get(GlobalConstants.MDC_TRACE_ID);
@@ -48,7 +48,7 @@ public final class TraceContext {
      * 复制当前 traceId 用于异步传递。
      * 在提交异步任务前调用，将返回值在新线程的 {@link #set(String)} 中设置。
      *
-     * @return 当前 traceId 快照，可能为 {@code null}
+     * @return 当前 traceId 快照，可能为 null
      */
     public static String copy() {
         return MDC.get(GlobalConstants.MDC_TRACE_ID);
