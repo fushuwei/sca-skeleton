@@ -14,8 +14,8 @@ import java.lang.annotation.Target;
  * {@link PreAuthorize} 语法糖，底层仍使用 Spring Security 标准 {@code GrantedAuthority} 匹配语义，用法如下：
  * <ul>
  *   <li>单个权限（直接精确匹配）：{@code @RequiresPermission("sys:user:list")}</li>
- *   <li>多个权限（满足任意一个）：{@code @RequiresPermission({"sys:user:list", "sys:user:edit"})}</li>
- *   <li>多个权限（必须全部满足）：{@code @RequiresPermission(value = {"a", "b"}, match = MatchMode.ALL)}</li>
+ *   <li>多个权限（必须全部满足）：{@code @RequiresPermission({"sys:user:list", "sys:user:edit"})}</li>
+ *   <li>多个权限（满足任意一个）：{@code @RequiresPermission(value = {"a", "b"}, logical = Logical.OR)}</li>
  * </ul>
  *
  * @author Fu Wei
@@ -32,23 +32,23 @@ public @interface RequiresPermission {
     String[] value();
 
     /**
-     * 当 {@link #value()} 包含多个权限时的匹配方式，默认满足任意一个权限即可
+     * 当 {@link #value()} 包含多个权限时的逻辑关系，默认 AND（必须同时拥有全部权限）
      */
-    MatchMode match() default MatchMode.ANY;
+    Logical logical() default Logical.AND;
 
     /**
-     * 多权限匹配策略
+     * 多权限逻辑关系
      */
-    enum MatchMode {
-
-        /**
-         * 满足任意一个权限即可
-         */
-        ANY,
+    enum Logical {
 
         /**
          * 必须同时拥有全部权限
          */
-        ALL
+        AND,
+
+        /**
+         * 满足任意一个权限即可
+         */
+        OR
     }
 }

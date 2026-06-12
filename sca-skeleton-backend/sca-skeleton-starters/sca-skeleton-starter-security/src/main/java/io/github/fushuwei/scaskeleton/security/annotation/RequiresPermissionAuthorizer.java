@@ -37,7 +37,7 @@ public class RequiresPermissionAuthorizer {
         }
 
         // 多个权限：必须全部满足
-        if (annotation.match() == RequiresPermission.MatchMode.ALL) {
+        if (annotation.logical() == RequiresPermission.Logical.AND) {
             return Arrays.stream(permissions)
                 .allMatch(permission -> hasAuthority(authentication, permission));
         }
