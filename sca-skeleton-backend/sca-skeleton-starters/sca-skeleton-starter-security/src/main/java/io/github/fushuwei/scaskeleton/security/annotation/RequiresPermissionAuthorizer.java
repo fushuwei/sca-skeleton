@@ -25,10 +25,8 @@ public class RequiresPermissionAuthorizer {
             return false;
         }
 
-        // 过滤空白权限编码
-        String[] permissions = Arrays.stream(annotation.value())
-            .filter(StringUtils::hasText)
-            .toArray(String[]::new);
+        // 获取注解要求的权限，并过滤空白无效的权限编码
+        String[] permissions = Arrays.stream(annotation.value()).filter(StringUtils::hasText).toArray(String[]::new);
         if (permissions.length == 0) {
             return false;
         }
