@@ -48,10 +48,10 @@ public class OAuth2AuthorizationRedisAutoConfiguration {
     }
 
     /**
-     * 基于 Redis 授权服务的不透明令牌本地自省器
+     * OAuth2 授权服务的不透明令牌 Redis 本地自省器
      *
      * @param authorizationService OAuth2 授权服务
-     * @return Redis 本地自省器，不走 /oauth2/introspect 请求端点
+     * @return Redis 本地自省器，不走 /oauth2/introspect 端点
      */
     @Bean
     @ConditionalOnMissingBean(OpaqueTokenIntrospector.class)

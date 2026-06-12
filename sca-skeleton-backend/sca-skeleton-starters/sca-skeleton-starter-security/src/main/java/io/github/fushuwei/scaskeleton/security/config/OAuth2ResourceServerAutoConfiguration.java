@@ -32,6 +32,55 @@ import org.springframework.security.web.SecurityFilterChain;
 public class OAuth2ResourceServerAutoConfiguration {
 
     /**
+     * 资源服务器安全过滤器链
+     *
+     * @param http                           HttpSecurity
+     * @param oauth2ResourceServerProperties OAuth2 资源服务器安全配置属性
+     * @param opaqueTokenIntrospector        不透明令牌 Redis 自省器
+     * @param objectMapper                   JSON 操作对象
+     * @return SecurityFilterChain
+     */
+    @Bean
+    @ConditionalOnMissingBean(SecurityFilterChain.class)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   OAuth2ResourceServerProperties oauth2ResourceServerProperties,
+                                                   OpaqueTokenIntrospector opaqueTokenIntrospector,
+                                                   ObjectMapper objectMapper) {
+        // 禁用 CSRF：资源服务器使用无状态 Bearer 令牌认证，无需 CSRF 保护
+        http.csrf(AbstractHttpConfigurer::disable);
+
+        // 无状态会话管理：不创建 Session，每次请求携带 Bearer 令牌校验
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        // 请求授权规则：白名单路径免认证，其余路径需要在请求头中携带有效的 Bearer 令牌
+        http.authorizeHttpRequests(auth -> {
+            String[] permitPaths = oauth2ResourceServerProperties.getPermitPaths().toArray(String[]::new);
+            // 白名单路径免认证，直接放行
+            if (permitPaths.length > 0) {
+                auth.requestMatchers(permitPaths).permitAll();
+            }
+            // 其余路径需要认证
+            auth.anyRequest().authenticated();
+        });
+
+        // OAuth2 资源服务器配置：不透明令牌本地自省 + 权限编码转换 + 统一 401 响应
+        http.oauth2ResourceServer(oauth2 -> oauth2
+            .opaqueToken(opaqueToken -> opaqueToken
+                // 使用 Redis 本地自省器（直接读取授权记录，不走 /oauth2/introspect 端点）
+                .introspector(opaqueTokenIntrospector)
+                // 自省结果中的 permissions 字段转换为 GrantedAuthority，供 @RequiresPermission 使用
+                .authenticationConverter(new PermissionsOpaqueTokenAuthenticationConverter()))
+            // 401 未认证返回统一 JSON 格式
+            .authenticationEntryPoint(new SecurityAuthenticationEntryPoint(objectMapper)));
+
+        // 403 权限不足返回统一 JSON 格式
+        http.exceptionHandling(ex ->
+            ex.accessDeniedHandler(new SecurityAccessDeniedHandler(objectMapper)));
+
+        return http.build();
+    }
+
+    /**
      * {@link RequiresPermission} 的 SpEL 委托校验器 Bean
      *
      * @return 权限校验委托器
@@ -43,59 +92,13 @@ public class OAuth2ResourceServerAutoConfiguration {
     }
 
     /**
-     * 注册资源服务 SecurityFilterChain：Redis 不透明令牌自省、白名单、异常响应
+     * 当前用户信息提供者，从 Bearer 不透明令牌自省结果中读取用户上下文信息
      *
-     * @param http                    HttpSecurity
-     * @param securityProperties      sca.security.*（白名单）
-     * @param opaqueTokenIntrospector Redis 自省器（由 OAuth2RedisIntrospectionConfiguration 提供）
-     * @param objectMapper            JSON 异常响应
-     * @return SecurityFilterChain
-     */
-    @Bean
-    @ConditionalOnMissingBean(SecurityFilterChain.class)
-    public SecurityFilterChain resourceServerSecurityFilterChain(
-        HttpSecurity http,
-        OAuth2ResourceServerProperties securityProperties,
-        OpaqueTokenIntrospector opaqueTokenIntrospector,
-        ObjectMapper objectMapper) throws Exception {
-
-        http.csrf(AbstractHttpConfigurer::disable);
-        // 无 Session，Bearer 令牌无状态校验
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        http.authorizeHttpRequests(auth -> {
-            String[] permitPaths = securityProperties.getPermitPaths().toArray(String[]::new);
-            // 配置白名单路径免认证
-            if (permitPaths.length > 0) {
-                auth.requestMatchers(permitPaths).permitAll();
-            }
-            // 其余路径需有效 access_token
-            auth.anyRequest().authenticated();
-        });
-
-        // Redis 本地自省 + permissions 转 GrantedAuthority；401 返回统一 JSON
-        http.oauth2ResourceServer(oauth2 -> oauth2
-            .opaqueToken(opaqueToken -> opaqueToken
-                .introspector(opaqueTokenIntrospector)
-                .authenticationConverter(new PermissionsOpaqueTokenAuthenticationConverter()))
-            .authenticationEntryPoint(new SecurityAuthenticationEntryPoint(objectMapper)));
-
-        // 403 权限不足返回统一 JSON
-        http.exceptionHandling(ex ->
-            ex.accessDeniedHandler(new SecurityAccessDeniedHandler(objectMapper)));
-
-        return http.build();
-    }
-
-    /**
-     * 注册 CurrentUserProvider：从 BearerTokenAuthentication 的 token 属性读取用户信息
-     *
-     * @return CurrentUserProviderImpl
+     * @return 当前用户信息提供者实现
      */
     @Bean
     @ConditionalOnMissingBean(CurrentUserProvider.class)
     public CurrentUserProvider currentUserProvider() {
-        // 从 BearerTokenAuthentication tokenAttributes 读取用户上下文
         return new CurrentUserProviderImpl();
     }
 }

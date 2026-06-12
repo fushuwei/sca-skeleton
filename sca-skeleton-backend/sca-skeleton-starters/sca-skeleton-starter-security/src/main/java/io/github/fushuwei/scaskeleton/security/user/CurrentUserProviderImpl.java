@@ -4,7 +4,7 @@ import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 
 /**
- * 基于 Spring Security 资源服务器的当前用户信息提供者
+ * 当前用户信息提供者实现类
  *
  * @author Fu Wei
  */
