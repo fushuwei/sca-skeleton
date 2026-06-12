@@ -104,10 +104,11 @@ onMounted(() => {
 }
 
 .spinner {
+  box-sizing: content-box;
   width: 40px;
   height: 40px;
   border: 3px solid #e0e0e0;
-  border-top-color: #059669;
+  border-top-color: #1976d2;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
