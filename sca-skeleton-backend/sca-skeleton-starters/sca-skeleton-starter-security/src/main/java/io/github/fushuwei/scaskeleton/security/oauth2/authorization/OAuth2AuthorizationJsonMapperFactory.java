@@ -31,7 +31,7 @@ public final class OAuth2AuthorizationJsonMapperFactory {
      */
     public static JsonMapper create(ClassLoader classLoader) {
         BasicPolymorphicTypeValidator.Builder typeValidatorBuilder = BasicPolymorphicTypeValidator.builder()
-                .allowIfSubType("io.github.fushuwei.scaskeleton.auth.security");
+                .allowIfSubType("io.github.fushuwei.scaskeleton.security.user");
         return JsonMapper.builder()
                 .addModules(SecurityJacksonModules.getModules(classLoader, typeValidatorBuilder))
                 .addModule(new ScaUserDetailsJacksonModule())

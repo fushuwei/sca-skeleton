@@ -164,7 +164,7 @@ public class LoginPageController {
         if (session != null) {
             channel = (String) session.getAttribute(AuthSessionAttributes.LOGIN_CHANNEL);
         }
-        String target = redirectResolver.resolvePostLoginRedirectUrl(request, response, channel);
+        String target = redirectResolver.resolvePostLoginRedirectUrl(request, channel);
         if (StringUtils.hasText(target)) {
             return target;
         }
