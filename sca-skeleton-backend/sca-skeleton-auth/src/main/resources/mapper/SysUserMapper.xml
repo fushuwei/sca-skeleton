@@ -4,7 +4,7 @@
 <mapper namespace="io.github.fushuwei.scaskeleton.auth.infrastructure.mapper.SysUserMapper">
 
     <!--
-        查询用户的所有可用权限码（button 类型）。
+        查询用户的所有可用权限编码（button 类型）。
         链路：sys_user_role → sys_role → sys_role_permission → sys_permission
         过滤条件：
           - 角色状态 enabled

@@ -16,7 +16,7 @@ import java.util.List;
 public interface SysUserMapper extends BaseMapper<SysUser> {
 
     /**
-     * 查询指定用户所持有的所有权限码（button 类型）。
+     * 查询指定用户所持有的所有权限编码（button 类型）。
      * <p>
      * 查询链路：sys_user_role → sys_role_permission → sys_permission。
      * 仅返回 {@code type='button'} 且 {@code status='enabled'} 的权限 code，
@@ -24,7 +24,7 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      *
      * @param userId   用户 ID
      * @param tenantId 租户 ID
-     * @return 权限码列表（去重），如 ["sys:user:list", "sys:user:add"]
+     * @return 权限编码列表（去重），如 ["sys:user:list", "sys:user:add"]
      */
     List<String> selectPermissionCodesByUserId(@Param("userId") String userId,
                                                @Param("tenantId") String tenantId);

@@ -17,7 +17,7 @@ import java.util.Objects;
 
 /**
  * 不透明令牌自省认证转换器：将 introspection 返回的 {@code permissions} 声明转为 {@link GrantedAuthority}，
- * 与网关侧 JWT 时代行为一致（权限码无前缀，供 {@code @PreAuthorize("hasAuthority('...')")} 使用）。
+ * 与网关侧 JWT 时代行为一致（权限编码无前缀，供 {@code @PreAuthorize("hasAuthority('...')")} 使用）。
  *
  * @author Fu Wei
  */

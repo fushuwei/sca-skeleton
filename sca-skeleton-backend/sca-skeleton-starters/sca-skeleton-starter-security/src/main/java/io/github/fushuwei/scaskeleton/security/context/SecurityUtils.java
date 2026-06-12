@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.security.context;
 
+import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
 import lombok.experimental.UtilityClass;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -52,7 +53,7 @@ public class SecurityUtils {
      * @return 租户 ID，未认证时返回 null
      */
     public static String getTenantId() {
-        return getClaim("tenant_id");
+        return getClaim(OAuth2AccessTokenClaimNames.TENANT_ID);
     }
 
     /**
@@ -61,7 +62,7 @@ public class SecurityUtils {
      * @return 用户 ID，未认证时返回 null
      */
     public static String getUserId() {
-        return getClaim("sub");
+        return getClaim(OAuth2AccessTokenClaimNames.SUB);
     }
 
     /**
@@ -70,7 +71,7 @@ public class SecurityUtils {
      * @return 用户名，未认证时返回 null
      */
     public static String getUsername() {
-        return getClaim("preferred_username");
+        return getClaim(OAuth2AccessTokenClaimNames.PREFERRED_USERNAME);
     }
 
     /**

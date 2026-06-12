@@ -26,7 +26,7 @@ public class SysUserController {
 
     private final SysUserService userService;
 
-    // 获取当前登录用户资料，无需额外权限码（OAuth2 登录后 SPA 拉取）
+    // 获取当前登录用户资料，无需额外权限编码（OAuth2 登录后 SPA 拉取）
     @GetMapping("/profile")
     public Result<UserProfileVO> profile() {
         return Result.ok(userService.getCurrentProfile());

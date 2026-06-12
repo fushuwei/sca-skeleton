@@ -3,9 +3,7 @@ package io.github.fushuwei.scaskeleton.security.constant;
 import lombok.experimental.UtilityClass;
 
 /**
- * 不透明 access_token 自省响应中的业务 claim 字段名
- * <p>
- * 认证中心写入 token metadata、资源服务器读取 claim 时均使用本常量，禁止在业务代码中散落硬编码字符串
+ * 不透明访问令牌自省响应中的 claim 字段名常量类
  *
  * @author Fu Wei
  */
@@ -13,19 +11,19 @@ import lombok.experimental.UtilityClass;
 public class OAuth2AccessTokenClaimNames {
 
     /**
-     * 用户业务主键（UUID 32 位小写）
+     * 租户 ID
+     */
+    public static final String TENANT_ID = "tenant_id";
+
+    /**
+     * 用户 ID
      */
     public static final String SUB = "sub";
 
     /**
-     * 登录用户名
+     * 用户名
      */
     public static final String PREFERRED_USERNAME = "preferred_username";
-
-    /**
-     * 租户 ID
-     */
-    public static final String TENANT_ID = "tenant_id";
 
     /**
      * 用户类型
@@ -33,12 +31,12 @@ public class OAuth2AccessTokenClaimNames {
     public static final String USER_TYPE = "user_type";
 
     /**
-     * 昵称（仅展示）
+     * 用户昵称
      */
     public static final String NICKNAME = "nickname";
 
     /**
-     * 权限码列表（字符串数组，不带 ROLE_ 前缀）
+     * 权限编码
      */
     public static final String PERMISSIONS = "permissions";
 }

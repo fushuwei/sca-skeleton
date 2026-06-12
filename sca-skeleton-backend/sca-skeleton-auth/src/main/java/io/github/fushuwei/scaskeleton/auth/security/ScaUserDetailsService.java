@@ -91,13 +91,13 @@ public class ScaUserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在：" + username);
         }
-        // 复用统一构建逻辑，附带权限码与账号状态判定
+        // 复用统一构建逻辑，附带权限编码与账号状态判定
         return buildUserDetails(user);
     }
 
     /**
      * 将数据库用户对象转换为 Spring Security UserDetails。
-     * 同时加载该用户所有可用的权限码（button 类型）。
+     * 同时加载该用户所有可用的权限编码（button 类型）。
      */
     private ScaUserDetails buildUserDetails(SysUser user) {
         // 锁定到期后自动解锁，避免永久 locked

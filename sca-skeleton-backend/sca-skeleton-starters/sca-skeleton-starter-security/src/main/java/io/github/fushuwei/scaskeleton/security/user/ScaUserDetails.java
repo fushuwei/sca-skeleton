@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Spring Security UserDetails 实现，扩展了租户、用户类型、权限码等业务属性。
+ * Spring Security UserDetails 实现，扩展了租户、用户类型、权限编码等业务属性。
  * <p>
  * 位于 starter-security，供 Auth 登录与 Redis OAuth2 授权记录反序列化共用。
  *
