@@ -24,11 +24,6 @@ import java.util.Objects;
 public class AuthoritiesOpaqueTokenAuthenticationConverter implements OpaqueTokenAuthenticationConverter {
 
     /**
-     * 自省 authorities 声明在 token 属性中的键名，与认证服务写入的 access_token claims 一致。
-     */
-    private static final String AUTHORITIES_CLAIM = OAuth2AccessTokenClaimNames.AUTHORITIES;
-
-    /**
      * 将自省主体与原始 bearer token 值包装为 {@link BearerTokenAuthentication}，并附加权限集合。
      *
      * @param introspectedToken 请求中携带的 access_token 字符串
@@ -52,7 +47,7 @@ public class AuthoritiesOpaqueTokenAuthenticationConverter implements OpaqueToke
      * @return 非 null 的权限集合（可能为空）
      */
     private static Collection<GrantedAuthority> extractAuthorities(OAuth2AuthenticatedPrincipal principal) {
-        Object raw = principal.getAttribute(AUTHORITIES_CLAIM);
+        Object raw = principal.getAttribute(OAuth2AccessTokenClaimNames.AUTHORITIES);
         if (raw == null) {
             return Collections.emptyList();
         }
