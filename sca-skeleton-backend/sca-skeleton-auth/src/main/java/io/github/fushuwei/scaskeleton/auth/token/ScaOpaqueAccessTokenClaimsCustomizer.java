@@ -8,8 +8,8 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 
 /**
- * 不透明访问令牌的 Claims 扩展：在 SAS {@link org.springframework.security.oauth2.server.authorization.token.OAuth2AccessTokenGenerator}
- * 生成 reference token 时写入业务字段，供自省端点返回给资源服务器。
+ * 不透明访问令牌的 claims 扩展：在 SAS {@link org.springframework.security.oauth2.server.authorization.token.OAuth2AccessTokenGenerator}
+ * 生成 reference token 时写入业务字段（sub、username、tenant_id、authorities 等），供资源服务器本地自省使用。
  * <p>
  * 字段名使用 {@link OAuth2AccessTokenClaimNames}，与资源服务器读取约定一致。
  *
@@ -41,6 +41,6 @@ public class ScaOpaqueAccessTokenClaimsCustomizer implements OAuth2TokenCustomiz
         claims.claim(OAuth2AccessTokenClaimNames.TENANT_ID, userDetails.getTenantId());
         claims.claim(OAuth2AccessTokenClaimNames.USER_TYPE, userDetails.getUserType());
         claims.claim(OAuth2AccessTokenClaimNames.NICKNAME, userDetails.getNickname());
-        claims.claim(OAuth2AccessTokenClaimNames.PERMISSIONS, userDetails.getPermissions());
+        claims.claim(OAuth2AccessTokenClaimNames.AUTHORITIES, userDetails.getPermissions());
     }
 }

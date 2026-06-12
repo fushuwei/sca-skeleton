@@ -16,17 +16,17 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 不透明令牌自省认证转换器：将 introspection 返回的 {@code permissions} 声明转为 {@link GrantedAuthority}，
- * 与网关侧 JWT 时代行为一致（权限编码无前缀，供 {@code @PreAuthorize("hasAuthority('...')")} 使用）。
+ * 不透明令牌自省认证转换器：将 introspection 返回的 {@code authorities} 声明转为 {@link GrantedAuthority}，
+ * 权限编码无前缀，供 {@code @PreAuthorize("hasAuthority('...')")} 使用。
  *
  * @author Fu Wei
  */
-public class PermissionsOpaqueTokenAuthenticationConverter implements OpaqueTokenAuthenticationConverter {
+public class AuthoritiesOpaqueTokenAuthenticationConverter implements OpaqueTokenAuthenticationConverter {
 
     /**
-     * 自省权限声明在 token 属性中的键名，与认证服务写入的 access_token claims 一致。
+     * 自省 authorities 声明在 token 属性中的键名，与认证服务写入的 access_token claims 一致。
      */
-    private static final String PERMISSIONS_CLAIM = OAuth2AccessTokenClaimNames.PERMISSIONS;
+    private static final String AUTHORITIES_CLAIM = OAuth2AccessTokenClaimNames.AUTHORITIES;
 
     /**
      * 将自省主体与原始 bearer token 值包装为 {@link BearerTokenAuthentication}，并附加权限集合。
@@ -37,8 +37,8 @@ public class PermissionsOpaqueTokenAuthenticationConverter implements OpaqueToke
      */
     @Override
     public AbstractAuthenticationToken convert(String introspectedToken, OAuth2AuthenticatedPrincipal principal) {
-        // 从 permissions 声明构造 GrantedAuthority 列表，供方法级鉴权使用
-        Collection<GrantedAuthority> authorities = extractPermissionAuthorities(principal);
+        // 从 authorities 声明构造 GrantedAuthority 列表，供方法级鉴权使用
+        Collection<GrantedAuthority> authorities = extractAuthorities(principal);
         // 构造 BearerTokenAuthentication，token 时间与 scope 由自省 claims 承载
         OAuth2AccessToken accessToken = new OAuth2AccessToken(
                 OAuth2AccessToken.TokenType.BEARER, introspectedToken, null, null, Collections.emptySet());
@@ -46,17 +46,17 @@ public class PermissionsOpaqueTokenAuthenticationConverter implements OpaqueToke
     }
 
     /**
-     * 从 introspection principal 中读取 permissions：支持集合或 JSON 数组反序列化后的 List。
+     * 从 introspection principal 中读取 authorities：支持集合或 JSON 数组反序列化后的 List。
      *
      * @param principal 自省主体
      * @return 非 null 的权限集合（可能为空）
      */
-    private static Collection<GrantedAuthority> extractPermissionAuthorities(OAuth2AuthenticatedPrincipal principal) {
-        Object raw = principal.getAttribute(PERMISSIONS_CLAIM);
+    private static Collection<GrantedAuthority> extractAuthorities(OAuth2AuthenticatedPrincipal principal) {
+        Object raw = principal.getAttribute(AUTHORITIES_CLAIM);
         if (raw == null) {
             return Collections.emptyList();
         }
-        // permissions 为集合时逐项转为 SimpleGrantedAuthority
+        // authorities 为集合时逐项转为 SimpleGrantedAuthority
         if (raw instanceof Collection<?> coll) {
             List<GrantedAuthority> list = new ArrayList<>();
             for (Object o : coll) {

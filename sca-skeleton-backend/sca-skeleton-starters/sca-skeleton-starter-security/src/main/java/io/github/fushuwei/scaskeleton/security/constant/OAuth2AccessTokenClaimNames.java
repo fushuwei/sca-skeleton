@@ -38,5 +38,5 @@ public class OAuth2AccessTokenClaimNames {
     /**
      * 权限编码
      */
-    public static final String PERMISSIONS = "permissions";
+    public static final String AUTHORITIES = "authorities";
 }

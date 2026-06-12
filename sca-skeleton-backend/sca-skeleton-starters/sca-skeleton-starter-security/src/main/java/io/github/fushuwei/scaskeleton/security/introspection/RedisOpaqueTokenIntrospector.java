@@ -21,7 +21,7 @@ import java.util.Map;
  * 读取授权记录，不走 HTTP {@code /oauth2/introspect}。
  * <p>
  * 返回的 claim 集合与 {@link SpringOpaqueTokenIntrospector} HTTP 自省语义对齐，
- * 供 {@link PermissionsOpaqueTokenAuthenticationConverter} 与 {@code @PreAuthorize} 使用。
+ * 供 {@link AuthoritiesOpaqueTokenAuthenticationConverter} 与 {@code @PreAuthorize} 使用。
  *
  * @author Fu Wei
  */

@@ -6,7 +6,7 @@ import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermissionAuthorizer;
 import io.github.fushuwei.scaskeleton.security.handler.SecurityAccessDeniedHandler;
 import io.github.fushuwei.scaskeleton.security.handler.SecurityAuthenticationEntryPoint;
-import io.github.fushuwei.scaskeleton.security.introspection.PermissionsOpaqueTokenAuthenticationConverter;
+import io.github.fushuwei.scaskeleton.security.introspection.AuthoritiesOpaqueTokenAuthenticationConverter;
 import io.github.fushuwei.scaskeleton.security.user.CurrentUserProviderImpl;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -68,8 +68,8 @@ public class OAuth2ResourceServerAutoConfiguration {
             .opaqueToken(opaqueToken -> opaqueToken
                 // 使用 Redis 本地自省器（直接读取授权记录，不走 /oauth2/introspect 端点）
                 .introspector(opaqueTokenIntrospector)
-                // 自省结果中的 permissions 字段转换为 GrantedAuthority，供 @RequiresPermission 使用
-                .authenticationConverter(new PermissionsOpaqueTokenAuthenticationConverter()))
+                // 自省结果中的 authorities 字段转换为 GrantedAuthority，供 @RequiresPermission 使用
+                .authenticationConverter(new AuthoritiesOpaqueTokenAuthenticationConverter()))
             // 401 未认证返回统一 JSON 格式
             .authenticationEntryPoint(new SecurityAuthenticationEntryPoint(objectMapper)));
 
