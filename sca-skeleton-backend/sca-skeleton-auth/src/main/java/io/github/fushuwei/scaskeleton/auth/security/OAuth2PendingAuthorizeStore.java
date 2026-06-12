@@ -40,12 +40,17 @@ public class OAuth2PendingAuthorizeStore {
     public void savePendingAuthorizeRequest(HttpServletRequest request) {
         HttpSession session = request.getSession(true);
         String channel = resolveChannel(request);
-        String url = buildExternalAuthorizeUrl(request);
         @SuppressWarnings("unchecked")
         Map<String, String> map = (Map<String, String>) session.getAttribute(SESSION_ATTRIBUTE);
         if (map == null) {
             map = new HashMap<>();
         }
+        // 同一渠道已有 pending 时不再覆盖：多 tab 同时 PKCE 会产生不同的 state，
+        // 覆盖会导致先到的 tab 登录后 state 校验失败。
+        if (map.containsKey(channel)) {
+            return;
+        }
+        String url = buildExternalAuthorizeUrl(request);
         map.put(channel, url);
         session.setAttribute(SESSION_ATTRIBUTE, map);
     }

@@ -379,7 +379,7 @@ function dismissToast() {
     const toast = document.querySelector('.login-toast');
     if (toast) {
         toast.style.opacity = '0';
-        toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+        toast.remove();
     }
 }
 
