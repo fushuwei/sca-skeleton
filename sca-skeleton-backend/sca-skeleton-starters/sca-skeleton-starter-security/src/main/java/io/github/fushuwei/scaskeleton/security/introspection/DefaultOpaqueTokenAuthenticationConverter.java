@@ -22,7 +22,7 @@ import java.util.Objects;
  *
  * @author Fu Wei
  */
-public class AuthoritiesOpaqueTokenAuthenticationConverter implements OpaqueTokenAuthenticationConverter {
+public class DefaultOpaqueTokenAuthenticationConverter implements OpaqueTokenAuthenticationConverter {
 
     /**
      * 将自省主体与原始 bearer token 值包装为 {@link BearerTokenAuthentication}，并附加权限集合

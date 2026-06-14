@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Redis 自省产出的 OAuth2 主体实现。
  * <p>
- * 权限列表由 {@link AuthoritiesOpaqueTokenAuthenticationConverter} 从 {@code authorities} claim 单独映射为
+ * 权限列表由 {@link DefaultOpaqueTokenAuthenticationConverter} 从 {@code authorities} claim 单独映射为
  * {@link org.springframework.security.core.GrantedAuthority}，此处 {@link #getAuthorities()} 保持空集合，
  * 与 Spring 默认 HTTP 自省行为一致。
  *
