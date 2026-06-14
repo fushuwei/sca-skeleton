@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class SecurityAccessDeniedHandler implements AccessDeniedHandler {
+public class DefaultAccessDeniedHandler implements AccessDeniedHandler {
 
     /**
      * 使用 Jackson 序列化 JSON 响应体
@@ -39,14 +39,14 @@ public class SecurityAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException {
-        // 记录权限不足日志，方便排查权限配置问题
-        log.warn("[403 Forbidden] 权限不足，拒绝访问. uri={} method={} message={}",
+        // 记录日志
+        log.warn("[403 Forbidden] 权限不足，拒绝访问，详情：uri={} method={} message={}",
             request.getRequestURI(), request.getMethod(), accessDeniedException.getMessage());
 
         // 构造统一错误响应体
         Result<Void> result = Result.fail(ResultCode.FORBIDDEN);
 
-        // 设置响应为 JSON 格式，UTF-8 编码，HTTP 状态码 403
+        // 设置响应为 JSON 格式，UTF-8 编码
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());

@@ -4,8 +4,8 @@ import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import tools.jackson.databind.ObjectMapper;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermissionAuthorizer;
-import io.github.fushuwei.scaskeleton.security.handler.SecurityAccessDeniedHandler;
-import io.github.fushuwei.scaskeleton.security.handler.SecurityAuthenticationEntryPoint;
+import io.github.fushuwei.scaskeleton.security.handler.DefaultAccessDeniedHandler;
+import io.github.fushuwei.scaskeleton.security.handler.DefaultAuthenticationEntryPoint;
 import io.github.fushuwei.scaskeleton.security.introspection.AuthoritiesOpaqueTokenAuthenticationConverter;
 import io.github.fushuwei.scaskeleton.security.user.CurrentUserProviderImpl;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -71,11 +71,11 @@ public class OAuth2ResourceServerAutoConfiguration {
                 // 自省结果中的 authorities 字段转换为 GrantedAuthority，供 @RequiresPermission 使用
                 .authenticationConverter(new AuthoritiesOpaqueTokenAuthenticationConverter()))
             // 401 未认证返回统一 JSON 格式
-            .authenticationEntryPoint(new SecurityAuthenticationEntryPoint(objectMapper)));
+            .authenticationEntryPoint(new DefaultAuthenticationEntryPoint(objectMapper)));
 
         // 403 权限不足返回统一 JSON 格式
         http.exceptionHandling(ex ->
-            ex.accessDeniedHandler(new SecurityAccessDeniedHandler(objectMapper)));
+            ex.accessDeniedHandler(new DefaultAccessDeniedHandler(objectMapper)));
 
         return http.build();
     }
