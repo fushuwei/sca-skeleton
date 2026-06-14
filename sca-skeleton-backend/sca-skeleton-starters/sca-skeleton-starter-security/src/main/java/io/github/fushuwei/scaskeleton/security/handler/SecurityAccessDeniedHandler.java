@@ -16,11 +16,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Security 权限不足处理器。
- * <p>
- * 当已认证用户访问其无权限的资源时（HTTP 403），拦截 Spring Security 抛出的
- * {@link AccessDeniedException}，返回统一 JSON 格式的错误响应，
- * 而不是 Spring Security 默认的 403 HTML 页面。
+ * Spring Security 403 Forbidden 处理器
  *
  * @author Fu Wei
  */
@@ -28,26 +24,27 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class SecurityAccessDeniedHandler implements AccessDeniedHandler {
 
-    // 使用 Jackson 序列化 JSON 响应体
+    /**
+     * 使用 Jackson 序列化 JSON 响应体
+     */
     private final ObjectMapper objectMapper;
 
     /**
-     * 处理权限不足异常，返回统一 JSON 格式的 403 错误响应。
+     * 处理拒绝访问异常
      *
      * @param request               当前 HTTP 请求
      * @param response              当前 HTTP 响应
      * @param accessDeniedException Spring Security 抛出的权限异常
      */
     @Override
-    public void handle(HttpServletRequest request,
-                       HttpServletResponse response,
+    public void handle(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException {
         // 记录权限不足日志，方便排查权限配置问题
-        log.warn("[Security] access denied. uri={} method={} message={}",
-                request.getRequestURI(), request.getMethod(), accessDeniedException.getMessage());
+        log.warn("[403 Forbidden] 权限不足，拒绝访问. uri={} method={} message={}",
+            request.getRequestURI(), request.getMethod(), accessDeniedException.getMessage());
 
-        // 构造统一错误响应体，与 Result 格式对齐
-        Result<Void> body = Result.fail(ResultCode.FORBIDDEN);
+        // 构造统一错误响应体
+        Result<Void> result = Result.fail(ResultCode.FORBIDDEN);
 
         // 设置响应为 JSON 格式，UTF-8 编码，HTTP 状态码 403
         response.setStatus(HttpStatus.FORBIDDEN.value());
@@ -55,6 +52,6 @@ public class SecurityAccessDeniedHandler implements AccessDeniedHandler {
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         // 将响应体序列化为 JSON 写入响应流
-        response.getWriter().write(objectMapper.writeValueAsString(body));
+        response.getWriter().write(objectMapper.writeValueAsString(result));
     }
 }
