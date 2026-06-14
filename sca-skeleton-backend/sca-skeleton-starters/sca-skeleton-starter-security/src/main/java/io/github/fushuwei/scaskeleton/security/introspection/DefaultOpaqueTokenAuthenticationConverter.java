@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.security.introspection;
 
 import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -25,34 +25,36 @@ import java.util.Objects;
 public class DefaultOpaqueTokenAuthenticationConverter implements OpaqueTokenAuthenticationConverter {
 
     /**
-     * 将自省主体与原始 bearer token 值包装为 {@link BearerTokenAuthentication}，并附加权限集合
+     * 将原始 bearer token 与自省结果包装为 {@link BearerTokenAuthentication}，并附加权限集合
      *
-     * @param introspectedToken 请求中携带的 access_token 字符串
-     * @param principal         自省端点解析后的主体（含 attributes）
+     * @param introspectedToken 请求中携带的访问令牌（原始的 bearer token）
+     * @param principal         自省端点解析后的主体（自省结果）
      * @return 已认证的 BearerTokenAuthentication
      */
     @Override
-    public AbstractAuthenticationToken convert(String introspectedToken, OAuth2AuthenticatedPrincipal principal) {
-        // 从 authorities 声明构造 GrantedAuthority 列表，供方法级鉴权使用
+    public Authentication convert(String introspectedToken, OAuth2AuthenticatedPrincipal principal) {
+        // 从自省结果中提取权限声明，并构造 GrantedAuthority 列表
         Collection<GrantedAuthority> authorities = extractAuthorities(principal);
-        // 构造 BearerTokenAuthentication，token 时间与 scope 由自省 claims 承载
+
+        // 创建已验证的访问令牌
         OAuth2AccessToken accessToken = new OAuth2AccessToken(
             OAuth2AccessToken.TokenType.BEARER, introspectedToken, null, null, Collections.emptySet());
+
         return new BearerTokenAuthentication(principal, accessToken, authorities);
     }
 
     /**
-     * 从 introspection principal 中读取 authorities：支持集合或 JSON 数组反序列化后的 List
+     * 从自省结果中提取权限声明，并构造 GrantedAuthority 列表
      *
-     * @param principal 自省主体
-     * @return 非 null 的权限集合（可能为空）
+     * @param principal 自省端点解析后的主体（自省结果）
+     * @return GrantedAuthority 列表
      */
     private static Collection<GrantedAuthority> extractAuthorities(OAuth2AuthenticatedPrincipal principal) {
         Object raw = principal.getAttribute(OAuth2AccessTokenClaimNames.AUTHORITIES);
         if (raw == null) {
             return Collections.emptyList();
         }
-        // authorities 为集合时逐项转为 SimpleGrantedAuthority
+        // 权限为集合
         if (raw instanceof Collection<?> coll) {
             List<GrantedAuthority> list = new ArrayList<>();
             for (Object o : coll) {
@@ -62,7 +64,7 @@ public class DefaultOpaqueTokenAuthenticationConverter implements OpaqueTokenAut
             }
             return list;
         }
-        // 单个字符串权限
+        // 权限为字符串
         if (raw instanceof String s && !s.isEmpty()) {
             return List.of(new SimpleGrantedAuthority(s));
         }
