@@ -64,8 +64,7 @@ public class OAuth2ResourceServerAutoConfiguration {
         });
 
         // OAuth2 资源服务器配置：不透明令牌本地自省 + 权限编码转换 + 统一 401 响应
-        http.oauth2ResourceServer(oauth2 -> oauth2
-            .opaqueToken(opaqueToken -> opaqueToken
+        http.oauth2ResourceServer(oauth2 -> oauth2.opaqueToken(opaqueToken -> opaqueToken
                 // 使用 Redis 本地自省器（直接读取授权记录，不走 /oauth2/introspect 端点）
                 .introspector(opaqueTokenIntrospector)
                 // 自省结果中的 authorities 字段转换为 GrantedAuthority，供 @RequiresPermission 使用

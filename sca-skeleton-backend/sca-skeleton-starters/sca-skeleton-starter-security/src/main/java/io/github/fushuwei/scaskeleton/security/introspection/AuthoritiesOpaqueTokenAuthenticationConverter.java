@@ -16,15 +16,16 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 不透明令牌自省认证转换器：将 introspection 返回的 {@code authorities} 声明转为 {@link GrantedAuthority}，
- * 权限编码无前缀，供 {@code @PreAuthorize("hasAuthority('...')")} 使用。
+ * 不透明令牌自省认证转换器
+ * <p>
+ * 将自省结果中的权限声明转为 {@link GrantedAuthority}，供 {@code @PreAuthorize("hasAuthority('...')")} 使用
  *
  * @author Fu Wei
  */
 public class AuthoritiesOpaqueTokenAuthenticationConverter implements OpaqueTokenAuthenticationConverter {
 
     /**
-     * 将自省主体与原始 bearer token 值包装为 {@link BearerTokenAuthentication}，并附加权限集合。
+     * 将自省主体与原始 bearer token 值包装为 {@link BearerTokenAuthentication}，并附加权限集合
      *
      * @param introspectedToken 请求中携带的 access_token 字符串
      * @param principal         自省端点解析后的主体（含 attributes）
@@ -36,12 +37,12 @@ public class AuthoritiesOpaqueTokenAuthenticationConverter implements OpaqueToke
         Collection<GrantedAuthority> authorities = extractAuthorities(principal);
         // 构造 BearerTokenAuthentication，token 时间与 scope 由自省 claims 承载
         OAuth2AccessToken accessToken = new OAuth2AccessToken(
-                OAuth2AccessToken.TokenType.BEARER, introspectedToken, null, null, Collections.emptySet());
+            OAuth2AccessToken.TokenType.BEARER, introspectedToken, null, null, Collections.emptySet());
         return new BearerTokenAuthentication(principal, accessToken, authorities);
     }
 
     /**
-     * 从 introspection principal 中读取 authorities：支持集合或 JSON 数组反序列化后的 List。
+     * 从 introspection principal 中读取 authorities：支持集合或 JSON 数组反序列化后的 List
      *
      * @param principal 自省主体
      * @return 非 null 的权限集合（可能为空）
