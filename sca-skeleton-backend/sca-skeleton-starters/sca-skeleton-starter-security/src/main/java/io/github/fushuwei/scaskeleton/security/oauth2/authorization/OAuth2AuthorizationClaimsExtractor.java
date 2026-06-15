@@ -1,13 +1,13 @@
 package io.github.fushuwei.scaskeleton.security.oauth2.authorization;
 
+import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
-
-import java.time.Instant;
+import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -30,11 +30,11 @@ public final class OAuth2AuthorizationClaimsExtractor {
      */
     @Nullable
     public static Map<String, Object> resolveAccessTokenClaims(
-            OAuth2AuthorizationService authorizationService,
-            String accessTokenValue) {
+        OAuth2AuthorizationService authorizationService,
+        String accessTokenValue) {
         // 按 access_token 类型查 Redis 授权记录
         OAuth2Authorization authorization = authorizationService.findByToken(accessTokenValue,
-                OAuth2TokenType.ACCESS_TOKEN);
+            OAuth2TokenType.ACCESS_TOKEN);
         if (authorization == null) {
             return null;
         }
@@ -44,7 +44,7 @@ public final class OAuth2AuthorizationClaimsExtractor {
         }
         // 已过期视为无效令牌
         if (accessToken.getToken().getExpiresAt() != null
-                && Instant.now().isAfter(accessToken.getToken().getExpiresAt())) {
+            && Instant.now().isAfter(accessToken.getToken().getExpiresAt())) {
             return null;
         }
         // 业务 claims 存放在 access_token metadata 中
@@ -58,6 +58,13 @@ public final class OAuth2AuthorizationClaimsExtractor {
             if (entry.getKey() != null && entry.getValue() != null) {
                 claims.put(entry.getKey().toString(), entry.getValue());
             }
+        }
+        // 补充标准 OAuth2 令牌时间戳，与 RFC 7662 自省语义对齐
+        if (accessToken.getToken().getIssuedAt() != null) {
+            claims.put(OAuth2AccessTokenClaimNames.IAT, accessToken.getToken().getIssuedAt());
+        }
+        if (accessToken.getToken().getExpiresAt() != null) {
+            claims.put(OAuth2AccessTokenClaimNames.EXP, accessToken.getToken().getExpiresAt());
         }
         return claims.isEmpty() ? null : claims;
     }

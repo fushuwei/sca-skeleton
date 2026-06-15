@@ -39,4 +39,14 @@ public class OAuth2AccessTokenClaimNames {
      * 权限编码
      */
     public static final String AUTHORITIES = "authorities";
+
+    /**
+     * 令牌签发时间
+     */
+    public static final String IAT = "iat";
+
+    /**
+     * 令牌过期时间
+     */
+    public static final String EXP = "exp";
 }

@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenAuthenticationConverter;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,9 +37,13 @@ public class DefaultOpaqueTokenAuthenticationConverter implements OpaqueTokenAut
         // 从自省结果中提取权限声明，并构造 GrantedAuthority 列表
         Collection<GrantedAuthority> authorities = extractAuthorities(principal);
 
+        // 从自省结果中提取标准 OAuth2 令牌时间戳
+        Instant issuedAt = principal.getAttribute(OAuth2AccessTokenClaimNames.IAT);
+        Instant expiresAt = principal.getAttribute(OAuth2AccessTokenClaimNames.EXP);
+
         // 创建已验证的访问令牌
         OAuth2AccessToken accessToken = new OAuth2AccessToken(
-            OAuth2AccessToken.TokenType.BEARER, introspectedToken, null, null, Collections.emptySet());
+            OAuth2AccessToken.TokenType.BEARER, introspectedToken, issuedAt, expiresAt, Collections.emptySet());
 
         return new BearerTokenAuthentication(principal, accessToken, authorities);
     }
