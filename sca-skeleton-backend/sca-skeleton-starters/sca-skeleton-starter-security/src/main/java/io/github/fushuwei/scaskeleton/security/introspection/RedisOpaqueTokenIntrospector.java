@@ -54,8 +54,6 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
             throw new BadOpaqueTokenException("[OAuth2 令牌自省] 无效的访问令牌");
         }
 
-        // 补齐 RFC 7662 自省响应字段：令牌是否有效
-        claims.put(OAuth2TokenIntrospectionClaimNames.ACTIVE, true);
         String principalName = extractPrincipalName(claims);
         Collection<GrantedAuthority> authorities = extractAuthorities(claims);
         return new RedisOAuth2AuthenticatedPrincipal(principalName, claims, authorities);
@@ -113,32 +111,38 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
             claims.put(OAuth2AccessTokenClaimNames.EXP, accessToken.getToken().getExpiresAt());
         }
 
-        return claims.isEmpty() ? null : claims;
+        // 补充令牌有效状态（能通过过期检查走到这里，即令牌有效）
+        claims.put(OAuth2TokenIntrospectionClaimNames.ACTIVE, true);
+
+        return claims;
     }
 
     /**
-     * 确定 Spring Security 主体名：优先 {@code sub}，其次 {@code preferred_username}
+     * 从自省 claims 中提取主体名称
      *
-     * @param claims 自省 claim Map
-     * @return 非空主体名
+     * @param claims 自省 claim 集合
+     * @return 主体名称
      */
     private static String extractPrincipalName(Map<String, Object> claims) {
+        // 获取 sub
         Object sub = claims.get(OAuth2AccessTokenClaimNames.SUB);
         if (sub != null && StringUtils.hasText(sub.toString())) {
             return sub.toString();
         }
-        // sub 缺失时回退 preferred_username
+
+        // 如果没有 sub，则使用 preferred_username
         Object username = claims.get(OAuth2AccessTokenClaimNames.PREFERRED_USERNAME);
         if (username != null && StringUtils.hasText(username.toString())) {
             return username.toString();
         }
+
         return "unknown";
     }
 
     /**
      * 从自省 claims 中提取权限声明，并构造 GrantedAuthority 列表
      *
-     * @param claims 自省 claim Map
+     * @param claims 自省 claim 集合
      * @return GrantedAuthority 列表
      */
     private static Collection<GrantedAuthority> extractAuthorities(Map<String, Object> claims) {
