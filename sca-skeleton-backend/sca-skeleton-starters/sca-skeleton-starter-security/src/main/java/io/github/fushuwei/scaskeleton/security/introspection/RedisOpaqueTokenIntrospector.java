@@ -48,69 +48,71 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
     public OAuth2AuthenticatedPrincipal introspect(String token) {
         Assert.hasText(token, "[OAuth2 令牌自省] 访问令牌不能为空");
 
-        // 从 Redis 授权记录解析访问令牌对应的业务 claims
+        // 从 Redis 授权记录中解析访问令牌对应的业务 claims
         Map<String, Object> claims = extractAccessTokenClaims(this.authorizationService, token);
         if (claims == null || claims.isEmpty()) {
             throw new BadOpaqueTokenException("[OAuth2 令牌自省] 无效的访问令牌");
         }
 
-        // 补齐 RFC 7662 自省语义：active=true，并与 HTTP 自省响应字段对齐
+        // 补齐 RFC 7662 自省响应字段：令牌是否有效
         claims.put(OAuth2TokenIntrospectionClaimNames.ACTIVE, true);
-        if (!claims.containsKey(OAuth2TokenIntrospectionClaimNames.SUB)) {
-            Object sub = claims.get(OAuth2AccessTokenClaimNames.SUB);
-            if (sub != null) {
-                claims.put(OAuth2TokenIntrospectionClaimNames.SUB, sub);
-            }
-        }
         String principalName = extractPrincipalName(claims);
         Collection<GrantedAuthority> authorities = extractAuthorities(claims);
         return new RedisOAuth2AuthenticatedPrincipal(principalName, claims, authorities);
     }
 
     /**
-     * 按 access_token 明文从授权记录中解析业务 claims（与 HTTP {@code /oauth2/introspect} 语义一致）
+     * 从 Redis 授权记录中解析访问令牌对应的业务 claims
      *
      * @param authorizationService OAuth2 授权服务
-     * @param accessTokenValue     Bearer 令牌值
-     * @return claims；无效或已过期时返回 null
+     * @param token                访问令牌
+     * @return claims 集合
      */
     @Nullable
-    private static Map<String, Object> extractAccessTokenClaims(
-            OAuth2AuthorizationService authorizationService,
-            String accessTokenValue) {
-        OAuth2Authorization authorization = authorizationService.findByToken(accessTokenValue,
-                OAuth2TokenType.ACCESS_TOKEN);
+    private static Map<String, Object> extractAccessTokenClaims(OAuth2AuthorizationService authorizationService,
+                                                                String token) {
+        // 通过 access_token 令牌查询 Redis 授权记录
+        OAuth2Authorization authorization = authorizationService.findByToken(token, OAuth2TokenType.ACCESS_TOKEN);
         if (authorization == null) {
             return null;
         }
+
+        // 获取授权记录中 OAuth2AccessToken 类型的令牌
         OAuth2Authorization.Token<OAuth2AccessToken> accessToken = authorization.getAccessToken();
         if (accessToken == null || accessToken.getToken() == null) {
             return null;
         }
-        // 已过期视为无效令牌
+
+        // 判断令牌是否过期
         if (accessToken.getToken().getExpiresAt() != null
-                && Instant.now().isAfter(accessToken.getToken().getExpiresAt())) {
+            && Instant.now().isAfter(accessToken.getToken().getExpiresAt())) {
             return null;
         }
-        // 业务 claims 存放在 access_token metadata 中
+
+        // 获取业务 claims
         Object claimsObj = accessToken.getMetadata().get(OAuth2Authorization.Token.CLAIMS_METADATA_NAME);
         if (!(claimsObj instanceof Map<?, ?> rawClaims) || rawClaims.isEmpty()) {
             return null;
         }
-        // 过滤 null 键值，保持插入顺序
+
         Map<String, Object> claims = new LinkedHashMap<>();
+
+        // 循环获取到的原始 claims，过滤 null 键值
         for (Map.Entry<?, ?> entry : rawClaims.entrySet()) {
             if (entry.getKey() != null && entry.getValue() != null) {
                 claims.put(entry.getKey().toString(), entry.getValue());
             }
         }
-        // 补充标准 OAuth2 令牌时间戳，与 RFC 7662 自省语义对齐
+
+        // 补充令牌签发时间
         if (accessToken.getToken().getIssuedAt() != null) {
             claims.put(OAuth2AccessTokenClaimNames.IAT, accessToken.getToken().getIssuedAt());
         }
+        // 补充令牌过期时间
         if (accessToken.getToken().getExpiresAt() != null) {
             claims.put(OAuth2AccessTokenClaimNames.EXP, accessToken.getToken().getExpiresAt());
         }
+
         return claims.isEmpty() ? null : claims;
     }
 

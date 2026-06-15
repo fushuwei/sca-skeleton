@@ -235,15 +235,15 @@ sequenceDiagram
 
     RS->>RS: RedisOpaqueTokenIntrospector.introspect(token)
 
-    RS->>Redis: OAuth2AuthorizationClaimsExtractor<br/>.resolveAccessTokenClaims(authorizationService, token)<br/>① GET idx:access:{token} → authorization id<br/>② HGETALL auth:{id}
+    RS->>RS: RedisOpaqueTokenIntrospector<br/>.extractAccessTokenClaims(authorizationService, token)<br/>① GET idx:access:{token} → authorization id<br/>② HGETALL auth:{id}
 
     Redis-->>RS: access_token_value, access_token_expires_at,<br/>access_token_metadata (含业务 claims)
 
     RS->>RS: 校验 token 未过期 ✅<br/>提取 claims：<br/>- sub = {userId}<br/>- preferred_username = {username}<br/>- permissions = [p1, p2, ...]<br/>- tenant_id / user_type / nickname
 
-    RS->>RS: 构建 RedisOAuth2AuthenticatedPrincipal<br/>(principalName, claims)<br/>claims.active = true
+    RS->>RS: 构建 RedisOAuth2AuthenticatedPrincipal<br/>(principalName, claims, authorities)<br/>claims.active = true
 
-    RS->>RS: PermissionsOpaqueTokenAuthenticationConverter<br/>.convert(token, principal)<br/>提取 permissions → List&lt;GrantedAuthority&gt;<br/>构建 BearerTokenAuthentication
+    RS->>RS: DefaultOpaqueTokenAuthenticationConverter<br/>.convert(token, principal)<br/>构建 BearerTokenAuthentication
 
     Note over RS: SecurityContext 设置 Authentication
 
@@ -345,9 +345,9 @@ sequenceDiagram
 
     RS->>RS: 补齐 RFC 7662 语义：<br/>ACTIVE = true<br/>principalName = sub ?? preferred_username
 
-    RS->>RS: 构建 RedisOAuth2AuthenticatedPrincipal<br/>(principalName, claims)
+    RS->>RS: 构建 RedisOAuth2AuthenticatedPrincipal<br/>(principalName, claims, authorities)
 
-    Note over RS: PermissionsOpaqueTokenAuthenticationConverter<br/>.convert(token, principal)
+    Note over RS: DefaultOpaqueTokenAuthenticationConverter<br/>.convert(token, principal)
 
     RS->>RS: 从 claims 提取 permissions<br/>→ List&lt;SimpleGrantedAuthority&gt;<br/>(无 ROLE_ 前缀，供 hasAuthority 使用)
 
