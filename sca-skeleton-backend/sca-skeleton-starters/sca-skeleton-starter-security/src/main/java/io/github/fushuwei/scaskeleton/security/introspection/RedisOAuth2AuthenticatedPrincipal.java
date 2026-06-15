@@ -5,7 +5,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -26,14 +25,22 @@ public class RedisOAuth2AuthenticatedPrincipal implements OAuth2AuthenticatedPri
     private final Map<String, Object> attributes;
 
     /**
+     * 自省后的权限集合
+     */
+    private final Collection<GrantedAuthority> authorities;
+
+    /**
      * 构造 RedisOAuth2AuthenticatedPrincipal 对象
      *
-     * @param name       主体名
-     * @param attributes 自省 claims
+     * @param name        主体名
+     * @param attributes  自省 claims
+     * @param authorities 自省权限集合
      */
-    public RedisOAuth2AuthenticatedPrincipal(String name, Map<String, Object> attributes) {
+    public RedisOAuth2AuthenticatedPrincipal(String name, Map<String, Object> attributes,
+                                             Collection<GrantedAuthority> authorities) {
         this.name = name;
         this.attributes = attributes;
+        this.authorities = authorities;
     }
 
     @Override
@@ -48,7 +55,6 @@ public class RedisOAuth2AuthenticatedPrincipal implements OAuth2AuthenticatedPri
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // 权限由 DefaultOpaqueTokenAuthenticationConverter 单独映射，此处保持空集合
-        return Collections.emptyList();
+        return this.authorities;
     }
 }

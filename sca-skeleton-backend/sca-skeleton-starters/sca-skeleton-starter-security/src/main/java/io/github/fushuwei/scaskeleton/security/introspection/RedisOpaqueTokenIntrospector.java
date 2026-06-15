@@ -2,6 +2,8 @@ package io.github.fushuwei.scaskeleton.security.introspection;
 
 import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
 import io.github.fushuwei.scaskeleton.security.oauth2.authorization.OAuth2AuthorizationClaimsExtractor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
@@ -11,8 +13,13 @@ import org.springframework.security.oauth2.server.resource.introspection.SpringO
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 基于 {@link RedisOAuth2AuthorizationService} 的不透明令牌自省器。
@@ -51,7 +58,7 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
         Assert.hasText(token, "token cannot be empty");
         // 从 Redis 授权记录解析 access_token 业务 claims
         Map<String, Object> claims = OAuth2AuthorizationClaimsExtractor.resolveAccessTokenClaims(
-                this.authorizationService, token);
+            this.authorizationService, token);
         if (claims == null || claims.isEmpty()) {
             throw new BadOpaqueTokenException("Invalid access token");
         }
@@ -65,7 +72,8 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
             }
         }
         String principalName = resolvePrincipalName(introspectionClaims);
-        return new RedisOAuth2AuthenticatedPrincipal(principalName, introspectionClaims);
+        Collection<GrantedAuthority> authorities = extractAuthorities(introspectionClaims);
+        return new RedisOAuth2AuthenticatedPrincipal(principalName, introspectionClaims, authorities);
     }
 
     /**
@@ -85,5 +93,33 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
             return username.toString();
         }
         return "unknown";
+    }
+
+    /**
+     * 从自省 claims 中提取权限声明，并构造 GrantedAuthority 列表
+     *
+     * @param claims 自省 claim Map
+     * @return GrantedAuthority 列表
+     */
+    private static Collection<GrantedAuthority> extractAuthorities(Map<String, Object> claims) {
+        Object raw = claims.get(OAuth2AccessTokenClaimNames.AUTHORITIES);
+        if (raw == null) {
+            return Collections.emptyList();
+        }
+        // 权限为集合
+        if (raw instanceof Collection<?> coll) {
+            List<GrantedAuthority> list = new ArrayList<>();
+            for (Object o : coll) {
+                if (o != null) {
+                    list.add(new SimpleGrantedAuthority(Objects.toString(o)));
+                }
+            }
+            return list;
+        }
+        // 权限为字符串
+        if (raw instanceof String s && !s.isEmpty()) {
+            return List.of(new SimpleGrantedAuthority(s));
+        }
+        return Collections.emptyList();
     }
 }
