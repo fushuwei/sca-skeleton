@@ -20,7 +20,7 @@ import java.util.Collections;
 public class DefaultOpaqueTokenAuthenticationConverter implements OpaqueTokenAuthenticationConverter {
 
     /**
-     * 将原始 bearer token 与自省结果包装为 {@link BearerTokenAuthentication}，并附加权限集合
+     * 身份认证转换，将自省结果与权限集合包装为 {@link BearerTokenAuthentication}
      *
      * @param introspectedToken 请求中携带的访问令牌（原始的 bearer token）
      * @param principal         自省端点解析后的主体（自省结果）
@@ -29,9 +29,8 @@ public class DefaultOpaqueTokenAuthenticationConverter implements OpaqueTokenAut
     @Override
     @SuppressWarnings("unchecked")
     public Authentication convert(String introspectedToken, OAuth2AuthenticatedPrincipal principal) {
-        // 从自省结果中提取权限声明，并构造 GrantedAuthority 列表（权限提取已由 Introspector 完成）
-        Collection<GrantedAuthority> authorities =
-            (Collection<GrantedAuthority>) principal.getAuthorities();
+        // 获取权限列表
+        Collection<GrantedAuthority> authorities = (Collection<GrantedAuthority>) principal.getAuthorities();
 
         // 从自省结果中提取标准 OAuth2 令牌时间戳
         Instant issuedAt = principal.getAttribute(OAuth2AccessTokenClaimNames.IAT);

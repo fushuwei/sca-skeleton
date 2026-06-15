@@ -2,6 +2,7 @@ package io.github.fushuwei.scaskeleton.security.introspection;
 
 import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
 import io.github.fushuwei.scaskeleton.security.oauth2.authorization.OAuth2AuthorizationClaimsExtractor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
@@ -9,7 +10,6 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
 import org.springframework.security.oauth2.server.resource.introspection.BadOpaqueTokenException;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
-import org.springframework.security.oauth2.server.resource.introspection.SpringOpaqueTokenIntrospector;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -22,46 +22,35 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * 基于 {@link RedisOAuth2AuthorizationService} 的不透明令牌自省器。
- * <p>
- * 通过标准 {@link org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService#findByToken}
- * 读取授权记录，不走 HTTP {@code /oauth2/introspect}。
- * <p>
- * 返回的 claim 集合与 {@link SpringOpaqueTokenIntrospector} HTTP 自省语义对齐，
- * 供 {@link DefaultOpaqueTokenAuthenticationConverter} 与 {@code @PreAuthorize} 使用。
+ * 不透明令牌本地自省器
  *
  * @author Fu Wei
  */
+@RequiredArgsConstructor
 public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
 
     /**
-     * Redis 版 OAuth2 授权服务。
+     * OAuth2 授权服务
      */
     private final OAuth2AuthorizationService authorizationService;
 
     /**
-     * @param authorizationService Redis 版 OAuth2 授权服务，不可为 null
-     */
-    public RedisOpaqueTokenIntrospector(OAuth2AuthorizationService authorizationService) {
-        Assert.notNull(authorizationService, "authorizationService cannot be null");
-        this.authorizationService = authorizationService;
-    }
-
-    /**
-     * 在 Redis 中解析 access_token 并构造 {@link OAuth2AuthenticatedPrincipal}。
+     * 本地自省方法
      *
-     * @param token Bearer access_token 明文
-     * @return 已激活的主体；无效时抛出 {@link BadOpaqueTokenException}
+     * @param token 用于自省的令牌（请求头中的 Bearer access_token 字符串）
+     * @return OAuth2 认证主体（通过 OAuth2 协议完成身份认证后，代表当前用户身份的主体对象）
      */
     @Override
     public OAuth2AuthenticatedPrincipal introspect(String token) {
-        Assert.hasText(token, "token cannot be empty");
-        // 从 Redis 授权记录解析 access_token 业务 claims
-        Map<String, Object> claims = OAuth2AuthorizationClaimsExtractor.resolveAccessTokenClaims(
-            this.authorizationService, token);
+        Assert.hasText(token, "[OAuth2 令牌自省] 访问令牌不能为空");
+
+        // 从 Redis 授权记录解析访问令牌对应的业务 claims
+        Map<String, Object> claims = OAuth2AuthorizationClaimsExtractor
+            .resolveAccessTokenClaims(this.authorizationService, token);
         if (claims == null || claims.isEmpty()) {
-            throw new BadOpaqueTokenException("Invalid access token");
+            throw new BadOpaqueTokenException("[OAuth2 令牌自省] 无效的访问令牌");
         }
+
         // 补齐 RFC 7662 自省语义：active=true，并与 HTTP 自省响应字段对齐
         Map<String, Object> introspectionClaims = new LinkedHashMap<>(claims);
         introspectionClaims.put(OAuth2TokenIntrospectionClaimNames.ACTIVE, true);
@@ -77,7 +66,7 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
     }
 
     /**
-     * 确定 Spring Security 主体名：优先 {@code sub}，其次 {@code preferred_username}。
+     * 确定 Spring Security 主体名：优先 {@code sub}，其次 {@code preferred_username}
      *
      * @param claims 自省 claim Map
      * @return 非空主体名

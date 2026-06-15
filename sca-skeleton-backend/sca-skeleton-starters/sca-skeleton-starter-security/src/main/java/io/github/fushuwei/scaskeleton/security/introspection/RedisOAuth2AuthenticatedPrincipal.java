@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * 基于 Redis 授权记录自省的 {@link OAuth2AuthenticatedPrincipal} 实现
+ * 基于 Redis 授权记录自省的 {@link OAuth2AuthenticatedPrincipal} 实现类
  *
  * @author Fu Wei
  */
