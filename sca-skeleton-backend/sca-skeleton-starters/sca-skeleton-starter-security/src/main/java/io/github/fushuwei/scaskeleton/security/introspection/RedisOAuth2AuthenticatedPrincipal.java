@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.security.introspection;
 
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 
 import java.util.Collection;
@@ -7,27 +8,25 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Redis 自省产出的 OAuth2 主体实现。
- * <p>
- * 权限列表由 {@link DefaultOpaqueTokenAuthenticationConverter} 从 {@code authorities} claim 单独映射为
- * {@link org.springframework.security.core.GrantedAuthority}，此处 {@link #getAuthorities()} 保持空集合，
- * 与 Spring 默认 HTTP 自省行为一致。
+ * 基于 Redis 授权记录自省的 {@link OAuth2AuthenticatedPrincipal} 实现
  *
  * @author Fu Wei
  */
 public class RedisOAuth2AuthenticatedPrincipal implements OAuth2AuthenticatedPrincipal {
 
     /**
-     * Spring Security 使用的主体名（通常为 sub）。
+     * 自省后的主体名
      */
     private final String name;
 
     /**
-     * 与 HTTP 自省响应一致的 claim 属性表。
+     * 自省后的 claim 属性表
      */
     private final Map<String, Object> attributes;
 
     /**
+     * 构造 RedisOAuth2AuthenticatedPrincipal 对象
+     *
      * @param name       主体名
      * @param attributes 自省 claims
      */
@@ -37,19 +36,18 @@ public class RedisOAuth2AuthenticatedPrincipal implements OAuth2AuthenticatedPri
     }
 
     @Override
+    public String getName() {
+        return this.name;
+    }
+
+    @Override
     public Map<String, Object> getAttributes() {
-        // 返回自省 claims，供 SecurityUtils / CurrentUserProvider 读取
         return this.attributes;
     }
 
     @Override
-    public Collection<? extends org.springframework.security.core.GrantedAuthority> getAuthorities() {
-        // 权限由 AuthoritiesOpaqueTokenAuthenticationConverter 单独映射，此处保持空集合
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // 权限由 DefaultOpaqueTokenAuthenticationConverter 单独映射，此处保持空集合
         return Collections.emptyList();
-    }
-
-    @Override
-    public String getName() {
-        return this.name;
     }
 }

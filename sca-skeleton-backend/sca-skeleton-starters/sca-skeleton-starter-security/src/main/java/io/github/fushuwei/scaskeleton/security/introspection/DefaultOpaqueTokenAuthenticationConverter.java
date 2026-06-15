@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 不透明令牌自省认证转换器
+ * 不透明令牌身份认证转换器
  * <p>
  * 将自省结果中的权限声明转为 {@link GrantedAuthority}，供 {@code @PreAuthorize("hasAuthority('...')")} 使用
  *
