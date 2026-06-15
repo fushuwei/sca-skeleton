@@ -15,12 +15,12 @@ import java.util.Map;
 public class RedisOAuth2AuthenticatedPrincipal implements OAuth2AuthenticatedPrincipal {
 
     /**
-     * 自省后的主体名
+     * 自省后的主体身份
      */
     private final String name;
 
     /**
-     * 自省后的 claim 属性表
+     * 自省后的 claim 属性集合
      */
     private final Map<String, Object> attributes;
 
@@ -32,8 +32,8 @@ public class RedisOAuth2AuthenticatedPrincipal implements OAuth2AuthenticatedPri
     /**
      * 构造 RedisOAuth2AuthenticatedPrincipal 对象
      *
-     * @param name        主体名
-     * @param attributes  自省 claims
+     * @param name        主体身份
+     * @param attributes  自省 claims 属性集合
      * @param authorities 自省权限集合
      */
     public RedisOAuth2AuthenticatedPrincipal(String name, Map<String, Object> attributes,

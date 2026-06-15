@@ -2,7 +2,6 @@ package io.github.fushuwei.scaskeleton.security.introspection;
 
 import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -55,6 +54,10 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
         }
 
         String principalName = extractPrincipalName(claims);
+        if (principalName == null) {
+            throw new BadOpaqueTokenException("[OAuth2 令牌自省] 无法确定主体身份，缺少 sub 和 preferred_username");
+        }
+
         Collection<GrantedAuthority> authorities = extractAuthorities(claims);
         return new RedisOAuth2AuthenticatedPrincipal(principalName, claims, authorities);
     }
@@ -66,7 +69,6 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
      * @param token                访问令牌
      * @return claims 集合
      */
-    @Nullable
     private static Map<String, Object> extractAccessTokenClaims(OAuth2AuthorizationService authorizationService,
                                                                 String token) {
         // 通过 access_token 令牌查询 Redis 授权记录
@@ -118,10 +120,10 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
     }
 
     /**
-     * 从自省 claims 中提取主体名称
+     * 从自省 claims 中提取主体身份
      *
      * @param claims 自省 claim 集合
-     * @return 主体名称
+     * @return 主体身份
      */
     private static String extractPrincipalName(Map<String, Object> claims) {
         // 获取 sub
@@ -136,7 +138,7 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
             return username.toString();
         }
 
-        return "unknown";
+        return null;
     }
 
     /**
