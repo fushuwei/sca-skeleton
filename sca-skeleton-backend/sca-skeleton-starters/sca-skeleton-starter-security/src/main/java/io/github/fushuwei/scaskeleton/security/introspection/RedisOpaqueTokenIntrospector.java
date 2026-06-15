@@ -1,18 +1,22 @@
 package io.github.fushuwei.scaskeleton.security.introspection;
 
 import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
-import io.github.fushuwei.scaskeleton.security.oauth2.authorization.OAuth2AuthorizationClaimsExtractor;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
-import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
+import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.resource.introspection.BadOpaqueTokenException;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,24 +49,69 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
         Assert.hasText(token, "[OAuth2 令牌自省] 访问令牌不能为空");
 
         // 从 Redis 授权记录解析访问令牌对应的业务 claims
-        Map<String, Object> claims = OAuth2AuthorizationClaimsExtractor
-            .resolveAccessTokenClaims(this.authorizationService, token);
+        Map<String, Object> claims = extractAccessTokenClaims(this.authorizationService, token);
         if (claims == null || claims.isEmpty()) {
             throw new BadOpaqueTokenException("[OAuth2 令牌自省] 无效的访问令牌");
         }
 
         // 补齐 RFC 7662 自省语义：active=true，并与 HTTP 自省响应字段对齐
-        Map<String, Object> introspectionClaims = new LinkedHashMap<>(claims);
-        introspectionClaims.put(OAuth2TokenIntrospectionClaimNames.ACTIVE, true);
-        if (!introspectionClaims.containsKey(OAuth2TokenIntrospectionClaimNames.SUB)) {
+        claims.put(OAuth2TokenIntrospectionClaimNames.ACTIVE, true);
+        if (!claims.containsKey(OAuth2TokenIntrospectionClaimNames.SUB)) {
             Object sub = claims.get(OAuth2AccessTokenClaimNames.SUB);
             if (sub != null) {
-                introspectionClaims.put(OAuth2TokenIntrospectionClaimNames.SUB, sub);
+                claims.put(OAuth2TokenIntrospectionClaimNames.SUB, sub);
             }
         }
-        String principalName = resolvePrincipalName(introspectionClaims);
-        Collection<GrantedAuthority> authorities = extractAuthorities(introspectionClaims);
-        return new RedisOAuth2AuthenticatedPrincipal(principalName, introspectionClaims, authorities);
+        String principalName = extractPrincipalName(claims);
+        Collection<GrantedAuthority> authorities = extractAuthorities(claims);
+        return new RedisOAuth2AuthenticatedPrincipal(principalName, claims, authorities);
+    }
+
+    /**
+     * 按 access_token 明文从授权记录中解析业务 claims（与 HTTP {@code /oauth2/introspect} 语义一致）
+     *
+     * @param authorizationService OAuth2 授权服务
+     * @param accessTokenValue     Bearer 令牌值
+     * @return claims；无效或已过期时返回 null
+     */
+    @Nullable
+    private static Map<String, Object> extractAccessTokenClaims(
+            OAuth2AuthorizationService authorizationService,
+            String accessTokenValue) {
+        OAuth2Authorization authorization = authorizationService.findByToken(accessTokenValue,
+                OAuth2TokenType.ACCESS_TOKEN);
+        if (authorization == null) {
+            return null;
+        }
+        OAuth2Authorization.Token<OAuth2AccessToken> accessToken = authorization.getAccessToken();
+        if (accessToken == null || accessToken.getToken() == null) {
+            return null;
+        }
+        // 已过期视为无效令牌
+        if (accessToken.getToken().getExpiresAt() != null
+                && Instant.now().isAfter(accessToken.getToken().getExpiresAt())) {
+            return null;
+        }
+        // 业务 claims 存放在 access_token metadata 中
+        Object claimsObj = accessToken.getMetadata().get(OAuth2Authorization.Token.CLAIMS_METADATA_NAME);
+        if (!(claimsObj instanceof Map<?, ?> rawClaims) || rawClaims.isEmpty()) {
+            return null;
+        }
+        // 过滤 null 键值，保持插入顺序
+        Map<String, Object> claims = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> entry : rawClaims.entrySet()) {
+            if (entry.getKey() != null && entry.getValue() != null) {
+                claims.put(entry.getKey().toString(), entry.getValue());
+            }
+        }
+        // 补充标准 OAuth2 令牌时间戳，与 RFC 7662 自省语义对齐
+        if (accessToken.getToken().getIssuedAt() != null) {
+            claims.put(OAuth2AccessTokenClaimNames.IAT, accessToken.getToken().getIssuedAt());
+        }
+        if (accessToken.getToken().getExpiresAt() != null) {
+            claims.put(OAuth2AccessTokenClaimNames.EXP, accessToken.getToken().getExpiresAt());
+        }
+        return claims.isEmpty() ? null : claims;
     }
 
     /**
@@ -71,7 +120,7 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
      * @param claims 自省 claim Map
      * @return 非空主体名
      */
-    private static String resolvePrincipalName(Map<String, Object> claims) {
+    private static String extractPrincipalName(Map<String, Object> claims) {
         Object sub = claims.get(OAuth2AccessTokenClaimNames.SUB);
         if (sub != null && StringUtils.hasText(sub.toString())) {
             return sub.toString();
