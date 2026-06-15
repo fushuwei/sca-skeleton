@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.security.introspection;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 
@@ -36,7 +37,7 @@ public class RedisOAuth2AuthenticatedPrincipal implements OAuth2AuthenticatedPri
     }
 
     @Override
-    public String getName() {
+    public @NonNull String getName() {
         return this.name;
     }
 
