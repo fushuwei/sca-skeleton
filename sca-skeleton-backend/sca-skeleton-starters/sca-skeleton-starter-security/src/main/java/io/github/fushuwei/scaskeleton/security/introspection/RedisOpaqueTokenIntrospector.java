@@ -16,7 +16,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -149,23 +148,19 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
      */
     private static Collection<GrantedAuthority> extractAuthorities(Map<String, Object> claims) {
         Object raw = claims.get(OAuth2AccessTokenClaimNames.AUTHORITIES);
-        if (raw == null) {
-            return Collections.emptyList();
-        }
-        // 权限为集合
-        if (raw instanceof Collection<?> coll) {
-            List<GrantedAuthority> list = new ArrayList<>();
-            for (Object o : coll) {
-                if (o != null) {
-                    list.add(new SimpleGrantedAuthority(Objects.toString(o)));
-                }
-            }
-            return list;
-        }
-        // 权限为字符串
-        if (raw instanceof String s && !s.isEmpty()) {
-            return List.of(new SimpleGrantedAuthority(s));
-        }
-        return Collections.emptyList();
+        return switch (raw) {
+            case null -> Collections.emptyList();
+
+            // 权限为集合
+            case Collection<?> coll -> coll.stream()
+                    .filter(Objects::nonNull)
+                    .<GrantedAuthority>map(o -> new SimpleGrantedAuthority(o.toString()))
+                    .toList();
+
+            // 权限为字符串
+            case String s when !s.isEmpty() -> List.of(new SimpleGrantedAuthority(s));
+
+            default -> Collections.emptyList();
+        };
     }
 }
