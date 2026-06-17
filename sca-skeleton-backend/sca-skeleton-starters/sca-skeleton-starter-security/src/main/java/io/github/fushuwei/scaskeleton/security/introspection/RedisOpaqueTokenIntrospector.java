@@ -148,19 +148,19 @@ public class RedisOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
      */
     private static Collection<GrantedAuthority> extractAuthorities(Map<String, Object> claims) {
         Object raw = claims.get(OAuth2AccessTokenClaimNames.AUTHORITIES);
+
+        // 根据权限字段类型构造 GrantedAuthority 列表
         return switch (raw) {
-            case null -> Collections.emptyList();
-
-            // 权限为集合
+            // Collection
             case Collection<?> coll -> coll.stream()
-                    .filter(Objects::nonNull)
-                    .<GrantedAuthority>map(o -> new SimpleGrantedAuthority(o.toString()))
-                    .toList();
+                .filter(Objects::nonNull)
+                .<GrantedAuthority>map(o -> new SimpleGrantedAuthority(o.toString()))
+                .toList();
 
-            // 权限为字符串
+            // String
             case String s when !s.isEmpty() -> List.of(new SimpleGrantedAuthority(s));
 
-            default -> Collections.emptyList();
+            case null, default -> Collections.emptyList();
         };
     }
 }
