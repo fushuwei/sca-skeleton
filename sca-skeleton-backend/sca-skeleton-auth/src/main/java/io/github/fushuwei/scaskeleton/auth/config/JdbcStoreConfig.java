@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.server.authorization.JdbcOAuth2Author
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.sql.DataSource;
 
@@ -29,17 +30,18 @@ public class JdbcStoreConfig {
     /**
      * JDBC 注册客户端仓库，写入时同步缓存到 Redis 供资源服务器只读加载。
      *
-     * @param dataSource          数据源
-     * @param stringRedisTemplate Redis 模板
+     * @param dataSource                    数据源
+     * @param stringRedisTemplate           Redis 模板
+     * @param oauth2AuthorizationJsonMapper OAuth2 持久层专用 JsonMapper
      * @return 带 Redis 缓存的客户端仓库
      */
     @Bean
     public RegisteredClientRepository registeredClientRepository(DataSource dataSource,
-            StringRedisTemplate stringRedisTemplate) {
+            StringRedisTemplate stringRedisTemplate, JsonMapper oauth2AuthorizationJsonMapper) {
         // JDBC 为主存储：读写 oauth2_registered_client 表
         JdbcRegisteredClientRepository jdbc = new JdbcRegisteredClientRepository(new JdbcTemplate(dataSource));
         // 装饰器同步写入 Redis，供资源服务器只读加载 client 配置
-        return new RedisRegisteredClientRepository(jdbc, stringRedisTemplate);
+        return new RedisRegisteredClientRepository(jdbc, stringRedisTemplate, oauth2AuthorizationJsonMapper);
     }
 
     /**

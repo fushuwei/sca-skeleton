@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * 基于 Redis 的 {@link RegisteredClientRepository} 实现
@@ -47,28 +48,34 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     /**
      * 认证中心使用场景构造器
      *
-     * @param delegate            注册客户端存储库（通常为 {@code JdbcRegisteredClientRepository}）
-     * @param stringRedisTemplate 与授权记录共用的 Redis
+     * @param delegate                 注册客户端存储库（通常为 {@code JdbcRegisteredClientRepository}）
+     * @param stringRedisTemplate      与授权记录共用的 Redis
+     * @param authorizationJsonMapper  OAuth2 持久层专用 JsonMapper
      */
     public RedisRegisteredClientRepository(RegisteredClientRepository delegate,
-                                           StringRedisTemplate stringRedisTemplate) {
+                                           StringRedisTemplate stringRedisTemplate,
+                                           JsonMapper authorizationJsonMapper) {
         Assert.notNull(delegate, "delegate cannot be null");
         Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
+        Assert.notNull(authorizationJsonMapper, "authorizationJsonMapper cannot be null");
         this.delegate = delegate;
         this.stringRedisTemplate = stringRedisTemplate;
-        this.redisSerializer = new RegisteredClientRedisSerializer(getClass().getClassLoader());
+        this.redisSerializer = new RegisteredClientRedisSerializer(authorizationJsonMapper);
     }
 
     /**
      * 资源服务器使用场景构造器（只读 Redis）
      *
-     * @param stringRedisTemplate Redis 模板，不可为 null
+     * @param stringRedisTemplate      Redis 模板，不可为 null
+     * @param authorizationJsonMapper  OAuth2 持久层专用 JsonMapper
      */
-    public RedisRegisteredClientRepository(StringRedisTemplate stringRedisTemplate) {
+    public RedisRegisteredClientRepository(StringRedisTemplate stringRedisTemplate,
+                                           JsonMapper authorizationJsonMapper) {
         Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
+        Assert.notNull(authorizationJsonMapper, "authorizationJsonMapper cannot be null");
         this.delegate = null;
         this.stringRedisTemplate = stringRedisTemplate;
-        this.redisSerializer = new RegisteredClientRedisSerializer(getClass().getClassLoader());
+        this.redisSerializer = new RegisteredClientRedisSerializer(authorizationJsonMapper);
     }
 
     /**

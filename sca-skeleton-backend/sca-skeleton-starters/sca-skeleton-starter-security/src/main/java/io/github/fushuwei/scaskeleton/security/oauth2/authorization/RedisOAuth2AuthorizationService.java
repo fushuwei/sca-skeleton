@@ -1,4 +1,5 @@
 package io.github.fushuwei.scaskeleton.security.oauth2.authorization;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -53,40 +54,40 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
      * 与 {@link RedisOAuth2AuthorizationParametersMapper#apply} 返回顺序严格一致的列名，
      * 用于将 SQL 参数列表映射为 Redis Hash 的 field。
      */
-    private static final String[] AUTHORIZATION_HASH_FIELDS = new String[] {
-            "id",
-            "registered_client_id",
-            "principal_name",
-            "authorization_grant_type",
-            "authorized_scopes",
-            "attributes",
-            "state",
-            "authorization_code_value",
-            "authorization_code_issued_at",
-            "authorization_code_expires_at",
-            "authorization_code_metadata",
-            "access_token_value",
-            "access_token_issued_at",
-            "access_token_expires_at",
-            "access_token_metadata",
-            "access_token_type",
-            "access_token_scopes",
-            "oidc_id_token_value",
-            "oidc_id_token_issued_at",
-            "oidc_id_token_expires_at",
-            "oidc_id_token_metadata",
-            "refresh_token_value",
-            "refresh_token_issued_at",
-            "refresh_token_expires_at",
-            "refresh_token_metadata",
-            "user_code_value",
-            "user_code_issued_at",
-            "user_code_expires_at",
-            "user_code_metadata",
-            "device_code_value",
-            "device_code_issued_at",
-            "device_code_expires_at",
-            "device_code_metadata"
+    private static final String[] AUTHORIZATION_HASH_FIELDS = new String[]{
+        "id",
+        "registered_client_id",
+        "principal_name",
+        "authorization_grant_type",
+        "authorized_scopes",
+        "attributes",
+        "state",
+        "authorization_code_value",
+        "authorization_code_issued_at",
+        "authorization_code_expires_at",
+        "authorization_code_metadata",
+        "access_token_value",
+        "access_token_issued_at",
+        "access_token_expires_at",
+        "access_token_metadata",
+        "access_token_type",
+        "access_token_scopes",
+        "oidc_id_token_value",
+        "oidc_id_token_issued_at",
+        "oidc_id_token_expires_at",
+        "oidc_id_token_metadata",
+        "refresh_token_value",
+        "refresh_token_issued_at",
+        "refresh_token_expires_at",
+        "refresh_token_metadata",
+        "user_code_value",
+        "user_code_issued_at",
+        "user_code_expires_at",
+        "user_code_metadata",
+        "device_code_value",
+        "device_code_issued_at",
+        "device_code_expires_at",
+        "device_code_metadata"
     };
 
     /**
@@ -110,19 +111,21 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
     private final RedisOAuth2AuthorizationParametersMapper parametersMapper;
 
     /**
-     * 构造 Redis 授权存储：初始化 JsonMapper、参数映射器与 Redis 访问。
+     * 构造 Redis 授权存储：接收已配置的 JsonMapper、初始化参数映射器与 Redis 访问。
      *
      * @param registeredClientRepository 注册客户端仓库，不可为 null
      * @param stringRedisTemplate        字符串 Redis 模板，不可为 null
+     * @param authorizationJsonMapper    OAuth2 持久层专用 JsonMapper，不可为 null
      */
     public RedisOAuth2AuthorizationService(RegisteredClientRepository registeredClientRepository,
-            StringRedisTemplate stringRedisTemplate) {
+                                           StringRedisTemplate stringRedisTemplate, JsonMapper authorizationJsonMapper) {
         Assert.notNull(registeredClientRepository, "registeredClientRepository cannot be null");
         Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
+        Assert.notNull(authorizationJsonMapper, "authorizationJsonMapper cannot be null");
         this.registeredClientRepository = registeredClientRepository;
         this.stringRedisTemplate = stringRedisTemplate;
-        // 创建与 SAS JDBC 对齐的 JsonMapper，用于 attributes / metadata 等 JSON 字段
-        this.authorizationJsonMapper = OAuth2AuthorizationJsonMapperFactory.create(getClass().getClassLoader());
+        // 与 SAS JDBC 对齐的 JsonMapper，用于 attributes / metadata 等 JSON 字段
+        this.authorizationJsonMapper = authorizationJsonMapper;
         // 独立参数映射器，避免依赖 JdbcOAuth2AuthorizationService 静态 columnMetadataMap
         this.parametersMapper = new RedisOAuth2AuthorizationParametersMapper(this.authorizationJsonMapper);
     }
@@ -144,8 +147,8 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
         List<SqlParameterValue> parameters = this.parametersMapper.apply(authorization);
         if (parameters.size() != AUTHORIZATION_HASH_FIELDS.length) {
             throw new IllegalStateException(
-                    "OAuth2Authorization SQL parameter count mismatch: expected " + AUTHORIZATION_HASH_FIELDS.length
-                            + ", actual " + parameters.size());
+                "OAuth2Authorization SQL parameter count mismatch: expected " + AUTHORIZATION_HASH_FIELDS.length
+                    + ", actual " + parameters.size());
         }
         // 按列名映射写入 Redis Hash
         String key = authKey(authorization.getId());
@@ -435,9 +438,9 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
     /**
      * 写入索引值并设置 TTL；ttlSeconds &lt;= 0 时不设置过期时间。
      *
-     * @param redisKey    索引键
-     * @param id          授权主键 id
-     * @param ttlSeconds  过期秒数
+     * @param redisKey   索引键
+     * @param id         授权主键 id
+     * @param ttlSeconds 过期秒数
      */
     private void setIndex(String redisKey, String id, long ttlSeconds) {
         // 原子写入 value + TTL，避免 set 与 expire 分离导致索引永久驻留
@@ -476,7 +479,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
         RegisteredClient registeredClient = this.registeredClientRepository.findById(registeredClientId);
         if (registeredClient == null) {
             throw new DataRetrievalFailureException(
-                    "The RegisteredClient with id '" + registeredClientId + "' was not found in the RegisteredClientRepository.");
+                "The RegisteredClient with id '" + registeredClientId + "' was not found in the RegisteredClientRepository.");
         }
         OAuth2Authorization.Builder builder = OAuth2Authorization.withRegisteredClient(registeredClient);
         String id = cols.get("id");
@@ -489,10 +492,10 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
         }
         Map<String, Object> attributes = parseJsonMap(cols.get("attributes"));
         builder.id(id)
-                .principalName(principalName)
-                .authorizationGrantType(new AuthorizationGrantType(authorizationGrantType))
-                .authorizedScopes(authorizedScopes)
-                .attributes(attrs -> attrs.putAll(attributes));
+            .principalName(principalName)
+            .authorizationGrantType(new AuthorizationGrantType(authorizationGrantType))
+            .authorizedScopes(authorizedScopes)
+            .attributes(attrs -> attrs.putAll(attributes));
         // 可选 state 属性
         String state = emptyToNull(cols.get("state"));
         if (StringUtils.hasText(state)) {
@@ -507,7 +510,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
             tokenExpiresAt = parseInstantMillis(cols.get("authorization_code_expires_at"));
             Map<String, Object> authorizationCodeMetadata = parseJsonMap(cols.get("authorization_code_metadata"));
             OAuth2AuthorizationCode authorizationCode =
-                    new OAuth2AuthorizationCode(authorizationCodeValue, tokenIssuedAt, tokenExpiresAt);
+                new OAuth2AuthorizationCode(authorizationCodeValue, tokenIssuedAt, tokenExpiresAt);
             builder.token(authorizationCode, metadata -> metadata.putAll(authorizationCodeMetadata));
         }
         // access_token
@@ -529,7 +532,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
                 scopes = StringUtils.commaDelimitedListToSet(accessTokenScopes);
             }
             OAuth2AccessToken accessToken = new OAuth2AccessToken(tokenType, accessTokenValue, tokenIssuedAt,
-                    tokenExpiresAt, scopes);
+                tokenExpiresAt, scopes);
             builder.token(accessToken, metadata -> metadata.putAll(accessTokenMetadata));
         }
         // OIDC id_token
@@ -540,8 +543,8 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
             Map<String, Object> oidcTokenMetadata = parseJsonMap(cols.get("oidc_id_token_metadata"));
             Object idClaimsObj = oidcTokenMetadata.get(OAuth2Authorization.Token.CLAIMS_METADATA_NAME);
             Map<String, Object> idClaims = idClaimsObj instanceof Map<?, ?> m
-                    ? (Map<String, Object>) m
-                    : Collections.emptyMap();
+                ? (Map<String, Object>) m
+                : Collections.emptyMap();
             OidcIdToken oidcToken = new OidcIdToken(oidcIdTokenValue, tokenIssuedAt, tokenExpiresAt, idClaims);
             builder.token(oidcToken, metadata -> metadata.putAll(oidcTokenMetadata));
         }
