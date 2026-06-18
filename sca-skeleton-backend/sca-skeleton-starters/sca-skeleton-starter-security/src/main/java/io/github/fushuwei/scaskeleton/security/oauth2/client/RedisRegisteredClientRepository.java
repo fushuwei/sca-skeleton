@@ -162,17 +162,17 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
             this.stringRedisTemplate.opsForValue()
                 .set(OAuth2AuthorizationRedisKeys.registeredClientClientIdKey(registeredClient.getClientId()),
                     registeredClient.getId());
-        } catch (Exception ex) {
-            throw new IllegalStateException("Failed to cache RegisteredClient to Redis: " + ex.getMessage(), ex);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to cache RegisteredClient to Redis: " + e.getMessage(), e);
         }
     }
 
     /**
-     * 反序列化 Redis 中的注册客户端快照
+     * 将 Redis 中的 JSON 字符串反序列化成 RegisteredClient
      *
      * @param json     JSON 字符串
-     * @param cacheKey 当前缓存键；解析失败或历史格式时用于失效旧数据
-     * @return 客户端；解析失败时失效缓存并返回 null，由调用方回源 JDBC
+     * @param cacheKey 当前 Redis 中的缓存键
+     * @return 注册客户端
      */
     private RegisteredClient deserialize(String json, String cacheKey) {
         if (json == null || json.isBlank()) {
@@ -180,14 +180,13 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
         }
         try {
             RegisteredClient client = this.redisSerializer.deserialize(json);
-            // 格式无效时删除脏缓存，由调用方回源 JDBC
             if (client == null && cacheKey != null) {
-                log.warn("RegisteredClient Redis 缓存格式无效或已过期，将回源 JDBC 并刷新缓存: key={}", cacheKey);
+                log.warn("RegisteredClient 缓存无效或已过期，key={}", cacheKey);
                 this.stringRedisTemplate.delete(cacheKey);
             }
             return client;
-        } catch (Exception ex) {
-            log.warn("RegisteredClient Redis 缓存反序列化失败，将回源 JDBC 并刷新缓存: key={}", cacheKey, ex);
+        } catch (Exception e) {
+            log.warn("RegisteredClient 反序列化异常，key={}", cacheKey, e);
             if (cacheKey != null) {
                 this.stringRedisTemplate.delete(cacheKey);
             }
@@ -213,10 +212,10 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
                     "RegisteredClient Redis cache is missing, invalid, or uses a legacy format");
             }
             return client;
-        } catch (DataRetrievalFailureException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            throw new DataRetrievalFailureException("Failed to deserialize RegisteredClient from Redis", ex);
+        } catch (DataRetrievalFailureException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new DataRetrievalFailureException("Failed to deserialize RegisteredClient from Redis", e);
         }
     }
 }

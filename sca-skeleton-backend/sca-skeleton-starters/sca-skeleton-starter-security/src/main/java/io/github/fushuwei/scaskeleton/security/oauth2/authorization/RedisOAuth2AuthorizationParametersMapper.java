@@ -125,8 +125,8 @@ final class RedisOAuth2AuthorizationParametersMapper implements Function<OAuth2A
     private String writeMap(Map<String, Object> data) {
         try {
             return this.jsonMapper.writeValueAsString(data);
-        } catch (Exception ex) {
-            throw new IllegalArgumentException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
         }
     }
 

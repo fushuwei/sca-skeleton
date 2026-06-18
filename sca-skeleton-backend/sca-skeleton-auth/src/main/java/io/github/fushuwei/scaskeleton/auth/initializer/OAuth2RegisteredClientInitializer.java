@@ -76,8 +76,8 @@ public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
         }
         try {
             registeredClientRepository.findByClientId(clientId);
-        } catch (Exception ex) {
-            log.warn("OAuth2 客户端 [{}] 记录格式不兼容，将在 DB 中删除后重建：{}", clientId, ex.getMessage());
+        } catch (Exception e) {
+            log.warn("OAuth2 客户端 [{}] 记录格式不兼容，将在 DB 中删除后重建：{}", clientId, e.getMessage());
             jdbcTemplate.update("DELETE FROM oauth2_registered_client WHERE client_id = ?", clientId);
         }
     }

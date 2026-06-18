@@ -57,8 +57,8 @@ public class AuthJwkKeyLoader {
             RSAPrivateKey privateKey = parsePrivateKey(authJwtProperties.getPrivateKey());
             RSAPublicKey publicKey = parsePublicKey(authJwtProperties.getPublicKey());
             return new KeyPair(publicKey, privateKey);
-        } catch (Exception ex) {
-            throw new IllegalStateException("外部 RSA 密钥加载失败", ex);
+        } catch (Exception e) {
+            throw new IllegalStateException("外部 RSA 密钥加载失败", e);
         }
     }
 
@@ -70,8 +70,8 @@ public class AuthJwkKeyLoader {
             KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
             generator.initialize(authJwtProperties.getKeySize());
             return generator.generateKeyPair();
-        } catch (Exception ex) {
-            throw new IllegalStateException("RSA 密钥对生成失败", ex);
+        } catch (Exception e) {
+            throw new IllegalStateException("RSA 密钥对生成失败", e);
         }
     }
 

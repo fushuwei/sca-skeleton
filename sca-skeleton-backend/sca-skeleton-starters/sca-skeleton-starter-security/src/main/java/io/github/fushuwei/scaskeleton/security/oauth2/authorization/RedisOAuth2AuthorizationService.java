@@ -606,7 +606,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
         }
         try {
             return Instant.ofEpochMilli(Long.parseLong(millis.trim()));
-        } catch (NumberFormatException ex) {
+        } catch (NumberFormatException e) {
             return null;
         }
     }
@@ -627,8 +627,8 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
             JavaType javaType = this.authorizationJsonMapper.constructType(typeRef.getType());
             // 反序列化为 Map，供 attributes / metadata 使用
             return this.authorizationJsonMapper.readValue(json, javaType);
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("Failed to parse OAuth2 JSON map: " + ex.getMessage(), ex);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to parse OAuth2 JSON map: " + e.getMessage(), e);
         }
     }
 }
