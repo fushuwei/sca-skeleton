@@ -162,15 +162,13 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     private void cache(RegisteredClient registeredClient) {
         try {
             String json = this.redisSerializer.serialize(registeredClient);
-            // 主键键存完整快照 JSON
             this.stringRedisTemplate.opsForValue()
                 .set(OAuth2AuthorizationRedisKeys.registeredClientIdKey(registeredClient.getId()), json);
-            // client_id 键仅存主键 id，便于按 client_id 反查
             this.stringRedisTemplate.opsForValue()
                 .set(OAuth2AuthorizationRedisKeys.registeredClientClientIdKey(registeredClient.getClientId()),
                     registeredClient.getId());
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to cache RegisteredClient to Redis: " + e.getMessage(), e);
+            throw new IllegalStateException("Redis 缓存 RegisteredClient 异常: " + e.getMessage(), e);
         }
     }
 
