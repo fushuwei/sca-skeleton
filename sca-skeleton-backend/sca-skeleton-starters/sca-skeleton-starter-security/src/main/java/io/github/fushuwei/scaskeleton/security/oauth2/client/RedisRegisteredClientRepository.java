@@ -2,12 +2,10 @@ package io.github.fushuwei.scaskeleton.security.oauth2.client;
 
 import io.github.fushuwei.scaskeleton.security.oauth2.authorization.OAuth2AuthorizationRedisKeys;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -31,7 +29,7 @@ import tools.jackson.databind.json.JsonMapper;
 public class RedisRegisteredClientRepository implements RegisteredClientRepository {
 
     /**
-     * 委托的 JDBC 或其它权威存储库
+     * 委托的 JDBC 注册客户端存储库
      */
     private final RegisteredClientRepository delegate;
 
@@ -48,68 +46,52 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     /**
      * 认证中心使用场景构造器
      *
-     * @param delegate                 注册客户端存储库（通常为 {@code JdbcRegisteredClientRepository}）
-     * @param stringRedisTemplate      与授权记录共用的 Redis
-     * @param authorizationJsonMapper  OAuth2 持久层专用 JsonMapper
+     * @param delegate                注册客户端存储库（通常为 {@code JdbcRegisteredClientRepository}）
+     * @param stringRedisTemplate     与授权记录共用的 Redis
+     * @param authorizationJsonMapper OAuth2 持久层专用 JsonMapper
      */
     public RedisRegisteredClientRepository(RegisteredClientRepository delegate,
                                            StringRedisTemplate stringRedisTemplate,
                                            JsonMapper authorizationJsonMapper) {
-        Assert.notNull(delegate, "delegate cannot be null");
-        Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
-        Assert.notNull(authorizationJsonMapper, "authorizationJsonMapper cannot be null");
         this.delegate = delegate;
         this.stringRedisTemplate = stringRedisTemplate;
         this.redisSerializer = new RegisteredClientRedisSerializer(authorizationJsonMapper);
     }
 
     /**
-     * 资源服务器使用场景构造器（只读 Redis）
+     * 资源服务器使用场景构造器
      *
-     * @param stringRedisTemplate      Redis 模板，不可为 null
-     * @param authorizationJsonMapper  OAuth2 持久层专用 JsonMapper
+     * @param stringRedisTemplate     Redis 字符串模板
+     * @param authorizationJsonMapper OAuth2 持久层专用 JsonMapper
      */
     public RedisRegisteredClientRepository(StringRedisTemplate stringRedisTemplate,
                                            JsonMapper authorizationJsonMapper) {
-        Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
-        Assert.notNull(authorizationJsonMapper, "authorizationJsonMapper cannot be null");
         this.delegate = null;
         this.stringRedisTemplate = stringRedisTemplate;
         this.redisSerializer = new RegisteredClientRedisSerializer(authorizationJsonMapper);
     }
 
     /**
-     * 持久化客户端
-     * <p>
-     * 认证中心模式：写入 JDBC 并同步刷新 Redis 缓存<br>
-     * 资源服务器模式：不支持写入
+     * 持久化注册客户端
      *
      * @param registeredClient 客户端
      */
     @Override
     public void save(RegisteredClient registeredClient) {
         if (this.delegate != null) {
-            // 权威数据写入 JDBC
+            // JDBC 持久化
             this.delegate.save(registeredClient);
-            // 同步刷新 Redis 快照
+            // 同步刷新 Redis 缓存
             cache(registeredClient);
-            return;
         }
-        // 资源服务器只读，写入由认证中心完成
-        throw new UnsupportedOperationException(
-            "RedisRegisteredClientRepository is read-only; register clients on the authorization server.");
     }
 
     /**
-     * 按主键加载注册客户端
-     * <p>
-     * 认证中心模式：优先读 Redis，未命中再回源 JDBC 并回填缓存<br>
-     * 资源服务器模式：仅读 Redis
+     * 根据主键 ID 查询注册客户端
      *
-     * @param id 客户端主键
-     * @return 客户端；不存在时返回 null
+     * @param id 主键 ID
+     * @return 注册客户端
      */
-    @Nullable
     @Override
     public RegisteredClient findById(String id) {
         if (this.delegate != null) {
@@ -127,22 +109,17 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
             }
             return client;
         }
-        Assert.hasText(id, "id cannot be empty");
         String json = this.stringRedisTemplate.opsForValue().get(OAuth2AuthorizationRedisKeys.registeredClientIdKey(id));
         // 从主键键读取快照 JSON 并反序列化
         return deserialize(json);
     }
 
     /**
-     * 按 OAuth2 client_id 加载注册客户端
-     * <p>
-     * 认证中心模式：优先读 Redis 索引，未命中再回源 JDBC 并回填缓存<br>
-     * 资源服务器模式：仅读 Redis 索引
+     * 根据 client_id 查询注册客户端
      *
-     * @param clientId client_id
-     * @return 客户端；不存在时返回 null
+     * @param clientId 客户端 ID
+     * @return 注册客户端
      */
-    @Nullable
     @Override
     public RegisteredClient findByClientId(String clientId) {
         if (this.delegate != null) {
@@ -164,9 +141,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
             }
             return client;
         }
-        Assert.hasText(clientId, "clientId cannot be empty");
-        String id = this.stringRedisTemplate.opsForValue()
-            .get(OAuth2AuthorizationRedisKeys.registeredClientClientIdKey(clientId));
+        String id = this.stringRedisTemplate.opsForValue().get(OAuth2AuthorizationRedisKeys.registeredClientClientIdKey(clientId));
         if (!StringUtils.hasText(id)) {
             return null;
         }
@@ -174,12 +149,10 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
         return findById(id);
     }
 
-    // ── 认证中心模式专用方法 ──
-
     /**
-     * 将客户端快照写入 Redis（主键与 client_id 双索引）
+     * 将注册客户端写入 Redis 缓存
      *
-     * @param registeredClient 客户端
+     * @param registeredClient 注册客户端
      */
     private void cache(RegisteredClient registeredClient) {
         try {
@@ -197,14 +170,13 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     }
 
     /**
-     * 反序列化 Redis 中的客户端快照（认证中心模式，带脏缓存清理）
+     * 反序列化 Redis 中的注册客户端快照
      *
-     * @param json     JSON 文本
+     * @param json     JSON 字符串
      * @param cacheKey 当前缓存键；解析失败或历史格式时用于失效旧数据
      * @return 客户端；解析失败时失效缓存并返回 null，由调用方回源 JDBC
      */
-    @Nullable
-    private RegisteredClient deserialize(@Nullable String json, @Nullable String cacheKey) {
+    private RegisteredClient deserialize(String json, String cacheKey) {
         if (json == null || json.isBlank()) {
             return null;
         }
@@ -226,13 +198,12 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     }
 
     /**
-     * 将 JSON 反序列化为 {@link RegisteredClient}（资源服务器模式，失败抛异常）
+     * 将 JSON 反序列化为 {@link RegisteredClient}
      *
      * @param json 缓存 JSON
      * @return 客户端；空输入返回 null
      */
-    @Nullable
-    private RegisteredClient deserialize(@Nullable String json) {
+    private RegisteredClient deserialize(String json) {
         if (!StringUtils.hasText(json)) {
             return null;
         }

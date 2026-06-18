@@ -213,7 +213,7 @@ public final class RegisteredClientRedisSerializer {
         public String clientId;
 
         /**
-         * client_id 签发时间（ISO-8601 字符串）
+         * client_id 签发时间
          */
         public String clientIdIssuedAt;
 
@@ -223,7 +223,7 @@ public final class RegisteredClientRedisSerializer {
         public String clientSecret;
 
         /**
-         * 客户端密钥过期时间（ISO-8601 字符串）
+         * 客户端密钥过期时间
          */
         public String clientSecretExpiresAt;
 
@@ -258,12 +258,12 @@ public final class RegisteredClientRedisSerializer {
         public List<String> scopes;
 
         /**
-         * client_settings 列同款 JSON（Map 序列化结果）
+         * client_settings
          */
         public String clientSettings;
 
         /**
-         * token_settings 列同款 JSON（Map 序列化结果）
+         * token_settings
          */
         public String tokenSettings;
     }
