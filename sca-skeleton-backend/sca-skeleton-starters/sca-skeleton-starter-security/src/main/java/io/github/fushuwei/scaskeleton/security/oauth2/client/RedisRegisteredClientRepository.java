@@ -47,7 +47,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
      * 认证中心使用场景构造器
      *
      * @param delegate                注册客户端存储库（通常为 {@code JdbcRegisteredClientRepository}）
-     * @param stringRedisTemplate     与授权记录共用的 Redis
+     * @param stringRedisTemplate     Redis 字符串模板
      * @param authorizationJsonMapper OAuth2 持久层专用 JsonMapper
      */
     public RedisRegisteredClientRepository(RegisteredClientRepository delegate,
@@ -92,38 +92,31 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
      */
     @Override
     public RegisteredClient findById(String id) {
-        if (this.delegate != null) {
-            String cacheKey = OAuth2AuthorizationRedisKeys.registeredClientIdKey(id);
-            String json = this.stringRedisTemplate.opsForValue().get(cacheKey);
-            RegisteredClient cached = deserialize(json);
-            // 缓存命中直接返回
-            if (cached != null) {
-                return cached;
-            }
-            // 缓存未命中或已失效，清理脏缓存后回源 JDBC 并回填
-            if (json != null && !json.isBlank()) {
-                log.warn("RegisteredClient 缓存无效或已过期，key={}", cacheKey);
-                this.stringRedisTemplate.delete(cacheKey);
-            }
-            RegisteredClient client = this.delegate.findById(id);
-            if (client != null) {
-                cache(client);
-            }
-            return client;
-        }
-        // 资源服务器：Redis 是唯一数据源
+        // 先查询 Redis 缓存
         String cacheKey = OAuth2AuthorizationRedisKeys.registeredClientIdKey(id);
         String json = this.stringRedisTemplate.opsForValue().get(cacheKey);
         RegisteredClient client = deserialize(json);
         if (client != null) {
             return client;
         }
-        if (json != null && !json.isBlank()) {
+
+        // 缓存未命中或反序列化异常等情况，从 Redis 中删除当前无效缓存
+        if (StringUtils.hasText(json)) {
             log.warn("RegisteredClient 缓存无效或已过期，key={}", cacheKey);
             this.stringRedisTemplate.delete(cacheKey);
         }
-        throw new DataRetrievalFailureException(
-            "RegisteredClient Redis cache is missing, invalid, or uses a legacy format");
+
+        if (this.delegate != null) {
+            // 如果是认证服务，则查询 JDBC 并回填 Redis 缓存
+            client = this.delegate.findById(id);
+            if (client != null) {
+                cache(client);
+            }
+            return client;
+        } else {
+            // 如果是资源服务器，则抛出异常
+            throw new DataRetrievalFailureException("RegisteredClientSnapshot 反序列化异常");
+        }
     }
 
     /**
