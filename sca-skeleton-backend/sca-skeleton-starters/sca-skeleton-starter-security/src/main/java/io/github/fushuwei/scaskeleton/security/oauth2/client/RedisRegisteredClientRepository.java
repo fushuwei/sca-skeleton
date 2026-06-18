@@ -66,9 +66,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
      */
     public RedisRegisteredClientRepository(StringRedisTemplate stringRedisTemplate,
                                            JsonMapper authorizationJsonMapper) {
-        this.delegate = null;
-        this.stringRedisTemplate = stringRedisTemplate;
-        this.redisSerializer = new RegisteredClientRedisSerializer(authorizationJsonMapper);
+        this(null, stringRedisTemplate, authorizationJsonMapper);
     }
 
     /**
