@@ -115,7 +115,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
             return client;
         }
 
-        // 资源服务器：Redis 是唯一数据源
+        // 资源服务器：Redis 是唯一数据源，缓存查不到或反序列化异常就直接报错
         throw new DataRetrievalFailureException("Redis 缓存中未找到有效的 RegisteredClient，id: " + id);
     }
 
@@ -127,31 +127,31 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
      */
     @Override
     public RegisteredClient findByClientId(String clientId) {
-        if (this.delegate != null) {
-            // client_id -> 主键 id 二级索引
-            String id = this.stringRedisTemplate.opsForValue()
-                .get(OAuth2AuthorizationRedisKeys.registeredClientClientIdKey(clientId));
-            if (id != null) {
-                RegisteredClient cached = findById(id);
-                if (cached != null) {
-                    return cached;
-                }
-                // client_id 索引命中但主键缓存已失效时，清理脏索引避免重复 miss
-                this.stringRedisTemplate.delete(OAuth2AuthorizationRedisKeys.registeredClientClientIdKey(clientId));
+        // 通过 client_id 找到主键 id
+        String cacheKey = OAuth2AuthorizationRedisKeys.registeredClientClientIdKey(clientId);
+        String id = this.stringRedisTemplate.opsForValue().get(cacheKey);
+        if (StringUtils.hasText(id)) {
+            RegisteredClient client = findById(id);
+            if (client != null) {
+                return client;
             }
-            // 索引缺失或快照无效时回源 JDBC
+        }
+
+        // 缓存已失效
+        this.stringRedisTemplate.delete(cacheKey);
+
+        // 授权服务器
+        if (this.delegate != null) {
+            // 查询 JDBC 并回填 Redis 缓存
             RegisteredClient client = this.delegate.findByClientId(clientId);
             if (client != null) {
                 cache(client);
             }
             return client;
         }
-        String id = this.stringRedisTemplate.opsForValue().get(OAuth2AuthorizationRedisKeys.registeredClientClientIdKey(clientId));
-        if (!StringUtils.hasText(id)) {
-            return null;
-        }
-        // 通过 client_id 索引定位主键后再加载快照
-        return findById(id);
+
+        // 资源服务器
+        return null;
     }
 
     /**
