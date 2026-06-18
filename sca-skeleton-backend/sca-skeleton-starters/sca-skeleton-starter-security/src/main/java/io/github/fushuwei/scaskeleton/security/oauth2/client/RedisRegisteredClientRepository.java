@@ -94,22 +94,36 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     public RegisteredClient findById(String id) {
         if (this.delegate != null) {
             String cacheKey = OAuth2AuthorizationRedisKeys.registeredClientIdKey(id);
-            String cachedJson = this.stringRedisTemplate.opsForValue().get(cacheKey);
-            RegisteredClient cached = deserialize(cachedJson, cacheKey);
+            String json = this.stringRedisTemplate.opsForValue().get(cacheKey);
+            RegisteredClient cached = deserialize(json);
             // 缓存命中直接返回
             if (cached != null) {
                 return cached;
             }
-            // 未命中回源 JDBC 并回填
+            // 缓存未命中或已失效，清理脏缓存后回源 JDBC 并回填
+            if (json != null && !json.isBlank()) {
+                log.warn("RegisteredClient 缓存无效或已过期，key={}", cacheKey);
+                this.stringRedisTemplate.delete(cacheKey);
+            }
             RegisteredClient client = this.delegate.findById(id);
             if (client != null) {
                 cache(client);
             }
             return client;
         }
-        String json = this.stringRedisTemplate.opsForValue().get(OAuth2AuthorizationRedisKeys.registeredClientIdKey(id));
-        // 从主键键读取快照 JSON 并反序列化
-        return deserialize(json);
+        // 资源服务器：Redis 是唯一数据源
+        String cacheKey = OAuth2AuthorizationRedisKeys.registeredClientIdKey(id);
+        String json = this.stringRedisTemplate.opsForValue().get(cacheKey);
+        RegisteredClient client = deserialize(json);
+        if (client != null) {
+            return client;
+        }
+        if (json != null && !json.isBlank()) {
+            log.warn("RegisteredClient 缓存无效或已过期，key={}", cacheKey);
+            this.stringRedisTemplate.delete(cacheKey);
+        }
+        throw new DataRetrievalFailureException(
+            "RegisteredClient Redis cache is missing, invalid, or uses a legacy format");
     }
 
     /**
@@ -170,52 +184,18 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     /**
      * 将 Redis 中的 JSON 字符串反序列化成 RegisteredClient
      *
-     * @param json     JSON 字符串
-     * @param cacheKey 当前 Redis 中的缓存键
+     * @param json JSON 字符串
      * @return 注册客户端
-     */
-    private RegisteredClient deserialize(String json, String cacheKey) {
-        if (json == null || json.isBlank()) {
-            return null;
-        }
-        try {
-            RegisteredClient client = this.redisSerializer.deserialize(json);
-            if (client == null && cacheKey != null) {
-                log.warn("RegisteredClient 缓存无效或已过期，key={}", cacheKey);
-                this.stringRedisTemplate.delete(cacheKey);
-            }
-            return client;
-        } catch (Exception e) {
-            log.warn("RegisteredClient 反序列化异常，key={}", cacheKey, e);
-            if (cacheKey != null) {
-                this.stringRedisTemplate.delete(cacheKey);
-            }
-            return null;
-        }
-    }
-
-    /**
-     * 将 JSON 反序列化为 {@link RegisteredClient}
-     *
-     * @param json 缓存 JSON
-     * @return 客户端；空输入返回 null
      */
     private RegisteredClient deserialize(String json) {
         if (!StringUtils.hasText(json)) {
             return null;
         }
         try {
-            RegisteredClient client = this.redisSerializer.deserialize(json);
-            // 快照缺失或格式无效时抛 DataRetrievalFailureException，与 JDBC 语义对齐
-            if (client == null) {
-                throw new DataRetrievalFailureException(
-                    "RegisteredClient Redis cache is missing, invalid, or uses a legacy format");
-            }
-            return client;
-        } catch (DataRetrievalFailureException e) {
-            throw e;
+            return this.redisSerializer.deserialize(json);
         } catch (Exception e) {
-            throw new DataRetrievalFailureException("Failed to deserialize RegisteredClient from Redis", e);
+            log.warn("RegisteredClient 反序列化异常", e);
+            return null;
         }
     }
 }
