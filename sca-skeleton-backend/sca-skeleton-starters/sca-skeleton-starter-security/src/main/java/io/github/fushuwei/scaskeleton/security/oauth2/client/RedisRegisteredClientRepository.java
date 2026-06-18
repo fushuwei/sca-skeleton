@@ -15,7 +15,7 @@ import tools.jackson.databind.json.JsonMapper;
  * 提供两种使用场景：
  * <ol>
  *   <li>
- *       <b>「认证中心」使用场景：</b>（提供 delegate）— JDBC 为主存储，Redis 为缓存：
+ *       <b>「授权服务器」使用场景：</b>（提供 delegate）— JDBC 为主存储，Redis 为缓存：
  *       {@code save} 写入 JDBC + 同步刷新 Redis 快照，{@code find} 优先读 Redis 未命中则回源 JDBC 并回填
  *   </li>
  *   <li>
@@ -44,7 +44,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     private final RegisteredClientRedisSerializer redisSerializer;
 
     /**
-     * 认证中心使用场景构造器
+     * 授权服务器使用场景构造器
      *
      * @param delegate                注册客户端存储库（通常为 {@code JdbcRegisteredClientRepository}）
      * @param stringRedisTemplate     Redis 字符串模板
@@ -106,17 +106,17 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
             this.stringRedisTemplate.delete(cacheKey);
         }
 
+        // 授权服务器：查询 JDBC 并回填 Redis 缓存
         if (this.delegate != null) {
-            // 如果是认证服务，则查询 JDBC 并回填 Redis 缓存
             client = this.delegate.findById(id);
             if (client != null) {
                 cache(client);
             }
             return client;
-        } else {
-            // 如果是资源服务器，则抛出异常
-            throw new DataRetrievalFailureException("RegisteredClientSnapshot 反序列化异常");
         }
+
+        // 资源服务器：Redis 是唯一数据源
+        throw new DataRetrievalFailureException("Redis 缓存中未找到有效的 RegisteredClient，id: " + id);
     }
 
     /**
