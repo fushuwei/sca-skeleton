@@ -18,16 +18,18 @@ public class OAuth2LoginRedirectResolver {
     private final OAuth2PendingAuthorizeStore pendingAuthorizeStore;
 
     /**
-     * 解析登录成功后浏览器应跳转的绝对 URL（通常为 {@code {issuer}/oauth2/authorize?...}）。
+     * 解析登录成功后浏览器应跳转的 authorize URL。
      *
      * @param request  当前请求
-     * @param channel  当前渠道标识（admin / portal），用于从渠道感知的 pending map 中精准取值
+     * @param channel  当前渠道标识（admin / portal）
+     * @param state    PKCE state，用于精确匹配该授权请求对应的 pending authorize
      * @return 经网关可访问的 authorize URL；无可用恢复目标时返回 null
      */
-    public String resolvePostLoginRedirectUrl(HttpServletRequest request, String channel) {
-        // 仅使用 entry point 写入的 pending authorize（按渠道隔离）。
-        // 不回退 SavedRequest：SavedRequest 非渠道感知，多 tab 场景会被另一渠道污染。
-        String pending = pendingAuthorizeStore.peekPendingAuthorizeUrl(request, channel);
+    public String resolvePostLoginRedirectUrl(HttpServletRequest request, String channel, String state) {
+        if (!StringUtils.hasText(state)) {
+            return null;
+        }
+        String pending = pendingAuthorizeStore.peekPendingAuthorizeUrl(request, channel, state);
         if (StringUtils.hasText(pending) && pending.contains("/oauth2/")) {
             return pending;
         }
@@ -35,11 +37,11 @@ public class OAuth2LoginRedirectResolver {
     }
 
     /**
-     * 登录成功并完成跳转后清除对应渠道的 pending authorize，避免重复消费。
-     *
-     * @param channel 当前渠道标识（admin / portal）
+     * 登录成功并完成跳转后清除对应（渠道 + state）的 pending authorize，避免重复消费。
      */
-    public void removeSavedRequest(HttpServletRequest request, String channel) {
-        pendingAuthorizeStore.clearPendingAuthorizeUrl(request, channel);
+    public void removeSavedRequest(HttpServletRequest request, String channel, String state) {
+        if (StringUtils.hasText(state)) {
+            pendingAuthorizeStore.clearPendingAuthorizeUrl(request, channel, state);
+        }
     }
 }

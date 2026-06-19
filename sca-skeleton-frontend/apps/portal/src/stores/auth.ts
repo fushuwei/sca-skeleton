@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { consumePkceSession } from "@repo/shared";
 import { getPortalOAuthConfig } from "../config/oauth";
 import { getUserProfileApi } from "../apis/user";
 import {
@@ -58,6 +59,9 @@ export const usePortalAuthStore = defineStore("portal-auth", {
       this.profile = null;
       localStorage.removeItem(TOKEN_STORAGE_KEY);
       localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
+      // 清除 sessionStorage 中残留的 PKCE 会话，避免二次登录时复用旧 state
+      // 导致 OAuth 回调 state 校验失败
+      consumePkceSession(oauthConfig.clientId);
       const logoutUrl = oauthConfig.authorizeUrl.replace("/oauth2/authorize", "/logout");
       const form = document.createElement("form");
       form.method = "POST";

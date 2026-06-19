@@ -33,36 +33,52 @@ public class OAuth2PendingAuthorizeStore {
     /**
      * 未登录访问 {@code /oauth2/authorize} 并重定向到登录页之前，保存经网关可访问的 authorize URL。
      * <p>
-     * 按 {@code client_id} 对应的渠道分别存储，admin 与 portal 互不干扰。
+     * 以 PKCE state 为键存储，确保多 tab 同时授权时各自的 pending authorize 互不干扰。
      *
      * @param request 当前 authorize 请求（Auth 内路径 {@code /oauth2/authorize}）
      */
     public void savePendingAuthorizeRequest(HttpServletRequest request) {
         HttpSession session = request.getSession(true);
         String channel = resolveChannel(request);
+        String state = request.getParameter("state");
+        if (!StringUtils.hasText(state)) {
+            return;
+        }
+        String key = channel + ":" + state;
         @SuppressWarnings("unchecked")
         Map<String, String> map = (Map<String, String>) session.getAttribute(SESSION_ATTRIBUTE);
         if (map == null) {
             map = new HashMap<>();
         }
-        // 同一渠道已有 pending 时不再覆盖：多 tab 同时 PKCE 会产生不同的 state，
-        // 覆盖会导致先到的 tab 登录后 state 校验失败。
-        if (map.containsKey(channel)) {
+        // 以 state 为键：同一渠道多 tab 各自有不同的 state，不会互相覆盖
+        if (map.containsKey(key)) {
             return;
         }
         String url = buildExternalAuthorizeUrl(request);
-        map.put(channel, url);
+        map.put(key, url);
         session.setAttribute(SESSION_ATTRIBUTE, map);
     }
 
     /**
-     * 读取并清除 Session 中指定渠道的 pending authorize URL（一次性消费）。
+     * 读取并清除 Session 中指定（渠道 + state）的 pending authorize URL（一次性消费）。
      *
      * @param request 当前请求
      * @param channel 渠道标识（admin / portal）
+     * @param state   PKCE state，用于精确匹配
      * @return 经网关的 authorize 绝对 URL；不存在时返回 null
      */
-    public String consumePendingAuthorizeUrl(HttpServletRequest request, String channel) {
+    public String consumePendingAuthorizeUrl(HttpServletRequest request, String channel, String state) {
+        return removePending(request, channel, state);
+    }
+
+    /**
+     * 读取 Session 中指定（渠道 + state）的 pending authorize URL（不清除）。
+     *
+     * @param request 当前请求
+     * @param channel 渠道标识（admin / portal）
+     * @param state   PKCE state，用于精确匹配
+     */
+    public String peekPendingAuthorizeUrl(HttpServletRequest request, String channel, String state) {
         HttpSession session = request.getSession(false);
         if (session == null) {
             return null;
@@ -72,7 +88,29 @@ public class OAuth2PendingAuthorizeStore {
         if (map == null) {
             return null;
         }
-        String url = map.remove(channel);
+        String key = channel + ":" + state;
+        String url = map.get(key);
+        return StringUtils.hasText(url) ? url : null;
+    }
+
+    /** 清除指定（渠道 + state）的 pending authorize URL。 */
+    public void clearPendingAuthorizeUrl(HttpServletRequest request, String channel, String state) {
+        removePending(request, channel, state);
+    }
+
+    /** 读取并删除 pending authorize。 */
+    private String removePending(HttpServletRequest request, String channel, String state) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return null;
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, String> map = (Map<String, String>) session.getAttribute(SESSION_ATTRIBUTE);
+        if (map == null) {
+            return null;
+        }
+        String key = channel + ":" + state;
+        String url = map.remove(key);
         if (map.isEmpty()) {
             session.removeAttribute(SESSION_ATTRIBUTE);
         } else {
@@ -82,42 +120,27 @@ public class OAuth2PendingAuthorizeStore {
     }
 
     /**
-     * 读取 Session 中指定渠道的 pending authorize URL（不清除）。
-     *
-     * @param request 当前请求
-     * @param channel 渠道标识（admin / portal）
+     * 判断当前 Session 中是否存在指定渠道的 pending authorize（不清除）。
+     * <p>
+     * 用于 LoginPageController 判断登录页是否经 OAuth2 流程跳转而来。
      */
-    public String peekPendingAuthorizeUrl(HttpServletRequest request, String channel) {
+    public boolean hasPendingForChannel(HttpServletRequest request, String channel) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            return null;
+            return false;
         }
         @SuppressWarnings("unchecked")
         Map<String, String> map = (Map<String, String>) session.getAttribute(SESSION_ATTRIBUTE);
         if (map == null) {
-            return null;
+            return false;
         }
-        String url = map.get(channel);
-        return StringUtils.hasText(url) ? url : null;
-    }
-
-    /** 清除指定渠道的 pending authorize URL。 */
-    public void clearPendingAuthorizeUrl(HttpServletRequest request, String channel) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            return;
+        String prefix = channel + ":";
+        for (String key : map.keySet()) {
+            if (key.startsWith(prefix)) {
+                return true;
+            }
         }
-        @SuppressWarnings("unchecked")
-        Map<String, String> map = (Map<String, String>) session.getAttribute(SESSION_ATTRIBUTE);
-        if (map == null) {
-            return;
-        }
-        map.remove(channel);
-        if (map.isEmpty()) {
-            session.removeAttribute(SESSION_ATTRIBUTE);
-        } else {
-            session.setAttribute(SESSION_ATTRIBUTE, map);
-        }
+        return false;
     }
 
     // ── 跨 Session 迁移方法（渠道不匹配时 session.invalidate 前后使用） ──

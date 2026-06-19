@@ -7,8 +7,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -56,6 +59,12 @@ public class ClientAwareLoginUrlAuthenticationEntryPoint extends LoginUrlAuthent
         // 从 authorize 请求 query 读取 client_id，映射 admin / portal 登录页
         String clientId = request.getParameter("client_id");
         String loginUrl = oauth2ClientProperties.resolveExternalLoginUrl(clientId);
+        // 将 PKCE state 作为查询参数传递给登录页，后续通过登录表单回传，
+        // 以便登录成功后精确匹配该授权请求的 pending authorize URL
+        String state = request.getParameter("state");
+        if (StringUtils.hasText(state)) {
+            loginUrl = loginUrl + "?pkce_state=" + URLEncoder.encode(state, StandardCharsets.UTF_8);
+        }
         // 302 到网关登录页（浏览器后续请求仍走网关 /auth/**）
         response.sendRedirect(loginUrl);
     }

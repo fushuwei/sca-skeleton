@@ -303,7 +303,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
      * @return 索引 Redis key
      */
     private static String idxKey(String type, String token) {
-        return OAuth2AuthorizationRedisKeys.IDX_PREFIX + type + ":" + token;
+        return OAuth2AuthorizationRedisKeys.AUTHORIZATION_INDEX_PREFIX + type + ":" + token;
     }
 
     /**

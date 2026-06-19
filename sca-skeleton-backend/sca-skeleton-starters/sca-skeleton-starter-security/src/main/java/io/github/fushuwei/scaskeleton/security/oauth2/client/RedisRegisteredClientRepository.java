@@ -93,7 +93,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     @Override
     public RegisteredClient findById(String id) {
         // 先查询 Redis 缓存
-        String cacheKey = OAuth2AuthorizationRedisKeys.registeredClientIdKey(id);
+        String cacheKey = OAuth2AuthorizationRedisKeys.clientKey(id);
         String json = this.stringRedisTemplate.opsForValue().get(cacheKey);
         RegisteredClient client = deserialize(json);
         if (client != null) {
@@ -128,7 +128,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     @Override
     public RegisteredClient findByClientId(String clientId) {
         // 通过 client_id 找到主键 id
-        String cacheKey = OAuth2AuthorizationRedisKeys.registeredClientClientIdKey(clientId);
+        String cacheKey = OAuth2AuthorizationRedisKeys.clientIdIndexKey(clientId);
         String id = this.stringRedisTemplate.opsForValue().get(cacheKey);
         if (StringUtils.hasText(id)) {
             RegisteredClient client = findById(id);
@@ -163,9 +163,9 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
         try {
             String json = this.redisSerializer.serialize(registeredClient);
             this.stringRedisTemplate.opsForValue()
-                .set(OAuth2AuthorizationRedisKeys.registeredClientIdKey(registeredClient.getId()), json);
+                .set(OAuth2AuthorizationRedisKeys.clientKey(registeredClient.getId()), json);
             this.stringRedisTemplate.opsForValue()
-                .set(OAuth2AuthorizationRedisKeys.registeredClientClientIdKey(registeredClient.getClientId()),
+                .set(OAuth2AuthorizationRedisKeys.clientIdIndexKey(registeredClient.getClientId()),
                     registeredClient.getId());
         } catch (Exception e) {
             throw new IllegalStateException("Redis 缓存 RegisteredClient 异常: " + e.getMessage(), e);

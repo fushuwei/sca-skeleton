@@ -37,11 +37,12 @@ public class OAuth2AuthorizeLoginSuccessHandler implements AuthenticationSuccess
         // 登录成功后将渠道写入 Session，后续 authorize 请求据此做 admin/portal 会话隔离。
         HttpSession session = request.getSession(true);
         String loginChannel = request.getParameter("loginChannel");
+        String pkceState = request.getParameter("pkce_state");
         session.setAttribute(AuthSessionAttributes.LOGIN_CHANNEL,
                 LoginChannel.fromValue(loginChannel).getValue());
-        String target = redirectResolver.resolvePostLoginRedirectUrl(request, loginChannel);
+        String target = redirectResolver.resolvePostLoginRedirectUrl(request, loginChannel, pkceState);
         if (StringUtils.hasText(target)) {
-            redirectResolver.removeSavedRequest(request, loginChannel);
+            redirectResolver.removeSavedRequest(request, loginChannel, pkceState);
             response.sendRedirect(target);
             return;
         }

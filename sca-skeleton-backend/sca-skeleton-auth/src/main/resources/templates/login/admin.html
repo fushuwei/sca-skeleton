@@ -69,6 +69,8 @@
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <!-- 登录渠道标识 -->
                     <input type="hidden" name="loginChannel" th:value="${loginChannel}"/>
+                    <!-- PKCE state，回传给后端用于精确匹配 pending authorize -->
+                    <input type="hidden" name="pkce_state" th:value="${pkceState}"/>
 
                     <div class="md3-text-field-container">
                         <div class="md3-text-field-wrapper">
