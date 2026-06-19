@@ -57,7 +57,6 @@ public class LoginPageController {
     @GetMapping("/login/admin")
     public String adminLogin(@RequestParam(value = "error", required = false) String error,
             @RequestParam(value = "captcha-error", required = false) String captchaError,
-            @RequestParam(value = "pkce_state", required = false) String pkceState,
             Model model, HttpServletRequest request, HttpServletResponse response) {
         // 已登录且存在 authorize SavedRequest 时，直接继续 OAuth2 授权（避免停留在登录页）
         String resumeAuthorize = resolveResumeAuthorizeUrl(request, response);
@@ -78,8 +77,8 @@ public class LoginPageController {
         model.addAttribute("pageTitle", authLoginProperties.getSystemName() + " 管理后台");
         // 登录渠道 hidden 字段值，供 LoginChannelFilter 识别
         model.addAttribute("loginChannel", LoginChannel.ADMIN.getValue());
-        // PKCE state，由 EntryPoint 通过登录页 URL 查询参数传入，登录表单回传后用于精确匹配 pending authorize
-        model.addAttribute("pkceState", pkceState != null ? pkceState : "");
+        // PKCE state，由 EntryPoint 暂存在 Session 中，此处消费后回填到登录表单 hidden 域
+        model.addAttribute("pkceState", pendingAuthorizeStore.consumePkceState(request));
         // 表单提交地址（通过配置指定，直连为 /login/authenticate，网关模式为 /auth/login/authenticate）
         model.addAttribute("loginProcessingUrl", authLoginProperties.getLoginProcessingUrl());
         // 是否展示认证错误提示
@@ -107,7 +106,6 @@ public class LoginPageController {
     @GetMapping("/login/portal")
     public String portalLogin(@RequestParam(value = "error", required = false) String error,
             @RequestParam(value = "captcha-error", required = false) String captchaError,
-            @RequestParam(value = "pkce_state", required = false) String pkceState,
             Model model, HttpServletRequest request, HttpServletResponse response) {
         // 已登录且存在 authorize SavedRequest 时，直接继续 OAuth2 授权
         String resumeAuthorize = resolveResumeAuthorizeUrl(request, response);
@@ -126,8 +124,8 @@ public class LoginPageController {
         model.addAttribute("pageTitle", authLoginProperties.getSystemName() + " 前台门户");
         // portal 渠道标识
         model.addAttribute("loginChannel", LoginChannel.PORTAL.getValue());
-        // PKCE state，由 EntryPoint 通过登录页 URL 查询参数传入，登录表单回传后用于精确匹配 pending authorize
-        model.addAttribute("pkceState", pkceState != null ? pkceState : "");
+        // PKCE state，由 EntryPoint 暂存在 Session 中，此处消费后回填到登录表单 hidden 域
+        model.addAttribute("pkceState", pendingAuthorizeStore.consumePkceState(request));
         // 表单提交地址（通过配置指定，直连为 /login/authenticate，网关模式为 /auth/login/authenticate）
         model.addAttribute("loginProcessingUrl", authLoginProperties.getLoginProcessingUrl());
         // 登录失败标记
@@ -170,7 +168,8 @@ public class LoginPageController {
         if (session != null) {
             channel = (String) session.getAttribute(AuthSessionAttributes.LOGIN_CHANNEL);
         }
-        String pkceState = request.getParameter("pkce_state");
+        // 从 Session 读取 PKCE state（不消费，后续 LoginPageController 渲染表单时会消费）
+        String pkceState = pendingAuthorizeStore.peekPkceState(request);
         String target = redirectResolver.resolvePostLoginRedirectUrl(request, channel, pkceState);
         if (StringUtils.hasText(target)) {
             return target;

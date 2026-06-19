@@ -24,8 +24,11 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OAuth2PendingAuthorizeStore {
 
-    /** Session 键：待恢复的 authorize 绝对 URL Map（渠道 → 经网关 URL） */
+    /** Session 键：待恢复的 authorize 绝对 URL Map */
     static final String SESSION_ATTRIBUTE = "SCA_OAUTH2_PENDING_AUTHORIZE_MAP";
+
+    /** Session 键：当前 OAuth2 授权请求的 PKCE state，经登录表单回传用于精确匹配 pending authorize */
+    static final String PKCE_STATE_ATTRIBUTE = "SCA_OAUTH2_PKCE_STATE";
 
     /** issuer / 对外路径前缀配置 */
     private final OAuth2ClientProperties oauth2ClientProperties;
@@ -174,6 +177,48 @@ public class OAuth2PendingAuthorizeStore {
         }
         HttpSession session = request.getSession(true);
         session.setAttribute(SESSION_ATTRIBUTE, new HashMap<>(pendingMap));
+    }
+
+    // ── PKCE state 暂存（避免地址栏出现 pkce_state 查询参数） ──
+
+    /**
+     * 将 PKCE state 暂存到 Session，供 LoginPageController 渲染登录表单时回填。
+     * <p>
+     * 与 pending authorize URL 存入同一个 Session，生命周期一致，不引入额外的分布式依赖。
+     */
+    public void savePkceState(HttpServletRequest request, String state) {
+        if (StringUtils.hasText(state)) {
+            request.getSession(true).setAttribute(PKCE_STATE_ATTRIBUTE, state);
+        }
+    }
+
+    /**
+     * 从 Session 读取 PKCE state（不清除），用于 {@code resolveResumeAuthorizeUrl}。
+     * <p>
+     * 后续 LoginPageController 渲染登录表单时会通过 {@link #consumePkceState} 消费。
+     */
+    public String peekPkceState(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return null;
+        }
+        Object value = session.getAttribute(PKCE_STATE_ATTRIBUTE);
+        return value instanceof String s && StringUtils.hasText(s) ? s : null;
+    }
+
+    /**
+     * 从 Session 读取并清除 PKCE state（一次性消费）。
+     * <p>
+     * 读取后立即从 Session 移除，避免已消费的 state 残留。
+     */
+    public String consumePkceState(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return null;
+        }
+        Object value = session.getAttribute(PKCE_STATE_ATTRIBUTE);
+        session.removeAttribute(PKCE_STATE_ATTRIBUTE);
+        return value instanceof String s && StringUtils.hasText(s) ? s : null;
     }
 
     /**
