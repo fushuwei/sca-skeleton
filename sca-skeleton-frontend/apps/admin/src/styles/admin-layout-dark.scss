@@ -472,14 +472,13 @@
   }
 
   .user-table .q-table__bottom {
-    border-top-color: rgba(255, 255, 255, 0.08) !important;
     background: #1e1e1e;
     color: rgba(255, 255, 255, 0.72);
   }
 
-  .user-table .q-table__no-data {
+  .user-table--empty .q-table__bottom {
     background: #1e1e1e !important;
-    border: none !important;
+    color: rgba(255, 255, 255, 0.55);
   }
 
   .empty-state-content {

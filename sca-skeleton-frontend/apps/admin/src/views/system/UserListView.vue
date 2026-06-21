@@ -983,7 +983,8 @@ onMounted(() => {
         selection="multiple"
         flat
         binary-state-sort
-        class="user-table"
+        :class="['user-table', { 'user-table--empty': !tableRows.length && !tableLoading }]"
+        hide-pagination
         @request="loadTableData"
       >
         <!-- 性别列 -->
@@ -1081,7 +1082,7 @@ onMounted(() => {
         <!-- 空数据 -->
         <template #no-data>
           <div class="column items-center justify-center q-py-xl text-grey-7 empty-state-content">
-            <q-icon name="sym_r_person_off" size="56px" class="q-mb-sm" />
+            <q-icon name="sym_r_database_search" size="56px" class="q-mb-sm" />
             <div class="text-body1 text-weight-medium q-mb-xs">
               {{ t("common.noData") }}
             </div>
@@ -1412,28 +1413,28 @@ onMounted(() => {
   border-top: none;
 }
 
-/* 空数据层：填满剩余空间，居中显示 */
-.user-table :deep(.q-table__no-data) {
+/* ── 空数据状态 ── */
+/* 容器：.q-table__bottom 填满剩余空间，居中内容 */
+.user-table--empty :deep(.q-table__container) {
+  height: 100%;
+}
+
+.user-table--empty :deep(.q-table__middle) {
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.user-table--empty :deep(.q-table__bottom) {
   flex: 1 1 0;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border: none !important;
+  border-top: none !important;
 }
 
-/* 行悬停 */
-.user-table :deep(tbody tr:hover td) {
-  background: rgba(0, 121, 107, 0.03) !important;
-}
-
-.user-table :deep(tbody tr.q-tr--selected td) {
-  background: rgba(0, 121, 107, 0.06) !important;
-}
-
-.user-table :deep(tbody td) {
-  font-size: 13px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+.user-table--empty :deep(.q-table__bottom .q-table__bottom-nodata-icon) {
+  display: none;
 }
 
 /* 行悬停 */
@@ -1476,9 +1477,8 @@ onMounted(() => {
   text-align: center;
 }
 
-/* 分页 */
+/* 有数据时底部栏（分页已隐藏，此规则备用） */
 .user-table :deep(.q-table__bottom) {
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
   padding: 6px 16px;
   font-size: 13px;
 }
