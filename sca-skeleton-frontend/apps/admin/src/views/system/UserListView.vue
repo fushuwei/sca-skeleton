@@ -816,7 +816,6 @@ onMounted(() => {
                 filled
                 square
                 dense
-                :placeholder="t('user.statusPlaceholder')"
                 :options="statusOptions"
                 :option-label="(o) => (o ? t(o.label) : '')"
                 option-value="value"
@@ -828,7 +827,11 @@ onMounted(() => {
                 transition-hide="jump-down"
                 class="status-select"
                 popup-content-class="status-select-popup"
-              />
+              >
+                <template v-if="!searchForm.status" v-slot:selected>
+                  <span class="status-placeholder">{{ t('user.statusPlaceholder') }}</span>
+                </template>
+              </q-select>
             </div>
             <div class="col">
               <div class="row q-gutter-x-sm no-wrap">
@@ -979,7 +982,6 @@ onMounted(() => {
         :rows-per-page-options="[10, 20, 50, 100]"
         selection="multiple"
         flat
-        bordered
         binary-state-sort
         class="user-table"
         @request="loadTableData"
@@ -1321,6 +1323,12 @@ onMounted(() => {
   min-height: 40px;
 }
 
+.status-placeholder {
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 14px;
+  pointer-events: none;
+}
+
 /* ── 工具栏区域 ── */
 .toolbar-area {
   flex-shrink: 0;
@@ -1373,7 +1381,11 @@ onMounted(() => {
 }
 
 .user-table :deep(.q-table__middle) {
-  flex: 1 1 auto;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 表头始终可见 */
@@ -1381,26 +1393,47 @@ onMounted(() => {
   display: table-header-group !important;
 }
 
+/* 表格只占自然高度 */
+.user-table :deep(.q-table__middle > table) {
+  flex: 0 0 auto;
+}
+
+/* 表格表头样式 */
 .user-table :deep(thead tr th) {
   font-weight: 600 !important;
   font-size: 12px !important;
   color: rgba(0, 0, 0, 0.7) !important;
   background: #fafafa !important;
   white-space: nowrap;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
 }
 
 .user-table :deep(thead tr:first-child th) {
   border-top: none;
 }
 
-/* 空数据层：居中显示，位于表头下方 */
+/* 空数据层：填满剩余空间，居中显示 */
 .user-table :deep(.q-table__no-data) {
-  position: relative;
+  flex: 1 1 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #fff;
-  flex: 1 1 auto;
+  border: none !important;
+}
+
+/* 行悬停 */
+.user-table :deep(tbody tr:hover td) {
+  background: rgba(0, 121, 107, 0.03) !important;
+}
+
+.user-table :deep(tbody tr.q-tr--selected td) {
+  background: rgba(0, 121, 107, 0.06) !important;
+}
+
+.user-table :deep(tbody td) {
+  font-size: 13px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
 }
 
 /* 行悬停 */
