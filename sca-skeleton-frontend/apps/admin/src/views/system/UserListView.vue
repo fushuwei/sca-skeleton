@@ -983,7 +983,7 @@ onMounted(() => {
         selection="multiple"
         flat
         binary-state-sort
-        :class="['user-table', { 'user-table--empty': !tableRows.length && !tableLoading }]"
+        :class="['user-table', { 'user-table--empty': !tableRows.length }]"
         hide-pagination
         @request="loadTableData"
       >
