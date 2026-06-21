@@ -389,6 +389,25 @@
     color: rgba(255, 255, 255, 0.72) !important;
   }
 
+  /* 搜索按钮 */
+  .search-btn.q-btn--unelevated {
+    background: rgba(0, 150, 136, 0.85) !important;
+  }
+
+  .search-btn.q-btn--unelevated:hover {
+    background: rgba(0, 150, 136, 1) !important;
+  }
+
+  .search-btn.q-btn--outline {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 0.87) !important;
+    background: transparent !important;
+  }
+
+  .search-btn.q-btn--outline:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+  }
+
   /* 工具栏 */
   .toolbar-area {
     color: rgba(255, 255, 255, 0.87);
