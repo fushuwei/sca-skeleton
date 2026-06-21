@@ -24,6 +24,7 @@ const deptTreeLoading = ref(false);
 const deptList = ref<SysDept[]>([]);
 const deptTreeNodes = ref<DeptTreeNode[]>([]);
 const selectedDeptId = ref<string>("");
+let lastSelectedDeptId = "";
 const deptTreeExpanded = ref<string[]>([]);
 const leftPanelWidth = ref(260);
 const leftPanelCollapsed = ref(false);
@@ -177,11 +178,18 @@ function handleDeptNodeClick(node: DeptTreeNode) {
 
 /** 部门树节点选中回调 */
 function onDeptTreeSelect(nodeId: string) {
+  // 点击已选中节点时，q-tree 会先清空再设新值；若为空说明是取消选中，恢复即可
   if (!nodeId) {
-    searchForm.deptId = "";
-    handleSearch();
+    selectedDeptId.value = lastSelectedDeptId || ROOT_ID;
     return;
   }
+  // 同一节点重复点击不触发搜索
+  if (nodeId === lastSelectedDeptId) {
+    selectedDeptId.value = nodeId;
+    return;
+  }
+  lastSelectedDeptId = nodeId;
+
   if (nodeId === ROOT_ID) {
     searchForm.deptId = "";
     handleSearch();
@@ -199,6 +207,17 @@ function onDeptTreeSelect(nodeId: string) {
   };
   const node = findNode(deptTreeNodes.value);
   if (node) handleDeptNodeClick(node);
+}
+
+/** 双击切换节点展开/收起 */
+function toggleDeptNode(node: DeptTreeNode) {
+  if (!node.children?.length) return;
+  const idx = deptTreeExpanded.value.indexOf(node.id);
+  if (idx >= 0) {
+    deptTreeExpanded.value = deptTreeExpanded.value.filter((id) => id !== node.id);
+  } else {
+    deptTreeExpanded.value = [...deptTreeExpanded.value, node.id];
+  }
 }
 
 /** 左侧面板拖拽调整宽度 */
@@ -440,6 +459,7 @@ function handleReset() {
   extraSearch.phone = "";
   extraSearch.userType = "";
   selectedDeptId.value = "";
+  lastSelectedDeptId = "";
   tablePagination.value.page = 1;
   loadTableData();
 }
@@ -713,7 +733,10 @@ onMounted(() => {
               @update:selected="onDeptTreeSelect"
             >
               <template #default-header="scope">
-                <div class="dept-tree-node row items-center no-wrap full-width">
+                <div
+                  class="dept-tree-node row items-center no-wrap full-width"
+                  @dblclick.stop="toggleDeptNode(scope.node)"
+                >
                   <q-icon
                     :name="scope.expanded && scope.node.children?.length ? 'sym_r_folder_open' : 'sym_r_folder'"
                     size="20px"
@@ -1207,6 +1230,15 @@ onMounted(() => {
 /* 部门树 */
 .dept-tree {
   padding: 0 8px;
+}
+
+/* 隐藏默认展开/收起箭头 */
+:deep(.dept-tree .q-tree__node-toggle) {
+  display: none !important;
+}
+
+:deep(.dept-tree .q-tree__arrow) {
+  display: none !important;
 }
 
 :deep(.dept-tree .q-tree__node) {
