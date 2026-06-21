@@ -220,6 +220,39 @@ function toggleDeptNode(node: DeptTreeNode) {
   }
 }
 
+/** 节点头部点击计数器 —— 解决同坐标双击不触发 dblclick 的浏览器问题 */
+let _nodeClickTimer: ReturnType<typeof setTimeout> | null = null;
+let _nodeClickCount = 0;
+let _nodeClickKey = "";
+
+function onNodeHeaderClick(node: DeptTreeNode) {
+  const key = node.id;
+  _nodeClickCount++;
+
+  if (_nodeClickTimer) clearTimeout(_nodeClickTimer);
+
+  if (_nodeClickCount === 1) {
+    selectedDeptId.value = node.id;
+    _nodeClickTimer = setTimeout(() => {
+      if (_nodeClickCount === 1 && _nodeClickKey === key) {
+        onDeptTreeSelect(node.id);
+      }
+      _nodeClickCount = 0;
+      _nodeClickKey = "";
+      _nodeClickTimer = null;
+    }, 280);
+  } else if (_nodeClickCount >= 2) {
+    if (_nodeClickKey === key) {
+      toggleDeptNode(node);
+    }
+    _nodeClickCount = 0;
+    _nodeClickKey = "";
+    _nodeClickTimer = null;
+  }
+
+  _nodeClickKey = key;
+}
+
 /** 左侧面板拖拽调整宽度 */
 let resizeStartX = 0;
 let resizeStartWidth = 0;
@@ -730,18 +763,18 @@ onMounted(() => {
               dense
               class="dept-tree"
               no-nodes-label=" "
-              @update:selected="onDeptTreeSelect"
             >
               <template #default-header="scope">
                 <div
                   class="dept-tree-node row items-center no-wrap full-width"
-                  @dblclick.stop="toggleDeptNode(scope.node)"
+                  @click.stop="onNodeHeaderClick(scope.node)"
                 >
                   <q-icon
                     :name="scope.expanded && scope.node.children?.length ? 'sym_r_folder_open' : 'sym_r_folder'"
                     size="20px"
-                    class="q-mr-sm"
+                    class="q-mr-sm cursor-pointer dept-tree-icon"
                     :color="selectedDeptId === scope.node.id ? 'primary' : 'grey-7'"
+                    @click.stop="toggleDeptNode(scope.node)"
                   />
                   <span class="dept-tree-label ellipsis">{{ scope.node.label }}</span>
                   <q-space />
@@ -1269,6 +1302,12 @@ onMounted(() => {
 
 .dept-tree-node {
   min-width: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.dept-tree-icon {
+  transition: transform 0.15s ease;
 }
 
 .dept-tree-label {
