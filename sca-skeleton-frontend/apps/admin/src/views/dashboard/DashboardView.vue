@@ -13,7 +13,7 @@ const FALLBACK_SHORTCUTS: MenuLeaf[] = [
   { name: "AssetModel", path: "/asset/model", title: "主题域模型", icon: "sym_r_inventory_2", component: "PlaceholderView" },
   { name: "DevJobFlow", path: "/dev/job/flow", title: "任务编排", icon: "sym_r_account_tree", component: "PlaceholderView" },
   { name: "OpsAlert", path: "/ops/alert", title: "告警中心", icon: "sym_r_monitor_heart", component: "PlaceholderView" },
-  { name: "SystemUser", path: "/system/user", title: "用户管理", icon: "sym_r_manage_accounts", component: "UserCenterView" },
+  { name: "SystemUser", path: "/system/user", title: "用户管理", icon: "sym_r_manage_accounts", component: "UserListView" },
   { name: "DsCatalog", path: "/datasource/catalog", title: "元数据目录", icon: "sym_r_folder_open", component: "PlaceholderView" }
 ];
 

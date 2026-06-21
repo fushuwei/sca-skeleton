@@ -14,3 +14,9 @@
 .q-table__container { // 选择 Quasar 表格容器。
   border-radius: 0 !important; // 强制所有核心组件保持直角风格。
 } // 结束组件圆角覆盖。
+
+/* 状态下拉弹出层选项高度与输入框保持一致 */
+.status-select-popup .q-item {
+  min-height: 28px;
+  padding: 4px 16px;
+}

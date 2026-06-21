@@ -258,3 +258,240 @@
 .body--dark .admin-locale-q-menu .top-locale-check {
   color: #80cbc4;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+ * UserListView — 用户管理页面深色模式
+ * ═══════════════════════════════════════════════════════════════ */
+
+.body--dark .user-list-shell {
+  /* 左侧部门面板 */
+  .left-panel {
+    background: #1e1e1e;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .left-panel-collapsed-bar {
+    background: #252525;
+  }
+
+  .left-panel-toggle-btn {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .left-panel-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .left-panel-header {
+    background: #252525;
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .left-panel-header-title {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .left-panel-header-title .q-icon {
+    color: rgba(255, 255, 255, 0.72) !important;
+  }
+
+  .dept-tree-label {
+    color: rgba(255, 255, 255, 0.82);
+  }
+
+  .dept-tree .q-tree__node-header:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .dept-tree .q-tree__node-header.q-tree__node--selected {
+    background: rgba(0, 150, 136, 0.18) !important;
+  }
+
+  .dept-tree .q-tree__node-header.q-tree__node--selected .dept-tree-label {
+    color: #80cbc4;
+  }
+
+  .dept-tree .q-icon.text-grey-7 {
+    color: rgba(255, 255, 255, 0.55) !important;
+  }
+
+  .dept-count-badge {
+    background: rgba(0, 150, 136, 0.5) !important;
+    color: #fff;
+  }
+
+  .left-panel-toggle-btn,
+  .left-panel-collapse-btn,
+  .search-collapse-btn {
+    color: rgba(255, 255, 255, 0.87) !important;
+  }
+
+  .left-panel-toggle-btn:hover,
+  .left-panel-collapse-btn:hover,
+  .search-collapse-btn:hover {
+    background: rgba(128, 128, 128, 0.28);
+  }
+
+  .left-panel-resize-handle:hover,
+  .left-panel-resize-handle:active {
+    background: none;
+  }
+
+  /* 搜索区域 */
+  .search-area {
+    background: #1e1e1e;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .search-area-header {
+    background: #252525;
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .search-area-title {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .search-area-header .q-icon.text-grey-8 {
+    color: rgba(255, 255, 255, 0.72) !important;
+  }
+
+  .search-active-filter {
+    color: #80cbc4;
+  }
+
+  /* 输入框 & 下拉 */
+  .q-field--filled .q-field__control {
+    background: #2d2d2d !important;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .q-field--filled .q-field__native,
+  .q-field--filled .q-field__input {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .q-field--filled .q-field__label {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .q-field .q-field__append,
+  .q-field .q-field__prepend {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .status-select .q-field__native {
+    color: rgba(255, 255, 255, 0.72) !important;
+  }
+
+  /* 工具栏 */
+  .toolbar-area {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .toolbar-area .q-btn--outline {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 0.87) !important;
+    background: transparent !important;
+  }
+
+  .toolbar-area .q-btn--outline:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .toolbar-area .q-btn--unelevated:not(.q-btn--outline) {
+    background: rgba(0, 150, 136, 0.85) !important;
+  }
+
+  .toolbar-area .q-btn--unelevated:not(.q-btn--outline):hover {
+    background: rgba(0, 150, 136, 1) !important;
+  }
+
+  /* 选中提示 */
+  .selection-bar {
+    background: rgba(0, 150, 136, 0.12);
+    border-color: rgba(0, 150, 136, 0.25);
+  }
+
+  /* 表格 */
+  .user-table {
+    background: #1e1e1e;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .user-table thead tr th {
+    background: #252525 !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .user-table tbody tr {
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .user-table tbody tr:hover td {
+    background: rgba(0, 150, 136, 0.08) !important;
+  }
+
+  .user-table tbody tr.q-tr--selected td {
+    background: rgba(0, 150, 136, 0.14) !important;
+  }
+
+  .user-table tbody td {
+    color: rgba(255, 255, 255, 0.87);
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .user-table .q-table__bottom {
+    border-top-color: rgba(255, 255, 255, 0.08) !important;
+    background: #1e1e1e;
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .user-table .q-table__no-data {
+    background: #1e1e1e !important;
+  }
+
+  .empty-state-wrapper {
+    background: #1e1e1e;
+  }
+
+  .empty-state-content {
+    color: rgba(255, 255, 255, 0.55) !important;
+  }
+
+  .text-grey-5,
+  .text-grey-6 {
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+
+  .text-grey-7 {
+    color: rgba(255, 255, 255, 0.55) !important;
+  }
+
+  /* 骨架屏 */
+  .dept-skeleton-row .q-skeleton {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+/* 状态下拉弹出层（teleported to body）深色模式 */
+.body--dark .status-select-popup {
+  background: #2d2d2d;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .status-select-popup .q-item {
+  color: rgba(255, 255, 255, 0.87);
+  min-height: 40px;
+}
+
+.body--dark .status-select-popup .q-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.body--dark .status-select-popup .q-item--active {
+  color: #80cbc4;
+}

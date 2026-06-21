@@ -945,7 +945,7 @@ function beginRightDrawerResize(e) {
               <q-icon name="sym_r_chevron_right" size="20px" class="tab-scroll-arrow__sym" />
             </button>
           </div>
-          <div class="page-content q-pa-md">
+          <div class="page-content q-pa-sm">
             <router-view v-slot="{ Component }">
               <keep-alive>
                 <component :is="Component" />
