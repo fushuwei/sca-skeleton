@@ -14,8 +14,8 @@ function goDashboard() { // 定义返回控制台处理函数。
     <!-- 404 标题。 -->
     <div class="text-h4">404</div>
     <!-- 404 描述文案。 -->
-    <div class="text-body1">页面不存在或已被移除。</div>
+    <div class="text-body1">页面不存在或已被移除</div>
     <!-- 返回按钮。 -->
-    <q-btn color="primary" no-caps unelevated label="返回控制台" @click="goDashboard" />
+    <q-btn color="primary" no-caps unelevated label="返回首页" @click="goDashboard" />
   </div>
 </template>

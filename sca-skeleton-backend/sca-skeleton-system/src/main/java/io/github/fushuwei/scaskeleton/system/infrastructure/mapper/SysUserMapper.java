@@ -2,6 +2,7 @@ package io.github.fushuwei.scaskeleton.system.infrastructure.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.github.fushuwei.scaskeleton.system.api.dto.user.UserPageVO;
 import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysUser;
 import org.apache.ibatis.annotations.Param;
 
@@ -13,7 +14,7 @@ import org.apache.ibatis.annotations.Param;
 public interface SysUserMapper extends BaseMapper<SysUser> {
 
     /**
-     * 分页查询用户列表（含部门名称）。
+     * 分页查询用户列表（含部门名称、角色名称，排除密码字段）。
      *
      * @param page     分页参数
      * @param tenantId 租户ID
@@ -21,12 +22,12 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      * @param nickname 昵称（可选，模糊匹配）
      * @param status   状态（可选）
      * @param deptId   部门ID（可选，精确匹配）
-     * @return 分页用户列表
+     * @return 分页用户列表（UserPageVO）
      */
-    IPage<SysUser> selectUserPage(IPage<SysUser> page,
-                                  @Param("tenantId") String tenantId,
-                                  @Param("username") String username,
-                                  @Param("nickname") String nickname,
-                                  @Param("status") String status,
-                                  @Param("deptId") String deptId);
+    IPage<UserPageVO> selectUserPage(IPage<UserPageVO> page,
+                                     @Param("tenantId") String tenantId,
+                                     @Param("username") String username,
+                                     @Param("nickname") String nickname,
+                                     @Param("status") String status,
+                                     @Param("deptId") String deptId);
 }

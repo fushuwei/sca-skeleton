@@ -3,18 +3,43 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.fushuwei.scaskeleton.system.infrastructure.mapper.SysUserMapper">
 
-    <select id="selectUserPage" resultType="io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysUser">
-        SELECT u.*
+    <!-- 分页查询用户（含主部门名称 + 角色名称，排除密码） -->
+    <select id="selectUserPage" resultType="io.github.fushuwei.scaskeleton.system.api.dto.user.UserPageVO">
+        SELECT
+            u.id, u.tenant_id, u.username, u.nickname, u.real_name,
+            u.gender, u.avatar, u.phone, u.email,
+            u.user_category, u.user_type, u.status,
+            u.status_time, u.status_reason, u.login_fail_count,
+            u.must_change_password, u.password_update_time,
+            u.effective_start_time, u.effective_end_time,
+            u.last_login_ip, u.last_login_time,
+            u.is_builtin, u.source_type, u.remark, u.version,
+            u.create_time, u.update_time, u.create_by, u.update_by,
+            d.name AS dept_name,
+            r.role_names
         FROM sys_user u
-        <if test="deptId != null and deptId != ''">
-            INNER JOIN sys_user_dept ud
-                ON ud.user_id = u.id
-                AND ud.is_deleted = 0
-                AND ud.dept_id = #{deptId}
-        </if>
+        <!-- 左关联主部门 -->
+        LEFT JOIN sys_user_dept ud
+            ON ud.user_id = u.id
+            AND ud.is_deleted = 0
+            AND ud.is_primary = 1
+        LEFT JOIN sys_dept d
+            ON d.id = ud.dept_id
+            AND d.is_deleted = 0
+        <!-- 左关联角色（聚合为逗号分隔字符串） -->
+        LEFT JOIN (
+            SELECT ur.user_id, GROUP_CONCAT(r.name ORDER BY r.sort SEPARATOR ', ') AS role_names
+            FROM sys_user_role ur
+            INNER JOIN sys_role r ON r.id = ur.role_id AND r.is_deleted = 0
+            WHERE ur.is_deleted = 0
+            GROUP BY ur.user_id
+        ) r ON r.user_id = u.id
         WHERE u.is_deleted = 0
           AND u.tenant_id = #{tenantId}
           AND u.user_category = 'backend'
+        <if test="deptId != null and deptId != ''">
+            AND ud.dept_id = #{deptId}
+        </if>
         <if test="username != null and username != ''">
             AND u.username LIKE CONCAT('%', #{username}, '%')
         </if>
@@ -24,6 +49,7 @@
         <if test="status != null and status != ''">
             AND u.status = #{status}
         </if>
+        GROUP BY u.id
         ORDER BY u.create_time DESC
     </select>
 

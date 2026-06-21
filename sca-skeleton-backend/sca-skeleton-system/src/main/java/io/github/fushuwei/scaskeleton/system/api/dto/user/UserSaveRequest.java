@@ -1,9 +1,7 @@
 package io.github.fushuwei.scaskeleton.system.api.dto.user;
 
 import io.github.fushuwei.scaskeleton.core.validation.ValidGroup;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -32,13 +30,21 @@ public class UserSaveRequest {
 
     private String nickname;
     private String realName;
+
+    @Pattern(regexp = "^(male|female|other)$", message = "性别只能是 male、female 或 other")
     private String gender;
+
+    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
     private String phone;
+
+    @Email(message = "邮箱格式不正确")
     private String email;
 
     @NotBlank(message = "用户类型不能为空")
     private String userType;
 
+    @Pattern(regexp = "^(active|inactive|locked|frozen|expired|disabled|cancelled)$",
+            message = "状态值不合法")
     private String status;
 
     /** 部门ID列表（第一个为主部门） */

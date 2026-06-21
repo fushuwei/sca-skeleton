@@ -9,6 +9,7 @@ import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserPageRequest;
+import io.github.fushuwei.scaskeleton.system.api.dto.user.UserPageVO;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserProfileVO;
 import io.github.fushuwei.scaskeleton.system.api.dto.user.UserSaveRequest;
 import io.github.fushuwei.scaskeleton.system.application.service.SysUserService;
@@ -27,6 +28,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 用户管理服务实现。
@@ -48,10 +50,9 @@ public class SysUserServiceImpl implements SysUserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public IPage<SysUser> pageUsers(String tenantId, UserPageRequest req) {
-        // 按请求参数构造分页对象
-        Page<SysUser> page = new Page<>(req.getPageNum(), req.getPageSize());
-        // 调用自定义分页查询（含部门关联过滤）
+    public IPage<UserPageVO> pageUsers(String tenantId, UserPageRequest req) {
+        // 按请求参数构造分页对象，返回 UserPageVO（含部门名称、角色名称，排除密码）
+        Page<UserPageVO> page = new Page<>(req.getPageNum(), req.getPageSize());
         return userMapper.selectUserPage(page, tenantId,
                 req.getUsername(), req.getNickname(), req.getStatus(), req.getDeptId());
     }
@@ -151,6 +152,17 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public void batchDeleteUsers(List<String> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
+        for (String id : ids) {
+            deleteUser(id);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void resetPassword(String id, String newPassword) {
         // 校验用户存在
         getUserById(id);
@@ -178,6 +190,17 @@ public class SysUserServiceImpl implements SysUserService {
                 .set(SysUser::getStatusTime, LocalDateTime.now())
                 .set(SysUser::getStatusReason, reason)
         );
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchChangeStatus(List<String> ids, String status, String reason) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
+        for (String id : ids) {
+            changeStatus(id, status, reason);
+        }
     }
 
     /** 保存用户-角色、用户-部门关联。 */
