@@ -766,7 +766,7 @@ onMounted(() => {
             class="search-collapse-btn"
             @click="searchExpanded = !searchExpanded"
           >
-            <q-tooltip>{{
+            <q-tooltip style="white-space: nowrap">{{
               searchExpanded ? t("common.collapseSearch") : t("common.expandSearch")
             }}</q-tooltip>
           </q-btn>
@@ -1119,6 +1119,7 @@ onMounted(() => {
 .left-panel--collapsed {
   width: 40px;
   min-width: 40px;
+  background: #fafafa;
 }
 
 .left-panel-collapsed-bar {
@@ -1126,8 +1127,6 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   height: 40px;
-  background: #fafafa;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* ═══ 图标按钮 — 与系统导航面板 .left-toolbar-action-btn 一致 ═══ */
@@ -1275,7 +1274,6 @@ onMounted(() => {
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 0;
-  margin-bottom: 8px;
 }
 
 .search-area-header {
