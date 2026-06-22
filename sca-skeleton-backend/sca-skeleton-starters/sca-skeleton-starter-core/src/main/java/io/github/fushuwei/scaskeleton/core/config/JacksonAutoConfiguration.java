@@ -24,12 +24,12 @@ import java.util.TimeZone;
 public class JacksonAutoConfiguration {
 
     /**
-     * 全局 JsonMapper
+     * 全局通用 JsonMapper
      * <p>
      * 收集容器中所有 {@link JsonMapperBuilderCustomizer}，根据 @Order 执行顺序排序后逐个应用到 {@link JsonMapper.Builder}
      *
      * @param customizers 所有 Jackson 策略定制器的 ObjectProvider
-     * @return 全局 JsonMapper
+     * @return 全局通用 JsonMapper
      */
     @Bean
     @Primary

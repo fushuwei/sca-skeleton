@@ -2,13 +2,11 @@ package io.github.fushuwei.scaskeleton.security.oauth2.client;
 
 import io.github.fushuwei.scaskeleton.security.oauth2.authorization.OAuth2AuthorizationRedisKeys;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.util.StringUtils;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * 基于 Redis 的 {@link RegisteredClientRepository} 实现
@@ -49,25 +47,25 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
      *
      * @param delegate            注册客户端存储库（通常为 {@code JdbcRegisteredClientRepository}）
      * @param stringRedisTemplate Redis 字符串模板
-     * @param securityJsonMapper  OAuth2 持久层专用 JsonMapper
+     * @param redisSerializer     注册客户端 Redis 序列化器
      */
     public RedisRegisteredClientRepository(RegisteredClientRepository delegate,
                                            StringRedisTemplate stringRedisTemplate,
-                                           @Qualifier("securityJsonMapper") JsonMapper securityJsonMapper) {
+                                           RegisteredClientRedisSerializer redisSerializer) {
         this.delegate = delegate;
         this.stringRedisTemplate = stringRedisTemplate;
-        this.redisSerializer = new RegisteredClientRedisSerializer(securityJsonMapper);
+        this.redisSerializer = redisSerializer;
     }
 
     /**
      * 资源服务器使用场景构造器
      *
      * @param stringRedisTemplate Redis 字符串模板
-     * @param securityJsonMapper  OAuth2 持久层专用 JsonMapper
+     * @param redisSerializer     注册客户端 Redis 序列化器
      */
     public RedisRegisteredClientRepository(StringRedisTemplate stringRedisTemplate,
-                                           @Qualifier("securityJsonMapper") JsonMapper securityJsonMapper) {
-        this(null, stringRedisTemplate, securityJsonMapper);
+                                           RegisteredClientRedisSerializer redisSerializer) {
+        this(null, stringRedisTemplate, redisSerializer);
     }
 
     /**

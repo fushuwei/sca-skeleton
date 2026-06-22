@@ -3,6 +3,7 @@ package io.github.fushuwei.scaskeleton.security.config;
 import io.github.fushuwei.scaskeleton.security.introspection.RedisOpaqueTokenIntrospector;
 import io.github.fushuwei.scaskeleton.security.oauth2.authorization.RedisOAuth2AuthorizationService;
 import io.github.fushuwei.scaskeleton.security.oauth2.client.RedisRegisteredClientRepository;
+import io.github.fushuwei.scaskeleton.security.oauth2.client.RegisteredClientRedisSerializer;
 import io.github.fushuwei.scaskeleton.security.user.jackson.ScaUserDetailsJacksonModule;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -49,17 +50,31 @@ public class OAuth2AuthorizationRedisAutoConfiguration {
     }
 
     /**
+     * 注册客户端 Redis 序列化器
+     *
+     * @param jsonMapper         全局通用 JsonMapper
+     * @param securityJsonMapper OAuth2 持久层专用 JsonMapper
+     * @return 注册客户端 Redis 序列化器
+     */
+    @Bean
+    @ConditionalOnMissingBean(RegisteredClientRedisSerializer.class)
+    public RegisteredClientRedisSerializer registeredClientRedisSerializer(JsonMapper jsonMapper,
+                                                                           @Qualifier("securityJsonMapper") JsonMapper securityJsonMapper) {
+        return new RegisteredClientRedisSerializer(jsonMapper, securityJsonMapper);
+    }
+
+    /**
      * 注册客户端存储库的 Redis 实现
      *
      * @param stringRedisTemplate Redis 字符串模板
-     * @param securityJsonMapper  OAuth2 持久层专用 JsonMapper
+     * @param redisSerializer     注册客户端 Redis 序列化器
      * @return 注册客户端存储库
      */
     @Bean
     @ConditionalOnMissingBean(RegisteredClientRepository.class)
     public RegisteredClientRepository redisRegisteredClientRepository(StringRedisTemplate stringRedisTemplate,
-                                                                      @Qualifier("securityJsonMapper") JsonMapper securityJsonMapper) {
-        return new RedisRegisteredClientRepository(stringRedisTemplate, securityJsonMapper);
+                                                                      RegisteredClientRedisSerializer redisSerializer) {
+        return new RedisRegisteredClientRepository(stringRedisTemplate, redisSerializer);
     }
 
     /**

@@ -1,6 +1,7 @@
 package io.github.fushuwei.scaskeleton.security.oauth2.client;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -34,14 +35,15 @@ public final class RegisteredClientRedisSerializer {
     private static final int FORMAT_VERSION = 1;
 
     /**
-     * 仅序列化 client_settings 的 JsonMapper
+     * 全局通用 JsonMapper，用于序列化快照 POJO（仅含基础类型字段，无需定制模块）
      */
-    private final JsonMapper settingsJsonMapper;
+    private final JsonMapper jsonMapper;
 
     /**
-     * 普通 JsonMapper，用于序列化快照 POJO（仅含基础类型字段，无需定制模块）
+     * OAuth2 持久层专用 JsonMapper，用于序列化 client_settings / token_settings
      */
-    private final JsonMapper plainJsonMapper = JsonMapper.builder().build();
+    @Qualifier("securityJsonMapper")
+    private final JsonMapper securityJsonMapper;
 
     /**
      * 将 RegisteredClient 转成 RegisteredClientSnapshot 类型，然后序列化成 JSON 字符串，用于后续存储至 Redis 缓存
@@ -65,9 +67,9 @@ public final class RegisteredClientRedisSerializer {
             snapshot.postLogoutRedirectUris = new ArrayList<>(registeredClient.getPostLogoutRedirectUris());
             snapshot.scopes = new ArrayList<>(registeredClient.getScopes());
             // client_settings 和 token_settings 需要使用 OAuth2 持久层专用 JsonMapper 进行序列化
-            snapshot.clientSettings = this.settingsJsonMapper.writeValueAsString(registeredClient.getClientSettings().getSettings());
-            snapshot.tokenSettings = this.settingsJsonMapper.writeValueAsString(registeredClient.getTokenSettings().getSettings());
-            return this.plainJsonMapper.writeValueAsString(snapshot);
+            snapshot.clientSettings = this.securityJsonMapper.writeValueAsString(registeredClient.getClientSettings().getSettings());
+            snapshot.tokenSettings = this.securityJsonMapper.writeValueAsString(registeredClient.getTokenSettings().getSettings());
+            return this.jsonMapper.writeValueAsString(snapshot);
         } catch (Exception e) {
             throw new IllegalStateException("RegisteredClientSnapshot 序列化异常", e);
         }
@@ -84,7 +86,7 @@ public final class RegisteredClientRedisSerializer {
             return null;
         }
         try {
-            RegisteredClientSnapshot snapshot = this.plainJsonMapper.readValue(json, RegisteredClientSnapshot.class);
+            RegisteredClientSnapshot snapshot = this.jsonMapper.readValue(json, RegisteredClientSnapshot.class);
             // 判断必填字段是否为空，以及 Redis 缓存中的快照版本是否与当前最新版本一致
             if (snapshot == null || !StringUtils.hasText(snapshot.id) || !StringUtils.hasText(snapshot.clientId)
                 || snapshot.version != FORMAT_VERSION) {
@@ -146,8 +148,8 @@ public final class RegisteredClientRedisSerializer {
             return Map.of();
         }
         ParameterizedTypeReference<Map<String, Object>> typeReference = new ParameterizedTypeReference<>() {};
-        JavaType javaType = this.settingsJsonMapper.getTypeFactory().constructType(typeReference.getType());
-        return this.settingsJsonMapper.readValue(json, javaType);
+        JavaType javaType = this.securityJsonMapper.getTypeFactory().constructType(typeReference.getType());
+        return this.securityJsonMapper.readValue(json, javaType);
     }
 
     private static String toInstantString(Instant instant) {
