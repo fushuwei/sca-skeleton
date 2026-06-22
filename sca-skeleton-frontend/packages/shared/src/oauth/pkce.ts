@@ -54,6 +54,26 @@ export interface OAuthAppConfig {
   tokenUrl: string;
   redirectUri: string;
   scope: string;
+  /** SPA HTML base 路径，如 {@code "/admin/"}。用于从绝对浏览器路径中剥离前缀以生成路由器兼容的 returnUrl。 */
+  basePath?: string;
+}
+
+/**
+ * 将 {@code window.location.pathname} 等含 SPA base 的绝对路径标准化为路由器兼容的路径。
+ *
+ * @param rawUrl   原始路径，可能含 base 前缀，如 {@code "/admin/system/user"}
+ * @param basePath SPA HTML base，如 {@code "/admin/"}
+ * @returns 剥离 base 后的路径，如 {@code "/system/user"}
+ */
+function normalizeReturnUrl(rawUrl: string, basePath?: string): string {
+  if (!basePath || basePath === "/") {
+    return rawUrl;
+  }
+  const normalizedBase = basePath.endsWith("/") ? basePath : basePath + "/";
+  if (rawUrl.startsWith(normalizedBase)) {
+    return rawUrl.slice(normalizedBase.length - 1);
+  }
+  return rawUrl;
 }
 
 /** 启动 OAuth 授权时可附加的查询参数。 */
@@ -163,6 +183,9 @@ export async function startOAuthLogin(
   }
   loginRedirectLock = true;
 
+  // 剥离 SPA HTML base（如 /admin/），确保 returnUrl 为路由器兼容的相对路径
+  const normalizedReturnUrl = normalizeReturnUrl(returnUrl, config.basePath);
+
   try {
     // 若 sessionStorage 中已有未消费的 PKCE session（上一次刷新遗留），直接沿用，
     // 避免覆盖 state 导致回调时 state 校验失败
@@ -176,18 +199,18 @@ export async function startOAuthLogin(
         codeVerifier = existing.codeVerifier;
         state = existing.state;
         // 更新 returnUrl（用户可能刷新后改变了目标页面）
-        existing.returnUrl = returnUrl;
+        existing.returnUrl = normalizedReturnUrl;
         savePkceSession(config.clientId, existing);
       } catch {
         // 解析失败，走正常流程
         codeVerifier = generateCodeVerifier();
         state = generateState();
-        savePkceSession(config.clientId, { codeVerifier, state, returnUrl });
+        savePkceSession(config.clientId, { codeVerifier, state, returnUrl: normalizedReturnUrl });
       }
     } else {
       codeVerifier = generateCodeVerifier();
       state = generateState();
-      savePkceSession(config.clientId, { codeVerifier, state, returnUrl });
+      savePkceSession(config.clientId, { codeVerifier, state, returnUrl: normalizedReturnUrl });
     }
 
     const codeChallenge = await generateCodeChallenge(codeVerifier);
