@@ -2,6 +2,7 @@ package io.github.fushuwei.scaskeleton.security.oauth2.client;
 
 import io.github.fushuwei.scaskeleton.security.oauth2.authorization.OAuth2AuthorizationRedisKeys;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -52,7 +53,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
      */
     public RedisRegisteredClientRepository(RegisteredClientRepository delegate,
                                            StringRedisTemplate stringRedisTemplate,
-                                           JsonMapper securityJsonMapper) {
+                                           @Qualifier("securityJsonMapper") JsonMapper securityJsonMapper) {
         this.delegate = delegate;
         this.stringRedisTemplate = stringRedisTemplate;
         this.redisSerializer = new RegisteredClientRedisSerializer(securityJsonMapper);
@@ -65,7 +66,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
      * @param securityJsonMapper  OAuth2 持久层专用 JsonMapper
      */
     public RedisRegisteredClientRepository(StringRedisTemplate stringRedisTemplate,
-                                           JsonMapper securityJsonMapper) {
+                                           @Qualifier("securityJsonMapper") JsonMapper securityJsonMapper) {
         this(null, stringRedisTemplate, securityJsonMapper);
     }
 

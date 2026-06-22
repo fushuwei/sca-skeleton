@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.security.oauth2.authorization;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -118,7 +119,8 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
      * @param securityJsonMapper         OAuth2 持久层专用 JsonMapper，不可为 null
      */
     public RedisOAuth2AuthorizationService(RegisteredClientRepository registeredClientRepository,
-                                           StringRedisTemplate stringRedisTemplate, JsonMapper securityJsonMapper) {
+                                           StringRedisTemplate stringRedisTemplate,
+                                           @Qualifier("securityJsonMapper") JsonMapper securityJsonMapper) {
         Assert.notNull(registeredClientRepository, "registeredClientRepository cannot be null");
         Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
         Assert.notNull(securityJsonMapper, "securityJsonMapper cannot be null");
