@@ -46,27 +46,27 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     /**
      * 授权服务器使用场景构造器
      *
-     * @param delegate                注册客户端存储库（通常为 {@code JdbcRegisteredClientRepository}）
-     * @param stringRedisTemplate     Redis 字符串模板
-     * @param authorizationJsonMapper OAuth2 持久层专用 JsonMapper
+     * @param delegate            注册客户端存储库（通常为 {@code JdbcRegisteredClientRepository}）
+     * @param stringRedisTemplate Redis 字符串模板
+     * @param securityJsonMapper  OAuth2 持久层专用 JsonMapper
      */
     public RedisRegisteredClientRepository(RegisteredClientRepository delegate,
                                            StringRedisTemplate stringRedisTemplate,
-                                           JsonMapper authorizationJsonMapper) {
+                                           JsonMapper securityJsonMapper) {
         this.delegate = delegate;
         this.stringRedisTemplate = stringRedisTemplate;
-        this.redisSerializer = new RegisteredClientRedisSerializer(authorizationJsonMapper);
+        this.redisSerializer = new RegisteredClientRedisSerializer(securityJsonMapper);
     }
 
     /**
      * 资源服务器使用场景构造器
      *
-     * @param stringRedisTemplate     Redis 字符串模板
-     * @param authorizationJsonMapper OAuth2 持久层专用 JsonMapper
+     * @param stringRedisTemplate Redis 字符串模板
+     * @param securityJsonMapper  OAuth2 持久层专用 JsonMapper
      */
     public RedisRegisteredClientRepository(StringRedisTemplate stringRedisTemplate,
-                                           JsonMapper authorizationJsonMapper) {
-        this(null, stringRedisTemplate, authorizationJsonMapper);
+                                           JsonMapper securityJsonMapper) {
+        this(null, stringRedisTemplate, securityJsonMapper);
     }
 
     /**

@@ -93,7 +93,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
     /**
      * 用于反序列化 attributes、各 token metadata 等 JSON 字段的 JsonMapper，模块与 SAS JDBC 默认实现一致。
      */
-    private final JsonMapper authorizationJsonMapper;
+    private final JsonMapper securityJsonMapper;
 
     /**
      * 注册客户端仓库：从 Redis 读出 registered_client_id 后加载完整 {@link RegisteredClient} 以重建授权对象。
@@ -115,19 +115,19 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
      *
      * @param registeredClientRepository 注册客户端仓库，不可为 null
      * @param stringRedisTemplate        字符串 Redis 模板，不可为 null
-     * @param authorizationJsonMapper    OAuth2 持久层专用 JsonMapper，不可为 null
+     * @param securityJsonMapper         OAuth2 持久层专用 JsonMapper，不可为 null
      */
     public RedisOAuth2AuthorizationService(RegisteredClientRepository registeredClientRepository,
-                                           StringRedisTemplate stringRedisTemplate, JsonMapper authorizationJsonMapper) {
+                                           StringRedisTemplate stringRedisTemplate, JsonMapper securityJsonMapper) {
         Assert.notNull(registeredClientRepository, "registeredClientRepository cannot be null");
         Assert.notNull(stringRedisTemplate, "stringRedisTemplate cannot be null");
-        Assert.notNull(authorizationJsonMapper, "authorizationJsonMapper cannot be null");
+        Assert.notNull(securityJsonMapper, "securityJsonMapper cannot be null");
         this.registeredClientRepository = registeredClientRepository;
         this.stringRedisTemplate = stringRedisTemplate;
         // 与 SAS JDBC 对齐的 JsonMapper，用于 attributes / metadata 等 JSON 字段
-        this.authorizationJsonMapper = authorizationJsonMapper;
+        this.securityJsonMapper = securityJsonMapper;
         // 独立参数映射器，避免依赖 JdbcOAuth2AuthorizationService 静态 columnMetadataMap
-        this.parametersMapper = new RedisOAuth2AuthorizationParametersMapper(this.authorizationJsonMapper);
+        this.parametersMapper = new RedisOAuth2AuthorizationParametersMapper(this.securityJsonMapper);
     }
 
     /**
@@ -624,9 +624,9 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
         try {
             ParameterizedTypeReference<Map<String, Object>> typeRef = new ParameterizedTypeReference<>() {
             };
-            JavaType javaType = this.authorizationJsonMapper.constructType(typeRef.getType());
+            JavaType javaType = this.securityJsonMapper.constructType(typeRef.getType());
             // 反序列化为 Map，供 attributes / metadata 使用
-            return this.authorizationJsonMapper.readValue(json, javaType);
+            return this.securityJsonMapper.readValue(json, javaType);
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to parse OAuth2 JSON map: " + e.getMessage(), e);
         }
