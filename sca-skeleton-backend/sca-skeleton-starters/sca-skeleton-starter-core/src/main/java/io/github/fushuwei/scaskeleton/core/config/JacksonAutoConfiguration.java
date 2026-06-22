@@ -2,12 +2,15 @@ package io.github.fushuwei.scaskeleton.core.config;
 
 import io.github.fushuwei.scaskeleton.core.jackson.JavaLangModule;
 import io.github.fushuwei.scaskeleton.core.jackson.JavaTimeModule;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.ZoneId;
 import java.util.TimeZone;
@@ -21,12 +24,30 @@ import java.util.TimeZone;
 public class JacksonAutoConfiguration {
 
     /**
-     * 统一序列化/反序列化策略
+     * 全局 JsonMapper
+     * <p>
+     * 收集容器中所有 {@link JsonMapperBuilderCustomizer}，根据 @Order 执行顺序排序后逐个应用到 {@link JsonMapper.Builder}
      *
-     * @return 应用于全局 JsonMapper 的定制器
+     * @param customizers 所有 Jackson 策略定制器的 ObjectProvider
+     * @return 全局 JsonMapper
      */
     @Bean
-    @ConditionalOnMissingBean
+    @Primary
+    public JsonMapper jsonMapper(ObjectProvider<JsonMapperBuilderCustomizer> customizers) {
+        JsonMapper.Builder builder = JsonMapper.builder();
+        customizers.orderedStream().forEach(c -> c.customize(builder));
+        return builder.build();
+    }
+
+    /**
+     * Jackson 统一序列化/反序列化策略定制器
+     * <p>
+     * 排在所有内置 Customizer 之后执行，确保自定义模块与 Feature 配置不会被覆盖
+     *
+     * @return 应用于 JsonMapper 的定制器
+     */
+    @Bean
+    @Order
     public JsonMapperBuilderCustomizer jsonMapperBuilderCustomizer() {
         return builder -> {
             // 时区

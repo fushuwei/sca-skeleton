@@ -4,6 +4,7 @@ import io.github.fushuwei.scaskeleton.security.introspection.RedisOpaqueTokenInt
 import io.github.fushuwei.scaskeleton.security.oauth2.authorization.RedisOAuth2AuthorizationService;
 import io.github.fushuwei.scaskeleton.security.oauth2.client.RedisRegisteredClientRepository;
 import io.github.fushuwei.scaskeleton.security.user.jackson.ScaUserDetailsJacksonModule;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -26,14 +27,17 @@ import tools.jackson.databind.json.JsonMapper;
 public class OAuth2AuthorizationRedisAutoConfiguration {
 
     /**
-     * OAuth2 持久层专用的 {@link JsonMapper}，用于序列化/反序列化授权记录与注册客户端
+     * OAuth2 持久层专用的 {@link JsonMapper}
+     * <p>
+     * Bean 名称为 {@code oauth2AuthorizationJsonMapper}，通过 {@code @Qualifier} 在注入时
+     * 精确指定，与全局 {@code @Primary jsonMapper} 互不影响
      *
      * @return OAuth2 持久层专用 JsonMapper
      */
     @Bean
     @ConditionalOnMissingBean(name = "oauth2AuthorizationJsonMapper")
     public JsonMapper oauth2AuthorizationJsonMapper() {
-        // 多态类型验证器：只允许指定包下的子类型进行多态反序列化， 防止恶意类注入
+        // 多态类型验证器：只允许指定包下的子类型进行多态反序列化，防止恶意类注入
         BasicPolymorphicTypeValidator.Builder typeValidatorBuilder = BasicPolymorphicTypeValidator.builder()
             .allowIfSubType("io.github.fushuwei.scaskeleton.security.user");
 
@@ -54,7 +58,7 @@ public class OAuth2AuthorizationRedisAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(RegisteredClientRepository.class)
     public RegisteredClientRepository redisRegisteredClientRepository(StringRedisTemplate stringRedisTemplate,
-                                                                      JsonMapper oauth2AuthorizationJsonMapper) {
+                                                                      @Qualifier("oauth2AuthorizationJsonMapper") JsonMapper oauth2AuthorizationJsonMapper) {
         return new RedisRegisteredClientRepository(stringRedisTemplate, oauth2AuthorizationJsonMapper);
     }
 
@@ -70,7 +74,7 @@ public class OAuth2AuthorizationRedisAutoConfiguration {
     @ConditionalOnMissingBean(OAuth2AuthorizationService.class)
     public OAuth2AuthorizationService redisOAuth2AuthorizationService(RegisteredClientRepository registeredClientRepository,
                                                                       StringRedisTemplate stringRedisTemplate,
-                                                                      JsonMapper oauth2AuthorizationJsonMapper) {
+                                                                      @Qualifier("oauth2AuthorizationJsonMapper") JsonMapper oauth2AuthorizationJsonMapper) {
         return new RedisOAuth2AuthorizationService(registeredClientRepository,
             stringRedisTemplate, oauth2AuthorizationJsonMapper);
     }
