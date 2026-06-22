@@ -5,7 +5,7 @@ import { useQuasar } from "quasar";
 import { useI18n } from "vue-i18n";
 import { FolderTree } from "@repo/ui";
 import { useAuthStore } from "../stores/auth";
-import { getIconForMenuRouteName } from "../utils/menu-tree";
+import { flattenRoutableMenus, getIconForMenuRouteName } from "../utils/menu-tree";
 import { persistDark, persistLocale, quasarLangForLocale } from "../i18n";
 
 const LOGO_URL = import.meta.env.BASE_URL + "images/logo.png";
@@ -213,6 +213,21 @@ const filteredModules = computed(() => {
 
 const activeTabPath = computed(() => route.path);
 const activeRouteName = computed(() => (route.name != null ? String(route.name) : ""));
+
+/** keep-alive 缓存白名单：仅当前 Tab 栏中存在的路由组件会被缓存，关闭 Tab 即销毁组件实例 */
+const keepAliveInclude = computed(() => {
+  const leaves = flattenRoutableMenus(authStore.menus);
+  const names = new Set();
+  // 工作台始终缓存
+  names.add("DashboardView");
+  for (const tab of visitedTabs.value) {
+    const leaf = leaves.find((l) => l.path === tab.path);
+    if (leaf?.component) {
+      names.add(leaf.component);
+    }
+  }
+  return [...names];
+});
 
 /**
  * 仅当当前路由落在侧栏菜单树内时才显示为选中（工作台等不在树中则为「无选中」）。
@@ -946,9 +961,9 @@ function beginRightDrawerResize(e) {
             </button>
           </div>
           <div class="page-content q-pa-sm">
-            <router-view v-slot="{ Component }">
-              <keep-alive>
-                <component :is="Component" />
+            <router-view v-slot="{ Component, route: routeForKeepAlive }">
+              <keep-alive :include="keepAliveInclude">
+                <component :is="Component" :key="routeForKeepAlive.path" />
               </keep-alive>
             </router-view>
           </div>
