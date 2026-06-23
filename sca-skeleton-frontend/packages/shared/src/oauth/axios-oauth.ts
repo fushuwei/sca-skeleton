@@ -6,6 +6,9 @@ import {
 import type { OAuthAppConfig, OAuthLoginOptions } from "./pkce";
 import { refreshAccessToken, startOAuthLogin } from "./pkce";
 
+/** 通知类型，与各 UI 框架的语义对齐。 */
+export type NotificationType = "positive" | "negative" | "warning";
+
 /** OAuth Axios 客户端所需的外部化存储与配置回调。 */
 export interface OAuthAxiosOptions {
   getAccessToken: () => string | null;
@@ -16,6 +19,8 @@ export interface OAuthAxiosOptions {
   /** refresh 成功后同步 Pinia 等内存态（可选）。 */
   onTokensUpdated?: (accessToken: string, refreshToken?: string) => void;
   unauthorizedCode?: number;
+  /** 全局通知回调，用于在 HTTP 错误时弹出提示（可选）。 */
+  showNotification?: (type: NotificationType, message: string) => void;
 }
 
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
@@ -96,8 +101,29 @@ export function createOAuthAxiosInstance(
       if (error.response?.status === 401) {
         return handleUnauthorized(config, window.location.pathname);
       }
-      const message = error.message || "网络异常，请稍后重试";
-      return Promise.reject(new Error(message));
+      if (error.response?.status === 403) {
+        options.showNotification?.("negative", "权限不足，无法访问该功能");
+        const handled = new Error("权限不足，无法访问该功能");
+        (handled as Error & { _notificationHandled?: boolean })._notificationHandled = true;
+        return Promise.reject(handled);
+      }
+      if (error.response?.status === 429) {
+        options.showNotification?.("negative", "请求过于频繁，请稍后重试");
+        const handled = new Error("请求过于频繁，请稍后重试");
+        (handled as Error & { _notificationHandled?: boolean })._notificationHandled = true;
+        return Promise.reject(handled);
+      }
+      if (error.response && error.response.status >= 500) {
+        options.showNotification?.("negative", "服务器异常，请稍后重试");
+        const handled = new Error("服务器异常，请稍后重试");
+        (handled as Error & { _notificationHandled?: boolean })._notificationHandled = true;
+        return Promise.reject(handled);
+      }
+      const msg = error.message || "网络异常，请稍后重试";
+      options.showNotification?.("negative", msg);
+      const handled = new Error(msg);
+      (handled as Error & { _notificationHandled?: boolean })._notificationHandled = true;
+      return Promise.reject(handled);
     }
   );
 
@@ -129,5 +155,21 @@ export async function oauthRequest<T>(
     await startOAuthLogin(options.getOAuthConfig(), window.location.pathname, { prompt: "login" });
     throw new Error(payload.message || "登录已过期，请重新登录");
   }
-  throw new Error(payload.message || "业务请求失败");
+  return payload;
+}
+
+/**
+ * 判断错误是否已被全局拦截器处理（已弹出通知）。
+ * <p>
+ * 用于 caller 的 catch 块，避免重复弹出 toast：
+ * <pre>
+ * } catch (error) {
+ *   if (!isNotificationHandled(error)) {
+ *     showToast(t("common.loadFail"), "negative");
+ *   }
+ * }
+ * </pre>
+ */
+export function isNotificationHandled(error: unknown): boolean {
+  return error instanceof Error && "_notificationHandled" in error && (error as Error & { _notificationHandled?: boolean })._notificationHandled === true;
 }

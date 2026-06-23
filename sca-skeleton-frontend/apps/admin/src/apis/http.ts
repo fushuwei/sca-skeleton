@@ -1,4 +1,4 @@
-import { createOAuthAxiosInstance, oauthRequest } from "@repo/shared";
+import { createOAuthAxiosInstance, oauthRequest, showToast } from "@repo/shared";
 import type { ApiEnvelope } from "../types/auth";
 import { getAdminOAuthConfig } from "../config/oauth";
 import {
@@ -34,6 +34,9 @@ const oauthAxiosOptions = {
   getOAuthConfig: getAdminOAuthConfig,
   onTokensUpdated: (accessToken: string, refreshToken?: string) => {
     onTokensUpdated?.(accessToken, refreshToken);
+  },
+  showNotification: (type: "positive" | "negative" | "warning", message: string) => {
+    showToast(message, type);
   }
 };
 

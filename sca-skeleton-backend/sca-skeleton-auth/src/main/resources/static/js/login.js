@@ -335,7 +335,7 @@ function showToast(message) {
     const toast = document.createElement('div');
     toast.className = 'login-toast';
 
-    // 左侧错误/警告图标
+    // 左侧错误图标
     const icon = document.createElement('i');
     icon.className = 'login-icon login-icon-error toast-icon';
 
