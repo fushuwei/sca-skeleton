@@ -3,7 +3,8 @@ package io.github.fushuwei.scaskeleton.security.config;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import tools.jackson.databind.ObjectMapper;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
-import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermissionAuthorizer;
+import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermissionAspect;
+import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermissionChecker;
 import io.github.fushuwei.scaskeleton.security.handler.DefaultAccessDeniedHandler;
 import io.github.fushuwei.scaskeleton.security.handler.DefaultAuthenticationEntryPoint;
 import io.github.fushuwei.scaskeleton.security.introspection.DefaultOpaqueTokenAuthenticationConverter;
@@ -80,14 +81,34 @@ public class OAuth2ResourceServerAutoConfiguration {
     }
 
     /**
-     * {@link RequiresPermission} 的 SpEL 委托校验器 Bean
+     * {@link RequiresPermission} 权限校验器 Bean
+     * <p>
+     * 由 {@link RequiresPermissionAspect} 调用，基于当前认证主体的 {@code GrantedAuthority}
+     * 集合执行权限匹配，权限不足时抛出 {@link io.github.fushuwei.scaskeleton.core.exception.ForbiddenException}。
      *
-     * @return 权限校验委托器
+     * @return 权限校验器
      */
-    @Bean(name = "requiresPermissionAuthorizer")
-    @ConditionalOnMissingBean(RequiresPermissionAuthorizer.class)
-    public RequiresPermissionAuthorizer requiresPermissionAuthorizer() {
-        return new RequiresPermissionAuthorizer();
+    @Bean(name = "requiresPermissionChecker")
+    @ConditionalOnMissingBean(RequiresPermissionChecker.class)
+    public RequiresPermissionChecker requiresPermissionChecker() {
+        return new RequiresPermissionChecker();
+    }
+
+    /**
+     * {@link RequiresPermission} 权限校验切面 Bean
+     * <p>
+     * 拦截标注了 {@link RequiresPermission} 的方法（或类），在方法执行前委托
+     * {@link RequiresPermissionChecker} 校验权限，权限不足时抛出
+     * {@link org.springframework.security.access.AccessDeniedException}，由 Spring Security
+     * 统一进入 {@code AccessDeniedHandler}，返回标准 403 响应。
+     *
+     * @param requiresPermissionChecker 权限校验器
+     * @return 权限校验切面
+     */
+    @Bean
+    @ConditionalOnMissingBean(RequiresPermissionAspect.class)
+    public RequiresPermissionAspect requiresPermissionAspect(RequiresPermissionChecker requiresPermissionChecker) {
+        return new RequiresPermissionAspect(requiresPermissionChecker);
     }
 
     /**

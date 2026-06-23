@@ -74,7 +74,7 @@ public class RateLimitAspect {
                     annotation.rate(), annotation.rateInterval(),
                     annotation.rateIntervalUnit().name().toLowerCase());
             // 超限时抛出业务异常，由全局异常处理器统一响应
-            throw BusinessException.of(ResultCode.TOO_MANY_REQUESTS, annotation.message());
+            throw new BusinessException(ResultCode.TOO_MANY_REQUESTS, annotation.message());
         }
 
         // 令牌获取成功，执行原方法

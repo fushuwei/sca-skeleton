@@ -24,7 +24,7 @@
             <artifactId>sca-skeleton-starter-core</artifactId>
         </dependency>
 
-        <!-- Spring Security：全局安全认证与授权基础能力 -->
+        <!-- Spring Security 全局安全认证与授权基础能力 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -34,6 +34,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <!-- Spring AOP（CGLIB 动态代理）+ AspectJ 切点语法解析 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
         </dependency>
 
         <!-- Spring Boot Web MVC 核心启动器 -->

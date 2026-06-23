@@ -1,6 +1,7 @@
 package io.github.fushuwei.scaskeleton.web.exception;
 
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
+import io.github.fushuwei.scaskeleton.core.exception.ForbiddenException;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.core.result.ResultType;
@@ -28,6 +29,17 @@ public class GlobalExceptionHandler {
     public Result<Void> handleBusinessException(BusinessException e) {
         // 直接透传业务异常中的错误码与提示信息
         return Result.of(e.getCode(), e.getMessage(), ResultType.FAILURE);
+    }
+
+    /**
+     * 处理授权异常（已认证但无权访问）
+     * <p>
+     * 日志记录完整异常信息用于排查，对外仅返回通用提示，不暴露内部权限编码。
+     */
+    @ExceptionHandler(ForbiddenException.class)
+    public Result<Void> handleForbiddenException(ForbiddenException e) {
+        log.warn("[403 Forbidden] {}", e.getMessage());
+        return Result.fail(ResultCode.FORBIDDEN);
     }
 
     /**
