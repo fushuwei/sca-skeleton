@@ -1274,6 +1274,16 @@ onMounted(() => {
   padding: 0 8px;
 }
 
+/* 覆盖 Quasar dense 模式下叶子节点的默认缩进，确保同级节点对齐 */
+:deep(.dept-tree.q-tree--dense .q-tree__node--child) {
+  padding-left: 0 !important;
+}
+
+/* 统一所有层级子节点的缩进宽度 */
+:deep(.dept-tree.q-tree--dense .q-tree__children) {
+  padding-left: 16px !important;
+}
+
 /* 隐藏默认展开/收起箭头 */
 :deep(.dept-tree .q-tree__node-toggle) {
   display: none !important;
