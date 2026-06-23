@@ -66,16 +66,4 @@ public class GlobalExceptionHandler {
         log.error("[服务器内部错误]", e);
         return Result.fail(ResultCode.INTERNAL_SERVER_ERROR);
     }
-
-    /**
-     * 处理兜底异常，捕获所有未预见的 Throwable 类型异常
-     *
-     * @param e 任意 {@link Throwable} 类型的异常实例
-     * @return 统一的错误响应结果 {@link Result}
-     */
-    @ExceptionHandler(Throwable.class)
-    public Result<?> handleThrowable(Throwable e) {
-        log.error("[服务器内部错误]", e);
-        return Result.fail(ResultCode.INTERNAL_SERVER_ERROR);
-    }
 }
