@@ -26,7 +26,7 @@ const deptList = ref<SysDept[]>([]);
 const deptTreeNodes = ref<DeptTreeNode[]>([]);
 const selectedDeptId = ref<string>("");
 let lastSelectedDeptId = "";
-const deptTreeExpanded = ref<string[]>([]);
+const deptTreeExpanded = ref<string[]>([ROOT_ID]);
 const leftPanelWidth = ref(260);
 const leftPanelCollapsed = ref(false);
 
@@ -212,7 +212,6 @@ function onDeptTreeSelect(nodeId: string) {
 
 /** 双击切换节点展开/收起 */
 function toggleDeptNode(node: DeptTreeNode) {
-  if (!node.children?.length) return;
   const idx = deptTreeExpanded.value.indexOf(node.id);
   if (idx >= 0) {
     deptTreeExpanded.value = deptTreeExpanded.value.filter((id) => id !== node.id);
@@ -779,7 +778,7 @@ onMounted(() => {
                   @click.stop="onNodeHeaderClick(scope.node)"
                 >
                   <q-icon
-                    :name="scope.expanded && scope.node.children?.length ? 'sym_r_folder_open' : 'sym_r_folder'"
+                    :name="deptTreeExpanded.includes(scope.node.id) ? 'sym_r_folder_open' : 'sym_r_folder'"
                     size="20px"
                     class="q-mr-sm cursor-pointer dept-tree-icon"
                     :color="selectedDeptId === scope.node.id ? 'primary' : 'grey-7'"
