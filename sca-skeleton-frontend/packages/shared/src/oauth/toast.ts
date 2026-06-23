@@ -117,7 +117,7 @@ function dismissToast(): void {
  * @param type 通知类型：negative（红）、positive（绿）、warning（琥珀）、info（蓝），默认 negative
  * @param duration 自动关闭时间（毫秒），默认 5000
  */
-export function showToast(message: string, type: NotificationType = "negative", duration = 500000): void {
+export function showToast(message: string, type: NotificationType = "negative", duration = 5000): void {
   dismissToast();
 
   // 注入 keyframes（只注入一次）

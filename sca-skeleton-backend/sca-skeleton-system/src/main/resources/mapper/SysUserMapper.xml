@@ -49,7 +49,7 @@
         <if test="status != null and status != ''">
             AND u.status = #{status}
         </if>
-        GROUP BY u.id
+        GROUP BY u.id, d.name
         ORDER BY u.create_time DESC
     </select>
 

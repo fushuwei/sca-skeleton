@@ -766,7 +766,6 @@ onMounted(() => {
               node-key="id"
               label-key="label"
               children-key="children"
-              v-model:selected="selectedDeptId"
               v-model:expanded="deptTreeExpanded"
               no-connectors
               dense
@@ -776,6 +775,7 @@ onMounted(() => {
               <template #default-header="scope">
                 <div
                   class="dept-tree-node row items-center no-wrap full-width"
+                  :class="{ 'dept-tree-node--selected': selectedDeptId === scope.node.id }"
                   @click.stop="onNodeHeaderClick(scope.node)"
                 >
                   <q-icon
@@ -1289,30 +1289,34 @@ onMounted(() => {
 
 :deep(.dept-tree .q-tree__node-header) {
   margin: 1px 0;
+  padding: 0;
+  min-height: 0;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+
+.dept-tree-node {
+  min-width: 0;
   padding: 6px 10px;
   min-height: 34px;
   border-radius: 6px;
   box-sizing: border-box;
   transition: background-color 0.12s ease;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-:deep(.dept-tree .q-tree__node-header:hover) {
+.dept-tree-node:hover {
   background: rgba(0, 0, 0, 0.04);
 }
 
-:deep(.dept-tree .q-tree__node-header.q-tree__node--selected) {
+.dept-tree-node--selected {
   background: rgba(0, 121, 107, 0.08) !important;
 }
 
-:deep(.dept-tree .q-tree__node-header.q-tree__node--selected .dept-tree-label) {
+.dept-tree-node--selected .dept-tree-label {
   color: #00796b;
   font-weight: 600;
-}
-
-.dept-tree-node {
-  min-width: 0;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
 .dept-tree-icon {
