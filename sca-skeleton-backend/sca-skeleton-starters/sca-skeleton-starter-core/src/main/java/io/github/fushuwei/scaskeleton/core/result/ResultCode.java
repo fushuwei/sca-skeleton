@@ -33,7 +33,7 @@ public enum ResultCode {
     /**
      * 无权限访问
      */
-    FORBIDDEN(40300, "权限不足，拒绝访问"),
+    FORBIDDEN(40300, "权限不足，无法访问该功能"),
 
     /**
      * 资源不存在

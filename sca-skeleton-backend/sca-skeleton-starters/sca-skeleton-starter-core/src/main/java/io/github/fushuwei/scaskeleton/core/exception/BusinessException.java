@@ -57,45 +57,4 @@ public class BusinessException extends RuntimeException {
         super(message);
         this.code = resultCode.getCode();
     }
-
-    /**
-     * 使用自定义描述快速构造业务异常
-     *
-     * @return 业务异常实例
-     */
-    public static BusinessException of(String message) {
-        return new BusinessException(message);
-    }
-
-    /**
-     * 使用自定义错误码和描述构造业务异常
-     *
-     * @param code    业务错误码
-     * @param message 错误描述
-     * @return 业务异常实例
-     */
-    public static BusinessException of(Integer code, String message) {
-        return new BusinessException(code, message);
-    }
-
-    /**
-     * 使用标准错误码快速构造业务异常，描述信息取自枚举
-     *
-     * @param resultCode 标准错误码
-     * @return 业务异常实例
-     */
-    public static BusinessException of(ResultCode resultCode) {
-        return new BusinessException(resultCode);
-    }
-
-    /**
-     * 使用标准错误码快速构造业务异常，覆盖默认描述信息
-     *
-     * @param resultCode 标准错误码
-     * @param message    自定义错误描述
-     * @return 业务异常实例
-     */
-    public static BusinessException of(ResultCode resultCode, String message) {
-        return new BusinessException(resultCode, message);
-    }
 }
