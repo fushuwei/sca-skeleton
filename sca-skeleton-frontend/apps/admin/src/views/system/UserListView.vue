@@ -3,6 +3,7 @@ import { ref, reactive, onMounted, computed, watch, markRaw } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 import type { QTableColumn } from "quasar";
+import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysUser, SysDept, DeptTreeNode, UserPageRequest } from "../../types/auth";
 import {
   getUserPageApi,
@@ -470,10 +471,12 @@ async function loadTableData(
         rowsNumber: result.data.total ?? 0
       };
     } else {
-      $q.notify({ type: "negative", message: result.message || t("common.loadFail") });
+      showToast(result.message || t("common.loadFail"), "negative");
     }
-  } catch {
-    $q.notify({ type: "negative", message: t("common.loadFail") });
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("common.loadFail"), "negative");
+    }
   } finally {
     tableLoading.value = false;
   }
@@ -511,33 +514,33 @@ watch(
 
 // 新建（占位）
 function handleCreate() {
-  $q.notify({ type: "info", message: t("common.comingSoon") });
+  showToast(t("common.comingSoon"), "info");
 }
 
 // 批量修改（占位）
 function handleBatchEdit() {
   if (!selectedRows.value.length) {
-    $q.notify({ type: "warning", message: t("common.selectRowsFirst") });
+    showToast(t("common.selectRowsFirst"), "warning");
     return;
   }
-  $q.notify({ type: "info", message: t("common.comingSoon") });
+  showToast(t("common.comingSoon"), "info");
 }
 
 // 批量删除
 async function handleBatchDelete() {
   if (!selectedRows.value.length) {
-    $q.notify({ type: "warning", message: t("common.selectRowsFirst") });
+    showToast(t("common.selectRowsFirst"), "warning");
     return;
   }
 
   const builtinUsers = selectedRows.value.filter((u) => u.isBuiltin === 1);
   if (builtinUsers.length) {
-    $q.notify({
-      type: "warning",
-      message: t("user.cannotDeleteBuiltinBatch", {
+    showToast(
+      t("user.cannotDeleteBuiltinBatch", {
         names: builtinUsers.map((u) => u.username).join("、")
-      })
-    });
+      }),
+      "warning"
+    );
     return;
   }
 
@@ -568,10 +571,10 @@ async function handleBatchDelete() {
     }
   }
 
-  $q.notify({
-    type: successCount > 0 ? "positive" : "negative",
-    message: t("user.batchDeleteResult", { success: successCount, fail: failCount })
-  });
+  showToast(
+    t("user.batchDeleteResult", { success: successCount, fail: failCount }),
+    successCount > 0 ? "positive" : "negative"
+  );
 
   selectedRows.value = [];
   loadTableData();
@@ -579,23 +582,23 @@ async function handleBatchDelete() {
 
 // 导入（占位）
 function handleImport() {
-  $q.notify({ type: "info", message: t("common.comingSoon") });
+  showToast(t("common.comingSoon"), "info");
 }
 
 // 导出
 function handleExport() {
-  $q.notify({ type: "info", message: t("common.comingSoon") });
+  showToast(t("common.comingSoon"), "info");
 }
 
 // 编辑
 function handleEdit(user: SysUser) {
-  $q.notify({ type: "info", message: `${t("common.comingSoon")} — ${user.username}` });
+  showToast(`${t("common.comingSoon")} — ${user.username}`, "info");
 }
 
 // 删除
 async function handleDelete(user: SysUser) {
   if (user.isBuiltin === 1) {
-    $q.notify({ type: "warning", message: t("user.cannotDeleteBuiltin") });
+    showToast(t("user.cannotDeleteBuiltin"), "warning");
     return;
   }
 
@@ -613,20 +616,22 @@ async function handleDelete(user: SysUser) {
   try {
     const result = await deleteUserApi(user.id);
     if (result.code === 10_000) {
-      $q.notify({ type: "positive", message: t("common.deleteSuccess") });
+      showToast(t("common.deleteSuccess"), "positive");
       loadTableData();
     } else {
-      $q.notify({ type: "negative", message: result.message || t("common.deleteFail") });
+      showToast(result.message || t("common.deleteFail"), "negative");
     }
-  } catch {
-    $q.notify({ type: "negative", message: t("common.deleteFail") });
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("common.deleteFail"), "negative");
+    }
   }
 }
 
 // 切换启用/停用状态
 async function handleToggleStatus(user: SysUser) {
   if (user.isBuiltin === 1) {
-    $q.notify({ type: "warning", message: t("user.cannotChangeBuiltinStatus") });
+    showToast(t("user.cannotChangeBuiltinStatus"), "warning");
     return;
   }
 
@@ -648,20 +653,22 @@ async function handleToggleStatus(user: SysUser) {
   try {
     const result = await changeUserStatusApi(user.id, newStatus);
     if (result.code === 10_000) {
-      $q.notify({ type: "positive", message: t("common.operationSuccess") });
+      showToast(t("common.operationSuccess"), "positive");
       loadTableData();
     } else {
-      $q.notify({ type: "negative", message: result.message || t("common.operationFail") });
+      showToast(result.message || t("common.operationFail"), "negative");
     }
-  } catch {
-    $q.notify({ type: "negative", message: t("common.operationFail") });
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("common.operationFail"), "negative");
+    }
   }
 }
 
 // 重置密码
 async function handleResetPassword(user: SysUser) {
   if (user.isBuiltin === 1) {
-    $q.notify({ type: "warning", message: t("user.cannotResetBuiltinPassword") });
+    showToast(t("user.cannotResetBuiltinPassword"), "warning");
     return;
   }
 
@@ -679,12 +686,14 @@ async function handleResetPassword(user: SysUser) {
   try {
     const result = await resetUserPasswordApi(user.id, "123456");
     if (result.code === 10_000) {
-      $q.notify({ type: "positive", message: t("user.resetPasswordSuccess") });
+      showToast(t("user.resetPasswordSuccess"), "positive");
     } else {
-      $q.notify({ type: "negative", message: result.message || t("common.operationFail") });
+      showToast(result.message || t("common.operationFail"), "negative");
     }
-  } catch {
-    $q.notify({ type: "negative", message: t("common.operationFail") });
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("common.operationFail"), "negative");
+    }
   }
 }
 
