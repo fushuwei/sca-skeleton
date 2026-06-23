@@ -41,8 +41,8 @@ spring:
             - name: RequestRateLimiter
               args:
                 key-resolver: "#{@userKeyResolver}"
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.replenishRate: 15
+                redis-rate-limiter.burstCapacity: 30
 
         # Authorize 端点限流（防批量构造授权请求压垮 Session/Redis）
         - id: sca-skeleton-auth-authorize
@@ -54,8 +54,8 @@ spring:
             - name: RequestRateLimiter
               args:
                 key-resolver: "#{@userKeyResolver}"
-                redis-rate-limiter.replenishRate: 20
-                redis-rate-limiter.burstCapacity: 40
+                redis-rate-limiter.replenishRate: 15
+                redis-rate-limiter.burstCapacity: 30
 
         # 认证服务路由
         - id: sca-skeleton-auth
@@ -70,15 +70,8 @@ spring:
           uri: lb://sca-skeleton-system
           predicates:
             - Path=/sys/**
-            # - Header=Authorization, (Bearer|Basic)\s+.+
-            # - Method=POST
           filters:
             - StripPrefix=1
-            - name: RequestRateLimiter
-              args:
-                key-resolver: "#{@userKeyResolver}"
-                redis-rate-limiter.replenishRate: 5
-                redis-rate-limiter.burstCapacity: 5
 
       # 全局默认过滤器
       default-filters:
