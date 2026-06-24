@@ -1461,6 +1461,8 @@ onMounted(() => {
   height: 32px;
   font-size: 13px;
   padding: 0 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .toolbar-area :deep(.q-btn) {
