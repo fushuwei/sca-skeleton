@@ -15,15 +15,20 @@ import io.github.fushuwei.scaskeleton.auth.token.ScaOpaqueAccessTokenClaimsCusto
 import io.github.fushuwei.scaskeleton.auth.token.ScaRefreshTokenGenerator;
 import io.github.fushuwei.scaskeleton.auth.security.handler.ClientAwareLoginUrlAuthenticationEntryPoint;
 import io.github.fushuwei.scaskeleton.auth.security.OAuth2PendingAuthorizeStore;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
@@ -32,6 +37,7 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Acce
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -39,9 +45,11 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Instant;
 
 /**
  * Spring Authorization Server 核心配置（基于 OAuth 2.1 实现 Authorization Code + PKCE）
@@ -105,6 +113,8 @@ public class AuthorizationServerConfig {
         http
             // 仅匹配 OAuth2 / OIDC 标准端点（显式 pattern，避免 configurer 未初始化时 matcher 为空）
             .securityMatcher("/oauth2/**", "/.well-known/**")
+            // 显式禁用 CSRF：token / introspection / revocation 等机器端点不应要求 CSRF Token
+            .csrf(csrf -> csrf.disable())
             .with(authorizationServerConfigurer, Customizer.withDefaults())
             .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
             // 在匿名认证前执行渠道隔离校验，已登录但渠道不匹配时清空会话并触发重新登录
@@ -112,10 +122,15 @@ public class AuthorizationServerConfig {
             .requestCache(cache -> cache.requestCache(httpSessionRequestCache))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .exceptionHandling(exceptions -> exceptions
-                // 仅 authorize 端点跳转登录页；token 等端点保留 SAS 默认 401/OAuth2 错误，避免换票 POST 被 302 到登录页
+                // 仅 authorize 端点跳转登录页
                 .defaultAuthenticationEntryPointFor(
                     clientAwareLoginUrlAuthenticationEntryPoint,
                     oauth2AuthorizeEndpointMatcher())
+                // token / revocation 等机器端点返回标准 OAuth2 JSON 错误（含 error/error_description），
+                // 避免 SAS 默认的 Http403ForbiddenEntryPoint 返回空 body 401/403
+                .defaultAuthenticationEntryPointFor(
+                    oauth2TokenEndpointAuthenticationEntryPoint(),
+                    oauth2TokenEndpointMatcher())
             );
 
         // 启用 OIDC 端点（/.well-known/openid-configuration 等）
@@ -132,6 +147,43 @@ public class AuthorizationServerConfig {
         return new OrRequestMatcher(
             PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, "/oauth2/authorize"),
             PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/oauth2/authorize"));
+    }
+
+    /**
+     * 匹配机器端点（token / revocation），需返回 OAuth2 JSON 错误而非空 body 401
+     */
+    private static RequestMatcher oauth2TokenEndpointMatcher() {
+        return new OrRequestMatcher(
+            PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/oauth2/token"),
+            PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/oauth2/revoke"),
+            PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/oauth2/introspect"));
+    }
+
+    /**
+     * Token 端点专用 AuthenticationEntryPoint：返回标准 OAuth2 JSON 错误响应，
+     * 包含 {@code error} 和 {@code error_description} 字段，便于调用方解析。
+     * <p>
+     * 解决 SAS 默认 {@code Http403ForbiddenEntryPoint} 对 token/revoke 端点
+     * 只返回空 body 401/403 的问题——这对 SPA 的静默 refresh 是不可调试的。
+     */
+    private AuthenticationEntryPoint oauth2TokenEndpointAuthenticationEntryPoint() {
+        return (HttpServletRequest request, HttpServletResponse response,
+                AuthenticationException authException) -> {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            // 手工构造 JSON，避免引入额外 Jackson/ObjectMapper 依赖
+            String message = authException.getMessage() != null
+                ? authException.getMessage().replace("\"", "\\\"")
+                : "Unauthorized";
+            String json = String.format(
+                "{\"error\":\"unauthorized\",\"error_description\":\"%s\",\"timestamp\":%d}",
+                message, Instant.now().toEpochMilli());
+            try {
+                response.getWriter().write(json);
+            } catch (IOException e) {
+                // 写入失败时仅结束响应
+            }
+        };
     }
 
     @Bean

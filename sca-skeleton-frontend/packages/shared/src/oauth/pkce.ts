@@ -70,10 +70,16 @@ function normalizeReturnUrl(rawUrl: string, basePath?: string): string {
     return rawUrl;
   }
   const normalizedBase = basePath.endsWith("/") ? basePath : basePath + "/";
-  if (rawUrl.startsWith(normalizedBase)) {
-    return rawUrl.slice(normalizedBase.length - 1);
+  // 循环剥离 base 前缀，防止 URL 已损坏时残留重复前缀（如 /admin/admin/system/user）
+  let result = rawUrl;
+  while (result.startsWith(normalizedBase)) {
+    result = result.slice(normalizedBase.length - 1);
   }
-  return rawUrl;
+  // 确保结果以 "/" 开头（Vue Router 绝对路径要求）
+  if (!result.startsWith("/")) {
+    result = "/" + result;
+  }
+  return result;
 }
 
 /** 启动 OAuth 授权时可附加的查询参数。 */

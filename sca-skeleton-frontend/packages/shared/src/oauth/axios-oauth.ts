@@ -71,6 +71,9 @@ export function createOAuthAxiosInstance(
 
   async function redirectToLogin(returnUrl?: string, loginOptions?: OAuthLoginOptions): Promise<void> {
     options.clearTokens();
+    // 同步 Pinia store 内存态，确保 isLoggedIn 立即变为 false，
+    // 避免路由守卫在页面跳转前因残留的 isLoggedIn=true 状态而错误放行
+    options.onTokensUpdated?.("", undefined);
     await startOAuthLogin(
       options.getOAuthConfig(),
       returnUrl ?? window.location.pathname,

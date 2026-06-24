@@ -67,5 +67,6 @@ dist
 coverage
 pnpm-lock.yaml
 package-lock.json
+*.tsbuildinfo
 
 .flattened-pom.xml

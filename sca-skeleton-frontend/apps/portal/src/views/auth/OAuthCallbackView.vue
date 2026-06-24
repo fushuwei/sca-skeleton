@@ -13,6 +13,24 @@ const processing = ref(true);
 const retryCountdown = ref(0);
 let countdownTimer: ReturnType<typeof setInterval> | null = null;
 
+/**
+ * 防御性剥离 SPA HTML base 前缀，避免 Vue Router 产生双重 base 路径。
+ */
+function stripBasePrefix(path: string, basePath?: string): string {
+  if (!basePath || basePath === "/" || !path) {
+    return path;
+  }
+  const normalizedBase = basePath.endsWith("/") ? basePath : basePath + "/";
+  let result = path;
+  while (result.startsWith(normalizedBase)) {
+    result = result.slice(normalizedBase.length - 1);
+  }
+  if (!result.startsWith("/")) {
+    result = "/" + result;
+  }
+  return result;
+}
+
 async function attemptLogin() {
   errorMessage.value = "";
   processing.value = true;
@@ -39,7 +57,9 @@ async function attemptLogin() {
     const tokenResponse = await exchangeAuthorizationCode(oauthConfig, code, pkceSession.codeVerifier);
     await authStore.applyOAuthTokens(tokenResponse.access_token, tokenResponse.refresh_token);
     await authStore.fetchProfile();
-    await router.replace(pkceSession.returnUrl || "/");
+    // 防御性剥离 base 前缀后再传给 router.replace()
+    const safeReturnUrl = stripBasePrefix(pkceSession.returnUrl, oauthConfig.basePath) || "/";
+    await router.replace(safeReturnUrl);
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "登录失败，正在重试…";
     processing.value = false;

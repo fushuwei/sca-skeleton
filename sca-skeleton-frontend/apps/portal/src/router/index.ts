@@ -31,7 +31,8 @@ router.beforeEach(async (to, _from, next) => {
   const authStore = usePortalAuthStore();
   const isPublic = to.meta.public === true;
   if (!authStore.isLoggedIn && !isPublic) {
-    void startOAuthLogin(getPortalOAuthConfig(), to.fullPath);
+    // 传递 prompt=login 强制重新认证，即使 Auth 服务 JSESSIONID 仍有效
+    void startOAuthLogin(getPortalOAuthConfig(), to.fullPath, { prompt: "login" });
     next(false);
     return;
   }
@@ -44,7 +45,7 @@ router.beforeEach(async (to, _from, next) => {
       authStore.profile = null;
       localStorage.removeItem(TOKEN_STORAGE_KEY);
       localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
-      void startOAuthLogin(getPortalOAuthConfig(), to.fullPath);
+      void startOAuthLogin(getPortalOAuthConfig(), to.fullPath, { prompt: "login" });
       next(false);
       return;
     }

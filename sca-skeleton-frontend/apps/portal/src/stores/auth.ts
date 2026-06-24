@@ -39,9 +39,7 @@ export const usePortalAuthStore = defineStore("portal-auth", {
     },
     syncOAuthTokens(accessToken: string, refreshToken?: string) {
       this.token = accessToken;
-      if (refreshToken) {
-        this.refreshToken = refreshToken;
-      }
+      this.refreshToken = refreshToken ?? "";
     },
     async fetchProfile() {
       if (!this.token) {

@@ -57,12 +57,11 @@ export const useAuthStore = defineStore("auth", {
       localStorage.setItem(MENUS_STORAGE_KEY, JSON.stringify(this.menus));
       this.dynamicReady = false;
     },
-    /** Axios 静默 refresh 成功后同步 Pinia 内存态。 */
+    /** Axios 静默 refresh 成功后同步 Pinia 内存态。
+     *  refreshToken 为空时也需重置，确保 clearTokens 后 Pinia 与 localStorage 一致。 */
     syncOAuthTokens(accessToken: string, refreshToken?: string): void {
       this.token = accessToken;
-      if (refreshToken) {
-        this.refreshToken = refreshToken;
-      }
+      this.refreshToken = refreshToken ?? "";
     },
     async fetchProfile(): Promise<void> {
       if (!this.token) {

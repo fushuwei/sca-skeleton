@@ -10,10 +10,11 @@ import {
   TOKEN_STORAGE_KEY
 } from "../constants/auth-storage";
 
-/** 未登录时启动 OAuth2 PKCE 授权 redirect（跳转 Auth 服务登录页）。 */
+/** 未登录时启动 OAuth2 PKCE 授权 redirect（跳转 Auth 服务登录页）。
+ *  传递 prompt=login 强制重新认证，即使 Auth 服务的 JSESSIONID 仍然有效。 */
 function redirectToOAuthLogin(returnUrl: string): void {
   const oauthConfig = getAdminOAuthConfig();
-  void startOAuthLogin(oauthConfig, returnUrl);
+  void startOAuthLogin(oauthConfig, returnUrl, { prompt: "login" });
 }
 
 export function setupRouterGuards(router: Router): void {

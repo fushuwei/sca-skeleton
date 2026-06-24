@@ -13,6 +13,28 @@ const processing = ref(true);
 const retryCountdown = ref(0);
 let countdownTimer: ReturnType<typeof setInterval> | null = null;
 
+/**
+ * 防御性剥离 SPA HTML base 前缀，避免 Vue Router 在已有 base 的路径上
+ * 再次追加 base，产生 /admin/admin/system/user 这样的双重路径。
+ *
+ * Vue Router 的 createWebHistory("/admin/") 会对 router.replace() 的
+ * 绝对路径自动追加 base，因此传给 router.replace() 的路径必须不含 base。
+ */
+function stripBasePrefix(path: string, basePath?: string): string {
+  if (!basePath || basePath === "/" || !path) {
+    return path;
+  }
+  const normalizedBase = basePath.endsWith("/") ? basePath : basePath + "/";
+  let result = path;
+  while (result.startsWith(normalizedBase)) {
+    result = result.slice(normalizedBase.length - 1);
+  }
+  if (!result.startsWith("/")) {
+    result = "/" + result;
+  }
+  return result;
+}
+
 async function attemptLogin() {
   errorMessage.value = "";
   processing.value = true;
@@ -40,7 +62,9 @@ async function attemptLogin() {
     await authStore.applyOAuthTokens(tokenResponse.access_token, tokenResponse.refresh_token);
     authStore.ensureRoutes(router);
     await authStore.fetchProfile();
-    await router.replace(pkceSession.returnUrl || "/dashboard");
+    // 防御性剥离 base 前缀后再传给 router.replace()，防止双重 /admin/ 路径
+    const safeReturnUrl = stripBasePrefix(pkceSession.returnUrl, oauthConfig.basePath) || "/dashboard";
+    await router.replace(safeReturnUrl);
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "登录失败，正在重试…";
     processing.value = false;
