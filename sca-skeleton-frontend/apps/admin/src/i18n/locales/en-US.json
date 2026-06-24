@@ -26,7 +26,8 @@
     "selectedCount": "{count} item(s) selected",
     "clearSelection": "Clear selection",
     "collapseSearch": "Collapse search",
-    "expandSearch": "Expand search"
+    "expandSearch": "Expand search",
+    "view": "View"
   },
   "layout": {
     "brandTitle": "Data Middle Platform",

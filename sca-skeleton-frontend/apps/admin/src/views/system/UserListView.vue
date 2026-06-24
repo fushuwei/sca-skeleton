@@ -410,7 +410,7 @@ const columns: QTableColumn<SysUser>[] = [
     label: t("user.createTime"),
     align: "center",
     sortable: false,
-    format: (val: string) => (val ? new Date(val).toLocaleDateString("zh-CN") : "-")
+    format: (val: string) => (val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-")
   },
   {
     name: "actions",
@@ -588,6 +588,11 @@ function handleImport() {
 // 导出
 function handleExport() {
   showToast(t("common.comingSoon"), "info");
+}
+
+// 查看
+function handleView(user: SysUser) {
+  showToast(`${t("common.view")} — ${user.username}`, "info");
 }
 
 // 编辑
@@ -971,30 +976,7 @@ onMounted(() => {
         </div>
         <q-space />
         <div class="toolbar-right row items-center no-wrap">
-          <q-btn
-            color="white"
-            text-color="grey-8"
-            outline
-            dense
-            no-caps
-            class="toolbar-btn"
-            @click="handleImport"
-          >
-            <q-icon name="sym_r_upload" size="20px" class="q-mr-xs" />
-            {{ t('common.import') }}
-          </q-btn>
-          <q-btn
-            color="white"
-            text-color="grey-8"
-            outline
-            dense
-            no-caps
-            class="toolbar-btn"
-            @click="handleExport"
-          >
-            <q-icon name="sym_r_download" size="20px" class="q-mr-xs" />
-            {{ t('common.export') }}
-          </q-btn>
+          <!-- 导入导出按钮已隐藏 -->
         </div>
       </div>
 
@@ -1052,6 +1034,17 @@ onMounted(() => {
         <!-- 操作列 -->
         <template #body-cell-actions="props">
           <q-td :props="props" class="q-gutter-x-xs actions-cell">
+            <q-btn
+              flat
+              dense
+              round
+              size="sm"
+              color="info"
+              icon="sym_r_visibility"
+              @click="handleView(props.row)"
+            >
+              <q-tooltip>{{ t("common.view") }}</q-tooltip>
+            </q-btn>
             <q-btn
               flat
               dense
@@ -1525,6 +1518,11 @@ onMounted(() => {
   min-height: 42px;
   background: #fff;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* 复选框尺寸 */
+.user-table :deep(.q-checkbox__inner) {
+  font-size: 32px;
 }
 </style>
 

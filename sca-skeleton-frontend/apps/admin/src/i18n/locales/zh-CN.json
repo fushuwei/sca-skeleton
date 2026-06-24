@@ -26,7 +26,8 @@
     "selectedCount": "已选择 {count} 项",
     "clearSelection": "清除选择",
     "collapseSearch": "收起搜索框",
-    "expandSearch": "展开搜索框"
+    "expandSearch": "展开搜索框",
+    "view": "查看"
   },
   "layout": {
     "brandTitle": "数据中台管理系统",
