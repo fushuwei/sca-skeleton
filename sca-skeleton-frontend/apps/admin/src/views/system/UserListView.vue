@@ -13,13 +13,9 @@ import {
 } from "../../apis/user";
 import { getDeptListApi } from "../../apis/dept";
 import UserDrawerContent from "./UserDrawerContent.vue";
-import { useRightDrawerStore } from "../../stores/rightDrawer";
 
 const { t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
-
-// 全局右侧抽屉 store
-const drawerStore = useRightDrawerStore();
 
 // ═══════════════════════════════════════════════════════════════
 // 部门树
@@ -349,21 +345,34 @@ const userTypeColorOf = (t: string): string =>
 const genderLabelOf = (g: string): string => (g === "male" ? "男" : g === "female" ? "女" : "-");
 
 // ═══════════════════════════════════════════════════════════════
-// 抽屉操作
+// 本地抽屉 — 添加 / 编辑 / 查看
 // ═══════════════════════════════════════════════════════════════
 
-function openUserDrawer(mode: "add" | "edit" | "view", user?: SysUser) {
-  const title = mode === "add" ? t("user.addUser") : mode === "edit" ? t("user.editUser") : t("user.viewUser");
-  const icon = mode === "add" ? "sym_r_person_add" : mode === "edit" ? "sym_r_edit" : "sym_r_visibility";
-  drawerStore.openDrawer(title, icon, markRaw(UserDrawerContent), {
-    mode,
-    user,
-    onClose: () => drawerStore.closeDrawer(),
-    onSaved: () => {
-      drawerStore.closeDrawer();
-      loadTableData();
-    }
-  });
+type DrawerMode = "add" | "edit" | "view";
+
+const drawerOpen = ref(false);
+const drawerMode = ref<DrawerMode>("add");
+const drawerUser = ref<SysUser | undefined>(undefined);
+
+const drawerTitle = computed(() => {
+  if (drawerMode.value === "add") return t("user.addUser");
+  if (drawerMode.value === "edit") return t("user.editUser");
+  return t("user.viewUser");
+});
+
+function openUserDrawer(mode: DrawerMode, user?: SysUser) {
+  drawerMode.value = mode;
+  drawerUser.value = user;
+  drawerOpen.value = true;
+}
+
+function closeUserDrawer() {
+  drawerOpen.value = false;
+}
+
+function handleDrawerSaved() {
+  closeUserDrawer();
+  loadTableData();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1142,6 +1151,40 @@ onMounted(() => {
       </q-table>
     </div>
   </div>
+
+  <!-- ═══ 本地右侧抽屉：添加 / 编辑 / 查看用户 ═══ -->
+  <Teleport to="body">
+    <Transition name="user-drawer-slide">
+      <div v-if="drawerOpen" class="user-local-drawer-mask" @click.self="closeUserDrawer">
+        <div class="user-local-drawer">
+          <div class="user-drawer-shell">
+            <div class="user-drawer-header row items-center no-wrap">
+              <q-icon name="sym_r_person" size="20px" class="q-mr-sm" />
+              <span class="user-drawer-title">{{ drawerTitle }}</span>
+              <q-space />
+              <q-btn
+                flat
+                dense
+                round
+                size="20px"
+                icon="sym_r_close"
+                class="user-drawer-close-btn"
+                @click="closeUserDrawer"
+              />
+            </div>
+            <div class="user-drawer-body">
+              <UserDrawerContent
+                :mode="drawerMode"
+                :user="drawerUser"
+                @close="closeUserDrawer"
+                @saved="handleDrawerSaved"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -1552,6 +1595,96 @@ onMounted(() => {
 /* 复选框尺寸 */
 .user-table :deep(.q-checkbox__inner) {
   font-size: 32px;
+}
+
+/* ═══ 本地右侧抽屉 ═══ */
+.user-local-drawer-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.user-local-drawer {
+  width: 680px;
+  max-width: 100vw;
+  height: 100%;
+  background: #fff;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.user-drawer-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.user-drawer-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 16px;
+  background: #fafafa;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.user-drawer-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.user-drawer-close-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  color: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+}
+
+.user-drawer-close-btn :deep(.q-btn__wrapper) {
+  min-height: 32px;
+  padding: 0;
+}
+
+.user-drawer-close-btn:hover {
+  background: rgba(128, 128, 128, 0.2);
+}
+
+.user-drawer-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* 抽屉滑入/滑出动画 */
+.user-drawer-slide-enter-active,
+.user-drawer-slide-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.user-drawer-slide-enter-active .user-local-drawer,
+.user-drawer-slide-leave-active .user-local-drawer {
+  transition: transform 0.25s ease;
+}
+
+.user-drawer-slide-enter-from,
+.user-drawer-slide-leave-to {
+  opacity: 0;
+}
+
+.user-drawer-slide-enter-from .user-local-drawer,
+.user-drawer-slide-leave-to .user-local-drawer {
+  transform: translateX(100%);
 }
 </style>
 

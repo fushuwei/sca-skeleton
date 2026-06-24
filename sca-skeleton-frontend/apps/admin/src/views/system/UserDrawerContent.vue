@@ -10,8 +10,11 @@ const { t } = useI18n({ useScope: "global" });
 const props = defineProps<{
   mode: "add" | "edit" | "view";
   user?: SysUser;
-  onClose?: () => void;
-  onSaved?: () => void;
+}>();
+
+const emit = defineEmits<{
+  close: [];
+  saved: [];
 }>();
 
 const drawerReadonly = computed(() => props.mode === "view");
@@ -106,9 +109,7 @@ function initForm() {
 watch(() => props.user, initForm, { immediate: true });
 
 function handleClose() {
-  if (props.onClose) {
-    props.onClose();
-  }
+  emit("close");
 }
 
 async function handleSave() {
@@ -139,7 +140,7 @@ async function handleSave() {
 
     if (result.code === 10_000) {
       showToast(t("user.saveSuccess"), "positive");
-      props.onSaved?.();
+      emit("saved");
     } else {
       showToast(result.message || t("user.saveFail"), "negative");
     }
