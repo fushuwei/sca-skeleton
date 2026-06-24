@@ -1658,6 +1658,10 @@ function beginRightDrawerResize(e) {
 .bottom-drawer-toggle,
 .bottom-footer-icon-btn {
   color: rgba(0, 0, 0, 0.87) !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
 }
 
 .bottom-drawer-toggle :deep(.q-icon.material-symbols-rounded),

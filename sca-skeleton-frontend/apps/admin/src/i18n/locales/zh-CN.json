@@ -63,7 +63,7 @@
     "closeDrawerAria": "关闭",
     "database": "数据源",
     "history": "操作历史",
-    "toggleLeftPanel": "切换侧栏",
+    "toggleLeftPanel": "显示/隐藏导航栏",
     "localeEnglish": "English (US)",
     "localeChinese": "简体中文",
     "themeToggleAria": "切换明暗主题",
