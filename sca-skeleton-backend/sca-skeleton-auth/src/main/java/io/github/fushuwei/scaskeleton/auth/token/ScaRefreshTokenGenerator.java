@@ -3,6 +3,7 @@ package io.github.fushuwei.scaskeleton.auth.token;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenContext;
@@ -38,6 +39,14 @@ public class ScaRefreshTokenGenerator implements OAuth2TokenGenerator<OAuth2Refr
         if (!OAuth2TokenType.REFRESH_TOKEN.equals(context.getTokenType())) {
             return null;
         }
+
+        // 仅当客户端配置了 REFRESH_TOKEN grant type 时才签发，
+        // 避免对误配的 confidential 客户端意外签发 refresh_token
+        if (!context.getRegisteredClient().getAuthorizationGrantTypes()
+                .contains(AuthorizationGrantType.REFRESH_TOKEN)) {
+            return null;
+        }
+
         Instant issuedAt = this.clock.instant();
         Instant expiresAt = issuedAt.plus(
                 context.getRegisteredClient().getTokenSettings().getRefreshTokenTimeToLive());

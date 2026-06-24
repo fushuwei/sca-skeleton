@@ -81,7 +81,10 @@ public class PublicClientRefreshTokenAuthenticationFilter extends OncePerRequest
 
     /** 判断是否为 token 端点的 refresh_token grant 请求 */
     private boolean isRefreshTokenRequest(HttpServletRequest request) {
-        return "/oauth2/token".equals(request.getRequestURI())
+        // 使用 endsWith 兼容网关 StripPrefix 等不同部署拓扑
+        // filter 本身在 SAS 安全链内，安全链已限定只处理 /oauth2/** 路径
+        String uri = request.getRequestURI();
+        return (uri.endsWith("/oauth2/token"))
                 && "POST".equalsIgnoreCase(request.getMethod())
                 && "refresh_token".equals(request.getParameter(OAuth2ParameterNames.GRANT_TYPE));
     }

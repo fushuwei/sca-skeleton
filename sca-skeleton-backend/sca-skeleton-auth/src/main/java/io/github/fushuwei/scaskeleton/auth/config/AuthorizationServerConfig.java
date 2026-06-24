@@ -196,10 +196,16 @@ public class AuthorizationServerConfig {
                 AuthenticationException authException) -> {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            // 手工构造 JSON，避免引入额外 Jackson/ObjectMapper 依赖
-            String message = authException.getMessage() != null
-                ? authException.getMessage().replace("\"", "\\\"")
+            // 手工构造 JSON，完整转义特殊字符
+            String rawMessage = authException.getMessage() != null
+                ? authException.getMessage()
                 : "Unauthorized";
+            String message = rawMessage
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
             String json = String.format(
                 "{\"error\":\"unauthorized\",\"error_description\":\"%s\",\"timestamp\":%d}",
                 message, Instant.now().toEpochMilli());
