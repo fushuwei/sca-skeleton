@@ -1010,7 +1010,6 @@ onMounted(() => {
         :rows-per-page-options="[10, 20, 50, 100]"
         selection="multiple"
         flat
-        binary-state-sort
         :class="['user-table', { 'user-table--empty': !tableRows.length }]"
         @request="loadTableData"
       >
