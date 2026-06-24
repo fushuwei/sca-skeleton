@@ -788,9 +788,15 @@ function beginRightDrawerResize(e) {
               <span class="left-toolbar-title">{{ t('layout.navTitle') }}</span>
             </div>
             <div class="row items-center no-wrap left-toolbar-actions">
-              <q-btn flat round icon="sym_r_expand" class="left-toolbar-action-btn" @click="expandAllModules" />
-              <q-btn flat round icon="sym_r_compress" class="left-toolbar-action-btn" @click="collapseAllModules" />
-              <q-btn flat round icon="sym_r_search" class="left-toolbar-action-btn" @click="openLeftSearchToolbar" />
+              <q-btn flat round icon="sym_r_expand" class="left-toolbar-action-btn" @click="expandAllModules">
+                <q-tooltip>{{ t('layout.expandAll') }}</q-tooltip>
+              </q-btn>
+              <q-btn flat round icon="sym_r_compress" class="left-toolbar-action-btn" @click="collapseAllModules">
+                <q-tooltip>{{ t('layout.collapseAll') }}</q-tooltip>
+              </q-btn>
+              <q-btn flat round icon="sym_r_search" class="left-toolbar-action-btn" @click="openLeftSearchToolbar">
+                <q-tooltip>{{ t('layout.searchMenu') }}</q-tooltip>
+              </q-btn>
             </div>
           </div>
           <Transition name="left-search-slide" @after-enter="focusLeftSearchAfterEnter">
