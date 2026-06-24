@@ -20,7 +20,7 @@ import java.util.TimeZone;
  *
  * @author Fu Wei
  */
-@AutoConfiguration
+@AutoConfiguration(before = org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration.class)
 public class JacksonAutoConfiguration {
 
     /**
