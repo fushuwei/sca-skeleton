@@ -1797,3 +1797,10 @@ function beginRightDrawerResize(e) {
   background: #d8ebe8 !important;
 }
 </style>
+
+<!-- 非 scoped：tooltip 不换行 -->
+<style>
+.q-tooltip {
+  white-space: nowrap;
+}
+</style>
