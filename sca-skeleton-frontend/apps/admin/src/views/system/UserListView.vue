@@ -1520,7 +1520,7 @@ onMounted(() => {
 
 /* 分页底栏 */
 .user-table :deep(.q-table__bottom) {
-  padding: 6px 16px;
+  padding: 4px 16px;
   font-size: 13px;
   min-height: 42px;
   background: #fff;
