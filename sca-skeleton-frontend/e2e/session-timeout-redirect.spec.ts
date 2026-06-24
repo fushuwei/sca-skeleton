@@ -19,7 +19,7 @@ test.describe("Session Timeout Return URL", () => {
 
     // Step 2：模拟会话过期——清除 localStorage 中的 token
     await page.evaluate(() => {
-      localStorage.removeItem("admin_token");
+      localStorage.removeItem("admin_access_token");
       localStorage.removeItem("admin_refresh_token");
     });
 
