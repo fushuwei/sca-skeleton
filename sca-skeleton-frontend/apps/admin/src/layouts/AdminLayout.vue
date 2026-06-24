@@ -997,7 +997,9 @@ function beginRightDrawerResize(e) {
           class="bottom-drawer-toggle"
           :icon="leftDrawerOpen ? 'sym_r_left_panel_close' : 'sym_r_left_panel_open'"
           @click="leftDrawerOpen = !leftDrawerOpen"
-        />
+        >
+          <q-tooltip>{{ t('layout.toggleLeftPanel') }}</q-tooltip>
+        </q-btn>
         <div class="bottom-toolbar-meta">{{ t('layout.versionLabel') }}</div>
         <div class="bottom-toolbar-footer-actions row items-center no-wrap">
           <q-btn
@@ -1008,7 +1010,9 @@ function beginRightDrawerResize(e) {
             class="bottom-footer-icon-btn"
             aria-label="Database"
             @click="openRightDrawer(t('layout.database'), 'sym_r_database')"
-          />
+          >
+            <q-tooltip>{{ t('layout.database') }}</q-tooltip>
+          </q-btn>
           <q-btn
             flat
             round
@@ -1017,7 +1021,9 @@ function beginRightDrawerResize(e) {
             class="bottom-footer-icon-btn"
             aria-label="History"
             @click="openRightDrawer(t('layout.history'), 'sym_r_history')"
-          />
+          >
+            <q-tooltip>{{ t('layout.history') }}</q-tooltip>
+          </q-btn>
         </div>
       </q-toolbar>
     </q-footer>
