@@ -350,7 +350,13 @@ const genderLabelOf = (g: string): string => (g === "male" ? "男" : g === "fema
 const tableRows = ref<SysUser[]>([]);
 const tableTotal = ref(0);
 const tableLoading = ref(false);
-const tablePagination = ref({ page: 1, rowsPerPage: 10, rowsNumber: 0 });
+const tablePagination = ref({
+  page: 1,
+  rowsPerPage: 10,
+  rowsNumber: 0,
+  sortBy: "",
+  descending: false
+});
 const selectedRows = ref<SysUser[]>([]);
 const sortState = ref<{ sortBy: string; descending: boolean }>({ sortBy: "", descending: false });
 
@@ -422,16 +428,27 @@ const visibleColumns = ref(columns.map((c) => c.name));
 // ═══════════════════════════════════════════════════════════════
 
 async function loadTableData(
-  props?: { pagination: { page: number; rowsPerPage: number; rowsNumber?: number }; sortBy?: string; descending?: boolean }
+  props?: {
+    pagination: {
+      page: number;
+      rowsPerPage: number;
+      rowsNumber?: number;
+      sortBy?: string;
+      descending?: boolean;
+    };
+  }
 ) {
   tableLoading.value = true;
 
   const pageNum = props?.pagination?.page ?? tablePagination.value.page;
   const pageSize = props?.pagination?.rowsPerPage ?? tablePagination.value.rowsPerPage;
 
-  if (props?.sortBy) {
-    sortState.value.sortBy = props.sortBy;
-    sortState.value.descending = props.descending ?? false;
+  // Quasar @request 事件中 sortBy/descending 嵌套在 pagination 内部
+  if (props?.pagination) {
+    sortState.value.sortBy = props.pagination.sortBy ?? "";
+    sortState.value.descending = props.pagination.descending ?? false;
+    tablePagination.value.sortBy = props.pagination.sortBy ?? "";
+    tablePagination.value.descending = props.pagination.descending ?? false;
   }
 
   const params: UserPageRequest = {
@@ -450,11 +467,9 @@ async function loadTableData(
     if (result.code === 10_000) {
       tableRows.value = result.data.records ?? [];
       tableTotal.value = result.data.total ?? 0;
-      tablePagination.value = {
-        page: result.data.current ?? pageNum,
-        rowsPerPage: result.data.size ?? pageSize,
-        rowsNumber: result.data.total ?? 0
-      };
+      tablePagination.value.page = result.data.current ?? pageNum;
+      tablePagination.value.rowsPerPage = result.data.size ?? pageSize;
+      tablePagination.value.rowsNumber = result.data.total ?? 0;
     } else {
       showToast(result.message || t("common.loadFail"), "negative");
     }
@@ -986,12 +1001,12 @@ onMounted(() => {
       <!-- ── 表格区域 ── -->
       <q-table
         v-model:selected="selectedRows"
+        v-model:pagination="tablePagination"
         :rows="tableRows"
         :columns="columns"
         :visible-columns="visibleColumns"
         row-key="id"
         :loading="tableLoading"
-        :pagination="tablePagination"
         :rows-per-page-options="[10, 20, 50, 100]"
         selection="multiple"
         flat
