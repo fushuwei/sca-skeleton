@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.security.handler;
 
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +27,7 @@ public class DefaultAuthenticationEntryPoint implements AuthenticationEntryPoint
     /**
      * 使用 Jackson 序列化 JSON 响应体
      */
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     /**
      * 处理未认证异常
@@ -52,6 +52,6 @@ public class DefaultAuthenticationEntryPoint implements AuthenticationEntryPoint
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         // 将响应体序列化为 JSON 写入响应流
-        response.getWriter().write(objectMapper.writeValueAsString(result));
+        response.getWriter().write(jsonMapper.writeValueAsString(result));
     }
 }

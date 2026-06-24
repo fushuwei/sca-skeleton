@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.logging.aspect;
 
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.fushuwei.scaskeleton.core.trace.TraceContext;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.logging.annotation.OperationLog;
@@ -34,7 +34,7 @@ import java.time.LocalDateTime;
 public class OperationLogAspect {
 
     // 注入 Jackson，用于将方法参数与返回值序列化为 JSON 字符串
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     // 可选注入：当前用户信息提供者，未提供时操作人字段留空
     @Nullable
@@ -82,7 +82,7 @@ public class OperationLogAspect {
         // 如果注解配置了记录请求参数，将方法入参序列化为 JSON
         if (annotation.logArgs()) {
             try {
-                record.setRequestArgs(objectMapper.writeValueAsString(joinPoint.getArgs()));
+                record.setRequestArgs(jsonMapper.writeValueAsString(joinPoint.getArgs()));
             } catch (Exception e) {
                 // 序列化失败不影响业务，仅记录序列化错误标识
                 record.setRequestArgs("[serialize error]");
@@ -97,7 +97,7 @@ public class OperationLogAspect {
             // 如果注解配置了记录响应结果，将返回值序列化为 JSON
             if (annotation.logResult() && result != null) {
                 try {
-                    record.setResponseResult(objectMapper.writeValueAsString(result));
+                    record.setResponseResult(jsonMapper.writeValueAsString(result));
                 } catch (Exception e) {
                     record.setResponseResult("[serialize error]");
                 }
@@ -192,7 +192,7 @@ public class OperationLogAspect {
     }
 
     // Optional 注入支持，允许 currentUserProvider 和 operationLogHandler 不存在
-    public OperationLogAspect(ObjectMapper objectMapper) {
-        this(objectMapper, null, null);
+    public OperationLogAspect(JsonMapper jsonMapper) {
+        this(jsonMapper, null, null);
     }
 }

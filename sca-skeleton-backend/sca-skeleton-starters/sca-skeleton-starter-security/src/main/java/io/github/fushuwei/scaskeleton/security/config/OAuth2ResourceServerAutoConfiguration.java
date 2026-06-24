@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.security.config;
 
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermissionAspect;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermissionChecker;
@@ -38,7 +38,7 @@ public class OAuth2ResourceServerAutoConfiguration {
      * @param http                           HttpSecurity
      * @param oauth2ResourceServerProperties OAuth2 资源服务器安全配置属性
      * @param opaqueTokenIntrospector        不透明令牌 Redis 自省器
-     * @param objectMapper                   JSON 操作对象
+     * @param jsonMapper                     JSON 操作对象
      * @return SecurityFilterChain
      */
     @Bean
@@ -46,7 +46,7 @@ public class OAuth2ResourceServerAutoConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    OAuth2ResourceServerProperties oauth2ResourceServerProperties,
                                                    OpaqueTokenIntrospector opaqueTokenIntrospector,
-                                                   ObjectMapper objectMapper) {
+                                                   JsonMapper jsonMapper) {
         // 禁用 CSRF：资源服务器使用无状态 Bearer 令牌认证，无需 CSRF 保护
         http.csrf(AbstractHttpConfigurer::disable);
 
@@ -71,11 +71,11 @@ public class OAuth2ResourceServerAutoConfiguration {
                 // 自省结果中的 authorities 字段转换为 GrantedAuthority，供 @RequiresPermission 使用
                 .authenticationConverter(new DefaultOpaqueTokenAuthenticationConverter()))
             // 401 未认证返回统一 JSON 格式
-            .authenticationEntryPoint(new DefaultAuthenticationEntryPoint(objectMapper)));
+            .authenticationEntryPoint(new DefaultAuthenticationEntryPoint(jsonMapper)));
 
         // 403 权限不足返回统一 JSON 格式
         http.exceptionHandling(ex ->
-            ex.accessDeniedHandler(new DefaultAccessDeniedHandler(objectMapper)));
+            ex.accessDeniedHandler(new DefaultAccessDeniedHandler(jsonMapper)));
 
         return http.build();
     }

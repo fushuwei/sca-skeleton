@@ -2,7 +2,7 @@ package io.github.fushuwei.scaskeleton.auth.web;
 
 import io.github.fushuwei.scaskeleton.captcha.CaptchaService;
 import io.github.fushuwei.scaskeleton.captcha.model.CaptchaResult;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -33,7 +33,7 @@ public class CaptchaController {
 
     private final CaptchaService captchaService;
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     /**
      * 生成图形验证码（接受 Accept 头自动切换响应格式）。
@@ -46,7 +46,7 @@ public class CaptchaController {
         if (accept.contains(MediaType.APPLICATION_JSON_VALUE)) {
             CaptchaResult result = captchaService.generateBase64(captchaKey);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            objectMapper.writeValue(response.getWriter(), Map.of(
+            jsonMapper.writeValue(response.getWriter(), Map.of(
                     "captchaKey", result.getCaptchaKey(),
                     "imageBase64", result.getImageBase64()
             ));

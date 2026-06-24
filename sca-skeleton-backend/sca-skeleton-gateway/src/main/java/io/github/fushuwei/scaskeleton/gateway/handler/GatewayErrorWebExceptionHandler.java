@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -37,7 +37,7 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
     /**
      * JSON 序列化器
      */
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     /**
      * 网关异常入口
@@ -143,7 +143,7 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
 
         try {
             // 序列化为 JSON 并写入响应体
-            DataBuffer buffer = response.bufferFactory().wrap(objectMapper.writeValueAsBytes(body));
+            DataBuffer buffer = response.bufferFactory().wrap(jsonMapper.writeValueAsBytes(body));
             return response.writeWith(Mono.just(buffer));
         } catch (Throwable e) {
             // 序列化失败时仅结束响应，避免二次异常
