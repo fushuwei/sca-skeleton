@@ -939,7 +939,7 @@ onMounted(() => {
             class="toolbar-btn"
             @click="handleCreate"
           >
-            <q-icon name="sym_r_person_add" size="20px" class="q-mr-xs" />
+            <q-icon name="sym_r_add" size="20px" class="q-mr-xs" />
             {{ t('user.createUser') }}
           </q-btn>
           <q-btn
