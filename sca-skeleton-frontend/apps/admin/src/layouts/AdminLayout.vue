@@ -1006,7 +1006,7 @@ function beginRightDrawerResize(e) {
           :icon="leftDrawerOpen ? 'sym_r_left_panel_close' : 'sym_r_left_panel_open'"
           @click="leftDrawerOpen = !leftDrawerOpen"
         >
-          <q-tooltip>{{ t('layout.toggleLeftPanel') }}</q-tooltip>
+          <q-tooltip>{{ leftDrawerOpen ? t('layout.toggleLeftPanel') : t('layout.showLeftPanel') }}</q-tooltip>
         </q-btn>
         <div class="bottom-toolbar-meta">{{ t('layout.versionLabel') }}</div>
         <div class="bottom-toolbar-footer-actions row items-center no-wrap">
