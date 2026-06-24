@@ -11,6 +11,7 @@ import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLoginProperties
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.jwk.AuthJwkKeyLoader;
 import io.github.fushuwei.scaskeleton.auth.security.filter.AuthorizeChannelIsolationFilter;
+import io.github.fushuwei.scaskeleton.auth.security.filter.PublicClientRefreshTokenAuthenticationFilter;
 import io.github.fushuwei.scaskeleton.auth.token.ScaOpaqueAccessTokenClaimsCustomizer;
 import io.github.fushuwei.scaskeleton.auth.token.ScaRefreshTokenGenerator;
 import io.github.fushuwei.scaskeleton.auth.security.handler.ClientAwareLoginUrlAuthenticationEntryPoint;
@@ -30,6 +31,7 @@ import org.springframework.security.config.annotation.web.configuration.OAuth2Au
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
@@ -86,6 +88,25 @@ public class AuthorizationServerConfig {
     private final AuthorizeChannelIsolationFilter authorizeChannelIsolationFilter;
 
     /**
+     * 注册客户端仓库（JDBC + Redis 缓存），供公共客户端 refresh_token 认证过滤器使用
+     */
+    private final RegisteredClientRepository registeredClientRepository;
+
+    /**
+     * 公共客户端 refresh_token 认证过滤器：
+     * SAS 7.1.x 的 PublicClientAuthenticationConverter 仅匹配 PKCE 请求
+     * （grant_type=authorization_code + code_verifier），对 refresh_token grant
+     * 返回 null → 客户端认证失败 → OAuth2RefreshTokenAuthenticationConverter
+     * 从 SecurityContext 读取不到 clientPrincipal → 401。
+     * <p>
+     * 本过滤器在 SAS 默认认证之前将公共客户端身份写入 SecurityContext。
+     */
+    @Bean
+    public PublicClientRefreshTokenAuthenticationFilter publicClientRefreshTokenAuthenticationFilter() {
+        return new PublicClientRefreshTokenAuthenticationFilter(registeredClientRepository);
+    }
+
+    /**
      * 未登录访问 authorize 时的登录入口（按 client_id 分流 admin / portal 登录页）
      */
     @Bean
@@ -104,7 +125,8 @@ public class AuthorizationServerConfig {
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(
         HttpSecurity http,
-        ClientAwareLoginUrlAuthenticationEntryPoint clientAwareLoginUrlAuthenticationEntryPoint) throws Exception {
+        ClientAwareLoginUrlAuthenticationEntryPoint clientAwareLoginUrlAuthenticationEntryPoint,
+        PublicClientRefreshTokenAuthenticationFilter publicClientRefreshTokenAuthenticationFilter) throws Exception {
 
         // Spring Authorization Server 端点配置器（Boot 4 / Security 7 新写法，替代 applyDefaultSecurity）
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
@@ -117,7 +139,10 @@ public class AuthorizationServerConfig {
             .csrf(csrf -> csrf.disable())
             .with(authorizationServerConfigurer, Customizer.withDefaults())
             .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
-            // 在匿名认证前执行渠道隔离校验，已登录但渠道不匹配时清空会话并触发重新登录
+            // 在匿名认证前执行：
+            // ① 公共客户端 refresh_token 认证（补偿 SAS 7.1.x PublicClientAuthenticationConverter 不匹配 refresh_token grant）
+            // ② 渠道隔离校验（已登录但渠道不匹配时清空会话并触发重新登录）
+            .addFilterBefore(publicClientRefreshTokenAuthenticationFilter, AnonymousAuthenticationFilter.class)
             .addFilterBefore(authorizeChannelIsolationFilter, AnonymousAuthenticationFilter.class)
             .requestCache(cache -> cache.requestCache(httpSessionRequestCache))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))

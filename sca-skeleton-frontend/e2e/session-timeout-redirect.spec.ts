@@ -19,8 +19,8 @@ test.describe("Session Timeout Return URL", () => {
 
     // Step 2：模拟会话过期——清除 localStorage 中的 token
     await page.evaluate(() => {
-      localStorage.removeItem("sca_admin_access_token");
-      localStorage.removeItem("sca_admin_refresh_token");
+      localStorage.removeItem("admin_token");
+      localStorage.removeItem("admin_refresh_token");
     });
 
     // Step 3：刷新页面触发路由守卫 → OAuth 登录
