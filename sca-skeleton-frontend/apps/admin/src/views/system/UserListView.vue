@@ -343,22 +343,6 @@ const userTypeColorOf = (t: string): string =>
 
 const genderLabelOf = (g: string): string => (g === "male" ? "男" : g === "female" ? "女" : "-");
 
-// 选中部门名称（根节点不显示"当前部门"提示）
-const selectedDeptLabel = computed(() => {
-  if (!selectedDeptId.value || selectedDeptId.value === ROOT_ID) return "";
-  const find = (nodes: DeptTreeNode[]): string | null => {
-    for (const n of nodes) {
-      if (n.id === selectedDeptId.value) return n.label;
-      if (n.children) {
-        const r = find(n.children);
-        if (r) return r;
-      }
-    }
-    return null;
-  };
-  return find(deptTreeNodes.value) ?? "";
-});
-
 // ═══════════════════════════════════════════════════════════════
 // 表格数据
 // ═══════════════════════════════════════════════════════════════
@@ -369,12 +353,6 @@ const tableLoading = ref(false);
 const tablePagination = ref({ page: 1, rowsPerPage: 10, rowsNumber: 0 });
 const selectedRows = ref<SysUser[]>([]);
 const sortState = ref<{ sortBy: string; descending: boolean }>({ sortBy: "", descending: false });
-
-function currentDeptFilterLabel(): string {
-  return selectedDeptLabel.value
-    ? `${t("user.currentDept")}: ${selectedDeptLabel.value}`
-    : "";
-}
 
 // ── 表格列定义 ──
 const columns: QTableColumn<SysUser>[] = [
@@ -931,25 +909,7 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- 当前筛选提示 -->
-          <div v-if="currentDeptFilterLabel()" class="search-active-filter row items-center q-mt-sm">
-            <q-icon name="sym_r_filter_alt" size="16px" class="q-mr-xs" color="primary" />
-            <span class="text-caption text-primary">{{ currentDeptFilterLabel() }}</span>
-            <q-btn
-              flat
-              dense
-              round
-              size="xs"
-              icon="sym_r_close"
-              color="primary"
-              class="q-ml-xs"
-              @click="
-                selectedDeptId = '';
-                searchForm.deptId = '';
-                handleSearch();
-              "
-            />
-          </div>
+
         </div>
       </div>
 
@@ -1384,10 +1344,6 @@ onMounted(() => {
 
 .search-area-body {
   padding: 8px;
-}
-
-.search-active-filter {
-  padding: 4px 0;
 }
 
 .search-btn {
