@@ -5,6 +5,7 @@ import { useQuasar } from "quasar";
 import { useI18n } from "vue-i18n";
 import { FolderTree } from "@repo/ui";
 import { useAuthStore } from "../stores/auth";
+import { useRightDrawerStore } from "../stores/rightDrawer";
 import { flattenRoutableMenus, getIconForMenuRouteName } from "../utils/menu-tree";
 import { persistDark, persistLocale, quasarLangForLocale } from "../i18n";
 
@@ -29,18 +30,23 @@ const RIGHT_DRAWER_WIDTH_MIN = 430;
 const RIGHT_DRAWER_WIDTH_MAX = 1000;
 
 const leftDrawerOpen = ref(true);
-const rightDrawerOpen = ref(false);
 const leftDrawerWidth = ref(LEFT_DRAWER_WIDTH_MIN);
-const rightDrawerWidth = ref(RIGHT_DRAWER_WIDTH_MIN);
 const leftSearchVisible = ref(false);
 const leftSearchKeyword = ref("");
 const leftSearchInputRef = ref(null);
-const activeRightDrawerTitle = ref(t("layout.genericPanel"));
-const activeRightDrawerIcon = ref("sym_r_widgets");
-/** true：右侧栏占用布局宽度挤压主区；false：overlay 浮动 */
-const rightDrawerPinned = ref(false);
 const expandedModuleKeys = ref([]);
 const visitedTabs = ref([]);
+
+// 全局右侧抽屉状态（Pinia store）
+const drawerStore = useRightDrawerStore();
+const rightDrawerOpen = computed({
+  get: () => drawerStore.open,
+  set: (val) => {
+    if (!val) drawerStore.closeDrawer();
+  }
+});
+const rightDrawerWidth = ref(RIGHT_DRAWER_WIDTH_MIN);
+const rightDrawerPinned = ref(false);
 
 /** 主区 Tab：工作台路由固定首位且不可关闭（实现上永不从列表移除） */
 const WORKBENCH_PATH = "/dashboard";
@@ -520,14 +526,12 @@ onUnmounted(() => {
   document.body.style.userSelect = "";
 });
 
-function openRightDrawer(title, icon) {
-  activeRightDrawerTitle.value = title;
-  activeRightDrawerIcon.value = icon;
-  rightDrawerOpen.value = true;
+function openRightDrawer(title, icon, contentComponent = null, contentProps = {}) {
+  drawerStore.openDrawer(title, icon, contentComponent, contentProps);
 }
 
 function closeRightDrawer() {
-  rightDrawerOpen.value = false;
+  drawerStore.closeDrawer();
 }
 
 function rightDrawerWidthToMin() {
@@ -849,8 +853,8 @@ function beginRightDrawerResize(e) {
     >
       <div class="right-drawer-stack">
         <div class="right-drawer-toolbar row items-center no-wrap">
-          <q-icon :name="activeRightDrawerIcon" size="20px" class="right-drawer-toolbar-icon" />
-          <span class="right-drawer-toolbar-title ellipsis">{{ activeRightDrawerTitle }}</span>
+          <q-icon :name="drawerStore.icon" size="20px" class="right-drawer-toolbar-icon" />
+          <span class="right-drawer-toolbar-title ellipsis">{{ drawerStore.title }}</span>
           <q-space />
           <div class="right-drawer-toolbar-trailing row items-center no-wrap">
             <q-btn
@@ -891,8 +895,11 @@ function beginRightDrawerResize(e) {
             />
           </div>
         </div>
-        <div class="right-drawer-body q-pa-md">
-          <div class="text-body2 right-drawer-placeholder">{{ t('layout.rightDrawerPlaceholder') }}</div>
+        <div class="right-drawer-body">
+          <template v-if="drawerStore.contentComponent">
+            <component :is="drawerStore.contentComponent" v-bind="drawerStore.contentProps" />
+          </template>
+          <div v-else class="text-body2 right-drawer-placeholder q-pa-md">{{ t('layout.rightDrawerPlaceholder') }}</div>
         </div>
       </div>
       <!-- 与 stack 并列，避免被包在 overflow 内；定位参照见 :deep(.right-drawer .q-drawer__content) -->

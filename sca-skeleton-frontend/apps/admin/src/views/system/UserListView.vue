@@ -12,9 +12,14 @@ import {
   resetUserPasswordApi
 } from "../../apis/user";
 import { getDeptListApi } from "../../apis/dept";
+import UserDrawerContent from "./UserDrawerContent.vue";
+import { useRightDrawerStore } from "../../stores/rightDrawer";
 
 const { t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
+
+// 全局右侧抽屉 store
+const drawerStore = useRightDrawerStore();
 
 // ═══════════════════════════════════════════════════════════════
 // 部门树
@@ -344,6 +349,24 @@ const userTypeColorOf = (t: string): string =>
 const genderLabelOf = (g: string): string => (g === "male" ? "男" : g === "female" ? "女" : "-");
 
 // ═══════════════════════════════════════════════════════════════
+// 抽屉操作
+// ═══════════════════════════════════════════════════════════════
+
+function openUserDrawer(mode: "add" | "edit" | "view", user?: SysUser) {
+  const title = mode === "add" ? t("user.addUser") : mode === "edit" ? t("user.editUser") : t("user.viewUser");
+  const icon = mode === "add" ? "sym_r_person_add" : mode === "edit" ? "sym_r_edit" : "sym_r_visibility";
+  drawerStore.openDrawer(title, icon, markRaw(UserDrawerContent), {
+    mode,
+    user,
+    onClose: () => drawerStore.closeDrawer(),
+    onSaved: () => {
+      drawerStore.closeDrawer();
+      loadTableData();
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
 // 表格数据
 // ═══════════════════════════════════════════════════════════════
 
@@ -512,9 +535,9 @@ watch(
 // 操作
 // ═══════════════════════════════════════════════════════════════
 
-// 新建（占位）
+// 添加用户
 function handleCreate() {
-  showToast(t("common.comingSoon"), "info");
+  openUserDrawer("add");
 }
 
 // 批量修改（占位）
@@ -580,28 +603,26 @@ async function handleBatchDelete() {
   loadTableData();
 }
 
-// 导入（占位）
-function handleImport() {
-  showToast(t("common.comingSoon"), "info");
-}
-
-// 导出
-function handleExport() {
-  showToast(t("common.comingSoon"), "info");
-}
-
 // 查看
 function handleView(user: SysUser) {
-  showToast(`${t("common.view")} — ${user.username}`, "info");
+  openUserDrawer("view", user);
 }
 
 // 编辑
 function handleEdit(user: SysUser) {
-  showToast(`${t("common.comingSoon")} — ${user.username}`, "info");
+  if (user.userType === "superadmin") {
+    showToast(t("user.superadminCannotEdit"), "warning");
+    return;
+  }
+  openUserDrawer("edit", user);
 }
 
 // 删除
 async function handleDelete(user: SysUser) {
+  if (user.userType === "superadmin") {
+    showToast(t("user.superadminCannotEdit"), "warning");
+    return;
+  }
   if (user.isBuiltin === 1) {
     showToast(t("user.cannotDeleteBuiltin"), "warning");
     return;
@@ -635,6 +656,10 @@ async function handleDelete(user: SysUser) {
 
 // 切换启用/停用状态
 async function handleToggleStatus(user: SysUser) {
+  if (user.userType === "superadmin") {
+    showToast(t("user.superadminCannotEdit"), "warning");
+    return;
+  }
   if (user.isBuiltin === 1) {
     showToast(t("user.cannotChangeBuiltinStatus"), "warning");
     return;
@@ -942,7 +967,7 @@ onMounted(() => {
             dense
             no-caps
             class="toolbar-btn"
-            @click="handleCreate"
+            @click.stop="handleCreate"
           >
             <q-icon name="sym_r_add" size="20px" class="q-mr-xs" />
             {{ t('user.createUser') }}
@@ -1041,7 +1066,7 @@ onMounted(() => {
               size="sm"
               color="info"
               icon="sym_r_visibility"
-              @click="handleView(props.row)"
+              @click.stop="handleView(props.row)"
             >
               <q-tooltip>{{ t("common.view") }}</q-tooltip>
             </q-btn>
@@ -1052,7 +1077,8 @@ onMounted(() => {
               size="sm"
               color="primary"
               icon="sym_r_edit"
-              @click="handleEdit(props.row)"
+              :disable="props.row.userType === 'superadmin'"
+              @click.stop="handleEdit(props.row)"
             >
               <q-tooltip>{{ t("common.edit") }}</q-tooltip>
             </q-btn>
@@ -1067,6 +1093,7 @@ onMounted(() => {
                   ? 'sym_r_block'
                   : 'sym_r_check_circle'
               "
+              :disable="props.row.userType === 'superadmin'"
               @click="handleToggleStatus(props.row)"
             >
               <q-tooltip>{{
@@ -1080,6 +1107,7 @@ onMounted(() => {
               size="sm"
               color="warning"
               icon="sym_r_lock_reset"
+              :disable="props.row.userType === 'superadmin' && props.row.isBuiltin === 1"
               @click="handleResetPassword(props.row)"
             >
               <q-tooltip>{{ t("user.resetPassword") }}</q-tooltip>
@@ -1091,6 +1119,7 @@ onMounted(() => {
               size="sm"
               color="negative"
               icon="sym_r_delete"
+              :disable="props.row.userType === 'superadmin'"
               @click="handleDelete(props.row)"
             >
               <q-tooltip>{{ t("common.delete") }}</q-tooltip>
