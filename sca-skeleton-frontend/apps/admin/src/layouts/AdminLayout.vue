@@ -878,7 +878,9 @@ function beginRightDrawerResize(e) {
               class="right-drawer-toolbar-action-btn"
               :aria-label="rightDrawerPinned ? t('layout.unpinDrawerAria') : t('layout.pinDrawerAria')"
               @click="toggleRightDrawerPinned"
-            />
+            >
+              <q-tooltip>{{ rightDrawerPinned ? t('layout.unpinDrawerAria') : t('layout.pinDrawerAria') }}</q-tooltip>
+            </q-btn>
             <q-btn
               flat
               round
@@ -887,7 +889,9 @@ function beginRightDrawerResize(e) {
               class="right-drawer-toolbar-action-btn"
               :aria-label="t('layout.minimizeDrawerAria')"
               @click="rightDrawerWidthToMin"
-            />
+            >
+              <q-tooltip>{{ t('layout.minimizeDrawerAria') }}</q-tooltip>
+            </q-btn>
             <q-btn
               flat
               round
@@ -896,7 +900,9 @@ function beginRightDrawerResize(e) {
               class="right-drawer-toolbar-action-btn"
               :aria-label="t('layout.maximizeDrawerAria')"
               @click="rightDrawerWidthToMax"
-            />
+            >
+              <q-tooltip>{{ t('layout.maximizeDrawerAria') }}</q-tooltip>
+            </q-btn>
             <q-btn
               flat
               round
@@ -905,7 +911,9 @@ function beginRightDrawerResize(e) {
               class="right-drawer-toolbar-action-btn"
               :aria-label="t('layout.closeDrawerAria')"
               @click="closeRightDrawer"
-            />
+            >
+              <q-tooltip>{{ t('layout.closeDrawerAria') }}</q-tooltip>
+            </q-btn>
           </div>
         </div>
         <div class="right-drawer-body q-pa-md">
@@ -1394,17 +1402,17 @@ function beginRightDrawerResize(e) {
 
 .right-drawer-toolbar-action-btn {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
   padding: 0;
   color: rgba(0, 0, 0, 0.87);
   border-radius: 50%;
 }
 
 .right-drawer-toolbar-action-btn :deep(.q-btn__wrapper) {
-  min-height: 32px;
+  min-height: 32px !important;
   padding: 0;
 }
 
