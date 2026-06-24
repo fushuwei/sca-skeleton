@@ -914,7 +914,7 @@ onMounted(() => {
                 @keyup.enter="handleSearch"
               />
             </div>
-            <div class="col">
+            <div class="col-auto">
               <q-select
                 v-model="searchForm.status"
                 filled
@@ -937,7 +937,7 @@ onMounted(() => {
                 </template>
               </q-select>
             </div>
-            <div class="col">
+            <div class="col-auto">
               <div class="row q-gutter-x-sm no-wrap">
                 <q-btn
                   color="primary"
