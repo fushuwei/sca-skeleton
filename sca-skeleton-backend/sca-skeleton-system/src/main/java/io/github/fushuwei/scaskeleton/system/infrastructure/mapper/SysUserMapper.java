@@ -16,12 +16,14 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
     /**
      * 分页查询用户列表（含部门名称、角色名称，排除密码字段）。
      *
-     * @param page     分页参数
-     * @param tenantId 租户ID
-     * @param username 用户名（可选，模糊匹配）
-     * @param nickname 昵称（可选，模糊匹配）
-     * @param status   状态（可选）
-     * @param deptId   部门ID（可选，精确匹配）
+     * @param page           分页参数
+     * @param tenantId       租户ID
+     * @param username       用户名（可选，模糊匹配）
+     * @param nickname       昵称（可选，模糊匹配）
+     * @param status         状态（可选）
+     * @param deptId         部门ID（可选，精确匹配）
+     * @param orderBy        排序字段（可选，白名单校验）
+     * @param orderDirection 排序方向 ASC/DESC（可选）
      * @return 分页用户列表（UserPageVO）
      */
     IPage<UserPageVO> selectUserPage(IPage<UserPageVO> page,
@@ -29,5 +31,7 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
                                      @Param("username") String username,
                                      @Param("nickname") String nickname,
                                      @Param("status") String status,
-                                     @Param("deptId") String deptId);
+                                     @Param("deptId") String deptId,
+                                     @Param("orderBy") String orderBy,
+                                     @Param("orderDirection") String orderDirection);
 }

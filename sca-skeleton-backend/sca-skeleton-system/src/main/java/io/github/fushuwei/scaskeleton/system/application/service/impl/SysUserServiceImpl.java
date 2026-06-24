@@ -54,7 +54,8 @@ public class SysUserServiceImpl implements SysUserService {
         // 按请求参数构造分页对象，返回 UserPageVO（含部门名称、角色名称，排除密码）
         Page<UserPageVO> page = new Page<>(req.getPageNum(), req.getPageSize());
         return userMapper.selectUserPage(page, tenantId,
-                req.getUsername(), req.getNickname(), req.getStatus(), req.getDeptId());
+                req.getUsername(), req.getNickname(), req.getStatus(), req.getDeptId(),
+                req.safeOrderBy(), req.safeOrderDirection());
     }
 
     @Override

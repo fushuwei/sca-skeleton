@@ -368,6 +368,7 @@ const tableTotal = ref(0);
 const tableLoading = ref(false);
 const tablePagination = ref({ page: 1, rowsPerPage: 10, rowsNumber: 0 });
 const selectedRows = ref<SysUser[]>([]);
+const sortState = ref<{ sortBy: string; descending: boolean }>({ sortBy: "", descending: false });
 
 function currentDeptFilterLabel(): string {
   return selectedDeptLabel.value
@@ -382,21 +383,21 @@ const columns: QTableColumn<SysUser>[] = [
     field: "username",
     label: t("user.username"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "nickname",
     field: "nickname",
     label: t("user.nickname"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "realName",
     field: "realName",
     label: t("user.realName"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "phone",
@@ -410,14 +411,14 @@ const columns: QTableColumn<SysUser>[] = [
     field: "userType",
     label: t("user.userType"),
     align: "center",
-    sortable: false
+    sortable: true
   },
   {
     name: "status",
     field: "status",
     label: t("user.status"),
     align: "center",
-    sortable: false
+    sortable: true
   },
   {
     name: "createTime",
@@ -443,12 +444,17 @@ const visibleColumns = ref(columns.map((c) => c.name));
 // ═══════════════════════════════════════════════════════════════
 
 async function loadTableData(
-  props?: { pagination: { page: number; rowsPerPage: number; rowsNumber?: number } }
+  props?: { pagination: { page: number; rowsPerPage: number; rowsNumber?: number }; sortBy?: string; descending?: boolean }
 ) {
   tableLoading.value = true;
 
   const pageNum = props?.pagination?.page ?? tablePagination.value.page;
   const pageSize = props?.pagination?.rowsPerPage ?? tablePagination.value.rowsPerPage;
+
+  if (props?.sortBy) {
+    sortState.value.sortBy = props.sortBy;
+    sortState.value.descending = props.descending ?? false;
+  }
 
   const params: UserPageRequest = {
     pageNum,
@@ -456,7 +462,9 @@ async function loadTableData(
     username: searchForm.username || undefined,
     nickname: searchForm.nickname || undefined,
     status: searchForm.status || undefined,
-    deptId: searchForm.deptId || undefined
+    deptId: searchForm.deptId || undefined,
+    orderBy: sortState.value.sortBy || undefined,
+    orderDirection: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
   };
 
   try {
@@ -1015,25 +1023,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- 选中行提示 -->
-      <div v-if="selectedRows.length" class="selection-bar row items-center q-px-sm q-my-xs">
-        <q-icon name="sym_r_check_circle" size="18px" color="primary" class="q-mr-sm" />
-        <span class="text-body2">
-          {{ t("common.selectedCount", { count: selectedRows.length }) }}
-        </span>
-        <q-btn
-          flat
-          dense
-          no-caps
-          size="sm"
-          color="grey-7"
-          class="q-ml-md"
-          @click="selectedRows = []"
-        >
-          {{ t("common.clearSelection") }}
-        </q-btn>
-      </div>
-
       <!-- ── 表格区域 ── -->
       <q-table
         v-model:selected="selectedRows"
@@ -1048,7 +1037,6 @@ onMounted(() => {
         flat
         binary-state-sort
         :class="['user-table', { 'user-table--empty': !tableRows.length }]"
-        hide-pagination
         @request="loadTableData"
       >
         <!-- 性别列 -->
@@ -1445,16 +1433,6 @@ onMounted(() => {
   font-size: 13px;
 }
 
-/* ── 选中提示条 ── */
-.selection-bar {
-  flex-shrink: 0;
-  height: 36px;
-  min-height: 36px;
-  background: rgba(0, 121, 107, 0.06);
-  border-radius: 0;
-  border: 1px solid rgba(0, 121, 107, 0.15);
-}
-
 /* ── 表格 ── */
 .user-table {
   flex: 1 1 auto;
@@ -1494,9 +1472,9 @@ onMounted(() => {
 
 /* 表格表头样式 */
 .user-table :deep(thead tr th) {
-  font-weight: 600 !important;
-  font-size: 12px !important;
-  color: rgba(0, 0, 0, 0.7) !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  color: rgba(0, 0, 0, 0.8) !important;
   background: #fafafa !important;
   white-space: nowrap;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
@@ -1570,10 +1548,13 @@ onMounted(() => {
   text-align: center;
 }
 
-/* 有数据时底部栏（分页已隐藏，此规则备用） */
+/* 分页底栏 */
 .user-table :deep(.q-table__bottom) {
   padding: 6px 16px;
   font-size: 13px;
+  min-height: 42px;
+  background: #fff;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 </style>
 

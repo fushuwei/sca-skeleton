@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 
+import java.util.Set;
+
 /**
  * 用户分页查询请求 DTO。
  *
@@ -11,6 +13,11 @@ import lombok.Data;
  */
 @Data
 public class UserPageRequest {
+
+    /** 允许排序的字段白名单，防止 SQL 注入 */
+    private static final Set<String> ALLOWED_ORDER_FIELDS = Set.of(
+            "username", "nickname", "real_name", "user_type", "status"
+    );
 
     /** 页码，从 1 开始 */
     @Min(value = 1, message = "页码不能小于 1")
@@ -29,4 +36,25 @@ public class UserPageRequest {
     private String status;
     /** 部门 ID 筛选 */
     private String deptId;
+
+    /** 排序字段 */
+    private String orderBy;
+    /** 排序方向：asc / desc */
+    private String orderDirection;
+
+    /** 校验并返回安全的排序字段名，不在白名单内则返回 null */
+    public String safeOrderBy() {
+        if (orderBy != null && ALLOWED_ORDER_FIELDS.contains(orderBy)) {
+            return orderBy;
+        }
+        return null;
+    }
+
+    /** 返回安全的排序方向，默认 desc */
+    public String safeOrderDirection() {
+        if ("asc".equalsIgnoreCase(orderDirection)) {
+            return "ASC";
+        }
+        return "DESC";
+    }
 }

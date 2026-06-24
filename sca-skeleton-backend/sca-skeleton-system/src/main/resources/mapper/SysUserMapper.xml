@@ -50,7 +50,14 @@
             AND u.status = #{status}
         </if>
         GROUP BY u.id, d.name
-        ORDER BY u.create_time DESC
+        <choose>
+            <when test="orderBy != null and orderBy != ''">
+                ORDER BY u.${orderBy} ${orderDirection}
+            </when>
+            <otherwise>
+                ORDER BY u.create_time DESC
+            </otherwise>
+        </choose>
     </select>
 
 </mapper>

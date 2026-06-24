@@ -83,6 +83,8 @@ export interface UserPageRequest {
   nickname?: string;
   status?: string;
   deptId?: string;
+  orderBy?: string;
+  orderDirection?: "asc" | "desc";
 }
 
 /** MyBatis-Plus 分页响应 */
