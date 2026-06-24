@@ -646,21 +646,27 @@ function beginRightDrawerResize(e) {
             icon="sym_r_search"
             class="top-action-btn"
             @click="openRightDrawer(t('layout.globalSearch'), 'sym_r_search')"
-          />
+          >
+            <q-tooltip>{{ t('layout.globalSearch') }}</q-tooltip>
+          </q-btn>
           <q-btn
             flat
             round
             icon="sym_r_notifications"
             class="top-action-btn"
             @click="openRightDrawer(t('layout.notifications'), 'sym_r_notifications')"
-          />
+          >
+            <q-tooltip>{{ t('layout.notifications') }}</q-tooltip>
+          </q-btn>
           <q-btn
             flat
             round
             icon="sym_r_delete"
             class="top-action-btn"
             @click="openRightDrawer(t('layout.recycleBin'), 'sym_r_delete')"
-          />
+          >
+            <q-tooltip>{{ t('layout.recycleBin') }}</q-tooltip>
+          </q-btn>
           <q-btn
             flat
             round
@@ -668,6 +674,7 @@ function beginRightDrawerResize(e) {
             class="top-action-btn"
             :aria-label="t('layout.languageMenuAria')"
           >
+            <q-tooltip>{{ t('layout.languageMenuAria') }}</q-tooltip>
             <q-menu
               class="admin-locale-q-menu"
               anchor="bottom middle"
@@ -712,14 +719,18 @@ function beginRightDrawerResize(e) {
             class="top-action-btn"
             :aria-label="t('layout.themeToggleAria')"
             @click="toggleColorTheme"
-          />
+          >
+            <q-tooltip>{{ t('layout.themeToggleAria') }}</q-tooltip>
+          </q-btn>
           <q-btn
             flat
             round
             icon="sym_r_settings"
             class="top-action-btn"
             @click="openRightDrawer(t('layout.settings'), 'sym_r_settings')"
-          />
+          >
+            <q-tooltip>{{ t('layout.settings') }}</q-tooltip>
+          </q-btn>
         </div>
         <q-btn-dropdown
           flat
