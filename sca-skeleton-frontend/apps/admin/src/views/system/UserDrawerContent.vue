@@ -23,6 +23,7 @@ const formLoading = ref(false);
 const form = reactive({
   id: "",
   username: "",
+  password: "",
   nickname: "",
   realName: "",
   gender: "",
@@ -31,6 +32,8 @@ const form = reactive({
   userCategory: "backend",
   userType: "normal",
   status: "active",
+  effectiveStartTime: "",
+  effectiveEndTime: "",
   remark: ""
 });
 
@@ -78,6 +81,7 @@ const statusOptions = computed(() => [
 function resetForm() {
   form.id = "";
   form.username = "";
+  form.password = "";
   form.nickname = "";
   form.realName = "";
   form.gender = "";
@@ -86,6 +90,8 @@ function resetForm() {
   form.userCategory = "backend";
   form.userType = "normal";
   form.status = "active";
+  form.effectiveStartTime = "";
+  form.effectiveEndTime = "";
   form.remark = "";
 }
 
@@ -102,6 +108,8 @@ function initForm() {
     form.userCategory = props.user.userCategory;
     form.userType = props.user.userType;
     form.status = props.user.status;
+    form.effectiveStartTime = props.user.effectiveStartTime || "";
+    form.effectiveEndTime = props.user.effectiveEndTime || "";
     form.remark = props.user.remark;
   }
 }
@@ -125,8 +133,14 @@ async function handleSave() {
     userCategory: form.userCategory,
     userType: form.userType,
     status: form.status,
+    effectiveStartTime: form.effectiveStartTime || undefined,
+    effectiveEndTime: form.effectiveEndTime || undefined,
     remark: form.remark || undefined
   };
+
+  if (props.mode === "add" && form.password) {
+    data.password = form.password;
+  }
 
   try {
     formLoading.value = true;
@@ -169,6 +183,20 @@ async function handleSave() {
             :rules="formRules.username"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
+            hide-bottom-space
+          />
+        </div>
+        <!-- 密码（仅添加时显示） -->
+        <div v-if="mode === 'add'" class="col-12 col-md-6">
+          <q-input
+            v-model="form.password"
+            :label="t('user.password')"
+            :hint="t('user.passwordHint')"
+            filled
+            square
+            dense
+            type="password"
+            :disable="drawerReadonly"
             hide-bottom-space
           />
         </div>
@@ -289,6 +317,34 @@ async function handleSave() {
             emit-value
             map-options
             :disable="drawerReadonly"
+            hide-bottom-space
+          />
+        </div>
+        <!-- 生效时间 -->
+        <div class="col-12 col-md-6">
+          <q-input
+            v-model="form.effectiveStartTime"
+            :label="t('user.effectiveStartTime')"
+            filled
+            square
+            dense
+            type="datetime-local"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+          />
+        </div>
+        <!-- 失效时间 -->
+        <div class="col-12 col-md-6">
+          <q-input
+            v-model="form.effectiveEndTime"
+            :label="t('user.effectiveEndTime')"
+            filled
+            square
+            dense
+            type="datetime-local"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
             hide-bottom-space
           />
         </div>
