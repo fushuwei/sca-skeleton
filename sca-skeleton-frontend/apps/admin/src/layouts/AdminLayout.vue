@@ -1461,7 +1461,7 @@ function beginRightDrawerResize(e) {
 .main-page {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 64px - 30px);
+  min-height: calc(100vh - 64px - 40px);
 }
 
 .main-page-stack {
