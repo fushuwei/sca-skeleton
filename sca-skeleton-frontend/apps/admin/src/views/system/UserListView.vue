@@ -1516,6 +1516,7 @@ onMounted(() => {
   overflow: auto;
   display: flex;
   flex-direction: column;
+  overscroll-behavior: none;
 }
 
 /* 表头始终可见：sticky 定位，滚动时固定在容器顶部 */
