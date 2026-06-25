@@ -441,7 +441,7 @@ const columns: QTableColumn<SysUser>[] = [
     field: "createTime",
     label: t("user.createTime"),
     align: "center",
-    sortable: false,
+    sortable: true,
     format: (val: string) => (val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-")
   },
   {
@@ -458,8 +458,12 @@ const visibleColumns = ref(columns.map((c) => c.name));
 // ── 前端列名 → 后端排序列名映射 ──
 const SORT_FIELD_MAP: Record<string, string> = {
   realName: "real_name",
-  userType: "user_type"
+  userType: "user_type",
+  createTime: "create_time"
 };
+
+// ── 标记初始加载是否完成（防止 @request 与 onMounted 重复请求） ──
+let initialLoadDone = false;
 
 // ═══════════════════════════════════════════════════════════════
 // 数据加载
@@ -476,6 +480,9 @@ async function loadTableData(
     };
   }
 ) {
+  // 防止 Quasar @request 在 onMounted 之前触发导致竞态
+  if (props && !initialLoadDone) return;
+
   tableLoading.value = true;
 
   const rawPage = props?.pagination?.page ?? tablePagination.value.page;
@@ -755,7 +762,10 @@ async function handleResetPassword(user: SysUser) {
 
 onMounted(() => {
   loadDeptTree();
+  loadTableData();
+  initialLoadDone = true;
 });
+
 
 </script>
 
@@ -1171,14 +1181,13 @@ onMounted(() => {
         <div class="user-local-drawer">
           <div class="user-drawer-shell">
             <div class="user-drawer-header row items-center no-wrap">
-              <q-icon name="sym_r_person" size="20px" class="q-mr-sm" />
+              <q-icon name="sym_r_add" size="20px" class="q-mr-sm" />
               <span class="user-drawer-title">{{ drawerTitle }}</span>
               <q-space />
               <q-btn
                 flat
                 dense
                 round
-                size="20px"
                 icon="sym_r_close"
                 class="user-drawer-close-btn"
                 @click="closeUserDrawer"
@@ -1509,9 +1518,11 @@ onMounted(() => {
   flex-direction: column;
 }
 
-/* 表头始终可见 */
+/* 表头始终可见：sticky 定位，滚动时固定在容器顶部 */
 .user-table :deep(thead) {
-  display: table-header-group !important;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 /* 表格只占自然高度 */
@@ -1643,7 +1654,7 @@ onMounted(() => {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  height: 48px;
+  height: 65px;
   padding: 0 16px;
   background: #fafafa;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
@@ -1663,11 +1674,17 @@ onMounted(() => {
   padding: 0;
   color: rgba(0, 0, 0, 0.6);
   border-radius: 50%;
+  font-size: 20px;
 }
 
 .user-drawer-close-btn :deep(.q-btn__wrapper) {
+  min-width: 32px;
   min-height: 32px;
   padding: 0;
+}
+
+.user-drawer-close-btn :deep(.q-icon) {
+  font-size: 20px;
 }
 
 .user-drawer-close-btn:hover {

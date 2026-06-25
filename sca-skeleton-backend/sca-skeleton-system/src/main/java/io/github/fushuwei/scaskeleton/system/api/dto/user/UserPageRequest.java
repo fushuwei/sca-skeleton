@@ -16,7 +16,7 @@ public class UserPageRequest {
 
     /** 允许排序的字段白名单，防止 SQL 注入 */
     private static final Set<String> ALLOWED_ORDER_FIELDS = Set.of(
-            "username", "nickname", "real_name", "user_type", "status"
+            "username", "nickname", "real_name", "user_type", "status", "create_time"
     );
 
     /** 页码，从 1 开始 */
