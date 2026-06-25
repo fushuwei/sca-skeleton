@@ -455,6 +455,12 @@ const columns: QTableColumn<SysUser>[] = [
 
 const visibleColumns = ref(columns.map((c) => c.name));
 
+// ── 前端列名 → 后端排序列名映射 ──
+const SORT_FIELD_MAP: Record<string, string> = {
+  realName: "real_name",
+  userType: "user_type"
+};
+
 // ═══════════════════════════════════════════════════════════════
 // 数据加载
 // ═══════════════════════════════════════════════════════════════
@@ -472,8 +478,11 @@ async function loadTableData(
 ) {
   tableLoading.value = true;
 
-  const pageNum = props?.pagination?.page ?? tablePagination.value.page;
+  const rawPage = props?.pagination?.page ?? tablePagination.value.page;
   const pageSize = props?.pagination?.rowsPerPage ?? tablePagination.value.rowsPerPage;
+
+  // 将 1-based row offset 转为页码（兼容 Quasar 的 @request 行为）
+  const pageNum = rawPage > pageSize ? Math.ceil(rawPage / pageSize) : rawPage;
 
   // Quasar @request 事件中 sortBy/descending 嵌套在 pagination 内部
   if (props?.pagination) {
@@ -483,6 +492,10 @@ async function loadTableData(
     tablePagination.value.descending = props.pagination.descending ?? false;
   }
 
+  // 前端列名 → 后端真实字段名映射（驼峰 → 下划线）
+  const sortBy = sortState.value.sortBy || undefined;
+  const orderBy = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : undefined;
+
   const params: UserPageRequest = {
     pageNum,
     pageSize,
@@ -490,7 +503,7 @@ async function loadTableData(
     nickname: searchForm.nickname || undefined,
     status: searchForm.status || undefined,
     deptId: searchForm.deptId || undefined,
-    orderBy: sortState.value.sortBy || undefined,
+    orderBy,
     orderDirection: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
   };
 
@@ -742,7 +755,6 @@ async function handleResetPassword(user: SysUser) {
 
 onMounted(() => {
   loadDeptTree();
-  loadTableData();
 });
 
 </script>
