@@ -5,13 +5,20 @@ import io.github.fushuwei.scaskeleton.core.exception.ForbiddenException;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.core.result.ResultType;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 全局异常处理器
@@ -41,12 +48,32 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 处理参数校验异常
+     * 处理请求体参数校验异常（@Valid/@Validated 绑定错误）
      */
-    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class, ConstraintViolationException.class})
-    public Result<Void> handleValidationException(Exception e) {
+    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
+    public Result<Void> handleBindException(BindException e) {
         log.warn("[参数校验异常] {}", e.getMessage());
-        return Result.fail(ResultCode.VALIDATION_ERROR, e.getMessage());
+        String message = Stream.concat(
+                e.getBindingResult().getFieldErrors().stream().map(FieldError::getDefaultMessage),
+                e.getBindingResult().getGlobalErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage))
+            .filter(java.util.Objects::nonNull)
+            .distinct()
+            .collect(Collectors.joining("; "));
+        return Result.fail(ResultCode.VALIDATION_ERROR, Optional.of(message).filter(s -> !s.isBlank()).orElse("请求参数校验失败"));
+    }
+
+    /**
+     * 处理方法参数校验异常（@Validated 方法级约束）
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public Result<Void> handleConstraintViolationException(ConstraintViolationException e) {
+        log.warn("[参数校验异常] {}", e.getMessage());
+        String message = e.getConstraintViolations().stream()
+            .map(ConstraintViolation::getMessage)
+            .filter(java.util.Objects::nonNull)
+            .distinct()
+            .collect(Collectors.joining("; "));
+        return Result.fail(ResultCode.VALIDATION_ERROR, Optional.of(message).filter(s -> !s.isBlank()).orElse("请求参数校验失败"));
     }
 
     /**

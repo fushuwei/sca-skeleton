@@ -175,7 +175,7 @@ async function handleSave() {
         <!-- 用户名 -->
         <div class="col-12 col-md-6">
           <q-input
-            v-model="form.username"
+            v-model.trim="form.username"
             :label="t('user.username') + ' *'"
             filled
             square
