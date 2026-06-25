@@ -29,6 +29,8 @@
     "selectedRows": "已选择 {count} 条",
     "rowsPerPageLabel": "每页显示:",
     "rowsPerPageUnit": "条",
+    "jumpToLabel": "跳转至",
+    "jumpToUnit": "页",
     "clearSelection": "清除选择",
     "collapseSearch": "收起搜索框",
     "expandSearch": "展开搜索框",

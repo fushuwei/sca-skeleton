@@ -391,6 +391,7 @@ const tablePagination = ref({
 });
 const selectedRows = ref<SysUser[]>([]);
 const sortState = ref<{ sortBy: string; descending: boolean }>({ sortBy: "", descending: false });
+const jumpToPage = ref<number | null>(null);
 
 // ── 表格列定义 ──
 const columns: QTableColumn<SysUser>[] = [
@@ -537,6 +538,16 @@ async function loadTableData(
 function handleSearch() {
   tablePagination.value.page = 1;
   loadTableData();
+}
+
+function handleJumpToPage() {
+  const page = jumpToPage.value;
+  const maxPage = Math.ceil(tableTotal.value / tablePagination.value.rowsPerPage);
+  if (page && page >= 1 && page <= maxPage) {
+    tablePagination.value.page = page;
+    loadTableData();
+  }
+  jumpToPage.value = null;
 }
 
 function handleReset() {
@@ -1204,6 +1215,17 @@ onMounted(() => {
                 <span class="text-caption">{{ t("common.rowsPerPageUnit") }}</span>
               </template>
             </q-select>
+            <span class="text-caption text-grey-7 q-ml-md q-mr-sm">{{ t("common.jumpToLabel") }}</span>
+            <q-input
+              v-model.number="jumpToPage"
+              dense
+              flat
+              borderless
+              class="jump-to-page-input"
+              input-class="text-center"
+              @keyup.enter="handleJumpToPage"
+            />
+            <span class="text-caption text-grey-7 q-ml-xs q-mr-sm">{{ t("common.jumpToUnit") }}</span>
           </div>
         </template>
       </q-table>
@@ -1693,6 +1715,24 @@ onMounted(() => {
 
 .table-bottom :deep(.rows-per-page-select .q-field__marginal) {
   height: 24px;
+}
+
+/* 跳转至页码输入框 */
+.table-bottom :deep(.jump-to-page-input) {
+  width: 40px;
+  font-size: 12px;
+}
+
+.table-bottom :deep(.jump-to-page-input .q-field__control) {
+  min-height: 24px;
+  padding: 0;
+  height: 24px;
+}
+
+.table-bottom :deep(.jump-to-page-input .q-field__native) {
+  min-height: 24px;
+  font-size: 12px;
+  padding: 0;
 }
 
 /* 复选框尺寸 */
