@@ -1170,6 +1170,28 @@ onMounted(() => {
             </div>
           </div>
         </template>
+
+        <!-- 自定义底部分页栏 -->
+        <template #bottom="props">
+          <div class="row items-center full-width table-bottom">
+            <span>
+              {{ t("common.totalRows", { count: tableTotal }) }}<template v-if="selectedRows.length">，{{ t("common.selectedRows", { count: selectedRows.length }) }}</template>
+            </span>
+            <q-space />
+            <q-pagination
+              v-model="props.pagination.page"
+              :max="props.pagesNumber"
+              :max-display="7"
+              size="sm"
+              color="primary"
+              boundary-links
+              icon-first="keyboard_double_arrow_left"
+              icon-prev="keyboard_arrow_left"
+              icon-next="keyboard_arrow_right"
+              icon-last="keyboard_double_arrow_right"
+            />
+          </div>
+        </template>
       </q-table>
     </div>
   </div>
@@ -1611,11 +1633,38 @@ onMounted(() => {
 
 /* 分页底栏 */
 .user-table :deep(.q-table__bottom) {
-  padding: 4px 16px;
+  padding: 3px 16px 4px;
   font-size: 13px;
   min-height: 42px;
   background: #fff;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+.table-bottom {
+  min-height: 40px;
+}
+
+/* 分页器按钮：模拟 round + dense，与底部状态栏 database 按钮一致 */
+.table-bottom :deep(.q-pagination__content .q-btn) {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  font-size: 10px !important;
+}
+
+/* 分页器按钮 focus-helper 圆形，与 q-focus-helper--round 一致 */
+.table-bottom :deep(.q-pagination__content .q-btn .q-focus-helper) {
+  border-radius: 50%;
+}
+
+/* 分页器图标：改用 material-symbols-rounded，尺寸 20px */
+.table-bottom :deep(.q-pagination__content .q-btn .q-icon) {
+  font-family: 'Material Symbols Rounded';
+  font-size: 20px;
+  font-weight: normal;
+  font-style: normal;
 }
 
 /* 复选框尺寸 */

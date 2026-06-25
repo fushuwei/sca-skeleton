@@ -25,6 +25,8 @@
     "export": "导出",
     "selectRowsFirst": "请先选择数据行",
     "selectedCount": "已选择 {count} 项",
+    "totalRows": "共 {count} 条",
+    "selectedRows": "已选择 {count} 条",
     "clearSelection": "清除选择",
     "collapseSearch": "收起搜索框",
     "expandSearch": "展开搜索框",

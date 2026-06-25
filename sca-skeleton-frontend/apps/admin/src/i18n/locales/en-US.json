@@ -25,6 +25,8 @@
     "export": "Export",
     "selectRowsFirst": "Please select rows first",
     "selectedCount": "{count} item(s) selected",
+    "totalRows": "Total {count} rows",
+    "selectedRows": "{count} row(s) selected",
     "clearSelection": "Clear selection",
     "collapseSearch": "Collapse search",
     "expandSearch": "Expand search",
