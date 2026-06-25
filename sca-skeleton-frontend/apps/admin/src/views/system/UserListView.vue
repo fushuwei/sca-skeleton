@@ -1181,10 +1181,10 @@ onMounted(() => {
             <q-pagination
               v-model="props.pagination.page"
               :max="props.pagesNumber"
-              :max-display="7"
               size="sm"
               color="primary"
               boundary-links
+              direction-links
               icon-first="keyboard_double_arrow_left"
               icon-prev="keyboard_arrow_left"
               icon-next="keyboard_arrow_right"
@@ -1643,6 +1643,11 @@ onMounted(() => {
   min-height: 40px;
 }
 
+/* 隐藏分页器中间页码，只保留首尾和上下翻页按钮 */
+.table-bottom :deep(.q-pagination__middle) {
+  display: none;
+}
+
 /* 分页器按钮：模拟 round + dense，与底部状态栏 database 按钮一致 */
 .table-bottom :deep(.q-pagination__content .q-btn) {
   width: 32px !important;
@@ -1661,10 +1666,7 @@ onMounted(() => {
 
 /* 分页器图标：改用 material-symbols-rounded，尺寸 20px */
 .table-bottom :deep(.q-pagination__content .q-btn .q-icon) {
-  font-family: 'Material Symbols Rounded';
   font-size: 20px;
-  font-weight: normal;
-  font-style: normal;
 }
 
 /* 复选框尺寸 */
