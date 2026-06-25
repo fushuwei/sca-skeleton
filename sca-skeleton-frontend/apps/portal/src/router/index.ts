@@ -62,10 +62,14 @@ router.beforeEach(async (to, _from, next) => {
 
   // ── 未登录：先尝试静默 refresh_token 续期 ──
   if (!authStore.isLoggedIn && !isPublic) {
+    // 在尝试续期前读取 refresh_token，因为 trySilentRefresh 失败时会清除 localStorage
+    const hadRefreshToken = Boolean(localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY));
     const refreshed = await trySilentRefresh();
     if (!refreshed) {
-      // 续期失败或无 token：完整 PKCE 登录，强制重新认证
-      void startOAuthLogin(getPortalOAuthConfig(), to.fullPath, { prompt: "login" });
+      // 续期失败或无 token：完整 PKCE 登录。
+      // 只有当 hadRefreshToken=true 时才强制 prompt=login（防止 Auth 服务端残留 JSESSIONID 跳过登录页），
+      // 冷启动时不设 prompt，避免额外登录页重定向导致浏览器 sessionStorage 被清空。
+      void startOAuthLogin(getPortalOAuthConfig(), to.fullPath, hadRefreshToken ? { prompt: "login" } : undefined);
       next(false);
       return;
     }

@@ -47,12 +47,19 @@ async function trySilentRefresh(): Promise<boolean> {
   }
 }
 
-/** 静默续期失败或无 token 时启动 OAuth2 PKCE 授权 redirect。
- *  传递 prompt=login 强制重新认证：此时已确认 refresh_token 不可用，
- *  Auth 服务的 JSESSIONID 即使有效也不应跳过登录页。 */
-function redirectToOAuthLogin(returnUrl: string): void {
+/**
+ * 静默续期失败或无 token 时启动 OAuth2 PKCE 授权 redirect。
+ *
+ * @param returnUrl       登录成功后返回的 SPA 路径
+ * @param hadRefreshToken 本次导航前 localStorage 中是否曾存在 refresh_token。
+ *                        只有当 hadRefreshToken=true 时才传递 prompt=login 强制重新认证，
+ *                        防止 Auth 服务端残留的 JSESSIONID 跳过登录页。
+ *                        冷启动（无任何 token）时不设 prompt，避免额外的登录页重定向
+ *                        导致浏览器 sessionStorage 被清空。
+ */
+function redirectToOAuthLogin(returnUrl: string, hadRefreshToken: boolean): void {
   const oauthConfig = getAdminOAuthConfig();
-  void startOAuthLogin(oauthConfig, returnUrl, { prompt: "login" });
+  void startOAuthLogin(oauthConfig, returnUrl, hadRefreshToken ? { prompt: "login" } : undefined);
 }
 
 export function setupRouterGuards(router: Router): void {
@@ -65,12 +72,14 @@ export function setupRouterGuards(router: Router): void {
 
     // ── 未登录：先尝试静默 refresh_token 续期 ──
     if (!authStore.isLoggedIn && !isWhiteRoute) {
+      // 在尝试续期前读取 refresh_token，因为 trySilentRefresh 失败时会清除 localStorage
+      const hadRefreshToken = Boolean(localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY));
       const refreshed = await trySilentRefresh();
       if (!refreshed) {
-        redirectToOAuthLogin(to.fullPath);
+        redirectToOAuthLogin(to.fullPath, hadRefreshToken);
         return false;
       }
-      // 静默续期成功，继续执行下方的“已登录”逻辑
+      // 静默续期成功，继续执行下方的"已登录"逻辑
     }
 
     // ── 已登录 ──
@@ -80,7 +89,7 @@ export function setupRouterGuards(router: Router): void {
         try {
           await authStore.fetchProfile();
         } catch {
-          // profile 拉取失败视为登录态失效
+          // profile 拉取失败视为登录态失效（此时用户曾持有 token，故强制 prompt=login 重登）
           authStore.token = "";
           authStore.refreshToken = "";
           authStore.profile = null;
@@ -88,7 +97,7 @@ export function setupRouterGuards(router: Router): void {
           localStorage.removeItem(TOKEN_STORAGE_KEY);
           localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
           localStorage.removeItem(MENUS_STORAGE_KEY);
-          redirectToOAuthLogin(to.fullPath);
+          redirectToOAuthLogin(to.fullPath, true);
           return false;
         }
       }
