@@ -1643,11 +1643,6 @@ onMounted(() => {
   min-height: 40px;
 }
 
-/* 隐藏分页器中间页码，只保留首尾和上下翻页按钮 */
-.table-bottom :deep(.q-pagination__middle) {
-  display: none;
-}
-
 /* 分页器按钮：模拟 round + dense，与底部状态栏 database 按钮一致 */
 .table-bottom :deep(.q-pagination__content .q-btn) {
   width: 32px !important;
