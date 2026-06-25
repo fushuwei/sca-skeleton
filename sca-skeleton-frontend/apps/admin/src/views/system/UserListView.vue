@@ -392,6 +392,7 @@ const tablePagination = ref({
 const selectedRows = ref<SysUser[]>([]);
 const sortState = ref<{ sortBy: string; descending: boolean }>({ sortBy: "", descending: false });
 const jumpToPage = ref<number | null>(null);
+const currentPage = computed(() => Math.ceil(tablePagination.value.page / tablePagination.value.rowsPerPage));
 
 // ── 表格列定义 ──
 const columns: QTableColumn<SysUser>[] = [
@@ -1215,7 +1216,7 @@ onMounted(() => {
                 <span class="text-caption">{{ t("common.rowsPerPageUnit") }}</span>
               </template>
             </q-select>
-            <span class="text-caption text-grey-7 q-ml-md q-mr-sm">{{ t("common.jumpToLabel") }}</span>
+            <span class="text-caption text-grey-7 q-ml-md">{{ t("common.jumpToLabel") }}</span>
             <q-input
               v-model.number="jumpToPage"
               dense
@@ -1223,9 +1224,10 @@ onMounted(() => {
               borderless
               class="jump-to-page-input"
               input-class="text-center"
+              :placeholder="String(currentPage >= props.pagesNumber ? 1 : currentPage + 1)"
               @keyup.enter="handleJumpToPage"
             />
-            <span class="text-caption text-grey-7 q-ml-xs q-mr-sm">{{ t("common.jumpToUnit") }}</span>
+            <span class="text-caption text-grey-7">{{ t("common.jumpToUnit") }}</span>
           </div>
         </template>
       </q-table>
