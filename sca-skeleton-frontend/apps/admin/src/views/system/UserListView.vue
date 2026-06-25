@@ -392,7 +392,10 @@ const tablePagination = ref({
 const selectedRows = ref<SysUser[]>([]);
 const sortState = ref<{ sortBy: string; descending: boolean }>({ sortBy: "", descending: false });
 const jumpToPage = ref<number | null>(null);
-const currentPage = computed(() => Math.ceil(tablePagination.value.page / tablePagination.value.rowsPerPage));
+const currentPage = computed(() => {
+  const pageSize = tablePagination.value.rowsPerPage || 10;
+  return Math.ceil(tablePagination.value.page / pageSize) || 1;
+});
 
 // ── 表格列定义 ──
 const columns: QTableColumn<SysUser>[] = [
@@ -1224,7 +1227,7 @@ onMounted(() => {
               borderless
               class="jump-to-page-input"
               input-class="text-center"
-              :placeholder="String(currentPage >= props.pagesNumber ? 1 : currentPage + 1)"
+              :placeholder="String((props.pagesNumber || 1) <= 1 ? 1 : (currentPage >= (props.pagesNumber || 1) ? 1 : currentPage + 1))"
               @keyup.enter="handleJumpToPage"
             />
             <span class="text-caption text-grey-7">{{ t("common.jumpToUnit") }}</span>
