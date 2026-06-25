@@ -1190,6 +1190,15 @@ onMounted(() => {
               icon-next="keyboard_arrow_right"
               icon-last="keyboard_double_arrow_right"
             />
+            <q-select
+              v-model="tablePagination.rowsPerPage"
+              :options="[10, 20, 50, 100]"
+              dense
+              flat
+              borderless
+              class="rows-per-page-select q-ml-sm"
+              @update:model-value="handleSearch"
+            />
           </div>
         </template>
       </q-table>
@@ -1659,9 +1668,26 @@ onMounted(() => {
   border-radius: 50%;
 }
 
-/* 分页器图标：改用 material-symbols-rounded，尺寸 20px */
+/* 分页器图标：尺寸 20px */
 .table-bottom :deep(.q-pagination__content .q-btn .q-icon) {
   font-size: 20px;
+}
+
+/* 每页条数选择器：与 Quasar 原生底栏一致 */
+.table-bottom :deep(.rows-per-page-select .q-field__control) {
+  min-height: 24px;
+  padding: 0;
+  height: 24px;
+}
+
+.table-bottom :deep(.rows-per-page-select .q-field__native) {
+  min-height: 24px;
+  font-size: 12px;
+  padding: 0;
+}
+
+.table-bottom :deep(.rows-per-page-select .q-field__marginal) {
+  height: 24px;
 }
 
 /* 复选框尺寸 */
