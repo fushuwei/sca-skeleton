@@ -1190,15 +1190,20 @@ onMounted(() => {
               icon-next="keyboard_arrow_right"
               icon-last="keyboard_double_arrow_right"
             />
+            <span class="text-caption text-grey-7 q-ml-md q-mr-sm">{{ t("common.rowsPerPageLabel") }}</span>
             <q-select
               v-model="tablePagination.rowsPerPage"
               :options="[10, 20, 50, 100]"
               dense
               flat
               borderless
-              class="rows-per-page-select q-ml-sm"
+              class="rows-per-page-select"
               @update:model-value="handleSearch"
-            />
+            >
+              <template #append>
+                <span class="text-caption">{{ t("common.rowsPerPageUnit") }}</span>
+              </template>
+            </q-select>
           </div>
         </template>
       </q-table>

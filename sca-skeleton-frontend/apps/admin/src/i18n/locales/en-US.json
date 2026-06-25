@@ -27,6 +27,8 @@
     "selectedCount": "{count} item(s) selected",
     "totalRows": "Total {count} rows",
     "selectedRows": "{count} row(s) selected",
+    "rowsPerPageLabel": "Rows per page:",
+    "rowsPerPageUnit": "",
     "clearSelection": "Clear selection",
     "collapseSearch": "Collapse search",
     "expandSearch": "Expand search",
