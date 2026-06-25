@@ -544,6 +544,11 @@ function handleSearch() {
   loadTableData();
 }
 
+function onPageChange(page: number) {
+  tablePagination.value.page = page;
+  loadTableData();
+}
+
 function handleJumpToPage() {
   const page = jumpToPage.value;
   const maxPage = Math.ceil(tableTotal.value / tablePagination.value.rowsPerPage);
@@ -1204,6 +1209,7 @@ onMounted(() => {
               icon-prev="keyboard_arrow_left"
               icon-next="keyboard_arrow_right"
               icon-last="keyboard_double_arrow_right"
+              @update:model-value="onPageChange"
             />
             <span class="text-caption text-grey-7 q-ml-md q-mr-sm">{{ t("common.rowsPerPageLabel") }}</span>
             <q-select
