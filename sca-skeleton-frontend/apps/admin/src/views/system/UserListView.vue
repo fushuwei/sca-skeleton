@@ -392,10 +392,14 @@ const tablePagination = ref({
 const selectedRows = ref<SysUser[]>([]);
 const sortState = ref<{ sortBy: string; descending: boolean }>({ sortBy: "", descending: false });
 const jumpToPage = ref<number | null>(null);
-const currentPage = computed(() => {
-  const pageSize = tablePagination.value.rowsPerPage || 10;
-  return Math.ceil(tablePagination.value.page / pageSize) || 1;
-});
+/**
+ * 当前页码 —— 与 q-pagination 绑定，始终为 1-based 页码。
+ *
+ * 注意：Quasar q-table 服务端分页时，@request 传入的 pagination.page
+ * 在不同版本/场景下可能是行偏移而非页码，因此这里独立维护，不依赖
+ * tablePagination.page 来计算当前页。
+ */
+const curPage = ref(1);
 
 // ── 表格列定义 ──
 const columns: QTableColumn<SysUser>[] = [
@@ -470,6 +474,9 @@ const SORT_FIELD_MAP: Record<string, string> = {
 // ── 标记初始加载是否完成（防止 @request 与 onMounted 重复请求） ──
 let initialLoadDone = false;
 
+// ── 递增请求 ID，用于丢弃过期的异步响应，避免竞态覆盖 curPage ──
+let loadRequestId = 0;
+
 // ═══════════════════════════════════════════════════════════════
 // 数据加载
 // ═══════════════════════════════════════════════════════════════
@@ -488,13 +495,16 @@ async function loadTableData(
   // 防止 Quasar @request 在 onMounted 之前触发导致竞态
   if (props && !initialLoadDone) return;
 
+  // 递增请求 ID，用于在响应中丢弃过期请求
+  const requestId = ++loadRequestId;
+
   tableLoading.value = true;
 
-  const rawPage = props?.pagination?.page ?? tablePagination.value.page;
-  const pageSize = props?.pagination?.rowsPerPage ?? tablePagination.value.rowsPerPage;
+  const pageSize = Number(props?.pagination?.rowsPerPage ?? tablePagination.value.rowsPerPage) || 10;
 
-  // 将 1-based row offset 转为页码（兼容 Quasar 的 @request 行为）
-  const pageNum = rawPage > pageSize ? Math.ceil(rawPage / pageSize) : rawPage;
+  // curPage 已在 onPageChange / handleSearch / handleJumpToPage 中同步更新，
+  // 始终反映用户期望的页码，直接作为 API 请求参数
+  const pageNum = curPage.value || 1;
 
   // Quasar @request 事件中 sortBy/descending 嵌套在 pagination 内部
   if (props?.pagination) {
@@ -521,38 +531,51 @@ async function loadTableData(
 
   try {
     const result = await getUserPageApi(params);
+
+    // 丢弃过期响应：如果在等待期间有新的请求发起，跳过本次更新
+    if (requestId !== loadRequestId) return;
+
     if (result.code === 10_000) {
       tableRows.value = result.data.records ?? [];
-      tableTotal.value = result.data.total ?? 0;
-      tablePagination.value.page = result.data.current ?? pageNum;
-      tablePagination.value.rowsPerPage = result.data.size ?? pageSize;
-      tablePagination.value.rowsNumber = result.data.total ?? 0;
+      tableTotal.value = Number(result.data.total) || 0;
+      tablePagination.value.page = Number(result.data.current) || pageNum;
+      tablePagination.value.rowsPerPage = Number(result.data.size) || pageSize;
+      tablePagination.value.rowsNumber = Number(result.data.total) || 0;
+      curPage.value = Number(result.data.current) || pageNum;
     } else {
       showToast(result.message || t("common.loadFail"), "negative");
     }
   } catch (error) {
+    // 同样丢弃过期请求的异常
+    if (requestId !== loadRequestId) return;
     if (!isNotificationHandled(error)) {
       showToast(t("common.loadFail"), "negative");
     }
   } finally {
-    tableLoading.value = false;
+    // 只有最新请求才负责关闭 loading
+    if (requestId === loadRequestId) {
+      tableLoading.value = false;
+    }
   }
 }
 
 function handleSearch() {
   tablePagination.value.page = 1;
+  curPage.value = 1;
   loadTableData();
 }
 
 function onPageChange(page: number) {
-  tablePagination.value.page = page;
+  curPage.value = Number(page);
+  tablePagination.value.page = Number(page);
   loadTableData();
 }
 
 function handleJumpToPage() {
-  const page = jumpToPage.value;
+  const page = Number(jumpToPage.value);
   const maxPage = Math.ceil(tableTotal.value / tablePagination.value.rowsPerPage);
   if (page && page >= 1 && page <= maxPage) {
+    curPage.value = page;
     tablePagination.value.page = page;
     loadTableData();
   }
@@ -569,6 +592,7 @@ function handleReset() {
   selectedDeptId.value = "";
   lastSelectedDeptId = "";
   tablePagination.value.page = 1;
+  curPage.value = 1;
   loadTableData();
 }
 
@@ -1199,7 +1223,7 @@ onMounted(() => {
             </span>
             <q-space />
             <q-pagination
-              v-model="props.pagination.page"
+              v-model="curPage"
               :max="props.pagesNumber"
               size="sm"
               color="primary"
@@ -1233,7 +1257,7 @@ onMounted(() => {
               borderless
               class="jump-to-page-input"
               input-class="text-center"
-              :placeholder="String((props.pagesNumber || 1) <= 1 ? 1 : (currentPage >= (props.pagesNumber || 1) ? 1 : currentPage + 1))"
+              :placeholder="String((props.pagesNumber || 1) <= 1 ? 1 : (curPage >= (props.pagesNumber || 1) ? 1 : curPage + 1))"
               @keyup.enter="handleJumpToPage"
             />
             <span class="text-caption text-grey-7">{{ t("common.jumpToUnit") }}</span>
