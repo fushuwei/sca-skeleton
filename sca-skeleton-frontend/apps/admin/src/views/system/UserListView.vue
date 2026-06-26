@@ -1243,6 +1243,7 @@ onMounted(() => {
               flat
               borderless
               class="rows-per-page-select"
+              popup-content-class="rows-per-page-popup"
               @update:model-value="handleSearch"
             >
               <template #append>
@@ -1876,6 +1877,11 @@ onMounted(() => {
 <style>
 .status-select-popup .q-item {
   min-height: 40px;
+  padding: 0 16px;
+}
+
+.rows-per-page-popup .q-item {
+  min-height: 36px;
   padding: 0 16px;
 }
 </style>
