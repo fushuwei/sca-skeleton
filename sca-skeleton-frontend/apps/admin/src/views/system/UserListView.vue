@@ -402,7 +402,7 @@ const jumpToPage = ref<number | null>(null);
 const curPage = ref(1);
 
 // ── 表格列定义 ──
-const columns: QTableColumn<SysUser>[] = [
+const columns = computed<QTableColumn<SysUser>[]>(() => [
   {
     name: "username",
     field: "username",
@@ -460,9 +460,9 @@ const columns: QTableColumn<SysUser>[] = [
     align: "center",
     sortable: false
   }
-];
+]);
 
-const visibleColumns = ref(columns.map((c) => c.name));
+const visibleColumns = ref(columns.value.map((c) => c.name));
 
 // ── 前端列名 → 后端排序列名映射 ──
 const SORT_FIELD_MAP: Record<string, string> = {
