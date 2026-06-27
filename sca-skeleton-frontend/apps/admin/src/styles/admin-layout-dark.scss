@@ -474,6 +474,7 @@
   .user-table .q-table__bottom {
     background: #1e1e1e;
     color: rgba(255, 255, 255, 0.72);
+    border-top-color: rgba(255, 255, 255, 0.08) !important;
   }
 
   .user-table .q-table__bottom .q-pagination .q-btn:not(.q-btn--flat) {
