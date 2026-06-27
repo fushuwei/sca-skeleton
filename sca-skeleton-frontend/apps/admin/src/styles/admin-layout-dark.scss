@@ -476,7 +476,12 @@
     color: rgba(255, 255, 255, 0.72);
   }
 
-  .user-table .q-table__bottom .q-pagination .q-btn {
+  .user-table .q-table__bottom .q-pagination .q-btn:not(.q-btn--flat) {
+    background: rgba(0, 150, 136, 0.85) !important;
+    color: white !important;
+  }
+
+  .user-table .q-table__bottom .q-pagination .q-btn.q-btn--flat {
     color: rgba(0, 150, 136, 0.85) !important;
   }
 
