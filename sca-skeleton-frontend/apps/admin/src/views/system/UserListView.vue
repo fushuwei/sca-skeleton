@@ -1718,10 +1718,10 @@ onMounted(() => {
 
 /* 分页器按钮：模拟 round + dense，与底部状态栏 database 按钮一致 */
 .table-bottom :deep(.q-pagination__content .q-btn) {
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px !important;
-  min-height: 32px !important;
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
   border-radius: 50% !important;
   padding: 0 !important;
   font-size: 10px !important;
@@ -1735,6 +1735,11 @@ onMounted(() => {
 /* 分页器图标：尺寸 20px */
 .table-bottom :deep(.q-pagination__content .q-btn .q-icon) {
   font-size: 20px;
+}
+
+/* 分页器选中页码加粗 */
+.table-bottom :deep(.q-pagination__content .q-btn.q-btn--standard) {
+  font-weight: 700;
 }
 
 /* 每页条数选择器：与 Quasar 原生底栏一致 */
