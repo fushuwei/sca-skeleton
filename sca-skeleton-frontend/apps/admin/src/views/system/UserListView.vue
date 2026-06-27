@@ -1674,6 +1674,7 @@ onMounted(() => {
 
 .user-table :deep(tbody td) {
   font-size: 13px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
 }
 
 /* Badge 统一样式 */
