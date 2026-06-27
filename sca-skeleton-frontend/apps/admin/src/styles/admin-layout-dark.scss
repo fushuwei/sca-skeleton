@@ -527,3 +527,21 @@
 .body--dark .status-select-popup .q-item--active {
   color: #80cbc4;
 }
+
+/* 每页条数下拉弹出层（teleported to body）深色模式 */
+.body--dark .rows-per-page-popup {
+  background: #2d2d2d;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .rows-per-page-popup .q-item {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .rows-per-page-popup .q-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.body--dark .rows-per-page-popup .q-item--active {
+  color: #80cbc4;
+}
