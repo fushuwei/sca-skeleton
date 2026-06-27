@@ -1890,4 +1890,35 @@ onMounted(() => {
   min-height: 36px;
   padding: 0 16px;
 }
+
+/* 抽屉暗色模式（Teleport to body，无法用 scoped 覆盖） */
+.body--dark .user-local-drawer {
+  background: #1e1e1e !important;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.4);
+}
+
+.body--dark .user-drawer-header {
+  background: #252525 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .user-drawer-title {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .user-drawer-close-btn {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.body--dark .user-drawer-close-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .user-drawer-body {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .user-drawer-footer {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
 </style>

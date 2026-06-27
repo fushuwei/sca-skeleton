@@ -427,3 +427,31 @@ async function handleSave() {
   font-size: 13px;
 }
 </style>
+
+<style>
+.body--dark .user-drawer-form .q-field__control {
+  background: #2d2d2d;
+}
+
+.body--dark .user-drawer-form .q-field__native,
+.body--dark .user-drawer-form .q-field__prefix,
+.body--dark .user-drawer-form .q-field__suffix {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .user-drawer-form .q-field__label {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.body--dark .user-drawer-form .q-field--focused .q-field__label {
+  color: #80cbc4;
+}
+
+.body--dark .user-drawer-form .q-field__control::before {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.body--dark .user-drawer-form .q-field--focused .q-field__control::after {
+  border-color: #80cbc4;
+}
+</style>
