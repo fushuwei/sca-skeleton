@@ -70,3 +70,6 @@ package-lock.json
 *.tsbuildinfo
 
 .flattened-pom.xml
+
+# playwright mcp
+.playwright-mcp/
