@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from "vue";
+import { ref, reactive, computed, watch, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysUser, SysDept, SysPost, SysRole } from "../../types/auth";
@@ -107,7 +107,16 @@ interface DeptTreeNode {
 const deptTreeNodes = ref<DeptTreeNode[]>([]);
 const deptTreeExpanded = ref<string[]>([]);
 const deptTreeMenuOpen = ref(false);
+const deptFieldRef = ref();
 const deptSearchKey = ref("");
+
+watch(deptTreeMenuOpen, (open) => {
+  if (!open && deptFieldRef.value) {
+    nextTick(() => {
+      deptFieldRef.value.validate();
+    });
+  }
+});
 
 /** 将扁平部门列表转换为树结构 */
 function buildDeptTree(depts: SysDept[]): DeptTreeNode[] {
@@ -489,6 +498,7 @@ async function handleSave() {
         <!-- 所属部门 -->
         <div class="col-12 col-md-6">
           <q-input
+            ref="deptFieldRef"
             :model-value="deptDisplayLabel"
             :label="t('user.dept') + ' *'"
             filled
