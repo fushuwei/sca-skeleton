@@ -127,6 +127,7 @@
     "remark": "Remark",
     "password": "Password",
     "passwordHint": "Defaults to Aa{'@'}123456 if empty",
+    "passwordEditHint": "Leave empty to keep current password",
     "effectiveStartTime": "Effective Start",
     "effectiveEndTime": "Effective End",
     "genderMale": "Male",

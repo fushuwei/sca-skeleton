@@ -313,7 +313,7 @@ async function handleSave() {
     roleIds: form.roleIds.length ? form.roleIds : undefined
   };
 
-  if (props.mode === "add" && form.password) {
+  if (form.password) {
     data.password = form.password;
   }
 
@@ -361,12 +361,12 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-        <!-- 密码（仅添加时显示） -->
-        <div v-if="mode === 'add'" class="col-12 col-md-6">
+        <!-- 密码（添加时必填，编辑时可选） -->
+        <div v-if="mode !== 'view'" class="col-12 col-md-6">
           <q-input
             v-model="form.password"
             :label="t('user.password')"
-            :hint="t('user.passwordHint')"
+            :hint="mode === 'add' ? t('user.passwordHint') : t('user.passwordEditHint')"
             filled
             square
             type="password"
