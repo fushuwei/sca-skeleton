@@ -107,6 +107,7 @@ interface DeptTreeNode {
 const deptTreeNodes = ref<DeptTreeNode[]>([]);
 const deptTreeExpanded = ref<string[]>([]);
 const deptSearchKey = ref("");
+const deptMenuRef = ref();
 
 /** 将扁平部门列表转换为树结构 */
 function buildDeptTree(depts: SysDept[]): DeptTreeNode[] {
@@ -194,11 +195,12 @@ function clearDeptSelection() {
   deptSearchKey.value = "";
 }
 
-/** 点击树节点 */
+/** 点击树节点（仅叶子节点可选，选中后关闭菜单） */
 function onDeptTreeNodeClick(node: DeptTreeNode) {
   if (!node.children?.length) {
     form.deptId = node.id;
     deptSearchKey.value = "";
+    deptMenuRef.value?.hide();
   }
 }
 
@@ -494,6 +496,7 @@ async function handleSave() {
             emit-value
             :display-value="deptDisplayLabel"
             :rules="formRules.deptId"
+            lazy-rules
             :disable="drawerReadonly"
             hide-bottom-space
           >
@@ -501,9 +504,11 @@ async function handleSave() {
               <q-icon name="sym_r_close" class="cursor-pointer" size="18px" @click.stop="clearDeptSelection" />
             </template>
             <q-menu
+              ref="deptMenuRef"
               anchor="bottom left"
               self="top left"
               :offset="[0, 0]"
+              no-focus
               no-route-update
               fit
             >
