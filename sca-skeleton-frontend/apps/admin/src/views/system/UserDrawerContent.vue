@@ -351,13 +351,14 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.username"
-            :label="t('user.username') + ' *'"
+            :label="t('user.username')"
             filled
             square
             :rules="formRules.username"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
+            class="required-field"
           />
         </div>
         <!-- 密码（仅添加时显示） -->
@@ -441,7 +442,7 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.userCategory"
-            :label="t('user.userCategory') + ' *'"
+            :label="t('user.userCategory')"
             filled
             square
             :options="userCategoryOptions"
@@ -452,13 +453,14 @@ async function handleSave() {
             :rules="formRules.userCategory"
             :disable="drawerReadonly"
             hide-bottom-space
+            class="required-field"
           />
         </div>
         <!-- 用户类型 -->
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.userType"
-            :label="t('user.userType') + ' *'"
+            :label="t('user.userType')"
             filled
             square
             :options="userTypeOptions"
@@ -469,6 +471,7 @@ async function handleSave() {
             :rules="formRules.userType"
             :disable="drawerReadonly"
             hide-bottom-space
+            class="required-field"
           />
         </div>
         <!-- 状态 -->
@@ -491,7 +494,7 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.deptId"
-            :label="t('user.dept') + ' *'"
+            :label="t('user.dept')"
             filled
             square
             emit-value
@@ -502,6 +505,7 @@ async function handleSave() {
             hide-bottom-space
             dropdown-icon="sym_r_arrow_drop_down"
             :class="{ 'dept-select--menu-open': deptMenuOpen }"
+            class="required-field"
           >
             <template #prepend v-if="form.deptId && !drawerReadonly">
               <q-icon name="sym_r_close" class="cursor-pointer" size="18px" @click.stop="clearDeptSelection" />
@@ -586,7 +590,7 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.roleIds"
-            :label="t('user.role') + ' *'"
+            :label="t('user.role')"
             filled
             square
             :options="roleMultiOptions"
@@ -598,6 +602,7 @@ async function handleSave() {
             :rules="formRules.roleIds"
             :disable="drawerReadonly"
             hide-bottom-space
+            class="required-field"
           />
         </div>
         <!-- 是否必须修改密码 -->
@@ -717,7 +722,11 @@ async function handleSave() {
   cursor: pointer;
 }
 
-/* 部门下拉框箭头旋转动画 */
+/* 必填项星号红色高亮 */
+.required-field :deep(.q-field__label::after) {
+  content: " *";
+  color: var(--q-negative);
+}
 .dept-select--menu-open :deep(.q-field__append > .q-icon:not(.text-negative)) {
   transform: rotate(180deg);
 }
