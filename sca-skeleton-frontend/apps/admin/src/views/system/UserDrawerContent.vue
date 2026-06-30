@@ -108,6 +108,7 @@ const deptTreeNodes = ref<DeptTreeNode[]>([]);
 const deptTreeExpanded = ref<string[]>([]);
 const deptSearchKey = ref("");
 const deptMenuRef = ref();
+const deptMenuOpen = ref(false);
 
 /** 将扁平部门列表转换为树结构 */
 function buildDeptTree(depts: SysDept[]): DeptTreeNode[] {
@@ -499,6 +500,8 @@ async function handleSave() {
             lazy-rules
             :disable="drawerReadonly"
             hide-bottom-space
+            dropdown-icon="sym_r_arrow_drop_down"
+            :class="{ 'dept-select--menu-open': deptMenuOpen }"
           >
             <template #prepend v-if="form.deptId && !drawerReadonly">
               <q-icon name="sym_r_close" class="cursor-pointer" size="18px" @click.stop="clearDeptSelection" />
@@ -511,6 +514,8 @@ async function handleSave() {
               no-focus
               no-route-update
               fit
+              @before-show="deptMenuOpen = true"
+              @before-hide="deptMenuOpen = false"
             >
               <div class="q-pa-sm" style="width: 300px">
                 <q-input
@@ -710,6 +715,15 @@ async function handleSave() {
 
 .dept-tree-option--leaf {
   cursor: pointer;
+}
+
+/* 部门下拉框箭头旋转动画 */
+.dept-select--menu-open :deep(.q-field__append > .q-icon:not(.text-negative)) {
+  transform: rotate(180deg);
+}
+
+:deep(.q-field__append > .q-icon:not(.text-negative)) {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>
 
