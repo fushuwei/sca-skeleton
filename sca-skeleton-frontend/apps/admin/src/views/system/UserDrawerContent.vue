@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted, nextTick } from "vue";
+import { ref, reactive, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysUser, SysDept, SysPost, SysRole } from "../../types/auth";
@@ -106,17 +106,7 @@ interface DeptTreeNode {
 }
 const deptTreeNodes = ref<DeptTreeNode[]>([]);
 const deptTreeExpanded = ref<string[]>([]);
-const deptTreeMenuOpen = ref(false);
-const deptFieldRef = ref();
 const deptSearchKey = ref("");
-
-watch(deptTreeMenuOpen, (open) => {
-  if (!open && deptFieldRef.value) {
-    nextTick(() => {
-      deptFieldRef.value.validate();
-    });
-  }
-});
 
 /** 将扁平部门列表转换为树结构 */
 function buildDeptTree(depts: SysDept[]): DeptTreeNode[] {
@@ -198,19 +188,18 @@ const deptDisplayLabel = computed(() => {
   return findDeptLabel(deptTreeNodes.value, form.deptId);
 });
 
-/** 点击树节点 */
-function onDeptTreeNodeClick(node: DeptTreeNode) {
-  if (!node.children?.length) {
-    form.deptId = node.id;
-    deptTreeMenuOpen.value = false;
-    deptSearchKey.value = "";
-  }
-}
-
 /** 清空部门选择 */
 function clearDeptSelection() {
   form.deptId = "";
   deptSearchKey.value = "";
+}
+
+/** 点击树节点 */
+function onDeptTreeNodeClick(node: DeptTreeNode) {
+  if (!node.children?.length) {
+    form.deptId = node.id;
+    deptSearchKey.value = "";
+  }
 }
 
 /** 节点图标 */
@@ -497,38 +486,28 @@ async function handleSave() {
         </div>
         <!-- 所属部门 -->
         <div class="col-12 col-md-6">
-          <q-input
-            ref="deptFieldRef"
-            :model-value="deptDisplayLabel"
+          <q-select
+            v-model="form.deptId"
             :label="t('user.dept') + ' *'"
             filled
             square
-            readonly
+            emit-value
+            :display-value="deptDisplayLabel"
+            :rules="formRules.deptId"
             :disable="drawerReadonly"
             hide-bottom-space
-            :rules="formRules.deptId"
-            :class="{ 'cursor-pointer': !drawerReadonly, 'dept-field': true, 'q-field--focused': deptTreeMenuOpen }"
-            @click.stop="!drawerReadonly && (deptTreeMenuOpen = true)"
           >
-            <template v-if="!drawerReadonly" #append>
-              <q-icon
-                v-if="form.deptId"
-                name="sym_r_close"
-                class="cursor-pointer"
-                size="18px"
-                @click.stop="clearDeptSelection"
-              />
-              <q-icon name="sym_r_account_tree" size="18px" class="cursor-pointer" @click.stop="deptTreeMenuOpen = !deptTreeMenuOpen" />
+            <template #prepend v-if="form.deptId && !drawerReadonly">
+              <q-icon name="sym_r_close" class="cursor-pointer" size="18px" @click.stop="clearDeptSelection" />
             </template>
             <q-menu
-              v-model="deptTreeMenuOpen"
               anchor="bottom left"
               self="top left"
               :offset="[0, 0]"
               no-route-update
               fit
             >
-              <div class="q-pa-sm">
+              <div class="q-pa-sm" style="width: 300px">
                 <q-input
                   v-model="deptSearchKey"
                   dense
@@ -574,7 +553,7 @@ async function handleSave() {
                 </q-scroll-area>
               </div>
             </q-menu>
-          </q-input>
+          </q-select>
         </div>
         <!-- 岗位（多选） -->
         <div class="col-12 col-md-6">
@@ -730,20 +709,6 @@ async function handleSave() {
 </style>
 
 <style>
-.dept-field .q-field__control::before {
-  border-style: none none solid !important;
-  background: rgba(0, 0, 0, 0.05) !important;
-}
-
-.dept-field.q-field--focused .q-field__control::before {
-  border-bottom-width: 2px !important;
-  border-bottom-color: currentColor !important;
-}
-
-.dept-field.q-field--focused .q-field__control::after {
-  transform: scaleX(1) !important;
-}
-
 .body--dark .user-drawer-form .q-field__control {
   background: #2d2d2d;
 }
