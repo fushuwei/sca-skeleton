@@ -360,6 +360,12 @@ const drawerTitle = computed(() => {
   return t("user.viewUser");
 });
 
+const drawerIcon = computed(() => {
+  if (drawerMode.value === "add") return "sym_r_add";
+  if (drawerMode.value === "edit") return "sym_r_edit";
+  return "sym_r_visibility";
+});
+
 function openUserDrawer(mode: DrawerMode, user?: SysUser) {
   drawerMode.value = mode;
   drawerUser.value = user;
@@ -1275,7 +1281,7 @@ onMounted(() => {
         <div class="user-local-drawer">
           <div class="user-drawer-shell">
             <div class="user-drawer-header row items-center no-wrap">
-              <q-icon name="sym_r_add" size="20px" class="q-mr-sm" />
+              <q-icon :name="drawerIcon" size="20px" class="q-mr-sm" />
               <span class="user-drawer-title">{{ drawerTitle }}</span>
               <q-space />
               <q-btn
