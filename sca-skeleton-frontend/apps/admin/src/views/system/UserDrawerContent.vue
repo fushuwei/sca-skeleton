@@ -179,7 +179,6 @@ async function handleSave() {
             :label="t('user.username') + ' *'"
             filled
             square
-            dense
             :rules="formRules.username"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
@@ -194,7 +193,6 @@ async function handleSave() {
             :hint="t('user.passwordHint')"
             filled
             square
-            dense
             type="password"
             :disable="drawerReadonly"
             hide-bottom-space
@@ -207,7 +205,6 @@ async function handleSave() {
             :label="t('user.nickname')"
             filled
             square
-            dense
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
@@ -220,7 +217,6 @@ async function handleSave() {
             :label="t('user.realName')"
             filled
             square
-            dense
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
@@ -233,7 +229,6 @@ async function handleSave() {
             :label="t('user.gender')"
             filled
             square
-            dense
             :options="genderOptions"
             option-label="label"
             option-value="value"
@@ -250,7 +245,6 @@ async function handleSave() {
             :label="t('user.phone')"
             filled
             square
-            dense
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
@@ -263,7 +257,6 @@ async function handleSave() {
             :label="t('user.email')"
             filled
             square
-            dense
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
@@ -276,7 +269,6 @@ async function handleSave() {
             :label="t('user.userCategory')"
             filled
             square
-            dense
             :options="userCategoryOptions"
             option-label="label"
             option-value="value"
@@ -293,7 +285,6 @@ async function handleSave() {
             :label="t('user.userType')"
             filled
             square
-            dense
             :options="userTypeOptions"
             option-label="label"
             option-value="value"
@@ -310,7 +301,6 @@ async function handleSave() {
             :label="t('user.status')"
             filled
             square
-            dense
             :options="statusOptions"
             option-label="label"
             option-value="value"
@@ -327,7 +317,6 @@ async function handleSave() {
             :label="t('user.effectiveStartTime')"
             filled
             square
-            dense
             type="datetime-local"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
@@ -341,7 +330,6 @@ async function handleSave() {
             :label="t('user.effectiveEndTime')"
             filled
             square
-            dense
             type="datetime-local"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
@@ -355,7 +343,6 @@ async function handleSave() {
             :label="t('user.remark')"
             filled
             square
-            dense
             type="textarea"
             rows="3"
             :disable="drawerReadonly"
@@ -396,24 +383,6 @@ async function handleSave() {
   padding: 0;
 }
 
-.user-drawer-form :deep(.q-field__control) {
-  min-height: 36px;
-  padding: 0 12px;
-}
-
-.user-drawer-form :deep(.q-field__native) {
-  min-height: 36px;
-  font-size: 13px;
-}
-
-.user-drawer-form :deep(.q-field__label) {
-  font-size: 13px;
-}
-
-.user-drawer-form :deep(textarea.q-field__native) {
-  min-height: 60px;
-}
-
 .user-drawer-footer {
   flex-shrink: 0;
   padding: 12px 0 0;
@@ -423,8 +392,6 @@ async function handleSave() {
 
 .drawer-action-btn {
   min-width: 72px;
-  height: 34px;
-  font-size: 13px;
 }
 </style>
 
