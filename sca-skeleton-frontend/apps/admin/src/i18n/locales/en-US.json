@@ -34,7 +34,9 @@
     "clearSelection": "Clear selection",
     "collapseSearch": "Collapse search",
     "expandSearch": "Expand search",
-    "view": "View"
+    "view": "View",
+    "yes": "Yes",
+    "no": "No"
   },
   "layout": {
     "brandTitle": "Data Middle Platform",
@@ -140,7 +142,16 @@
     "phonePlaceholder2": "Please input phone number",
     "emailPlaceholder": "Please input email",
     "remarkPlaceholder": "Please input remark",
-    "superadminCannotEdit": "Super admin users cannot perform this operation"
+    "superadminCannotEdit": "Super admin users cannot perform this operation",
+    "dept": "Department",
+    "post": "Position",
+    "role": "Role",
+    "mustChangePassword": "Must Change Password",
+    "userCategoryRequired": "Please select user category",
+    "userTypeRequired": "Please select user type",
+    "searchDept": "Search department",
+    "deptRequired": "Please select department",
+    "roleRequired": "Please select role"
   },
   "menu": {
     "ModuleDatasource": "Data Source Center",

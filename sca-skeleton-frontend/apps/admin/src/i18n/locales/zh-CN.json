@@ -34,7 +34,9 @@
     "clearSelection": "清除选择",
     "collapseSearch": "收起搜索框",
     "expandSearch": "展开搜索框",
-    "view": "查看"
+    "view": "查看",
+    "yes": "是",
+    "no": "否"
   },
   "layout": {
     "brandTitle": "数据中台管理系统",
@@ -140,7 +142,16 @@
     "phonePlaceholder2": "请输入手机号",
     "emailPlaceholder": "请输入邮箱",
     "remarkPlaceholder": "请输入备注",
-    "superadminCannotEdit": "超级管理员用户不能进行此操作"
+    "superadminCannotEdit": "超级管理员用户不能进行此操作",
+    "dept": "所属部门",
+    "post": "岗位",
+    "role": "角色",
+    "mustChangePassword": "必须修改密码",
+    "userCategoryRequired": "请选择用户类别",
+    "userTypeRequired": "请选择用户类型",
+    "searchDept": "搜索部门",
+    "deptRequired": "请选择所属部门",
+    "roleRequired": "请选择角色"
   },
   "menu": {
     "ModuleDatasource": "数据源中心",

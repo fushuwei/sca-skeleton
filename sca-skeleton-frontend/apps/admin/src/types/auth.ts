@@ -126,3 +126,34 @@ export interface DeptTreeNode {
   children?: DeptTreeNode[];
   count?: number;
 }
+
+// ── 岗位管理相关类型 ──
+
+/** 系统岗位实体（对应后端 SysPost） */
+export interface SysPost {
+  id: string;
+  tenantId: string;
+  name: string;
+  code: string;
+  sort: number;
+  remark: string;
+  createTime: string;
+  updateTime: string;
+}
+
+// ── 角色管理相关类型 ──
+
+/** 系统角色实体（对应后端 SysRole） */
+export interface SysRole {
+  id: string;
+  tenantId: string;
+  name: string;
+  code: string;
+  /** 数据权限范围：all / tenant / dept_and_sub / dept / personal / custom */
+  dataScope: string;
+  isBuiltin: number;
+  sort: number;
+  remark: string;
+  createTime: string;
+  updateTime: string;
+}
