@@ -489,7 +489,7 @@ async function handleSave() {
         <!-- 所属部门 -->
         <div class="col-12 col-md-6">
           <q-input
-            v-model="deptDisplayLabel"
+            :model-value="deptDisplayLabel"
             :label="t('user.dept') + ' *'"
             filled
             square
@@ -497,7 +497,7 @@ async function handleSave() {
             :disable="drawerReadonly"
             hide-bottom-space
             :rules="formRules.deptId"
-            :class="{ 'cursor-pointer': !drawerReadonly }"
+            :class="{ 'cursor-pointer': !drawerReadonly, 'dept-field': true, 'q-field--focused': deptTreeMenuOpen }"
             @click.stop="!drawerReadonly && (deptTreeMenuOpen = true)"
           >
             <template v-if="!drawerReadonly" #append>
@@ -514,9 +514,9 @@ async function handleSave() {
               v-model="deptTreeMenuOpen"
               anchor="bottom left"
               self="top left"
-              :offset="[0, 4]"
+              :offset="[0, 0]"
               no-route-update
-              style="width: 320px; max-height: 400px"
+              fit
             >
               <div class="q-pa-sm">
                 <q-input
@@ -720,6 +720,20 @@ async function handleSave() {
 </style>
 
 <style>
+.dept-field .q-field__control::before {
+  border-style: none none solid !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.dept-field.q-field--focused .q-field__control::before {
+  border-bottom-width: 2px !important;
+  border-bottom-color: currentColor !important;
+}
+
+.dept-field.q-field--focused .q-field__control::after {
+  transform: scaleX(1) !important;
+}
+
 .body--dark .user-drawer-form .q-field__control {
   background: #2d2d2d;
 }
