@@ -126,7 +126,7 @@
     "userCategoryFrontend": "Frontend User",
     "remark": "Remark",
     "password": "Password",
-    "passwordHint": "Defaults to Aa@123456 if empty",
+    "passwordHint": "Defaults to Aa{'@'}123456 if empty",
     "effectiveStartTime": "Effective Start",
     "effectiveEndTime": "Effective End",
     "genderMale": "Male",

@@ -126,7 +126,7 @@
     "userCategoryFrontend": "前端用户",
     "remark": "备注",
     "password": "密码",
-    "passwordHint": "留空则默认 Aa@123456",
+    "passwordHint": "留空则默认 Aa{'@'}123456",
     "effectiveStartTime": "生效时间",
     "effectiveEndTime": "失效时间",
     "genderMale": "男",
