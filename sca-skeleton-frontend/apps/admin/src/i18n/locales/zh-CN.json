@@ -51,6 +51,7 @@
     "expandAll": "展开全部",
     "collapseAll": "收起全部",
     "searchMenu": "搜索菜单",
+    "locateTab": "定位当前菜单",
     "tabScrollLeftAria": "页签向左滚动",
     "tabScrollRightAria": "页签向右滚动",
     "tabCloseAria": "关闭页签",

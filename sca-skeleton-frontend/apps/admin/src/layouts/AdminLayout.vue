@@ -40,6 +40,7 @@ const activeRightDrawerIcon = ref("sym_r_widgets");
 /** true：右侧栏占用布局宽度挤压主区；false：overlay 浮动 */
 const rightDrawerPinned = ref(false);
 const expandedModuleKeys = ref([]);
+const treeExpandedMap = ref({});
 const visitedTabs = ref([]);
 
 /** 主区 Tab：工作台路由固定首位且不可关闭（实现上永不从列表移除） */
@@ -179,6 +180,28 @@ function setModuleExpanded(moduleKey, expanded) {
   } else {
     expandedModuleKeys.value = keys.filter((k) => k !== moduleKey);
   }
+}
+
+/** 获取指定模块的树展开节点列表 */
+function getTreeExpanded(moduleKey) {
+  return treeExpandedMap.value[moduleKey] ?? [];
+}
+
+/** 更新指定模块的树展开节点列表 */
+function setTreeExpanded(moduleKey, keys) {
+  treeExpandedMap.value = { ...treeExpandedMap.value, [moduleKey]: keys };
+}
+
+/** 递归查找目标节点的所有祖先节点 key（用于展开路径） */
+function findAncestorPath(nodes, targetName, path) {
+  for (const n of nodes) {
+    if (n.name === targetName) return path;
+    if (n.children?.length) {
+      const result = findAncestorPath(n.children, targetName, [...path, n.name]);
+      if (result) return result;
+    }
+  }
+  return null;
 }
 
 const menuModules = computed(() => {
@@ -471,6 +494,46 @@ function expandAllModules() {
 
 function collapseAllModules() {
   expandedModuleKeys.value = [];
+}
+
+/** 定位当前 Tab 对应的菜单项：展开所属模块手风琴并滚动到选中节点 */
+function locateCurrentTab() {
+  const name = activeRouteName.value;
+  if (!name) return;
+
+  /** 工作台不在侧栏手风琴中，不做展开 */
+  const workbenchNames = new Set(["ModuleWorkbench", "dashboard"]);
+  if (workbenchNames.has(name)) return;
+
+  /** 找到包含当前路由的模块 */
+  const matchedModule = menuModules.value.find((mod) =>
+    moduleTreeContainsActiveRoute(mod.treeNodes, name)
+  );
+  if (!matchedModule) return;
+
+  /** 展开该模块的手风琴（若已展开则不重复赋值） */
+  const needExpandAccordion = !expandedModuleKeys.value.includes(matchedModule.key);
+  if (needExpandAccordion) {
+    expandedModuleKeys.value = [...expandedModuleKeys.value, matchedModule.key];
+  }
+
+  /** 第一步：等手风琴展开动画完成 */
+  nextTick(() => {
+    /** 展开树中从根到目标节点的路径 */
+    const ancestorPath = findAncestorPath(matchedModule.treeNodes, name, []) ?? [];
+    const currentExpanded = getTreeExpanded(matchedModule.key);
+    const mergedExpanded = [...new Set([...currentExpanded, ...ancestorPath])];
+    setTreeExpanded(matchedModule.key, mergedExpanded);
+
+    /** 第二步：等树节点展开渲染完成后滚动 */
+    nextTick(() => {
+      const scrollArea = document.querySelector(".left-menu-scroll");
+      const selectedNode = scrollArea?.querySelector(".q-tree__node--selected");
+      if (selectedNode) {
+        selectedNode.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+  });
 }
 
 function openLeftSearchToolbar() {
@@ -788,6 +851,9 @@ function beginRightDrawerResize(e) {
               <span class="left-toolbar-title">{{ t('layout.navTitle') }}</span>
             </div>
             <div class="row items-center no-wrap left-toolbar-actions">
+              <q-btn flat round icon="sym_r_my_location" class="left-toolbar-action-btn" @click="locateCurrentTab">
+                <q-tooltip>{{ t('layout.locateTab') }}</q-tooltip>
+              </q-btn>
               <q-btn flat round icon="sym_r_expand" class="left-toolbar-action-btn" @click="expandAllModules">
                 <q-tooltip>{{ t('layout.expandAll') }}</q-tooltip>
               </q-btn>
@@ -843,8 +909,10 @@ function beginRightDrawerResize(e) {
               label-key="label"
               children-key="children"
               :selected="sidebarTreeSelectedName"
+              :expanded="getTreeExpanded(module.key)"
               no-connectors
               @update:selected="handleTreeSelect"
+              @update:expanded="(keys) => setTreeExpanded(module.key, keys)"
             />
           </q-expansion-item>
         </q-list>

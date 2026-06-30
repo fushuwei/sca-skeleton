@@ -51,6 +51,7 @@
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
     "searchMenu": "Search menus",
+    "locateTab": "Locate current menu",
     "tabScrollLeftAria": "Scroll tabs left",
     "tabScrollRightAria": "Scroll tabs right",
     "tabCloseAria": "Close tab",
