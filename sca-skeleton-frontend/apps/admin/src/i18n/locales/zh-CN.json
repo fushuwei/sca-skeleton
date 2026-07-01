@@ -111,7 +111,7 @@
     "collapseDeptTree": "收起部门",
     "allDepts": "全部",
     "currentDept": "当前部门",
-    "keywordPlaceholder": "请输入用户名/昵称/真实姓名搜索",
+    "keywordPlaceholder": "请输入用户名/昵称/真实姓名/手机号/邮箱搜索",
     "usernamePlaceholder": "请输入用户名搜索",
     "nicknamePlaceholder": "请输入昵称搜索",
     "phonePlaceholder": "请输入手机号搜索",
