@@ -1602,6 +1602,8 @@ onMounted(() => {
 
 .status-select :deep(.q-field__control) {
   min-height: 40px;
+  min-width: 160px;
+  width: 160px;
 }
 
 .status-placeholder {

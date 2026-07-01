@@ -49,7 +49,9 @@
         <if test="keyword != null and keyword != ''">
             AND (u.username LIKE CONCAT('%', #{keyword}, '%')
                  OR u.nickname LIKE CONCAT('%', #{keyword}, '%')
-                 OR u.real_name LIKE CONCAT('%', #{keyword}, '%'))
+                 OR u.real_name LIKE CONCAT('%', #{keyword}, '%')
+                 OR u.phone LIKE CONCAT('%', #{keyword}, '%')
+                 OR u.email LIKE CONCAT('%', #{keyword}, '%'))
         </if>
         <if test="username != null and username != ''">
             AND u.username LIKE CONCAT('%', #{username}, '%')
