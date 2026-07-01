@@ -6,7 +6,7 @@ export interface CaptchaData {
 }
 
 /** 菜单挂载的页面组件标识（仅叶子节点需要） */
-export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView";
+export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView";
 
 export interface MenuItem {
   name: string;
@@ -163,4 +163,60 @@ export interface SysRole {
   remark: string;
   createTime: string;
   updateTime: string;
+}
+
+// ── 权限（菜单）管理相关类型 ──
+
+/** 系统权限实体（对应后端 SysPermission） */
+export interface SysPermission {
+  id: string;
+  /** 父权限ID，顶级为 "0" */
+  parentId: string;
+  name: string;
+  /** 类型：folder-目录，menu-菜单，button-按钮 */
+  type: string;
+  /** 权限标识，如 sys:user:list */
+  code: string;
+  /** 前端路由地址 */
+  path: string;
+  /** 前端组件路径 */
+  component: string;
+  icon: string;
+  sort: number;
+  /** 是否可见：0-否，1-是 */
+  isVisible: number;
+  /** 是否外链：0-否，1-是 */
+  isExternal: number;
+  /** 状态：enabled / disabled */
+  status: string;
+  /** ID 层级路径，逗号分隔 */
+  treePath: string;
+  remark: string;
+  version: number;
+  createTime: string;
+  updateTime: string;
+  createBy: string;
+  updateBy: string;
+}
+
+/** 权限分页查询请求参数 */
+export interface PermissionPageRequest {
+  pageNum?: number;
+  pageSize?: number;
+  parentId?: string;
+  keyword?: string;
+  type?: string;
+  status?: string;
+  orderBy?: string;
+  orderDirection?: "asc" | "desc";
+}
+
+/** 权限树节点（用于 q-tree，仅 folder + menu 类型） */
+export interface PermissionTreeNode {
+  id: string;
+  label: string;
+  parentId: string;
+  type: string;
+  icon: string;
+  children?: PermissionTreeNode[];
 }

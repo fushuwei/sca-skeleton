@@ -1,8 +1,11 @@
 package io.github.fushuwei.scaskeleton.system.application.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.system.api.dto.permission.PermissionPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.dto.permission.PermissionSaveRequest;
 import io.github.fushuwei.scaskeleton.system.application.service.SysPermissionService;
 import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysPermission;
@@ -30,6 +33,51 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     public List<SysPermission> listAllPermissions() {
         // 查询全局权限树（不按租户隔离），按 sort 升序
         return permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
+                .orderByAsc(SysPermission::getSort));
+    }
+
+    @Override
+    public IPage<SysPermission> pagePermissions(PermissionPageRequest req) {
+        // 构造分页对象
+        Page<SysPermission> page = new Page<>(req.getPageNum(), req.getPageSize());
+
+        LambdaQueryWrapper<SysPermission> wrapper = new LambdaQueryWrapper<SysPermission>()
+                // 按父节点筛选子权限，parentId 为空时默认查根节点
+                .eq(SysPermission::getParentId, StringUtils.hasText(req.getParentId()) ? req.getParentId() : "0")
+                // 关键词模糊匹配名称或权限标识
+                .and(StringUtils.hasText(req.getKeyword()),
+                        w -> w.like(SysPermission::getName, req.getKeyword())
+                                .or().like(SysPermission::getCode, req.getKeyword()))
+                // 类型筛选
+                .eq(StringUtils.hasText(req.getType()), SysPermission::getType, req.getType())
+                // 状态筛选
+                .eq(StringUtils.hasText(req.getStatus()), SysPermission::getStatus, req.getStatus());
+
+        // 安全排序：白名单校验通过后按指定字段排序，否则按 sort 升序
+        String orderBy = req.safeOrderBy();
+        boolean isAsc = "ASC".equalsIgnoreCase(req.safeOrderDirection());
+        if (orderBy != null) {
+            switch (orderBy) {
+                case "name" -> wrapper.orderBy(true, isAsc, SysPermission::getName);
+                case "code" -> wrapper.orderBy(true, isAsc, SysPermission::getCode);
+                case "type" -> wrapper.orderBy(true, isAsc, SysPermission::getType);
+                case "sort" -> wrapper.orderBy(true, isAsc, SysPermission::getSort);
+                case "status" -> wrapper.orderBy(true, isAsc, SysPermission::getStatus);
+                case "create_time" -> wrapper.orderBy(true, isAsc, SysPermission::getCreateTime);
+            }
+        } else {
+            wrapper.orderByAsc(SysPermission::getSort);
+        }
+
+        return permissionMapper.selectPage(page, wrapper);
+    }
+
+    @Override
+    public List<SysPermission> listButtonsByParentId(String parentId) {
+        // 查询指定父节点下的按钮权限，按 sort 升序
+        return permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
+                .eq(SysPermission::getParentId, parentId)
+                .eq(SysPermission::getType, "button")
                 .orderByAsc(SysPermission::getSort));
     }
 
@@ -83,6 +131,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         existing.setIcon(req.getIcon());
         existing.setSort(req.getSort() != null ? req.getSort() : existing.getSort());
         existing.setIsVisible(req.getIsVisible() != null ? req.getIsVisible() : existing.getIsVisible());
+        existing.setIsExternal(req.getIsExternal() != null ? req.getIsExternal() : existing.getIsExternal());
         existing.setStatus(StringUtils.hasText(req.getStatus()) ? req.getStatus() : existing.getStatus());
         existing.setRemark(req.getRemark());
         permissionMapper.updateById(existing);
