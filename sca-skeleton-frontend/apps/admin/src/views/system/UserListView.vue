@@ -442,7 +442,9 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     field: "username",
     label: t("user.username"),
     align: "left",
-    sortable: true
+    sortable: true,
+    classes: "sticky-col-left",
+    headerClasses: "sticky-col-left"
   },
   {
     name: "nickname",
@@ -513,7 +515,9 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     field: "id",
     label: t("common.actions"),
     align: "center",
-    sortable: false
+    sortable: false,
+    classes: "sticky-col-right",
+    headerClasses: "sticky-col-right"
   }
 ]);
 
@@ -1711,10 +1715,11 @@ onMounted(() => {
 }
 
 /* 表头始终可见：sticky 定位，滚动时固定在容器顶部 */
+/* z-index: 2 确保表头堆叠上下文高于固定列 body 单元格 (z-index: 1) */
 .user-table :deep(thead) {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2;
 }
 
 /* 表格只占自然高度 */
@@ -1734,6 +1739,82 @@ onMounted(() => {
 
 .user-table :deep(thead tr:first-child th) {
   border-top: none;
+}
+
+/* ═══ 固定列（Sticky Columns）═══ */
+/* 复选框列固定宽度（需与下方 .sticky-col-left 的 left 值保持一致）
+   计算依据：padding 16px + checkbox 32px + padding 16px = 64px */
+.user-table :deep(th:first-child:not([colspan])),
+.user-table :deep(td:first-child:not([colspan])) {
+  width: 64px !important;
+  min-width: 64px !important;
+}
+
+/* 复选框列（第一列）—— 固定在左侧 */
+.user-table :deep(thead tr th:first-child:not([colspan])) {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.user-table :deep(tbody td:first-child:not([colspan])) {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #fff;
+}
+
+/* 用户名列 —— 固定在左侧，偏移量 = 复选框列宽度 */
+.user-table :deep(thead tr th.sticky-col-left) {
+  position: sticky;
+  left: 64px;
+  z-index: 1;
+}
+
+.user-table :deep(tbody td.sticky-col-left) {
+  position: sticky;
+  left: 64px;
+  z-index: 1;
+  background: #fff;
+}
+
+/* 操作列 —— 固定在右侧 */
+.user-table :deep(thead tr th.sticky-col-right) {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+}
+
+.user-table :deep(tbody td.sticky-col-right) {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: #fff;
+}
+
+/* 固定列分隔阴影（左固定列右侧、右固定列左侧） */
+.user-table :deep(thead tr th.sticky-col-left),
+.user-table :deep(tbody td.sticky-col-left) {
+  box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.12);
+}
+
+.user-table :deep(thead tr th.sticky-col-right),
+.user-table :deep(tbody td.sticky-col-right) {
+  box-shadow: -4px 0 6px -4px rgba(0, 0, 0, 0.12);
+}
+
+/* 固定列行悬停背景色（使用不透明色，防止横向滚动时内容穿透） */
+.user-table :deep(tbody tr:hover td:first-child:not([colspan])),
+.user-table :deep(tbody tr:hover td.sticky-col-left),
+.user-table :deep(tbody tr:hover td.sticky-col-right) {
+  background: #f7fbfb !important;
+}
+
+/* 固定列选中行背景色 */
+.user-table :deep(tbody tr.q-tr--selected td:first-child:not([colspan])),
+.user-table :deep(tbody tr.q-tr--selected td.sticky-col-left),
+.user-table :deep(tbody tr.q-tr--selected td.sticky-col-right) {
+  background: #f0f6f4 !important;
 }
 
 /* ── 空数据状态 ── */
