@@ -1817,6 +1817,26 @@ onMounted(() => {
   background: #f0f6f4 !important;
 }
 
+/* 固定列暗色模式 —— 使用不透明深色，防止横向滚动时内容穿透 */
+/* 色值依据：rgba(0,121,107,0.03/0.06) 叠加在 Quasar 暗色卡片底色 #1e1e1e 上的不透明等效色 */
+.body--dark .user-table :deep(tbody td:first-child:not([colspan])),
+.body--dark .user-table :deep(tbody td.sticky-col-left),
+.body--dark .user-table :deep(tbody td.sticky-col-right) {
+  background: #1e1e1e !important;
+}
+
+.body--dark .user-table :deep(tbody tr:hover td:first-child:not([colspan])),
+.body--dark .user-table :deep(tbody tr:hover td.sticky-col-left),
+.body--dark .user-table :deep(tbody tr:hover td.sticky-col-right) {
+  background: #1d2120 !important;
+}
+
+.body--dark .user-table :deep(tbody tr.q-tr--selected td:first-child:not([colspan])),
+.body--dark .user-table :deep(tbody tr.q-tr--selected td.sticky-col-left),
+.body--dark .user-table :deep(tbody tr.q-tr--selected td.sticky-col-right) {
+  background: #1c2323 !important;
+}
+
 /* ── 空数据状态 ── */
 /* 容器：.q-table__bottom 填满剩余空间，居中内容 */
 .user-table--empty :deep(.q-table__container) {
