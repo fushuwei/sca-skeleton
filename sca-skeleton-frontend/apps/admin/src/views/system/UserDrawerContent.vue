@@ -46,7 +46,12 @@ const form = reactive({
 });
 
 const formRules = {
-  username: [(v: string) => !!v?.trim() || t("user.usernameRequired")],
+  username: [
+    (v: string) => !!v?.trim() || t("user.usernameRequired"),
+    (v: string) => v.length >= 2 || t("user.usernameLengthMin"),
+    (v: string) => v.length <= 50 || t("user.usernameLengthMax"),
+    (v: string) => /^[a-zA-Z0-9_]+$/.test(v) || t("user.usernamePattern")
+  ],
   userCategory: [(v: string) => !!v || t("user.userCategoryRequired")],
   userType: [(v: string) => !!v || t("user.userTypeRequired")],
   deptId: [(v: string) => !!v || t("user.deptRequired")],
@@ -54,8 +59,18 @@ const formRules = {
   nickname: [],
   realName: [],
   gender: [],
-  phone: [],
-  email: [],
+  phone: [
+    (v: string) => {
+      if (!v) return true;
+      return /^1[3-9]\d{9}$/.test(v) || t("user.phonePattern");
+    }
+  ],
+  email: [
+    (v: string) => {
+      if (!v) return true;
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || t("user.emailPattern");
+    }
+  ],
   status: [],
   remark: []
 };
@@ -493,6 +508,7 @@ async function handleSave() {
             :label="t('user.phone')"
             filled
             square
+            :rules="formRules.phone"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
@@ -505,6 +521,7 @@ async function handleSave() {
             :label="t('user.email')"
             filled
             square
+            :rules="formRules.email"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
