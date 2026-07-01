@@ -95,6 +95,10 @@
     border-bottom-color: rgba(255, 255, 255, 0.08);
   }
 
+  .left-menu-expansion.q-expansion-item--expanded {
+    border-bottom: none;
+  }
+
   .left-menu-expansion .q-item {
     background: #1e1e1e;
     color: rgba(255, 255, 255, 0.87);

@@ -1752,6 +1752,10 @@ function beginRightDrawerResize(e) {
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
+.left-menu-expansion.q-expansion-item--expanded {
+  border-bottom: none;
+}
+
 .left-menu-expansion :deep(.q-expansion-item__container) {
   border-radius: 0;
 }
