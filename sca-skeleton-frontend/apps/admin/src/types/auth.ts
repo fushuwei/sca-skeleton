@@ -79,8 +79,11 @@ export interface SysUser {
 export interface UserPageRequest {
   pageNum?: number;
   pageSize?: number;
+  keyword?: string;
   username?: string;
   nickname?: string;
+  userCategory?: string;
+  userType?: string;
   status?: string;
   deptId?: string;
   orderBy?: string;

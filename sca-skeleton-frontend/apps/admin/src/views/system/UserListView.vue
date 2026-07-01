@@ -289,16 +289,18 @@ function endResize() {
 const searchForm = reactive<UserPageRequest>({
   pageNum: 1,
   pageSize: 10,
+  keyword: "",
   username: "",
   nickname: "",
+  userCategory: "",
+  userType: "",
   status: "",
   deptId: ""
 });
 
 // 额外搜索条件（前端扩展，后续可对接后端）
 const extraSearch = reactive({
-  phone: "",
-  userType: ""
+  phone: ""
 });
 
 // 搜索区域是否展开
@@ -313,6 +315,20 @@ const statusOptions = [
   { label: "user.statusExpired", value: "expired" },
   { label: "user.statusDisabled", value: "disabled" },
   { label: "user.statusCancelled", value: "cancelled" }
+];
+
+// ── 用户类别选项 ──
+const userCategoryOptions = [
+  { label: "user.categoryBackend", value: "backend" },
+  { label: "user.categoryFrontend", value: "frontend" }
+];
+
+// ── 用户类型选项 ──
+const userTypeOptions = [
+  { label: "user.typeSuperAdmin", value: "superadmin" },
+  { label: "user.typeTenantAdmin", value: "tenant_admin" },
+  { label: "user.typeDeptAdmin", value: "dept_admin" },
+  { label: "user.typeNormal", value: "normal" }
 ];
 
 const statusColorOf = (s: string): string =>
@@ -527,8 +543,11 @@ async function loadTableData(
   const params: UserPageRequest = {
     pageNum,
     pageSize,
+    keyword: searchForm.keyword || undefined,
     username: searchForm.username || undefined,
     nickname: searchForm.nickname || undefined,
+    userCategory: searchForm.userCategory || undefined,
+    userType: searchForm.userType || undefined,
     status: searchForm.status || undefined,
     deptId: searchForm.deptId || undefined,
     orderBy,
@@ -589,12 +608,14 @@ function handleJumpToPage() {
 }
 
 function handleReset() {
+  searchForm.keyword = "";
   searchForm.username = "";
   searchForm.nickname = "";
+  searchForm.userCategory = "";
+  searchForm.userType = "";
   searchForm.status = "";
   searchForm.deptId = "";
   extraSearch.phone = "";
-  extraSearch.userType = "";
   selectedDeptId.value = "";
   lastSelectedDeptId = "";
   tablePagination.value.page = 1;
@@ -952,39 +973,61 @@ onMounted(() => {
           <div class="row q-col-gutter-sm items-end">
             <div class="col">
               <q-input
-                v-model="searchForm.username"
+                v-model="searchForm.keyword"
                 filled
                 square
                 dense
-                :placeholder="t('user.usernamePlaceholder')"
+                :placeholder="t('user.keywordPlaceholder')"
                 hide-bottom-space
                 clearable
                 @keyup.enter="handleSearch"
               />
             </div>
-            <div class="col">
-              <q-input
-                v-model="searchForm.nickname"
+            <div class="col-auto">
+              <q-select
+                v-model="searchForm.userCategory"
                 filled
                 square
                 dense
-                :placeholder="t('user.nicknamePlaceholder')"
+                :options="userCategoryOptions"
+                :option-label="(o) => (o ? t(o.label) : '')"
+                option-value="value"
+                emit-value
+                map-options
                 hide-bottom-space
                 clearable
-                @keyup.enter="handleSearch"
-              />
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                class="status-select"
+                popup-content-class="status-select-popup"
+              >
+                <template v-if="!searchForm.userCategory" v-slot:selected>
+                  <span class="status-placeholder">{{ t('user.categoryPlaceholder') }}</span>
+                </template>
+              </q-select>
             </div>
-            <div class="col">
-              <q-input
-                v-model="extraSearch.phone"
+            <div class="col-auto">
+              <q-select
+                v-model="searchForm.userType"
                 filled
                 square
                 dense
-                :placeholder="t('user.phonePlaceholder')"
+                :options="userTypeOptions"
+                :option-label="(o) => (o ? t(o.label) : '')"
+                option-value="value"
+                emit-value
+                map-options
                 hide-bottom-space
                 clearable
-                @keyup.enter="handleSearch"
-              />
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                class="status-select"
+                popup-content-class="status-select-popup"
+              >
+                <template v-if="!searchForm.userType" v-slot:selected>
+                  <span class="status-placeholder">{{ t('user.typePlaceholder') }}</span>
+                </template>
+              </q-select>
             </div>
             <div class="col-auto">
               <q-select

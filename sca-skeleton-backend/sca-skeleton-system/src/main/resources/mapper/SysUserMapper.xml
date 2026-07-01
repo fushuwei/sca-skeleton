@@ -37,8 +37,19 @@
         WHERE u.is_deleted = 0
           AND u.tenant_id = #{tenantId}
           AND u.user_category = 'backend'
+        <if test="userCategory != null and userCategory != ''">
+            AND u.user_category = #{userCategory}
+        </if>
+        <if test="userType != null and userType != ''">
+            AND u.user_type = #{userType}
+        </if>
         <if test="deptId != null and deptId != ''">
             AND ud.dept_id = #{deptId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (u.username LIKE CONCAT('%', #{keyword}, '%')
+                 OR u.nickname LIKE CONCAT('%', #{keyword}, '%')
+                 OR u.real_name LIKE CONCAT('%', #{keyword}, '%'))
         </if>
         <if test="username != null and username != ''">
             AND u.username LIKE CONCAT('%', #{username}, '%')

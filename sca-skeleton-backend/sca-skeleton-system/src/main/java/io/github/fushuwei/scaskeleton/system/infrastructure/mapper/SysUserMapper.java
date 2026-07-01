@@ -28,8 +28,11 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      */
     IPage<UserPageVO> selectUserPage(IPage<UserPageVO> page,
                                      @Param("tenantId") String tenantId,
+                                     @Param("keyword") String keyword,
                                      @Param("username") String username,
                                      @Param("nickname") String nickname,
+                                     @Param("userCategory") String userCategory,
+                                     @Param("userType") String userType,
                                      @Param("status") String status,
                                      @Param("deptId") String deptId,
                                      @Param("orderBy") String orderBy,
