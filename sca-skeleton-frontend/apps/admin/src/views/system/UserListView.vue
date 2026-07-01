@@ -358,6 +358,18 @@ const userTypeColorOf = (t: string): string =>
     normal: "grey-7"
   }[t] ?? "grey-6");
 
+const userCategoryLabelOf = (c: string): string =>
+  ({
+    backend: "后台用户",
+    frontend: "前台用户"
+  }[c] ?? c);
+
+const userCategoryColorOf = (c: string): string =>
+  ({
+    backend: "purple-7",
+    frontend: "teal-7"
+  }[c] ?? "grey-6");
+
 const genderLabelOf = (g: string): string => (g === "male" ? "男" : g === "female" ? "女" : "-");
 
 // ═══════════════════════════════════════════════════════════════
@@ -447,11 +459,11 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     sortable: true
   },
   {
-    name: "phone",
-    field: "phone",
-    label: t("user.phone"),
-    align: "left",
-    sortable: false
+    name: "userCategory",
+    field: "userCategory",
+    label: t("user.userCategory"),
+    align: "center",
+    sortable: true
   },
   {
     name: "userType",
@@ -459,6 +471,27 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     label: t("user.userType"),
     align: "center",
     sortable: true
+  },
+  {
+    name: "deptName",
+    field: "deptName",
+    label: t("user.dept"),
+    align: "left",
+    sortable: false
+  },
+  {
+    name: "phone",
+    field: "phone",
+    label: t("user.phone"),
+    align: "left",
+    sortable: false
+  },
+  {
+    name: "email",
+    field: "email",
+    label: t("user.email"),
+    align: "left",
+    sortable: false
   },
   {
     name: "status",
@@ -1148,6 +1181,20 @@ onMounted(() => {
         <template #body-cell-gender="props">
           <q-td :props="props">
             <span v-if="props.value">{{ genderLabelOf(props.value) }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 用户类别列 -->
+        <template #body-cell-userCategory="props">
+          <q-td :props="props">
+            <q-badge
+              v-if="props.value"
+              :color="userCategoryColorOf(props.value)"
+              :label="userCategoryLabelOf(props.value)"
+              rounded
+              class="user-type-badge"
+            />
             <span v-else class="text-grey-5">-</span>
           </q-td>
         </template>

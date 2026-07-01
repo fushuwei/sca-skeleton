@@ -73,6 +73,10 @@ export interface SysUser {
   updateTime: string;
   createBy: string;
   updateBy: string;
+  /** 主部门名称 */
+  deptName?: string;
+  /** 角色名称列表 */
+  roleNames?: string;
 }
 
 /** 用户分页查询请求参数 */
