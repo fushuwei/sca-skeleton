@@ -12,5 +12,10 @@
     "quasar": "2.19.3",
     "vite": "8.0.16",
     "vue": "3.5.33"
+  },
+  "dependencies": {
+    "@zxcvbn-ts/core": "^4.1.2",
+    "@zxcvbn-ts/language-common": "^4.1.2",
+    "@zxcvbn-ts/language-zh": "^4.1.1"
   }
 }

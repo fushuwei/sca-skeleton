@@ -7,6 +7,7 @@ import { createUserApi, updateUserApi } from "../../apis/user";
 import { getDeptListApi } from "../../apis/dept";
 import { getPostListApi } from "../../apis/post";
 import { getRoleListApi } from "../../apis/role";
+import { checkPasswordStrength } from "../../utils/passwordStrength";
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -91,6 +92,39 @@ const mustChangePasswordOptions = computed(() => [
   { label: t("common.yes"), value: 1 },
   { label: t("common.no"), value: 0 }
 ]);
+
+// ── 密码强度校验 ──
+const showPassword = ref(false);
+const passwordStrength = computed(() => {
+  const pwd = form.password;
+  if (!pwd) return { level: 0, label: "", color: "" };
+
+  const result = checkPasswordStrength(pwd);
+  return { level: result.score, label: result.label, color: result.color };
+});
+
+const passwordRules = computed(() => {
+  return [
+    (v: string) => {
+      if (!v) return true;
+      return v.length >= 8 || t("user.passwordMinLength");
+    },
+    (v: string) => {
+      if (!v) return true;
+      return v.length <= 20 || t("user.passwordMaxLength");
+    }
+  ];
+});
+
+function getPasswordColor(level: number): string {
+  const colors: Record<number, string> = {
+    1: "#f44336",
+    2: "#ff9800",
+    3: "#4caf50",
+    4: "#2e7d32"
+  };
+  return colors[level] || "#f44336";
+}
 
 // ── 下拉数据 ──
 const deptOptions = ref<SysDept[]>([]);
@@ -361,7 +395,7 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-        <!-- 密码（添加时必填，编辑时可选） -->
+        <!-- 密码（可选，留空则使用默认值或不修改） -->
         <div v-if="mode !== 'view'" class="col-12 col-md-6">
           <q-input
             v-model="form.password"
@@ -369,10 +403,48 @@ async function handleSave() {
             :hint="mode === 'add' ? t('user.passwordHint') : t('user.passwordEditHint')"
             filled
             square
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
+            :rules="passwordRules"
             :disable="drawerReadonly"
             hide-bottom-space
-          />
+          >
+            <template #append>
+              <q-icon
+                :name="showPassword ? 'sym_r_visibility_off' : 'sym_r_visibility'"
+                class="cursor-pointer"
+                size="20px"
+                @click="showPassword = !showPassword"
+              />
+            </template>
+          </q-input>
+          <!-- 密码强度指示器 -->
+          <div v-if="form.password && passwordStrength.level > 0" class="password-strength-container q-mt-xs">
+            <div class="password-strength-bar">
+              <div
+                class="password-strength-segment"
+                :class="{ 'active': passwordStrength.level >= 1 }"
+                :style="{ backgroundColor: passwordStrength.level >= 1 ? getPasswordColor(1) : undefined }"
+              />
+              <div
+                class="password-strength-segment"
+                :class="{ 'active': passwordStrength.level >= 2 }"
+                :style="{ backgroundColor: passwordStrength.level >= 2 ? getPasswordColor(2) : undefined }"
+              />
+              <div
+                class="password-strength-segment"
+                :class="{ 'active': passwordStrength.level >= 3 }"
+                :style="{ backgroundColor: passwordStrength.level >= 3 ? getPasswordColor(3) : undefined }"
+              />
+              <div
+                class="password-strength-segment"
+                :class="{ 'active': passwordStrength.level >= 4 }"
+                :style="{ backgroundColor: passwordStrength.level >= 4 ? getPasswordColor(4) : undefined }"
+              />
+            </div>
+            <span class="password-strength-label" :class="'text-' + passwordStrength.color">
+              {{ t(passwordStrength.label) }}
+            </span>
+          </div>
         </div>
         <!-- 昵称 -->
         <div class="col-12 col-md-6">
@@ -733,6 +805,37 @@ async function handleSave() {
 
 :deep(.q-field__append > .q-icon:not(.text-negative)) {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 密码强度指示器 */
+.password-strength-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.password-strength-bar {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.password-strength-segment {
+  height: 4px;
+  flex: 1;
+  background-color: #e0e0e0;
+  border-radius: 2px;
+  transition: background-color 0.3s ease;
+}
+
+.password-strength-segment.active {
+  background-color: inherit;
+}
+
+.password-strength-label {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
 }
 </style>
 

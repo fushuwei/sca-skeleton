@@ -25,7 +25,7 @@ public class UserSaveRequest {
     private String username;
 
     /** 创建时可设初始密码；更新时如不传则不修改 */
-    @Size(min = 6, max = 100, message = "密码长度 6-100 个字符")
+    @Size(min = 8, max = 20, message = "密码长度 8-20 个字符")
     private String password;
 
     private String nickname;
