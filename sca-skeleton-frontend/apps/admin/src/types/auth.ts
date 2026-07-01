@@ -219,4 +219,5 @@ export interface PermissionTreeNode {
   type: string;
   icon: string;
   children?: PermissionTreeNode[];
+  count?: number;
 }

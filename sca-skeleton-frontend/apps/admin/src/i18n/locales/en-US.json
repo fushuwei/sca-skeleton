@@ -176,9 +176,9 @@
     "roleRequired": "Please select role"
   },
   "menuMgmt": {
-    "treeTitle": "Menu Tree",
-    "expandMenuTree": "Expand menu tree",
-    "collapseMenuTree": "Collapse menu tree",
+    "treeTitle": "Menu",
+    "expandMenuTree": "Expand menu",
+    "collapseMenuTree": "Collapse menu",
     "allMenus": "All",
     "createMenu": "Add Menu",
     "addMenu": "Add Menu",

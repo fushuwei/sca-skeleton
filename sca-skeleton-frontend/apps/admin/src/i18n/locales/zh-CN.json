@@ -176,9 +176,9 @@
     "roleRequired": "请选择角色"
   },
   "menuMgmt": {
-    "treeTitle": "菜单树",
-    "expandMenuTree": "展开菜单树",
-    "collapseMenuTree": "收起菜单树",
+    "treeTitle": "菜单",
+    "expandMenuTree": "展开菜单",
+    "collapseMenuTree": "收起菜单",
     "allMenus": "全部",
     "createMenu": "新增菜单",
     "addMenu": "新增菜单",

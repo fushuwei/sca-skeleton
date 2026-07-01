@@ -8,7 +8,6 @@ import type { SysPermission, PermissionTreeNode, PermissionPageRequest } from ".
 import {
   getPermissionListApi,
   getPermissionPageApi,
-  getPermissionButtonsApi,
   deletePermissionApi
 } from "../../apis/permission";
 import MenuDrawerContent from "./MenuDrawerContent.vue";
@@ -67,8 +66,10 @@ function buildMenuTree(perms: SysPermission[]): PermissionTreeNode[] {
     for (const n of nodes) {
       if (n.children?.length) {
         cleanEmpty(n.children);
+        n.count = n.children.length;
       } else {
         delete n.children;
+        n.count = 0;
       }
     }
   };
@@ -83,6 +84,7 @@ const menuTreeWithRoot = computed(() => [{
   parentId: "",
   type: "root",
   icon: "",
+  count: menuTreeNodes.value.length,
   children: menuTreeNodes.value
 }] as PermissionTreeNode[]);
 
@@ -147,6 +149,13 @@ function toggleMenuNode(node: PermissionTreeNode) {
   } else {
     menuTreeExpanded.value = [...menuTreeExpanded.value, node.id];
   }
+}
+
+/** 树节点图标：目录用 folder，菜单用 eco_leaf */
+function menuNodeIcon(node: PermissionTreeNode): string {
+  if (node.type === "root") return "sym_r_list_alt";
+  if (node.type === "menu") return "sym_r_nest_eco_leaf";
+  return menuTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
 }
 
 /** 节点头部点击计数器 —— 解决同坐标双击不触发 dblclick 的浏览器问题 */
@@ -317,11 +326,6 @@ const sortState = ref<{ sortBy: string; descending: boolean }>({ sortBy: "", des
 const jumpToPage = ref<number | null>(null);
 const curPage = ref(1);
 
-// ── 展开行数据缓存（按钮权限） ──
-const expandedRows = ref<string[]>([]);
-const buttonCache = ref<Map<string, SysPermission[]>>(new Map());
-const buttonLoading = ref<Map<string, boolean>>(new Map());
-
 // ── 表格列定义 ──
 const columns = computed<QTableColumn<SysPermission>[]>(() => [
   {
@@ -468,9 +472,6 @@ async function loadTableData(
       tablePagination.value.rowsPerPage = Number(result.data.size) || pageSize;
       tablePagination.value.rowsNumber = Number(result.data.total) || 0;
       curPage.value = Number(result.data.current) || pageNum;
-      // 清空展开行缓存
-      expandedRows.value = [];
-      buttonCache.value.clear();
     } else {
       showToast(result.message || t("common.loadFail"), "negative");
     }
@@ -528,38 +529,6 @@ watch(
     if (!v || v === "0") selectedMenuId.value = "";
   }
 );
-
-// ═══════════════════════════════════════════════════════════════
-// 行展开 — 加载按钮权限
-// ═══════════════════════════════════════════════════════════════
-
-async function loadButtonsForRow(row: SysPermission) {
-  if (buttonCache.value.has(row.id)) return;
-
-  buttonLoading.value.set(row.id, true);
-  try {
-    const result = await getPermissionButtonsApi(row.id);
-    if (result.code === 10_000) {
-      buttonCache.value.set(row.id, result.data ?? []);
-    } else {
-      buttonCache.value.set(row.id, []);
-    }
-  } catch {
-    buttonCache.value.set(row.id, []);
-  } finally {
-    buttonLoading.value.set(row.id, false);
-  }
-}
-
-function onExpandRow(row: SysPermission) {
-  const idx = expandedRows.value.indexOf(row.id);
-  if (idx >= 0) {
-    expandedRows.value = expandedRows.value.filter((id) => id !== row.id);
-  } else {
-    expandedRows.value = [...expandedRows.value, row.id];
-    loadButtonsForRow(row);
-  }
-}
 
 // ═══════════════════════════════════════════════════════════════
 // 操作
@@ -682,13 +651,22 @@ onMounted(() => {
                   @click.stop="onNodeHeaderClick(scope.node)"
                 >
                   <q-icon
-                    :name="menuTreeExpanded.includes(scope.node.id) ? 'sym_r_folder_open' : 'sym_r_folder'"
+                    :name="menuNodeIcon(scope.node)"
                     size="20px"
                     class="q-mr-sm cursor-pointer menu-tree-icon"
                     :color="selectedMenuId === scope.node.id ? 'primary' : 'grey-7'"
                     @click.stop="toggleMenuNode(scope.node)"
                   />
                   <span class="menu-tree-label ellipsis">{{ scope.node.label }}</span>
+                  <q-space />
+                  <q-badge
+                    v-if="scope.node.count != null && scope.node.count > 0"
+                    color="primary"
+                    rounded
+                    class="menu-count-badge"
+                  >
+                    {{ scope.node.count }}
+                  </q-badge>
                 </div>
               </template>
             </q-tree>
@@ -847,144 +825,120 @@ onMounted(() => {
         :class="['menu-table', { 'menu-table--empty': !tableRows.length }]"
         @request="loadTableData"
       >
-        <!-- 使用 #body slot 实现行展开（Internal Expansion Model） -->
-        <template #body="props">
-          <q-tr :props="props">
-            <q-td auto-width>
-              <q-btn
-                v-if="props.row.type !== 'button'"
-                flat
-                dense
-                round
-                size="sm"
-                :icon="expandedRows.includes(props.row.id) ? 'sym_r_expand_less' : 'sym_r_expand_more'"
-                @click="onExpandRow(props.row)"
+        <!-- 名称列 -->
+        <template #body-cell-name="props">
+          <q-td :props="props">
+            <div class="row items-center no-wrap">
+              <q-icon
+                v-if="props.row.icon"
+                :name="props.row.icon"
+                size="18px"
+                class="q-mr-sm text-grey-7"
               />
-            </q-td>
-            <q-td key="name" :props="props">
-              <div class="row items-center no-wrap">
-                <q-icon
-                  v-if="props.row.icon"
-                  :name="props.row.icon"
-                  size="18px"
-                  class="q-mr-sm text-grey-7"
-                />
-                <span>{{ props.row.name }}</span>
-              </div>
-            </q-td>
-            <q-td key="type" :props="props">
-              <q-badge
-                v-if="props.row.type"
-                :color="typeColorOf(props.row.type)"
-                :label="typeLabelOf(props.row.type)"
-                rounded
-                class="menu-type-badge"
-              />
-            </q-td>
-            <q-td key="code" :props="props">
-              <span v-if="props.row.code">{{ props.row.code }}</span>
-              <span v-else class="text-grey-5">-</span>
-            </q-td>
-            <q-td key="path" :props="props">
-              <span v-if="props.row.path">{{ props.row.path }}</span>
-              <span v-else class="text-grey-5">-</span>
-            </q-td>
-            <q-td key="icon" :props="props">
-              <q-icon v-if="props.row.icon" :name="props.row.icon" size="20px" />
-              <span v-else class="text-grey-5">-</span>
-            </q-td>
-            <q-td key="sort" :props="props">
-              {{ props.row.sort }}
-            </q-td>
-            <q-td key="isVisible" :props="props">
-              <q-badge
-                :color="props.row.isVisible === 1 ? 'positive' : 'grey-7'"
-                :label="props.row.isVisible === 1 ? t('common.yes') : t('common.no')"
-                rounded
-                class="menu-type-badge"
-              />
-            </q-td>
-            <q-td key="status" :props="props">
-              <q-badge
-                v-if="props.row.status"
-                :color="statusColorOf(props.row.status)"
-                :label="props.row.status === 'enabled' ? t('menuMgmt.statusEnabled') : t('menuMgmt.statusDisabled')"
-                rounded
-                class="status-badge"
-              />
-            </q-td>
-            <q-td key="createTime" :props="props">
-              {{ props.row.createTime ? new Date(props.row.createTime).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-" }}
-            </q-td>
-            <q-td key="actions" :props="props" class="q-gutter-x-xs actions-cell">
-              <q-btn
-                flat
-                dense
-                round
-                size="sm"
-                color="info"
-                icon="sym_r_visibility"
-                @click.stop="handleView(props.row)"
-              >
-                <q-tooltip>{{ t("common.view") }}</q-tooltip>
-              </q-btn>
-              <q-btn
-                flat
-                dense
-                round
-                size="sm"
-                color="primary"
-                icon="sym_r_edit"
-                @click.stop="handleEdit(props.row)"
-              >
-                <q-tooltip>{{ t("common.edit") }}</q-tooltip>
-              </q-btn>
-              <q-btn
-                flat
-                dense
-                round
-                size="sm"
-                color="negative"
-                icon="sym_r_delete"
-                @click.stop="handleDelete(props.row)"
-              >
-                <q-tooltip>{{ t("common.delete") }}</q-tooltip>
-              </q-btn>
-            </q-td>
-          </q-tr>
+              <span>{{ props.row.name }}</span>
+            </div>
+          </q-td>
+        </template>
 
-          <!-- 展开行：按钮权限 -->
-          <q-tr v-if="expandedRows.includes(props.row.id)" :props="props" class="expanded-row">
-            <q-td colspan="100%">
-              <div class="button-permissions-panel">
-                <div class="button-permissions-header row items-center q-mb-sm">
-                  <q-icon name="sym_r_touch_app" size="18px" class="q-mr-xs" />
-                  <span class="text-weight-medium">{{ t("menuMgmt.buttonPermissions") }}</span>
-                </div>
-                <template v-if="buttonLoading.get(props.row.id)">
-                  <div class="row items-center q-pa-sm">
-                    <q-spinner size="20px" color="primary" class="q-mr-sm" />
-                  </div>
-                </template>
-                <template v-else-if="buttonCache.get(props.row.id)?.length">
-                  <div class="row q-gutter-sm">
-                    <div
-                      v-for="btn in buttonCache.get(props.row.id)"
-                      :key="btn.id"
-                      class="button-permission-item row items-center no-wrap"
-                    >
-                      <q-icon name="sym_r_radio_button_checked" size="16px" class="q-mr-xs text-orange" />
-                      <span class="text-caption">{{ btn.name }}</span>
-                      <span v-if="btn.code" class="text-caption text-grey-6 q-ml-xs">({{ btn.code }})</span>
-                    </div>
-                  </div>
-                </template>
-                <div v-else class="text-grey-6 text-caption q-pa-sm">
-                  {{ t("menuMgmt.noButtonPermissions") }}
-                </div>
-              </div>
-            </q-td>
-          </q-tr>
+        <!-- 类型列 -->
+        <template #body-cell-type="props">
+          <q-td :props="props">
+            <q-badge
+              v-if="props.value"
+              :color="typeColorOf(props.value)"
+              :label="typeLabelOf(props.value)"
+              rounded
+              class="menu-type-badge"
+            />
+          </q-td>
+        </template>
+
+        <!-- 权限标识列 -->
+        <template #body-cell-code="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 路由地址列 -->
+        <template #body-cell-path="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 图标列 -->
+        <template #body-cell-icon="props">
+          <q-td :props="props">
+            <q-icon v-if="props.value" :name="props.value" size="20px" />
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 是否可见列 -->
+        <template #body-cell-isVisible="props">
+          <q-td :props="props">
+            <q-badge
+              :color="props.value === 1 ? 'positive' : 'grey-7'"
+              :label="props.value === 1 ? t('common.yes') : t('common.no')"
+              rounded
+              class="menu-type-badge"
+            />
+          </q-td>
+        </template>
+
+        <!-- 状态列 -->
+        <template #body-cell-status="props">
+          <q-td :props="props">
+            <q-badge
+              v-if="props.value"
+              :color="statusColorOf(props.value)"
+              :label="props.value === 'enabled' ? t('menuMgmt.statusEnabled') : t('menuMgmt.statusDisabled')"
+              rounded
+              class="status-badge"
+            />
+          </q-td>
+        </template>
+
+        <!-- 操作列 -->
+        <template #body-cell-actions="props">
+          <q-td :props="props" class="q-gutter-x-xs actions-cell">
+            <q-btn
+              flat
+              dense
+              round
+              size="sm"
+              color="info"
+              icon="sym_r_visibility"
+              @click.stop="handleView(props.row)"
+            >
+              <q-tooltip>{{ t("common.view") }}</q-tooltip>
+            </q-btn>
+            <q-btn
+              flat
+              dense
+              round
+              size="sm"
+              color="primary"
+              icon="sym_r_edit"
+              @click.stop="handleEdit(props.row)"
+            >
+              <q-tooltip>{{ t("common.edit") }}</q-tooltip>
+            </q-btn>
+            <q-btn
+              flat
+              dense
+              round
+              size="sm"
+              color="negative"
+              icon="sym_r_delete"
+              @click.stop="handleDelete(props.row)"
+            >
+              <q-tooltip>{{ t("common.delete") }}</q-tooltip>
+            </q-btn>
+          </q-td>
         </template>
 
         <!-- 空数据 -->
@@ -1442,28 +1396,10 @@ onMounted(() => {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
 }
 
-/* 展开行样式 */
-.menu-table :deep(.expanded-row td) {
-  background: #fafafa !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-  padding: 8px 16px;
-}
-
-/* 按钮权限面板 */
-.button-permissions-panel {
-  padding: 4px 8px;
-}
-
-.button-permissions-header {
-  font-size: 13px;
-  color: rgba(0, 0, 0, 0.72);
-}
-
-.button-permission-item {
-  padding: 4px 10px;
-  background: #f5f5f5;
-  border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+/* 菜单计数徽章 */
+.menu-count-badge {
+  font-size: 11px;
+  padding: 1px 6px;
 }
 
 /* Badge 统一样式 */
