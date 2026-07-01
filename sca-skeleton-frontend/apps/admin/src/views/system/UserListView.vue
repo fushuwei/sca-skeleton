@@ -1795,12 +1795,12 @@ onMounted(() => {
 /* 固定列分隔阴影（左固定列右侧、右固定列左侧） */
 .user-table :deep(thead tr th.sticky-col-left),
 .user-table :deep(tbody td.sticky-col-left) {
-  box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.12);
+  box-shadow: 4px 0 6px -1px rgba(0, 0, 0, 0.12);
 }
 
 .user-table :deep(thead tr th.sticky-col-right),
 .user-table :deep(tbody td.sticky-col-right) {
-  box-shadow: -4px 0 6px -4px rgba(0, 0, 0, 0.12);
+  box-shadow: -4px 0 6px -1px rgba(0, 0, 0, 0.12);
 }
 
 /* 固定列行悬停背景色（使用不透明色，防止横向滚动时内容穿透） */
