@@ -38,6 +38,14 @@ const formRules = computed(() => ({
   dataScope: [(v: string) => !!v || t("roleMgmt.dataScopeRequired")]
 }));
 
+/** 角色编码前缀常量 */
+const CODE_PREFIX = "ROLE_";
+
+/** 角色编码输入处理：自动转大写 */
+function onCodeInput(val: string | number | null) {
+  form.code = String(val || "").toUpperCase().trim();
+}
+
 const dataScopeOptions = computed(() => [
   { label: t("roleMgmt.scopeAll"), value: "all" },
   { label: t("roleMgmt.scopeTenant"), value: "tenant" },
@@ -100,13 +108,14 @@ function buildPermTree(perms: SysPermission[]): PermissionTreeNode[] {
   return roots;
 }
 
-/** 节点图标 */
+/** 节点图标：模块/目录用 folder/folder_open（随展开状态切换），菜单用 nest_eco_leaf，按钮无图标 */
 function permNodeIcon(node: PermissionTreeNode): string {
-  if (node.type === "module") return node.icon || "sym_r_view_module";
-  if (node.type === "folder") return node.icon || "sym_r_folder";
-  if (node.type === "menu") return node.icon || "sym_r_nest_eco_leaf";
-  if (node.type === "button") return "sym_r_smart_button";
-  return "sym_r_article";
+  if (node.type === "module" || node.type === "folder") {
+    return permTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
+  }
+  if (node.type === "menu") return "sym_r_nest_eco_leaf";
+  // button 类型不展示图标
+  return "";
 }
 
 /** 过滤树节点（按关键字，保留匹配的父节点） */
@@ -185,7 +194,10 @@ function initForm() {
   if (props.role) {
     form.id = props.role.id;
     form.name = props.role.name;
-    form.code = props.role.code;
+    // 编辑/查看时剥离 ROLE_ 前缀，仅展示后缀部分
+    form.code = props.role.code?.startsWith(CODE_PREFIX)
+      ? props.role.code.slice(CODE_PREFIX.length)
+      : (props.role.code ?? "");
     form.dataScope = props.role.dataScope;
     form.sort = props.role.sort ?? 100;
     form.remark = props.role.remark || "";
@@ -216,7 +228,7 @@ async function handleSave() {
 
   const data: Record<string, unknown> = {
     name: form.name,
-    code: form.code,
+    code: `${CODE_PREFIX}${form.code}`,
     dataScope: form.dataScope,
     sort: form.sort,
     remark: form.remark || undefined,
@@ -270,7 +282,9 @@ async function handleSave() {
         <!-- 角色编码 -->
         <div class="col-12 col-md-6">
           <q-input
-            v-model.trim="form.code"
+            :model-value="form.code"
+            @update:model-value="onCodeInput"
+            :prefix="CODE_PREFIX"
             :label="t('roleMgmt.code')"
             filled
             square
@@ -383,6 +397,7 @@ async function handleSave() {
               <template #default-header="scope">
                 <div class="perm-tree-node row items-center no-wrap full-width">
                   <q-icon
+                    v-if="permNodeIcon(scope.node)"
                     :name="permNodeIcon(scope.node)"
                     size="18px"
                     class="q-mr-sm"
@@ -478,14 +493,6 @@ async function handleSave() {
 
 .perm-tree {
   padding: 0 4px;
-}
-
-:deep(.perm-tree.q-tree--dense .q-tree__node--child) {
-  padding-left: 0 !important;
-}
-
-:deep(.perm-tree.q-tree--dense .q-tree__children) {
-  padding-left: 16px !important;
 }
 
 :deep(.perm-tree .q-tree__node) {

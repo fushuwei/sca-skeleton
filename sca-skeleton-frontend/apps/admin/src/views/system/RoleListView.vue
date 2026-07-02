@@ -120,9 +120,7 @@ const columns = computed<QTableColumn<SysRole>[]>(() => [
     field: "name",
     label: t("roleMgmt.name"),
     align: "left",
-    sortable: true,
-    classes: "sticky-col-left",
-    headerClasses: "sticky-col-left"
+    sortable: true
   },
   {
     name: "code",
@@ -165,9 +163,7 @@ const columns = computed<QTableColumn<SysRole>[]>(() => [
     field: "id",
     label: t("common.actions"),
     align: "center",
-    sortable: false,
-    classes: "sticky-col-right",
-    headerClasses: "sticky-col-right"
+    sortable: false
   }
 ]);
 
@@ -897,92 +893,6 @@ onMounted(() => {
 
 .role-table :deep(thead tr:first-child th) {
   border-top: none;
-}
-
-/* ═══ 固定列（Sticky Columns）═══ */
-.role-table :deep(th:first-child:not([colspan])),
-.role-table :deep(td:first-child:not([colspan])) {
-  width: 64px !important;
-  min-width: 64px !important;
-}
-
-.role-table :deep(thead tr th:first-child:not([colspan])) {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-}
-
-.role-table :deep(tbody td:first-child:not([colspan])) {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  background: #fff;
-}
-
-.role-table :deep(thead tr th.sticky-col-left) {
-  position: sticky;
-  left: 64px;
-  z-index: 1;
-}
-
-.role-table :deep(tbody td.sticky-col-left) {
-  position: sticky;
-  left: 64px;
-  z-index: 1;
-  background: #fff;
-}
-
-.role-table :deep(thead tr th.sticky-col-right) {
-  position: sticky;
-  right: 0;
-  z-index: 1;
-}
-
-.role-table :deep(tbody td.sticky-col-right) {
-  position: sticky;
-  right: 0;
-  z-index: 1;
-  background: #fff;
-}
-
-.role-table :deep(thead tr th.sticky-col-left),
-.role-table :deep(tbody td.sticky-col-left) {
-  box-shadow: 4px 0 6px -1px rgba(0, 0, 0, 0.12);
-}
-
-.role-table :deep(thead tr th.sticky-col-right),
-.role-table :deep(tbody td.sticky-col-right) {
-  box-shadow: -4px 0 6px -1px rgba(0, 0, 0, 0.12);
-}
-
-.role-table :deep(tbody tr:hover td:first-child:not([colspan])),
-.role-table :deep(tbody tr:hover td.sticky-col-left),
-.role-table :deep(tbody tr:hover td.sticky-col-right) {
-  background: #f7fbfb !important;
-}
-
-.role-table :deep(tbody tr.q-tr--selected td:first-child:not([colspan])),
-.role-table :deep(tbody tr.q-tr--selected td.sticky-col-left),
-.role-table :deep(tbody tr.q-tr--selected td.sticky-col-right) {
-  background: #f0f6f4 !important;
-}
-
-.body--dark .role-table :deep(tbody td:first-child:not([colspan])),
-.body--dark .role-table :deep(tbody td.sticky-col-left),
-.body--dark .role-table :deep(tbody td.sticky-col-right) {
-  background: #1e1e1e !important;
-}
-
-.body--dark .role-table :deep(tbody tr:hover td:first-child:not([colspan])),
-.body--dark .role-table :deep(tbody tr:hover td.sticky-col-left),
-.body--dark .role-table :deep(tbody tr:hover td.sticky-col-right) {
-  background: #1d2120 !important;
-}
-
-.body--dark .role-table :deep(tbody tr.q-tr--selected td:first-child:not([colspan])),
-.body--dark .role-table :deep(tbody tr.q-tr--selected td.sticky-col-left),
-.body--dark .role-table :deep(tbody tr.q-tr--selected td.sticky-col-right) {
-  background: #1c2323 !important;
 }
 
 /* ── 空数据状态 ── */
