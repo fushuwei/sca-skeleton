@@ -153,7 +153,9 @@ function toggleMenuNode(node: PermissionTreeNode) {
 
 /** 树节点图标：root/module/folder 统一使用 folder/folder_open，menu 用 eco_leaf */
 function menuNodeIcon(node: PermissionTreeNode): string {
-  if (node.type === "root") return "sym_r_folder_open";
+  if (node.type === "root") {
+    return menuTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
+  }
   if (node.type === "menu") return "sym_r_nest_eco_leaf";
   // module 和 folder 统一使用 folder / folder_open
   return menuTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
@@ -891,15 +893,7 @@ onMounted(() => {
         <!-- 名称列 -->
         <template #body-cell-name="props">
           <q-td :props="props">
-            <div class="row items-center no-wrap">
-              <q-icon
-                v-if="props.row.icon"
-                :name="props.row.icon"
-                size="18px"
-                class="q-mr-sm text-grey-7"
-              />
-              <span>{{ props.row.name }}</span>
-            </div>
+            <span>{{ props.row.name }}</span>
           </q-td>
         </template>
 
@@ -1463,6 +1457,11 @@ onMounted(() => {
 .menu-count-badge {
   font-size: 11px;
   padding: 1px 6px;
+}
+
+/* 复选框尺寸 */
+.menu-table :deep(.q-checkbox__inner) {
+  font-size: 32px;
 }
 
 /* Badge 统一样式 */
