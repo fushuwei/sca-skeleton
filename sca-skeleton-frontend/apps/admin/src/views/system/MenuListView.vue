@@ -339,7 +339,9 @@ const columns = computed<QTableColumn<SysPermission>[]>(() => [
     field: "name",
     label: t("menuMgmt.name"),
     align: "left",
-    sortable: true
+    sortable: true,
+    classes: "sticky-col-left",
+    headerClasses: "sticky-col-left"
   },
   {
     name: "type",
@@ -359,6 +361,13 @@ const columns = computed<QTableColumn<SysPermission>[]>(() => [
     name: "path",
     field: "path",
     label: t("menuMgmt.path"),
+    align: "left",
+    sortable: false
+  },
+  {
+    name: "component",
+    field: "component",
+    label: t("menuMgmt.component"),
     align: "left",
     sortable: false
   },
@@ -403,7 +412,9 @@ const columns = computed<QTableColumn<SysPermission>[]>(() => [
     field: "id",
     label: t("common.actions"),
     align: "center",
-    sortable: false
+    sortable: false,
+    classes: "sticky-col-right",
+    headerClasses: "sticky-col-right"
   }
 ]);
 
@@ -926,6 +937,14 @@ onMounted(() => {
           </q-td>
         </template>
 
+        <!-- 前端组件列 -->
+        <template #body-cell-component="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
         <!-- 图标列 -->
         <template #body-cell-icon="props">
           <q-td :props="props">
@@ -1418,6 +1437,92 @@ onMounted(() => {
 
 .menu-table :deep(thead tr:first-child th) {
   border-top: none;
+}
+
+/* ═══ 固定列（Sticky Columns）═══ */
+.menu-table :deep(th:first-child:not([colspan])),
+.menu-table :deep(td:first-child:not([colspan])) {
+  width: 64px !important;
+  min-width: 64px !important;
+}
+
+.menu-table :deep(thead tr th:first-child:not([colspan])) {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.menu-table :deep(tbody td:first-child:not([colspan])) {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #fff;
+}
+
+.menu-table :deep(thead tr th.sticky-col-left) {
+  position: sticky;
+  left: 64px;
+  z-index: 1;
+}
+
+.menu-table :deep(tbody td.sticky-col-left) {
+  position: sticky;
+  left: 64px;
+  z-index: 1;
+  background: #fff;
+}
+
+.menu-table :deep(thead tr th.sticky-col-right) {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+}
+
+.menu-table :deep(tbody td.sticky-col-right) {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: #fff;
+}
+
+.menu-table :deep(thead tr th.sticky-col-left),
+.menu-table :deep(tbody td.sticky-col-left) {
+  box-shadow: 4px 0 6px -1px rgba(0, 0, 0, 0.12);
+}
+
+.menu-table :deep(thead tr th.sticky-col-right),
+.menu-table :deep(tbody td.sticky-col-right) {
+  box-shadow: -4px 0 6px -1px rgba(0, 0, 0, 0.12);
+}
+
+.menu-table :deep(tbody tr:hover td:first-child:not([colspan])),
+.menu-table :deep(tbody tr:hover td.sticky-col-left),
+.menu-table :deep(tbody tr:hover td.sticky-col-right) {
+  background: #f7fbfb !important;
+}
+
+.menu-table :deep(tbody tr.q-tr--selected td:first-child:not([colspan])),
+.menu-table :deep(tbody tr.q-tr--selected td.sticky-col-left),
+.menu-table :deep(tbody tr.q-tr--selected td.sticky-col-right) {
+  background: #f0f6f4 !important;
+}
+
+.body--dark .menu-table :deep(tbody td:first-child:not([colspan])),
+.body--dark .menu-table :deep(tbody td.sticky-col-left),
+.body--dark .menu-table :deep(tbody td.sticky-col-right) {
+  background: #1e1e1e !important;
+}
+
+.body--dark .menu-table :deep(tbody tr:hover td:first-child:not([colspan])),
+.body--dark .menu-table :deep(tbody tr:hover td.sticky-col-left),
+.body--dark .menu-table :deep(tbody tr:hover td.sticky-col-right) {
+  background: #1d2120 !important;
+}
+
+.body--dark .menu-table :deep(tbody tr.q-tr--selected td:first-child:not([colspan])),
+.body--dark .menu-table :deep(tbody tr.q-tr--selected td.sticky-col-left),
+.body--dark .menu-table :deep(tbody tr.q-tr--selected td.sticky-col-right) {
+  background: #1c2323 !important;
 }
 
 /* ── 空数据状态 ── */

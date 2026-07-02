@@ -62,6 +62,10 @@ const permTreeExpanded = ref<string[]>([]);
 const permTreeTicked = ref<string[]>([]);
 const permSearchKey = ref("");
 
+/** 权限树未加载时的待处理操作 */
+const pendingPermIds = ref<string[] | null>(null);
+const pendingTickAll = ref(false);
+
 /** 将扁平权限列表转成树结构 */
 function buildPermTree(perms: SysPermission[]): PermissionTreeNode[] {
   if (!perms.length) return [];
@@ -149,6 +153,20 @@ watch(permSearchKey, (val) => {
   }
 });
 
+/** 勾选所有权限节点 */
+function tickAllPermissions() {
+  const allIds: string[] = [];
+  const collectAllIds = (nodes: PermissionTreeNode[]) => {
+    for (const n of nodes) {
+      allIds.push(n.id);
+      if (n.children?.length) collectAllIds(n.children);
+    }
+  };
+  collectAllIds(permTreeNodes.value);
+  permTreeTicked.value = allIds;
+  form.permissionIds = [...allIds];
+}
+
 async function loadPermTree() {
   permTreeLoading.value = true;
   try {
@@ -157,6 +175,15 @@ async function loadPermTree() {
       permTreeNodes.value = buildPermTree(result.data);
       // 默认展开第一级
       permTreeExpanded.value = permTreeNodes.value.map((n) => n.id);
+      // 树加载完成后，执行待处理的权限回显操作
+      if (pendingTickAll.value) {
+        tickAllPermissions();
+        pendingTickAll.value = false;
+      } else if (pendingPermIds.value) {
+        permTreeTicked.value = pendingPermIds.value;
+        form.permissionIds = [...pendingPermIds.value];
+        pendingPermIds.value = null;
+      }
     }
   } catch {
     // 静默失败
@@ -170,8 +197,13 @@ async function loadRolePermissions(roleId: string) {
   try {
     const result = await getRolePermissionIdsApi(roleId);
     if (result.code === 10_000 && result.data) {
-      permTreeTicked.value = result.data;
-      form.permissionIds = [...result.data];
+      if (permTreeNodes.value.length === 0) {
+        // 权限树尚未加载，暂存待处理
+        pendingPermIds.value = result.data;
+      } else {
+        permTreeTicked.value = result.data;
+        form.permissionIds = [...result.data];
+      }
     }
   } catch {
     // 静默失败
@@ -201,8 +233,15 @@ function initForm() {
     form.dataScope = props.role.dataScope;
     form.sort = props.role.sort ?? 100;
     form.remark = props.role.remark || "";
-    // 编辑/查看模式加载已分配权限
-    if (props.role.id) {
+    // 查看模式且超管角色：默认勾选所有权限
+    if (drawerReadonly.value && props.role.code === "ROLE_SUPERADMIN") {
+      if (permTreeNodes.value.length === 0) {
+        pendingTickAll.value = true;
+      } else {
+        tickAllPermissions();
+      }
+    } else if (props.role.id) {
+      // 编辑/查看模式加载已分配权限
       loadRolePermissions(props.role.id);
     }
   }
@@ -391,7 +430,7 @@ async function handleSave() {
               no-connectors
               dense
               :no-tick-children="drawerReadonly"
-              class="perm-tree"
+              :class="['perm-tree', { 'perm-tree--readonly': drawerReadonly }]"
               no-nodes-label=" "
             >
               <template #default-header="scope">
@@ -518,6 +557,16 @@ async function handleSave() {
   font-size: 10px;
   padding: 1px 6px;
   text-transform: uppercase;
+}
+
+/* 修复 prefix 右侧多余间距 */
+:deep(.q-field__prefix) {
+  padding-right: 0 !important;
+}
+
+/* 查看模式：禁止权限树勾选交互 */
+.perm-tree--readonly :deep(.q-tree__tickbox) {
+  pointer-events: none;
 }
 </style>
 

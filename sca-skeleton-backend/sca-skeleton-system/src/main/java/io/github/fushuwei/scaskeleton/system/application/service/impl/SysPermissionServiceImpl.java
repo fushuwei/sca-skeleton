@@ -110,6 +110,8 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         permission.setStatus(StringUtils.hasText(req.getStatus()) ? req.getStatus() : "enabled");
         permission.setRemark(req.getRemark());
 
+        // 设置临时 treePath（数据库字段 NOT NULL，需在插入前赋值，插入后立即更新为正确值）
+        permission.setTreePath("");
         // 先插入以获取自增主键 ID
         permissionMapper.insert(permission);
 

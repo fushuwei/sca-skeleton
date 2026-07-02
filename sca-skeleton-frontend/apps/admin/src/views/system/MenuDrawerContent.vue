@@ -200,11 +200,13 @@ const menuDisplayLabel = computed(() => {
   return findMenuLabel(menuTreeWithRoot.value, form.parentId);
 });
 
-/** 节点图标：root=folder_open, module=自定义icon, 其他用自身icon或默认 */
+/** 节点图标：root/module/folder 用 folder/folder_open（随展开状态切换），menu 用 nest_eco_leaf */
 function menuNodeIcon(node: PermissionTreeNode): string {
-  if (node.type === "root") return "sym_r_folder_open";
-  if (node.type === "module") return node.icon || "sym_r_view_module";
-  return node.icon || (node.children?.length ? "sym_r_folder" : "sym_r_article");
+  if (node.type === "root" || node.type === "module" || node.type === "folder") {
+    return menuTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
+  }
+  if (node.type === "menu") return "sym_r_nest_eco_leaf";
+  return "sym_r_article";
 }
 
 /** 点击树节点选中 */
@@ -354,7 +356,7 @@ async function handleSave() {
               @before-show="menuMenuOpen = true"
               @before-hide="menuMenuOpen = false"
             >
-              <div class="q-pa-sm" style="width: 320px">
+              <div class="q-pa-sm">
                 <q-input
                   v-model="menuSearchKey"
                   dense

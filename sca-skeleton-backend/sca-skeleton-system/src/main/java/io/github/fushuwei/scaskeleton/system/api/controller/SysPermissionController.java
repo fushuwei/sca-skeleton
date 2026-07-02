@@ -57,7 +57,7 @@ public class SysPermissionController {
     // 新增权限节点，需 sys:permission:add
     @PostMapping
     @RequiresPermission("sys:permission:add")
-    @OperationLog(module = "菜单管理", action = "新增菜单")
+    @OperationLog(module = "菜单管理", action = "添加菜单")
     public Result<Void> create(@Validated @RequestBody PermissionSaveRequest request) {
         permissionService.createPermission(request);
         return Result.ok();

@@ -180,8 +180,8 @@
     "expandMenuTree": "展开菜单",
     "collapseMenuTree": "收起菜单",
     "allMenus": "全部",
-    "createMenu": "新增菜单",
-    "addMenu": "新增菜单",
+    "createMenu": "添加菜单",
+    "addMenu": "添加菜单",
     "editMenu": "编辑菜单",
     "viewMenu": "查看菜单",
     "name": "菜单名称",
@@ -229,8 +229,8 @@
     "searchMenu": "搜索菜单"
   },
   "roleMgmt": {
-    "createRole": "新增角色",
-    "addRole": "新增角色",
+    "createRole": "添加角色",
+    "addRole": "添加角色",
     "editRole": "编辑角色",
     "viewRole": "查看角色",
     "name": "角色名称",

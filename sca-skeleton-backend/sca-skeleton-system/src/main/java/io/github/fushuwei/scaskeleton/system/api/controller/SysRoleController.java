@@ -58,7 +58,7 @@ public class SysRoleController {
     // 在当前租户下创建角色，需 sys:role:add
     @PostMapping
     @RequiresPermission("sys:role:add")
-    @OperationLog(module = "角色管理", action = "新增角色", logArgs = false)
+    @OperationLog(module = "角色管理", action = "添加角色", logArgs = false)
     public Result<Void> create(
             @Validated(ValidGroup.Create.class) @RequestBody RoleSaveRequest request) {
         roleService.createRole(SecurityUtils.getTenantId(), request);
