@@ -1189,6 +1189,22 @@ onMounted(() => {
           </q-td>
         </template>
 
+        <!-- 昵称列 -->
+        <template #body-cell-nickname="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 真实姓名列 -->
+        <template #body-cell-realName="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
         <!-- 用户类别列 -->
         <template #body-cell-userCategory="props">
           <q-td :props="props">
@@ -1213,6 +1229,30 @@ onMounted(() => {
               rounded
               class="user-type-badge"
             />
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 部门列 -->
+        <template #body-cell-deptName="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 手机号列 -->
+        <template #body-cell-phone="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 邮箱列 -->
+        <template #body-cell-email="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
             <span v-else class="text-grey-5">-</span>
           </q-td>
         </template>
