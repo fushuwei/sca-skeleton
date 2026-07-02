@@ -659,4 +659,14 @@ async function handleSave() {
 .body--dark .menu-drawer-form .q-field--focused .q-field__control::after {
   border-color: #80cbc4;
 }
+
+/* 抽屉底部按钮区域分隔线 */
+.body--dark .menu-drawer-footer {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 上级菜单树下拉选项 */
+.body--dark .menu-tree-option:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
 </style>
