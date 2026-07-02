@@ -339,7 +339,7 @@ async function handleSave() {
             :display-value="menuDisplayLabel"
             :rules="formRules.parentId"
             lazy-rules
-            :disable="drawerReadonly"
+            :disable="drawerReadonly || mode === 'edit'"
             hide-bottom-space
             dropdown-icon="sym_r_arrow_drop_down"
             :class="{ 'menu-select--menu-open': menuMenuOpen }"
