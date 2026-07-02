@@ -406,53 +406,29 @@ SELECT t.* FROM (
            100 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,1000' AS `tree_path`, NULL AS `remark`,
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
     UNION ALL
-    SELECT '1100', '1000', '用户与权限', 'folder', NULL, NULL, NULL, 'sym_r_folder',
-           100, 1, 0, 'enabled', '0,1000,1100', NULL,
-           0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1100', '1000', '用户与权限', 'folder', NULL, NULL, NULL, 'sym_r_folder', 100, 1, 0, 'enabled', '0,1000,1100', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1101', '1100', '用户管理', 'menu', NULL, '/system/user', 'UserListView', 'sym_r_nest_eco_leaf',
-           100, 1, 0, 'enabled', '0,1000,1100,1101', NULL,
-           0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1101', '1100', '用户管理', 'menu', NULL, '/system/user', 'UserListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1100,1101', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1102', '1100', '角色管理', 'menu', NULL, '/system/role', 'PlaceholderView', 'sym_r_nest_eco_leaf',
-           200, 1, 0, 'enabled', '0,1000,1100,1102', NULL,
-           0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1102', '1100', '角色管理', 'menu', NULL, '/system/role', 'PlaceholderView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1100,1102', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1103', '1100', '菜单管理', 'menu', NULL, '/system/menu', 'MenuListView', 'sym_r_nest_eco_leaf',
-           300, 1, 0, 'enabled', '0,1000,1100,1103', NULL,
-           0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1103', '1100', '菜单管理', 'menu', NULL, '/system/menu', 'MenuListView', 'sym_r_nest_eco_leaf', 300, 1, 0, 'enabled', '0,1000,1100,1103', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1200', '1000', '组织与岗位', 'folder', NULL, NULL, NULL, 'sym_r_folder',
-           200, 1, 0, 'enabled', '0,1000,1200', NULL,
-           0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1200', '1000', '组织与岗位', 'folder', NULL, NULL, NULL, 'sym_r_folder', 200, 1, 0, 'enabled', '0,1000,1200', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1201', '1200', '部门管理', 'menu', NULL, '/system/dept', 'PlaceholderView', 'sym_r_nest_eco_leaf',
-           100, 1, 0, 'enabled', '0,1000,1200,1201', NULL,
-           0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1201', '1200', '部门管理', 'menu', NULL, '/system/dept', 'PlaceholderView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1200,1201', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1202', '1200', '岗位管理', 'menu', NULL, '/system/post', 'PlaceholderView', 'sym_r_nest_eco_leaf',
-           200, 1, 0, 'enabled', '0,1000,1200,1202', NULL,
-           0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1202', '1200', '岗位管理', 'menu', NULL, '/system/post', 'PlaceholderView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1200,1202', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1301', '1000', '字典管理', 'menu', NULL, '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf',
-           300, 1, 0, 'enabled', '0,1000,1301', NULL,
-           0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1301', '1000', '字典管理', 'menu', NULL, '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 300, 1, 0, 'enabled', '0,1000,1301', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1302', '1000', '系统配置', 'menu', NULL, '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf',
-           400, 1, 0, 'enabled', '0,1000,1302', NULL,
-           0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1302', '1000', '系统配置', 'menu', NULL, '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf', 400, 1, 0, 'enabled', '0,1000,1302', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1303', '1000', '通知公告', 'menu', NULL, '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf',
-           500, 1, 0, 'enabled', '0,1000,1303', NULL,
-           0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1303', '1000', '通知公告', 'menu', NULL, '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 500, 1, 0, 'enabled', '0,1000,1303', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1304', '1000', '操作日志', 'menu', NULL, '/system/log/operation', 'PlaceholderView', 'sym_r_nest_eco_leaf',
-           600, 1, 0, 'enabled', '0,1000,1304', NULL,
-           0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1304', '1000', '操作日志', 'menu', NULL, '/system/log/operation', 'PlaceholderView', 'sym_r_nest_eco_leaf', 600, 1, 0, 'enabled', '0,1000,1304', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1305', '1000', '登录日志', 'menu', NULL, '/system/log/login', 'PlaceholderView', 'sym_r_nest_eco_leaf',
-           700, 1, 0, 'enabled', '0,1000,1305', NULL,
-           0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1305', '1000', '登录日志', 'menu', NULL, '/system/log/login', 'PlaceholderView', 'sym_r_nest_eco_leaf', 700, 1, 0, 'enabled', '0,1000,1305', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
 WHERE NOT EXISTS (
     SELECT 1 FROM `sys_permission` WHERE `id` = '1000' AND `is_deleted` = 0
