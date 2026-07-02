@@ -218,6 +218,8 @@
     "sortPlaceholder": "请输入排序号",
     "remarkPlaceholder": "请输入备注",
     "deleteConfirm": "确认删除菜单「{name}」？",
+    "batchDeleteConfirm": "确认删除选中的 {count} 个菜单？删除后不可恢复。",
+    "batchDeleteResult": "成功删除 {success} 个，失败 {fail} 个",
     "hasChildrenDeleteHint": "该菜单下存在子菜单/按钮，请先删除子节点",
     "saveSuccess": "保存成功",
     "saveFail": "保存失败",

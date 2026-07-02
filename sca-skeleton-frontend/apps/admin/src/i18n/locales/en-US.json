@@ -218,6 +218,8 @@
     "sortPlaceholder": "Please input sort number",
     "remarkPlaceholder": "Please input remark",
     "deleteConfirm": "Confirm to delete menu \"{name}\"?",
+    "batchDeleteConfirm": "Confirm to delete {count} selected menu(s)? This cannot be undone.",
+    "batchDeleteResult": "Deleted {success} successfully, {fail} failed",
     "hasChildrenDeleteHint": "This menu has child nodes, please delete them first",
     "saveSuccess": "Saved successfully",
     "saveFail": "Failed to save",

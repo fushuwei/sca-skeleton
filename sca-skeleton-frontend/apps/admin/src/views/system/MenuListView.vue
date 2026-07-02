@@ -151,12 +151,11 @@ function toggleMenuNode(node: PermissionTreeNode) {
   }
 }
 
-/** 树节点图标：root=folder_open, module=自定义icon, folder=folder/folder_open, menu=eco_leaf */
+/** 树节点图标：root/module/folder 统一使用 folder/folder_open，menu 用 eco_leaf */
 function menuNodeIcon(node: PermissionTreeNode): string {
   if (node.type === "root") return "sym_r_folder_open";
   if (node.type === "menu") return "sym_r_nest_eco_leaf";
-  if (node.type === "module") return node.icon || "sym_r_view_module";
-  if (node.icon) return node.icon;
+  // module 和 folder 统一使用 folder / folder_open
   return menuTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
 }
 
@@ -579,6 +578,50 @@ async function handleDelete(permission: SysPermission) {
   }
 }
 
+// 批量删除
+async function handleBatchDelete() {
+  if (!selectedRows.value.length) {
+    showToast(t("common.selectRowsFirst"), "warning");
+    return;
+  }
+
+  try {
+    await $q.dialog({
+      title: t("common.confirm"),
+      message: t("menuMgmt.batchDeleteConfirm", { count: selectedRows.value.length }),
+      cancel: true,
+      persistent: true
+    });
+  } catch {
+    return;
+  }
+
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const perm of selectedRows.value) {
+    try {
+      const result = await deletePermissionApi(perm.id);
+      if (result.code === 10_000) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+    } catch {
+      failCount++;
+    }
+  }
+
+  showToast(
+    t("menuMgmt.batchDeleteResult", { success: successCount, fail: failCount }),
+    successCount > 0 ? "positive" : "negative"
+  );
+
+  selectedRows.value = [];
+  loadTableData();
+  loadMenuTree();
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 生命周期
 // ═══════════════════════════════════════════════════════════════
@@ -813,12 +856,26 @@ onMounted(() => {
             <q-icon name="sym_r_add" size="20px" class="q-mr-xs" />
             {{ t('menuMgmt.createMenu') }}
           </q-btn>
+          <q-btn
+            color="white"
+            text-color="negative"
+            outline
+            dense
+            no-caps
+            class="toolbar-btn"
+            :disable="!selectedRows.length"
+            @click.stop="handleBatchDelete"
+          >
+            <q-icon name="sym_r_delete" size="20px" class="q-mr-xs" />
+            {{ t('common.batchDelete') }}
+          </q-btn>
         </div>
         <q-space />
       </div>
 
       <!-- ── 表格区域 ── -->
       <q-table
+        v-model:selected="selectedRows"
         v-model:pagination="tablePagination"
         :rows="tableRows"
         :columns="columns"
@@ -826,6 +883,7 @@ onMounted(() => {
         row-key="id"
         :loading="tableLoading"
         :rows-per-page-options="[10, 20, 50, 100]"
+        selection="multiple"
         flat
         :class="['menu-table', { 'menu-table--empty': !tableRows.length }]"
         @request="loadTableData"
@@ -963,7 +1021,7 @@ onMounted(() => {
         <template #bottom="props">
           <div class="row items-center full-width table-bottom">
             <span>
-              {{ t("common.totalRows", { count: tableTotal }) }}
+              {{ t("common.totalRows", { count: tableTotal }) }}<template v-if="selectedRows.length">，{{ t("common.selectedRows", { count: selectedRows.length }) }}</template>
             </span>
             <q-space />
             <q-pagination
@@ -1739,5 +1797,73 @@ onMounted(() => {
 
 .body--dark .menu-local-drawer-mask {
   background: rgba(0, 0, 0, 0.5);
+}
+
+/* ── 搜索区域暗色 ── */
+.body--dark .search-area :deep(.q-field__control) {
+  background: #2d2d2d !important;
+}
+
+.body--dark .search-area :deep(.q-field__native),
+.body--dark .search-area :deep(.q-field__prefix),
+.body--dark .search-area :deep(.q-field__suffix) {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .search-area :deep(.q-field__label) {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+.body--dark .search-area :deep(.q-field__control::before) {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+/* ── 搜索/重置按钮暗色 ── */
+.body--dark .search-btn.text-grey-7,
+.body--dark .search-btn.text-white {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+/* ── 工具栏按钮暗色 ── */
+.body--dark .toolbar-btn.text-white {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+/* ── 表格复选框/表头暗色 ── */
+.body--dark .menu-table :deep(.q-checkbox__svg) {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.body--dark .menu-table :deep(.q-checkbox__inner--truthy .q-checkbox__svg) {
+  color: #80cbc4 !important;
+}
+
+/* ── 表格空数据暗色 ── */
+.body--dark .menu-table .empty-state-content {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ── 分页栏文字暗色 ── */
+.body--dark .menu-table :deep(.q-table__bottom),
+.body--dark .table-bottom {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.body--dark .menu-table :deep(.q-table__bottom .text-grey-7) {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.body--dark .menu-table :deep(.rows-per-page-select .q-field__native),
+.body--dark .menu-table :deep(.jump-to-page-input .q-field__native) {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+/* ── 树节点图标暗色 ── */
+.body--dark .menu-tree .q-icon {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.body--dark .menu-tree-node--selected .q-icon {
+  color: #80cbc4 !important;
 }
 </style>

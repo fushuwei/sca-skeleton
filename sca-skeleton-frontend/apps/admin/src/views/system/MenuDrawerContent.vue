@@ -59,13 +59,18 @@ const TYPE_DEFAULT_ICON: Record<string, string> = {
   module: "",
   folder: "sym_r_folder",
   menu: "sym_r_nest_eco_leaf",
-  button: "sym_r_radio_button_checked"
+  button: ""
 };
 
 /** 切换类型时自动填充默认图标（仅新增/编辑模式，图标为空或等于上一类型默认值时触发） */
 watch(() => form.type, (newType, oldType) => {
   if (drawerReadonly.value || !newType) return;
   const oldDefault = oldType ? TYPE_DEFAULT_ICON[oldType] : "";
+  // button 类型清空图标
+  if (newType === "button") {
+    form.icon = "";
+    return;
+  }
   if (!form.icon || form.icon === oldDefault) {
     form.icon = TYPE_DEFAULT_ICON[newType] || "";
   }
@@ -283,7 +288,7 @@ async function handleSave() {
     code: form.code || undefined,
     path: form.path || undefined,
     component: form.component || undefined,
-    icon: form.type === "button" ? "sym_r_radio_button_checked" : (form.icon || undefined),
+    icon: form.type === "button" ? undefined : (form.icon || undefined),
     sort: form.sort,
     isVisible: form.isVisible,
     isExternal: form.isExternal,
