@@ -211,7 +211,7 @@ export interface PermissionPageRequest {
   orderDirection?: "asc" | "desc";
 }
 
-/** 权限树节点（用于 q-tree，仅 folder + menu 类型） */
+/** 权限树节点（用于 q-tree，排除 button 类型） */
 export interface PermissionTreeNode {
   id: string;
   label: string;

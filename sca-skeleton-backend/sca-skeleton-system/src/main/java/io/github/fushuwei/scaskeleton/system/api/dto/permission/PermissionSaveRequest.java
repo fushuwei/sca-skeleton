@@ -22,7 +22,7 @@ public class PermissionSaveRequest {
     @NotBlank(message = "权限名称不能为空")
     private String name;
 
-    /** 类型：folder-目录，menu-菜单，button-按钮 */
+    /** 类型：module-模块，folder-目录，menu-菜单，button-按钮 */
     @NotBlank(message = "权限类型不能为空")
     private String type;
 

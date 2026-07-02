@@ -28,10 +28,10 @@ const menuTreeExpanded = ref<string[]>([ROOT_ID]);
 const leftPanelWidth = ref(260);
 const leftPanelCollapsed = ref(false);
 
-/** 将扁平权限列表转成树结构（仅 folder + menu 类型） */
+/** 将扁平权限列表转成树结构（排除 button 类型） */
 function buildMenuTree(perms: SysPermission[]): PermissionTreeNode[] {
   if (!perms.length) return [];
-  const filtered = perms.filter((p) => p.type === "folder" || p.type === "menu");
+  const filtered = perms.filter((p) => p.type !== "button");
   const sorted = [...filtered].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
 
   const map = new Map<string, PermissionTreeNode>();
@@ -151,10 +151,12 @@ function toggleMenuNode(node: PermissionTreeNode) {
   }
 }
 
-/** 树节点图标：目录用 folder，菜单用 eco_leaf */
+/** 树节点图标：root=folder_open, module=自定义icon, folder=folder/folder_open, menu=eco_leaf */
 function menuNodeIcon(node: PermissionTreeNode): string {
-  if (node.type === "root") return "sym_r_list_alt";
+  if (node.type === "root") return "sym_r_folder_open";
   if (node.type === "menu") return "sym_r_nest_eco_leaf";
+  if (node.type === "module") return node.icon || "sym_r_view_module";
+  if (node.icon) return node.icon;
   return menuTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
 }
 
@@ -236,6 +238,7 @@ const searchExpanded = ref(true);
 
 // ── 类型选项 ──
 const typeOptions = [
+  { label: "menuMgmt.typeModule", value: "module" },
   { label: "menuMgmt.typeFolder", value: "folder" },
   { label: "menuMgmt.typeMenu", value: "menu" },
   { label: "menuMgmt.typeButton", value: "button" }
@@ -249,6 +252,7 @@ const statusOptions = [
 
 const typeColorOf = (s: string): string =>
   ({
+    module: "deep-purple",
     folder: "teal",
     menu: "primary",
     button: "orange"
@@ -256,6 +260,7 @@ const typeColorOf = (s: string): string =>
 
 const typeLabelOf = (s: string): string =>
   ({
+    module: t("menuMgmt.typeModule"),
     folder: t("menuMgmt.typeFolder"),
     menu: t("menuMgmt.typeMenu"),
     button: t("menuMgmt.typeButton")
@@ -608,7 +613,7 @@ onMounted(() => {
       <template v-else>
         <div class="left-panel-header">
           <div class="left-panel-header-title row items-center no-wrap">
-            <q-icon name="sym_r_list_alt" size="20px" class="q-mr-xs" />
+            <q-icon name="sym_r_menu" size="20px" class="q-mr-xs" />
             <span>{{ t("menuMgmt.treeTitle") }}</span>
           </div>
           <q-btn
@@ -1280,7 +1285,7 @@ onMounted(() => {
 
 .status-select :deep(.q-field__control) {
   min-height: 40px;
-  min-width: 130px;
+  min-width: 160px;
 }
 
 .status-placeholder {
@@ -1631,5 +1636,108 @@ onMounted(() => {
 
 .body--dark .menu-drawer-body {
   color: rgba(255, 255, 255, 0.87) !important;
+}
+
+/* ═══ 主页面暗色模式 ═══ */
+.body--dark .menu-list-shell {
+  gap: 8px;
+}
+
+.body--dark .left-panel {
+  background: #1e1e1e !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .left-panel--collapsed {
+  background: #252525 !important;
+}
+
+.body--dark .left-panel-header {
+  background: #252525 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .left-panel-header-title {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .left-panel-toggle-btn,
+.body--dark .left-panel-collapse-btn,
+.body--dark .search-collapse-btn {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .left-panel-toggle-btn:hover,
+.body--dark .left-panel-collapse-btn:hover,
+.body--dark .search-collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.body--dark .menu-tree-label {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.body--dark .menu-tree-node:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.body--dark .menu-tree-node--selected {
+  background: rgba(0, 121, 107, 0.18) !important;
+}
+
+.body--dark .menu-tree-node--selected .menu-tree-label {
+  color: #80cbc4 !important;
+}
+
+.body--dark .search-area {
+  background: #1e1e1e !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .search-area-header {
+  background: #252525 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .search-area-title {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .menu-table {
+  background: #1e1e1e !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .menu-table :deep(thead tr th) {
+  background: #252525 !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .menu-table :deep(tbody td) {
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .menu-table :deep(tbody tr:hover td) {
+  background: rgba(0, 121, 107, 0.1) !important;
+}
+
+.body--dark .menu-table :deep(.q-table__bottom) {
+  background: #1e1e1e !important;
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.body--dark .status-select :deep(.q-field__native) {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .status-placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.body--dark .menu-local-drawer-mask {
+  background: rgba(0, 0, 0, 0.5);
 }
 </style>

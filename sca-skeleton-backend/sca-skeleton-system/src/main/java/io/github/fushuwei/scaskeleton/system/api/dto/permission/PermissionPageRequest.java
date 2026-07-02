@@ -34,7 +34,7 @@ public class PermissionPageRequest {
     /** 综合搜索关键词（名称、权限标识模糊匹配） */
     private String keyword;
 
-    /** 权限类型筛选：folder / menu / button */
+    /** 权限类型筛选：module / folder / menu / button */
     private String type;
 
     /** 状态筛选：enabled / disabled */

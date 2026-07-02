@@ -373,7 +373,7 @@ CREATE TABLE IF NOT EXISTS `sys_permission` (
     `id`              VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
     `parent_id`       VARCHAR(64)     NOT NULL DEFAULT '0'        COMMENT '父权限ID',
     `name`            VARCHAR(255)    NOT NULL                    COMMENT '权限名称',
-    `type`            VARCHAR(10)     NOT NULL                    COMMENT '权限类型（folder目录 menu菜单 button按钮）',
+    `type`            VARCHAR(10)     NOT NULL                    COMMENT '权限类型（module模块 folder目录 menu菜单 button按钮）',
     `code`            VARCHAR(255)    DEFAULT NULL                COMMENT '权限标识（如: system:user:list）',
     `path`            VARCHAR(255)    DEFAULT NULL                COMMENT '路由地址',
     `component`       VARCHAR(255)    DEFAULT NULL                COMMENT '前端组件路径',
@@ -401,60 +401,56 @@ INSERT INTO `sys_permission` (
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT t.* FROM (
-    SELECT '1000' AS `id`, '0' AS `parent_id`, '系统管理' AS `name`, 'folder' AS `type`, 'ModuleSystem' AS `code`,
-           '/system' AS `path`, NULL AS `component`, 'sym_r_settings' AS `icon`,
+    SELECT '1000' AS `id`, '0' AS `parent_id`, '系统管理' AS `name`, 'module' AS `type`, NULL AS `code`,
+           NULL AS `path`, NULL AS `component`, 'sym_r_settings' AS `icon`,
            100 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,1000' AS `tree_path`, NULL AS `remark`,
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
     UNION ALL
-    SELECT '1100', '1000', '用户与权限', 'folder', 'SystemUserGroup', '/system/iam', NULL, NULL,
+    SELECT '1100', '1000', '用户与权限', 'folder', NULL, NULL, NULL, NULL,
            100, 1, 0, 'enabled', '0,1000,1100', NULL,
            0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1101', '1100', '用户管理', 'menu', 'SystemUser', '/system/user', 'UserListView', NULL,
+    SELECT '1101', '1100', '用户管理', 'menu', NULL, '/system/user', 'UserListView', NULL,
            100, 1, 0, 'enabled', '0,1000,1100,1101', NULL,
            0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1102', '1100', '角色管理', 'menu', 'SystemRole', '/system/role', 'PlaceholderView', NULL,
+    SELECT '1102', '1100', '角色管理', 'menu', NULL, '/system/role', 'PlaceholderView', NULL,
            200, 1, 0, 'enabled', '0,1000,1100,1102', NULL,
            0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1103', '1100', '菜单管理', 'menu', 'SystemMenu', '/system/menu', 'MenuListView', NULL,
+    SELECT '1103', '1100', '菜单管理', 'menu', NULL, '/system/menu', 'MenuListView', NULL,
            300, 1, 0, 'enabled', '0,1000,1100,1103', NULL,
            0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1104', '1100', '接口权限', 'menu', 'SystemPermission', '/system/permission', 'PlaceholderView', NULL,
-           400, 1, 0, 'enabled', '0,1000,1100,1104', NULL,
-           0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '1200', '1000', '组织与岗位', 'folder', 'SystemOrgGroup', '/system/org', NULL, NULL,
+    SELECT '1200', '1000', '组织与岗位', 'folder', NULL, NULL, NULL, NULL,
            200, 1, 0, 'enabled', '0,1000,1200', NULL,
            0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1201', '1200', '部门管理', 'menu', 'SystemDept', '/system/dept', 'PlaceholderView', NULL,
+    SELECT '1201', '1200', '部门管理', 'menu', NULL, '/system/dept', 'PlaceholderView', NULL,
            100, 1, 0, 'enabled', '0,1000,1200,1201', NULL,
            0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1202', '1200', '岗位管理', 'menu', 'SystemPost', '/system/post', 'PlaceholderView', NULL,
+    SELECT '1202', '1200', '岗位管理', 'menu', NULL, '/system/post', 'PlaceholderView', NULL,
            200, 1, 0, 'enabled', '0,1000,1200,1202', NULL,
            0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1301', '1000', '字典管理', 'menu', 'SystemDict', '/system/dict', 'PlaceholderView', NULL,
+    SELECT '1301', '1000', '字典管理', 'menu', NULL, '/system/dict', 'PlaceholderView', NULL,
            300, 1, 0, 'enabled', '0,1000,1301', NULL,
            0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1302', '1000', '参数配置', 'menu', 'SystemConfig', '/system/config', 'PlaceholderView', NULL,
+    SELECT '1302', '1000', '系统配置', 'menu', NULL, '/system/config', 'PlaceholderView', NULL,
            400, 1, 0, 'enabled', '0,1000,1302', NULL,
            0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1303', '1000', '通知公告', 'menu', 'SystemNotice', '/system/notice', 'PlaceholderView', NULL,
+    SELECT '1303', '1000', '通知公告', 'menu', NULL, '/system/notice', 'PlaceholderView', NULL,
            500, 1, 0, 'enabled', '0,1000,1303', NULL,
            0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1304', '1000', '操作日志', 'menu', 'SystemLogOper', '/system/log/operation', 'PlaceholderView', NULL,
+    SELECT '1304', '1000', '操作日志', 'menu', NULL, '/system/log/operation', 'PlaceholderView', NULL,
            600, 1, 0, 'enabled', '0,1000,1304', NULL,
            0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1305', '1000', '登录日志', 'menu', 'SystemLogLogin', '/system/log/login', 'PlaceholderView', NULL,
+    SELECT '1305', '1000', '登录日志', 'menu', NULL, '/system/log/login', 'PlaceholderView', NULL,
            700, 1, 0, 'enabled', '0,1000,1305', NULL,
            0, 'system', NOW(), 'system', NOW(), 0
 ) AS t

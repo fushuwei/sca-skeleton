@@ -38,17 +38,38 @@ const form = reactive({
   remark: ""
 });
 
-const formRules = {
+const formRules = computed(() => ({
   parentId: [(v: string) => !!v || t("menuMgmt.parentIdRequired")],
   name: [(v: string) => !!v?.trim() || t("menuMgmt.nameRequired")],
-  type: [(v: string) => !!v || t("menuMgmt.typeRequired")]
-};
+  type: [(v: string) => !!v || t("menuMgmt.typeRequired")],
+  code: form.type === "button"
+    ? [(v: string) => !!v?.trim() || t("menuMgmt.codeRequired")]
+    : []
+}));
 
 const typeOptions = computed(() => [
+  { label: t("menuMgmt.typeModule"), value: "module" },
   { label: t("menuMgmt.typeFolder"), value: "folder" },
   { label: t("menuMgmt.typeMenu"), value: "menu" },
   { label: t("menuMgmt.typeButton"), value: "button" }
 ]);
+
+// ── 类型默认图标 ──
+const TYPE_DEFAULT_ICON: Record<string, string> = {
+  module: "",
+  folder: "sym_r_folder",
+  menu: "sym_r_nest_eco_leaf",
+  button: "sym_r_radio_button_checked"
+};
+
+/** 切换类型时自动填充默认图标（仅新增/编辑模式，图标为空或等于上一类型默认值时触发） */
+watch(() => form.type, (newType, oldType) => {
+  if (drawerReadonly.value || !newType) return;
+  const oldDefault = oldType ? TYPE_DEFAULT_ICON[oldType] : "";
+  if (!form.icon || form.icon === oldDefault) {
+    form.icon = TYPE_DEFAULT_ICON[newType] || "";
+  }
+});
 
 const statusOptions = computed(() => [
   { label: t("menuMgmt.statusEnabled"), value: "enabled" },
@@ -60,7 +81,7 @@ const yesNoOptions = computed(() => [
   { label: t("common.no"), value: 0 }
 ]);
 
-// ── 上级菜单树（仅 folder + menu 类型） ──
+// ── 上级菜单树（排除 button 类型） ──
 const allPermissions = ref<SysPermission[]>([]);
 const menuTreeNodes = ref<PermissionTreeNode[]>([]);
 const menuTreeExpanded = ref<string[]>([]);
@@ -68,11 +89,10 @@ const menuSearchKey = ref("");
 const menuMenuRef = ref();
 const menuMenuOpen = ref(false);
 
-/** 将扁平权限列表转成树结构（仅 folder + menu 类型） */
+/** 将扁平权限列表转成树结构（排除 button 类型） */
 function buildMenuTree(perms: SysPermission[]): PermissionTreeNode[] {
   if (!perms.length) return [];
-  // 仅保留 folder 和 menu 类型
-  const filtered = perms.filter((p) => p.type === "folder" || p.type === "menu");
+  const filtered = perms.filter((p) => p.type !== "button");
   const sorted = [...filtered].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
 
   const map = new Map<string, PermissionTreeNode>();
@@ -175,9 +195,10 @@ const menuDisplayLabel = computed(() => {
   return findMenuLabel(menuTreeWithRoot.value, form.parentId);
 });
 
-/** 节点图标 */
+/** 节点图标：root=folder_open, module=自定义icon, 其他用自身icon或默认 */
 function menuNodeIcon(node: PermissionTreeNode): string {
-  if (node.type === "root") return "sym_r_list_alt";
+  if (node.type === "root") return "sym_r_folder_open";
+  if (node.type === "module") return node.icon || "sym_r_view_module";
   return node.icon || (node.children?.length ? "sym_r_folder" : "sym_r_article");
 }
 
@@ -262,7 +283,7 @@ async function handleSave() {
     code: form.code || undefined,
     path: form.path || undefined,
     component: form.component || undefined,
-    icon: form.icon || undefined,
+    icon: form.type === "button" ? "sym_r_radio_button_checked" : (form.icon || undefined),
     sort: form.sort,
     isVisible: form.isVisible,
     isExternal: form.isExternal,
@@ -407,26 +428,29 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-        <!-- 权限标识 -->
+        <!-- 权限标识（仅 button 类型可填且必填） -->
         <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.code"
             :label="t('menuMgmt.code')"
             filled
             square
-            :disable="drawerReadonly"
+            :disable="drawerReadonly || form.type !== 'button'"
             :readonly="drawerReadonly"
+            :rules="formRules.code"
+            lazy-rules
             hide-bottom-space
+            :class="{ 'required-field': form.type === 'button' }"
           />
         </div>
-        <!-- 图标 -->
+        <!-- 图标（button 类型禁用，硬编码） -->
         <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.icon"
             :label="t('menuMgmt.icon')"
             filled
             square
-            :disable="drawerReadonly"
+            :disable="drawerReadonly || form.type === 'button'"
             :readonly="drawerReadonly"
             hide-bottom-space
           >
@@ -442,19 +466,19 @@ async function handleSave() {
             :label="t('menuMgmt.path')"
             filled
             square
-            :disable="drawerReadonly || form.type === 'button'"
+            :disable="drawerReadonly || form.type !== 'menu'"
             :readonly="drawerReadonly"
             hide-bottom-space
           />
         </div>
-        <!-- 组件路径 -->
+        <!-- 组件路径（仅 menu 类型可用） -->
         <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.component"
             :label="t('menuMgmt.component')"
             filled
             square
-            :disable="drawerReadonly || form.type === 'button' || form.type === 'folder'"
+            :disable="drawerReadonly || form.type !== 'menu'"
             :readonly="drawerReadonly"
             hide-bottom-space
           />
@@ -504,7 +528,7 @@ async function handleSave() {
             hide-bottom-space
           />
         </div>
-        <!-- 是否外链 -->
+        <!-- 是否外链（仅 menu 类型可用） -->
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.isExternal"
@@ -516,7 +540,7 @@ async function handleSave() {
             option-value="value"
             emit-value
             map-options
-            :disable="drawerReadonly || form.type === 'button'"
+            :disable="drawerReadonly || form.type !== 'menu'"
             hide-bottom-space
           />
         </div>

@@ -67,8 +67,7 @@ export const DEMO_MENUS: MenuItem[] = [
         children: [
           { name: "SystemUser", path: "/system/user", title: "用户管理", component: "UserListView" },
           { name: "SystemRole", path: "/system/role", title: "角色管理", component: "PlaceholderView" },
-          { name: "SystemMenu", path: "/system/menu", title: "菜单管理", component: "MenuListView" },
-          { name: "SystemPermission", path: "/system/permission", title: "接口权限", component: "PlaceholderView" }
+          { name: "SystemMenu", path: "/system/menu", title: "菜单管理", component: "MenuListView" }
         ]
       },
       {
@@ -81,7 +80,7 @@ export const DEMO_MENUS: MenuItem[] = [
         ]
       },
       { name: "SystemDict", path: "/system/dict", title: "字典管理", component: "PlaceholderView" },
-      { name: "SystemConfig", path: "/system/config", title: "参数配置", component: "PlaceholderView" },
+      { name: "SystemConfig", path: "/system/config", title: "系统配置", component: "PlaceholderView" },
       { name: "SystemNotice", path: "/system/notice", title: "通知公告", component: "PlaceholderView" },
       { name: "SystemLogOper", path: "/system/log/operation", title: "操作日志", component: "PlaceholderView" },
       { name: "SystemLogLogin", path: "/system/log/login", title: "登录日志", component: "PlaceholderView" }
