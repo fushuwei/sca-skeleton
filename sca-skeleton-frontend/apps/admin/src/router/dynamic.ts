@@ -7,6 +7,7 @@ const MENU_COMPONENT_MAP: Record<MenuComponent, () => Promise<unknown>> = { // �
   UserCenterView: () => import("../views/system/UserCenterView.vue"), // 将 UserCenter 菜单映射到用户中心页面。
   UserListView: () => import("../views/system/UserListView.vue"), // 将 UserList 菜单映射到用户列表页面。
   MenuListView: () => import("../views/system/MenuListView.vue"), // 将 MenuList 菜单映射到菜单管理页面。
+  RoleListView: () => import("../views/system/RoleListView.vue"), // 将 RoleList 菜单映射到角色管理页面。
   PlaceholderView: () => import("../views/common/PlaceholderView.vue") // 通用占位页。
 }; // 结束菜单组件映射表定义。
 

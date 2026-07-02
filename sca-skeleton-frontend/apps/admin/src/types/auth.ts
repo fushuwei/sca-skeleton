@@ -6,7 +6,7 @@ export interface CaptchaData {
 }
 
 /** 菜单挂载的页面组件标识（仅叶子节点需要） */
-export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView";
+export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView" | "RoleListView";
 
 export interface MenuItem {
   name: string;
@@ -163,6 +163,18 @@ export interface SysRole {
   remark: string;
   createTime: string;
   updateTime: string;
+}
+
+// ── 角色管理相关类型（扩展） ──
+
+/** 角色分页查询请求参数 */
+export interface RolePageRequest {
+  pageNum?: number;
+  pageSize?: number;
+  keyword?: string;
+  dataScope?: string;
+  orderBy?: string;
+  orderDirection?: "asc" | "desc";
 }
 
 // ── 权限（菜单）管理相关类型 ──

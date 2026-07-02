@@ -1,12 +1,43 @@
 import { request } from "./http";
-import type { ApiEnvelope, SysRole } from "../types/auth";
+import type { ApiEnvelope, SysRole, RolePageRequest, IPage } from "../types/auth";
 
 /** 获取当前租户下角色列表 */
 export async function getRoleListApi(): Promise<ApiEnvelope<SysRole[]>> {
   return request<SysRole[]>({ method: "GET", url: "/sys/role/list" });
 }
 
+/** 分页查询当前租户下角色列表 */
+export async function getRolePageApi(
+  params: RolePageRequest
+): Promise<ApiEnvelope<IPage<SysRole>>> {
+  return request<IPage<SysRole>>({
+    method: "GET",
+    url: "/sys/role/page",
+    params
+  });
+}
+
 /** 按 ID 查询角色详情 */
 export async function getRoleByIdApi(id: string): Promise<ApiEnvelope<SysRole>> {
   return request<SysRole>({ method: "GET", url: `/sys/role/${id}` });
+}
+
+/** 查询角色已分配的权限 ID 列表 */
+export async function getRolePermissionIdsApi(id: string): Promise<ApiEnvelope<string[]>> {
+  return request<string[]>({ method: "GET", url: `/sys/role/${id}/permissions` });
+}
+
+/** 创建角色 */
+export async function createRoleApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "POST", url: "/sys/role", data });
+}
+
+/** 更新角色 */
+export async function updateRoleApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "PUT", url: "/sys/role", data });
+}
+
+/** 删除角色 */
+export async function deleteRoleApi(id: string): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "DELETE", url: `/sys/role/${id}` });
 }

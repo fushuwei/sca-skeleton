@@ -66,7 +66,7 @@ export const DEMO_MENUS: MenuItem[] = [
         title: "用户与权限",
         children: [
           { name: "SystemUser", path: "/system/user", title: "用户管理", component: "UserListView" },
-          { name: "SystemRole", path: "/system/role", title: "角色管理", component: "PlaceholderView" },
+          { name: "SystemRole", path: "/system/role", title: "角色管理", component: "RoleListView" },
           { name: "SystemMenu", path: "/system/menu", title: "菜单管理", component: "MenuListView" }
         ]
       },

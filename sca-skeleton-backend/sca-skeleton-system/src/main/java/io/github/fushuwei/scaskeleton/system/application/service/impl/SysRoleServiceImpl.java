@@ -1,8 +1,11 @@
 package io.github.fushuwei.scaskeleton.system.application.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.system.api.dto.role.RolePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.dto.role.RoleSaveRequest;
 import io.github.fushuwei.scaskeleton.system.application.service.SysRoleService;
 import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysRole;
@@ -14,8 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 角色管理服务实现。
@@ -31,6 +37,39 @@ public class SysRoleServiceImpl implements SysRoleService {
     private final SysRoleMapper roleMapper;
     /** 角色-权限关联 Mapper */
     private final SysRolePermissionMapper rolePermissionMapper;
+
+    @Override
+    public IPage<SysRole> pageRoles(String tenantId, RolePageRequest req) {
+        // 构造分页对象
+        Page<SysRole> page = new Page<>(req.getPageNum(), req.getPageSize());
+
+        LambdaQueryWrapper<SysRole> wrapper = new LambdaQueryWrapper<SysRole>()
+                // 按租户隔离
+                .eq(SysRole::getTenantId, tenantId)
+                // 关键词模糊匹配名称或编码
+                .and(StringUtils.hasText(req.getKeyword()),
+                        w -> w.like(SysRole::getName, req.getKeyword())
+                                .or().like(SysRole::getCode, req.getKeyword()))
+                // 数据权限范围筛选
+                .eq(StringUtils.hasText(req.getDataScope()), SysRole::getDataScope, req.getDataScope());
+
+        // 安全排序：白名单校验通过后按指定字段排序，否则按 sort 升序
+        String orderBy = req.safeOrderBy();
+        boolean isAsc = "ASC".equalsIgnoreCase(req.safeOrderDirection());
+        if (orderBy != null) {
+            switch (orderBy) {
+                case "name" -> wrapper.orderBy(true, isAsc, SysRole::getName);
+                case "code" -> wrapper.orderBy(true, isAsc, SysRole::getCode);
+                case "data_scope" -> wrapper.orderBy(true, isAsc, SysRole::getDataScope);
+                case "sort" -> wrapper.orderBy(true, isAsc, SysRole::getSort);
+                case "create_time" -> wrapper.orderBy(true, isAsc, SysRole::getCreateTime);
+            }
+        } else {
+            wrapper.orderByAsc(SysRole::getSort);
+        }
+
+        return roleMapper.selectPage(page, wrapper);
+    }
 
     @Override
     public List<SysRole> listRoles(String tenantId) {
@@ -72,6 +111,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         role.setIsBuiltin(0);
         // 持久化角色主表
         roleMapper.insert(role);
+        // 同事务内建立角色-权限关联
+        saveRolePermissions(tenantId, role.getId(), req.getPermissionIds());
     }
 
     @Override
@@ -84,6 +125,10 @@ public class SysRoleServiceImpl implements SysRoleService {
         existing.setSort(req.getSort() != null ? req.getSort() : existing.getSort());
         existing.setRemark(req.getRemark());
         roleMapper.updateById(existing);
+        // 清除旧关联，重新建立
+        rolePermissionMapper.delete(new LambdaQueryWrapper<SysRolePermission>()
+                .eq(SysRolePermission::getRoleId, req.getId()));
+        saveRolePermissions(tenantId, req.getId(), req.getPermissionIds());
     }
 
     @Override
@@ -102,6 +147,22 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     @Override
+    public List<String> getRolePermissionIds(String roleId) {
+        // 校验角色存在
+        getRoleById(roleId);
+        // 查询角色已分配的权限 ID 列表
+        List<SysRolePermission> list = rolePermissionMapper.selectList(
+                new LambdaQueryWrapper<SysRolePermission>()
+                        .eq(SysRolePermission::getRoleId, roleId));
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        return list.stream()
+                .map(SysRolePermission::getPermissionId)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void assignPermissions(String tenantId, String roleId, List<String> permissionIds) {
         // 校验角色存在
@@ -111,14 +172,26 @@ public class SysRoleServiceImpl implements SysRoleService {
                 .eq(SysRolePermission::getTenantId, tenantId)
                 .eq(SysRolePermission::getRoleId, roleId));
         // 非空则逐条插入新的角色-权限关联
-        if (!CollectionUtils.isEmpty(permissionIds)) {
-            permissionIds.forEach(permId -> {
-                SysRolePermission rp = new SysRolePermission();
-                rp.setTenantId(tenantId);
-                rp.setRoleId(roleId);
-                rp.setPermissionId(permId);
-                rolePermissionMapper.insert(rp);
-            });
+        saveRolePermissions(tenantId, roleId, permissionIds);
+    }
+
+    /**
+     * 批量插入角色-权限关联记录。
+     *
+     * @param tenantId      租户 ID
+     * @param roleId        角色 ID
+     * @param permissionIds 权限 ID 列表，为空则不操作
+     */
+    private void saveRolePermissions(String tenantId, String roleId, List<String> permissionIds) {
+        if (CollectionUtils.isEmpty(permissionIds)) {
+            return;
         }
+        permissionIds.forEach(permId -> {
+            SysRolePermission rp = new SysRolePermission();
+            rp.setTenantId(tenantId);
+            rp.setRoleId(roleId);
+            rp.setPermissionId(permId);
+            rolePermissionMapper.insert(rp);
+        });
     }
 }
