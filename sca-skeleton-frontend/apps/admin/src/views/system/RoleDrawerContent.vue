@@ -610,4 +610,13 @@ async function handleSave() {
 .body--dark .perm-section-title {
   color: rgba(255, 255, 255, 0.87);
 }
+
+.body--dark .perm-section-header .q-icon {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* 权限树骨架屏 */
+.body--dark .perm-skeleton-row .q-skeleton {
+  background: rgba(255, 255, 255, 0.08);
+}
 </style>
