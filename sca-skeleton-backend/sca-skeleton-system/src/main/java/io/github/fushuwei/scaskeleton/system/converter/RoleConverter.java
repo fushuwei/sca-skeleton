@@ -13,5 +13,5 @@ import org.mapstruct.Mapper;
 public interface RoleConverter {
 
     /** SysRole → RoleResponse */
-    RoleResponse toResponse(SysRole role);
+    RoleResponse toRoleResponse(SysRole role);
 }

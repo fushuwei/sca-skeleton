@@ -200,6 +200,6 @@ public class SysPermissionServiceImpl implements SysPermissionService {
      * @return 权限响应对象
      */
     private PermissionResponse toResponse(SysPermission perm) {
-        return permissionConverter.toResponse(perm);
+        return permissionConverter.toPermissionResponse(perm);
     }
 }

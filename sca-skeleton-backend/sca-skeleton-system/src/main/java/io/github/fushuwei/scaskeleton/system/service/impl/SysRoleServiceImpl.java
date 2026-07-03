@@ -220,6 +220,6 @@ public class SysRoleServiceImpl implements SysRoleService {
      * @return 角色响应对象
      */
     private RoleResponse toResponse(SysRole role) {
-        return roleConverter.toResponse(role);
+        return roleConverter.toRoleResponse(role);
     }
 }

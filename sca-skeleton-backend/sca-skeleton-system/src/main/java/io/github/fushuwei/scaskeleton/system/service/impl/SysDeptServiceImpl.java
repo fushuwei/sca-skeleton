@@ -143,6 +143,6 @@ public class SysDeptServiceImpl implements SysDeptService {
      * @return 部门响应对象
      */
     private DeptResponse toResponse(SysDept dept) {
-        return deptConverter.toResponse(dept);
+        return deptConverter.toDeptResponse(dept);
     }
 }

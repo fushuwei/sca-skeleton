@@ -13,5 +13,5 @@ import org.mapstruct.Mapper;
 public interface PermissionConverter {
 
     /** SysPermission → PermissionResponse */
-    PermissionResponse toResponse(SysPermission permission);
+    PermissionResponse toPermissionResponse(SysPermission permission);
 }

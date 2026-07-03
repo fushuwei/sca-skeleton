@@ -264,7 +264,7 @@ public class SysUserServiceImpl implements SysUserService {
      * @return 用户响应对象
      */
     private UserResponse toResponse(SysUser user) {
-        return userConverter.toResponse(user);
+        return userConverter.toUserResponse(user);
     }
 
     @Override
@@ -278,7 +278,7 @@ public class SysUserServiceImpl implements SysUserService {
         SysUser user = userMapper.selectById(userId);
         if (user != null) {
             // 命中数据库时返回持久化资料，确保后台管理能力使用最新主数据
-            return userConverter.toProfileResponse(user);
+            return userConverter.toUserProfileResponse(user);
         }
 
         // 未命中数据库时回退 token claims，兼容 portal 等仅在认证域存在的用户

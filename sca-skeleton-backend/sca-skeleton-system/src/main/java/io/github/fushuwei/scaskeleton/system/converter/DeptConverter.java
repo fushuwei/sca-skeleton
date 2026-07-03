@@ -13,5 +13,5 @@ import org.mapstruct.Mapper;
 public interface DeptConverter {
 
     /** SysDept → DeptResponse */
-    DeptResponse toResponse(SysDept dept);
+    DeptResponse toDeptResponse(SysDept dept);
 }
