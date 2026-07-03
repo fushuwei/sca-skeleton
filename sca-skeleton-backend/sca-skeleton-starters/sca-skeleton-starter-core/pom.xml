@@ -52,12 +52,14 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- MapStruct 对象映射框架（编译期生成 Entity ↔ Response 转换代码，各业务模块共享） -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
