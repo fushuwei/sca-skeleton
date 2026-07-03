@@ -48,11 +48,16 @@
             <artifactId>hutool-extra</artifactId>
         </dependency>
 
-        <!-- Lombok 代码简化工具 -->
+        <!-- Lombok 代码简化工具（各业务模块共享，无需重复声明） -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <optional>true</optional>
+        </dependency>
+
+        <!-- MapStruct 对象映射框架（编译期生成 Entity ↔ Response 转换代码，各业务模块共享） -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
         </dependency>
     </dependencies>
 </project>
