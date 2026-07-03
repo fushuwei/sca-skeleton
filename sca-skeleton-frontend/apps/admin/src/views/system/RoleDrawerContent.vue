@@ -564,6 +564,22 @@ async function handleSave() {
   padding-right: 0 !important;
 }
 
+/* 权限树复选框尺寸与角色列表页保持一致 */
+.perm-tree :deep(.q-checkbox__bg) {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.perm-tree :deep(.q-checkbox__svg) {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+/* 取消权限树复选框悬停背景色 */
+.perm-tree :deep(.q-checkbox__inner::before) {
+  display: none !important;
+}
+
 /* 查看模式：禁止权限树勾选交互 */
 .perm-tree--readonly :deep(.q-tree__tickbox) {
   pointer-events: none;
