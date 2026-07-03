@@ -8,7 +8,7 @@ import org.slf4j.MDC;
  * <p>
  * 维护当前请求的 TraceId，同步写入 SLF4J MDC，使日志能自动携带链路标识。
  * HTTP 请求头 Key 见 {@link GlobalConstants#HEADER_TRACE_ID}。
- * Web 过滤器（{@code TraceIdFilter}）在请求入口注入，Feign 拦截器在跨服务调用时传递，
+ * Web 过滤器（{@code TraceIdFilter}）在请求入口注入，远程调用拦截器在跨服务调用时传递，
  * 异步任务场景需手动传递（通过 {@link #copy()} 获取当前值，在新线程中调用 {@link #set(String)}）。
  *
  * @author Fu Wei

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.fushuwei</groupId>
+        <artifactId>sca-skeleton-system</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>sca-skeleton-system-api</artifactId>
+    <packaging>jar</packaging>
+
+    <name>SCA Skeleton Backend :: System :: API</name>
+    <description>System service API contract: request/response DTOs + HTTP Interface remote declarations</description>
+
+    <dependencies>
+        <!-- 核心基础：ValidGroup 校验分组、Result 统一响应体（远程接口返回值由拦截器自动解包） -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-core</artifactId>
+        </dependency>
+        <!-- Spring Web：@HttpExchange / @GetExchange / @PostExchange 等 HTTP Interface 注解 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <!-- Jakarta Validation：请求 DTO 中的 @NotBlank / @Size / @Pattern 等校验注解 -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+    </dependencies>
+</project>

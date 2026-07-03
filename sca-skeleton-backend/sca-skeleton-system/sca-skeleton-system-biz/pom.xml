@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.fushuwei</groupId>
+        <artifactId>sca-skeleton-system</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>sca-skeleton-system-biz</artifactId>
+    <packaging>jar</packaging>
+
+    <name>SCA Skeleton Backend :: System :: Biz</name>
+    <description>System service business implementation: controllers, services, mappers, entities</description>
+
+    <dependencies>
+        <!-- 本服务的 API 契约模块：提供请求/响应 DTO 定义 -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-system-api</artifactId>
+        </dependency>
+
+        <!-- Web 通用 Starter：统一响应体、全局异常处理、TraceId 过滤器、限流注解 -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-web</artifactId>
+        </dependency>
+
+        <!-- MyBatis-Plus Starter：持久化 -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-mybatis-plus</artifactId>
+        </dependency>
+
+        <!-- Security 资源服务 Starter：JWT 验证、@PreAuthorize 细粒度鉴权 -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-security</artifactId>
+        </dependency>
+
+        <!-- 日志增强 Starter：@OperationLog 操作日志记录 -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-logging</artifactId>
+        </dependency>
+
+        <!-- Nacos 注册中心客户端（服务注册与发现） -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+
+        <!-- Nacos 配置中心客户端（动态配置管理） -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+
+        <!-- Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

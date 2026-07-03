@@ -26,8 +26,8 @@
         <module>sca-skeleton-starter-logging</module>
         <!-- MyBatis-Plus 增强：基础实体、审计字段自动填充、分页插件配置 -->
         <module>sca-skeleton-starter-mybatis-plus</module>
-        <!-- OpenFeign 增强：请求头传递（TraceId/Authorization）、统一错误解码 -->
-        <module>sca-skeleton-starter-feign</module>
+        <!-- 远程调用增强：RestClient + HTTP Interface（请求头传递、统一响应解码、错误处理） -->
+        <module>sca-skeleton-starter-remote</module>
         <!-- 验证码：图形验证码生成（Java AWT）、Redis 存储与校验 -->
         <module>sca-skeleton-starter-captcha</module>
         <!-- Security 资源服务：OAuth2 Redis 授权存储、不透明令牌自省、资源服务器鉴权 -->

@@ -12,61 +12,15 @@
     </parent>
 
     <artifactId>sca-skeleton-system</artifactId>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <name>SCA Skeleton Backend :: System</name>
-    <description>System management service: user, role, permission, dept, post, dict, config</description>
+    <description>System management service aggregator: api (contract) + biz (implementation)</description>
 
-    <dependencies>
-        <!-- Web 通用 Starter：统一响应体、全局异常处理、TraceId 过滤器、限流注解 -->
-        <dependency>
-            <groupId>io.github.fushuwei</groupId>
-            <artifactId>sca-skeleton-starter-web</artifactId>
-        </dependency>
-
-        <!-- MyBatis-Plus Starter：持久化 -->
-        <dependency>
-            <groupId>io.github.fushuwei</groupId>
-            <artifactId>sca-skeleton-starter-mybatis-plus</artifactId>
-        </dependency>
-
-        <!-- Security 资源服务 Starter：JWT 验证、@PreAuthorize 细粒度鉴权 -->
-        <dependency>
-            <groupId>io.github.fushuwei</groupId>
-            <artifactId>sca-skeleton-starter-security</artifactId>
-        </dependency>
-
-        <!-- 日志增强 Starter：@OperationLog 操作日志记录 -->
-        <dependency>
-            <groupId>io.github.fushuwei</groupId>
-            <artifactId>sca-skeleton-starter-logging</artifactId>
-        </dependency>
-
-        <!-- Nacos 注册中心客户端（服务注册与发现） -->
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
-        </dependency>
-
-        <!-- Nacos 配置中心客户端（动态配置管理） -->
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-        </dependency>
-
-        <!-- Actuator -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
+    <modules>
+        <!-- API 契约模块：请求/响应 DTO + HTTP Interface 远程调用声明，可被其他服务依赖 -->
+        <module>sca-skeleton-system-api</module>
+        <!-- 业务实现模块：Controller + Service + Mapper + Entity，独立部署的微服务 -->
+        <module>sca-skeleton-system-biz</module>
+    </modules>
 </project>

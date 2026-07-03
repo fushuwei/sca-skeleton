@@ -148,10 +148,10 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- 项目 OpenFeign Starter（自定义服务间调用组件封装） -->
+            <!-- 项目远程调用 Starter（RestClient + HTTP Interface 封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
-                <artifactId>sca-skeleton-starter-feign</artifactId>
+                <artifactId>sca-skeleton-starter-remote</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -173,6 +173,17 @@
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-starter-captcha</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- ======================================================================== -->
+            <!-- 业务模块 API 契约统一管理 -->
+            <!-- ======================================================================== -->
+
+            <!-- System 服务 API 契约（请求/响应 DTO + HTTP Interface 远程调用声明） -->
+            <dependency>
+                <groupId>io.github.fushuwei</groupId>
+                <artifactId>sca-skeleton-system-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

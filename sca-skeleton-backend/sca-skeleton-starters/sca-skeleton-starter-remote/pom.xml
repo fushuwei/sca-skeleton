@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.fushuwei</groupId>
+        <artifactId>sca-skeleton-starters</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>sca-skeleton-starter-remote</artifactId>
+    <packaging>jar</packaging>
+
+    <name>SCA Skeleton Backend :: Starter :: Remote</name>
+    <description>Spring HTTP Interface + RestClient: header propagation, Result unwrapping, unified error handling</description>
+
+    <dependencies>
+        <!-- 核心基础：TraceContext（链路 ID 传递）、GlobalConstants（请求头 Key 常量）、Result/ResultCode/BusinessException -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-core</artifactId>
+        </dependency>
+        <!-- Spring Web：RestClient、HTTP Interface（@HttpExchange）、ClientHttpRequestInterceptor -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <!-- Spring Boot Autoconfigure：@AutoConfiguration、@ConfigurationProperties -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <!-- Jackson：ObjectMapper（响应体反序列化 Result&lt;T&gt;） -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <!-- Servlet API：RequestContextHolder 关联的 HttpServletRequest 类型 -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- Spring Cloud LoadBalancer：基于服务注册中心的客户端负载均衡，使 RestClient 能通过服务名发起请求 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+    </dependencies>
+</project>
