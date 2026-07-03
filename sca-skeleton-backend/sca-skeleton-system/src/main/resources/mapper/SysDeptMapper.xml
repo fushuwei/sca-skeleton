@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="io.github.fushuwei.scaskeleton.system.infrastructure.mapper.SysDeptMapper">
+<mapper namespace="io.github.fushuwei.scaskeleton.system.mapper.SysDeptMapper">
 
     <!-- 查询某节点及其所有子节点的 ID（利用 tree_path 前缀匹配） -->
     <select id="selectChildDeptIds" resultType="java.lang.String">

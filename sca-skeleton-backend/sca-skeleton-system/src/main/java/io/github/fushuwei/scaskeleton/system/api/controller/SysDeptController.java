@@ -1,12 +1,12 @@
 package io.github.fushuwei.scaskeleton.system.api.controller;
 
 import io.github.fushuwei.scaskeleton.core.result.Result;
-import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
-import io.github.fushuwei.scaskeleton.system.api.dto.dept.DeptSaveRequest;
-import io.github.fushuwei.scaskeleton.system.application.service.SysDeptService;
-import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysDept;
-import lombok.RequiredArgsConstructor;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
+import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
+import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptResponse;
+import io.github.fushuwei.scaskeleton.system.service.SysDeptService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,14 +27,14 @@ public class SysDeptController {
     // 查询当前租户下部门列表，需 sys:dept:list
     @GetMapping("/list")
     @RequiresPermission("sys:dept:list")
-    public Result<List<SysDept>> list() {
+    public Result<List<DeptResponse>> list() {
         return Result.ok(deptService.listDepts(SecurityUtils.getTenantId()));
     }
 
     // 按 ID 查询部门详情，需 sys:dept:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:dept:query")
-    public Result<SysDept> getById(@PathVariable("id") String id) {
+    public Result<DeptResponse> getById(@PathVariable("id") String id) {
         return Result.ok(deptService.getDeptById(id));
     }
 

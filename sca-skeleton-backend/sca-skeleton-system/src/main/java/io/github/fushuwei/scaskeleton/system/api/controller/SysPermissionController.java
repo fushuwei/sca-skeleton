@@ -4,10 +4,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.logging.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
-import io.github.fushuwei.scaskeleton.system.api.dto.permission.PermissionPageRequest;
-import io.github.fushuwei.scaskeleton.system.api.dto.permission.PermissionSaveRequest;
-import io.github.fushuwei.scaskeleton.system.application.service.SysPermissionService;
-import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysPermission;
+import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionResponse;
+import io.github.fushuwei.scaskeleton.system.service.SysPermissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -29,28 +29,28 @@ public class SysPermissionController {
     // 查询全部权限树/列表，需 sys:permission:list（平台级权限定义，无租户隔离）
     @GetMapping("/list")
     @RequiresPermission("sys:permission:list")
-    public Result<List<SysPermission>> list() {
+    public Result<List<PermissionResponse>> list() {
         return Result.ok(permissionService.listAllPermissions());
     }
 
     // 分页查询指定父节点下的子权限列表，需 sys:permission:list
     @GetMapping("/page")
     @RequiresPermission("sys:permission:list")
-    public Result<IPage<SysPermission>> page(@Validated PermissionPageRequest request) {
+    public Result<IPage<PermissionResponse>> page(@Validated PermissionPageRequest request) {
         return Result.ok(permissionService.pagePermissions(request));
     }
 
     // 查询指定父节点下的按钮权限列表（用于列表行展开），需 sys:permission:list
     @GetMapping("/buttons/{parentId}")
     @RequiresPermission("sys:permission:list")
-    public Result<List<SysPermission>> buttons(@PathVariable("parentId") String parentId) {
+    public Result<List<PermissionResponse>> buttons(@PathVariable("parentId") String parentId) {
         return Result.ok(permissionService.listButtonsByParentId(parentId));
     }
 
     // 按 ID 查询权限详情，需 sys:permission:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:permission:query")
-    public Result<SysPermission> getById(@PathVariable("id") String id) {
+    public Result<PermissionResponse> getById(@PathVariable("id") String id) {
         return Result.ok(permissionService.getPermissionById(id));
     }
 

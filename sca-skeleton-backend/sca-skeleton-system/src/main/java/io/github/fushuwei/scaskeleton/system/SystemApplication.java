@@ -19,7 +19,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  */
 @SpringBootApplication
 @EnableDiscoveryClient
-@MapperScan("io.github.fushuwei.scaskeleton.system.infrastructure.mapper")
+@MapperScan("io.github.fushuwei.scaskeleton.system.mapper")
 public class SystemApplication {
 
     static void main(String[] args) {

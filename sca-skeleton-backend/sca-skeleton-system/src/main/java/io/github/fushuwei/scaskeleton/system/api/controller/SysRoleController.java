@@ -6,15 +6,16 @@ import io.github.fushuwei.scaskeleton.core.validation.ValidGroup;
 import io.github.fushuwei.scaskeleton.logging.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
-import io.github.fushuwei.scaskeleton.system.api.dto.role.RolePageRequest;
-import io.github.fushuwei.scaskeleton.system.api.dto.role.RoleSaveRequest;
-import io.github.fushuwei.scaskeleton.system.application.service.SysRoleService;
-import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysRole;
+import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.role.RoleSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
+import io.github.fushuwei.scaskeleton.system.service.SysRoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 /**
  * 角色管理 Controller。
  *
@@ -30,21 +31,21 @@ public class SysRoleController {
     // 分页查询当前租户下角色列表，需 sys:role:list
     @GetMapping("/page")
     @RequiresPermission("sys:role:list")
-    public Result<IPage<SysRole>> page(@Validated RolePageRequest request) {
+    public Result<IPage<RoleResponse>> page(@Validated RolePageRequest request) {
         return Result.ok(roleService.pageRoles(SecurityUtils.getTenantId(), request));
     }
 
     // 查询当前租户下角色列表，需 sys:role:list
     @GetMapping("/list")
     @RequiresPermission("sys:role:list")
-    public Result<List<SysRole>> list() {
+    public Result<List<RoleResponse>> list() {
         return Result.ok(roleService.listRoles(SecurityUtils.getTenantId()));
     }
 
     // 按 ID 查询角色详情，需 sys:role:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:role:query")
-    public Result<SysRole> getById(@PathVariable("id") String id) {
+    public Result<RoleResponse> getById(@PathVariable("id") String id) {
         return Result.ok(roleService.getRoleById(id));
     }
 

@@ -6,12 +6,15 @@ import io.github.fushuwei.scaskeleton.core.validation.ValidGroup;
 import io.github.fushuwei.scaskeleton.logging.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
-import io.github.fushuwei.scaskeleton.system.api.dto.user.UserPageRequest;
-import io.github.fushuwei.scaskeleton.system.api.dto.user.UserPageVO;
-import io.github.fushuwei.scaskeleton.system.api.dto.user.UserProfileVO;
-import io.github.fushuwei.scaskeleton.system.api.dto.user.UserSaveRequest;
-import io.github.fushuwei.scaskeleton.system.application.service.SysUserService;
-import io.github.fushuwei.scaskeleton.system.infrastructure.entity.SysUser;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserBatchStatusRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserPasswordResetRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserStatusChangeRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.user.UserPageResponse;
+import io.github.fushuwei.scaskeleton.system.api.response.user.UserProfileResponse;
+import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
+import io.github.fushuwei.scaskeleton.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,14 +35,14 @@ public class SysUserController {
 
     // 获取当前登录用户资料，无需额外权限编码（OAuth2 登录后 SPA 拉取）
     @GetMapping("/profile")
-    public Result<UserProfileVO> profile() {
+    public Result<UserProfileResponse> profile() {
         return Result.ok(userService.getCurrentProfile());
     }
 
     // 分页查询当前租户下用户列表（含部门名称、角色名称，排除密码）
     @GetMapping("/page")
     @RequiresPermission("sys:user:list")
-    public Result<IPage<UserPageVO>> page(@Validated UserPageRequest request) {
+    public Result<IPage<UserPageResponse>> page(@Validated UserPageRequest request) {
         String tenantId = SecurityUtils.getTenantId();
         return Result.ok(userService.pageUsers(tenantId, request));
     }
@@ -47,7 +50,7 @@ public class SysUserController {
     // 按 ID 查询用户详情，需 sys:user:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:user:query")
-    public Result<SysUser> getById(@PathVariable("id") String id) {
+    public Result<UserResponse> getById(@PathVariable("id") String id) {
         return Result.ok(userService.getUserById(id));
     }
 
@@ -94,8 +97,8 @@ public class SysUserController {
     @RequiresPermission("sys:user:reset-password")
     @OperationLog(module = "用户管理", action = "重置密码", logArgs = false)
     public Result<Void> resetPassword(@PathVariable("id") String id,
-                                          @RequestParam("newPassword") String newPassword) {
-        userService.resetPassword(id, newPassword);
+                                          @Validated @RequestBody UserPasswordResetRequest request) {
+        userService.resetPassword(id, request.getNewPassword());
         return Result.ok();
     }
 
@@ -104,9 +107,8 @@ public class SysUserController {
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "变更用户状态")
     public Result<Void> changeStatus(@PathVariable("id") String id,
-                                         @RequestParam("status") String status,
-                                         @RequestParam(value = "reason", required = false) String reason) {
-        userService.changeStatus(id, status, reason);
+                                         @Validated @RequestBody UserStatusChangeRequest request) {
+        userService.changeStatus(id, request.getStatus(), request.getReason());
         return Result.ok();
     }
 
@@ -114,18 +116,8 @@ public class SysUserController {
     @PutMapping("/batch/status")
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "批量变更用户状态")
-    public Result<Void> batchChangeStatus(@RequestBody BatchStatusRequest request) {
+    public Result<Void> batchChangeStatus(@Validated @RequestBody UserBatchStatusRequest request) {
         userService.batchChangeStatus(request.getIds(), request.getStatus(), request.getReason());
         return Result.ok();
-    }
-
-    /**
-     * 批量状态变更请求体。
-     */
-    @lombok.Data
-    public static class BatchStatusRequest {
-        private List<String> ids;
-        private String status;
-        private String reason;
     }
 }
