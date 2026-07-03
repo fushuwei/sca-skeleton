@@ -8,6 +8,7 @@ import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleSaveRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
+import io.github.fushuwei.scaskeleton.system.converter.RoleConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysRole;
 import io.github.fushuwei.scaskeleton.system.entity.SysRolePermission;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper;
@@ -15,7 +16,6 @@ import io.github.fushuwei.scaskeleton.system.mapper.SysRolePermissionMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysRoleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -39,6 +39,8 @@ public class SysRoleServiceImpl implements SysRoleService {
     private final SysRoleMapper roleMapper;
     /** 角色-权限关联 Mapper */
     private final SysRolePermissionMapper rolePermissionMapper;
+    /** Entity ↔ Response 转换器（MapStruct 生成） */
+    private final RoleConverter roleConverter;
 
     @Override
     public IPage<RoleResponse> pageRoles(String tenantId, RolePageRequest req) {
@@ -218,8 +220,6 @@ public class SysRoleServiceImpl implements SysRoleService {
      * @return 角色响应对象
      */
     private RoleResponse toResponse(SysRole role) {
-        RoleResponse resp = new RoleResponse();
-        BeanUtils.copyProperties(role, resp);
-        return resp;
+        return roleConverter.toResponse(role);
     }
 }

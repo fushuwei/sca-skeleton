@@ -5,11 +5,11 @@ import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptSaveRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptResponse;
+import io.github.fushuwei.scaskeleton.system.converter.DeptConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysDept;
 import io.github.fushuwei.scaskeleton.system.mapper.SysDeptMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysDeptService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -27,6 +27,8 @@ public class SysDeptServiceImpl implements SysDeptService {
 
     /** 部门主表 Mapper */
     private final SysDeptMapper deptMapper;
+    /** Entity ↔ Response 转换器（MapStruct 生成） */
+    private final DeptConverter deptConverter;
 
     @Override
     public List<DeptResponse> listDepts(String tenantId) {
@@ -141,8 +143,6 @@ public class SysDeptServiceImpl implements SysDeptService {
      * @return 部门响应对象
      */
     private DeptResponse toResponse(SysDept dept) {
-        DeptResponse resp = new DeptResponse();
-        BeanUtils.copyProperties(dept, resp);
-        return resp;
+        return deptConverter.toResponse(dept);
     }
 }

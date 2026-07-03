@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.system.api.controller;
+package io.github.fushuwei.scaskeleton.system.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;

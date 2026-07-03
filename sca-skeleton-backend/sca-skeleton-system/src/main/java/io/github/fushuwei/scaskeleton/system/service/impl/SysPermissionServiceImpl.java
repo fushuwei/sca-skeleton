@@ -8,11 +8,11 @@ import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionSaveRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionResponse;
+import io.github.fushuwei.scaskeleton.system.converter.PermissionConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
 import io.github.fushuwei.scaskeleton.system.mapper.SysPermissionMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysPermissionService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -30,6 +30,8 @@ public class SysPermissionServiceImpl implements SysPermissionService {
 
     /** 权限主表 Mapper */
     private final SysPermissionMapper permissionMapper;
+    /** Entity ↔ Response 转换器（MapStruct 生成） */
+    private final PermissionConverter permissionConverter;
 
     @Override
     public List<PermissionResponse> listAllPermissions() {
@@ -198,8 +200,6 @@ public class SysPermissionServiceImpl implements SysPermissionService {
      * @return 权限响应对象
      */
     private PermissionResponse toResponse(SysPermission perm) {
-        PermissionResponse resp = new PermissionResponse();
-        BeanUtils.copyProperties(perm, resp);
-        return resp;
+        return permissionConverter.toResponse(perm);
     }
 }

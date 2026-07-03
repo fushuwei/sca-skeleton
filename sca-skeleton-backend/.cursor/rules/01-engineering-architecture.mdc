@@ -42,18 +42,28 @@ alwaysApply: true
 - Maven `artifactId` 与 Java 包名对应关系（工件名可含 `starter`，包名按**能力域**命名）：
   - 可部署业务服务：`sca-skeleton-<domain>` → `io.github.fushuwei.scaskeleton.<domain>`（如 `auth`、`system`、`gateway`）。
   - 横切能力库（含平台核心）：`sca-skeleton-starter-<capability>` → `io.github.fushuwei.scaskeleton.<capability>`。示例：`starter-core` → `scaskeleton.core`（`constant`、`exception`、`uuid` 等子包）、`starter-security` → `scaskeleton.security`、`starter-web` → `scaskeleton.web`、`starter-mybatis-plus` → `scaskeleton.mybatis`。其中 `starter-core` 为各 Starter 的公共依赖基础，包名仍遵循同一映射，不单独占一条规则。
-- 模块内按经典 MVC 分层组织包结构，固定为：`api`（接口层）、`service`（业务层）、`entity`（实体层）、`mapper`（持久层）、`config`（配置层）。
-- `api` 层包含控制器（`controller`）、请求对象（`request`）、响应对象（`response`），按业务域子包组织。
-- 控制器、请求对象、响应对象等接口层类型仅允许出现在 `api` 层及其子包。
+- 模块内按经典 MVC 分层组织包结构，固定为：`controller`（控制器层）、`api`（请求/响应对象层）、`service`（业务层）、`entity`（实体层）、`mapper`（持久层）、`converter`（对象转换层）、`config`（配置层）。
+- `controller` 包与 `api`、`service`、`entity`、`mapper`、`converter`、`config` 同级，位于模块根包下。
+- `api` 层仅包含请求对象（`request`）和响应对象（`response`），按业务域子包组织。
+- 控制器仅允许出现在 `controller` 包；请求对象、响应对象仅允许出现在 `api` 层及其子包。
 - 实体类仅允许出现在 `entity` 包，Mapper 接口仅允许出现在 `mapper` 包。
 - 禁止在包名中使用 `tmp`、`test1`、`new` 等非语义化命名。
 - 禁止使用 DDD 分层包名（`application`、`domain`、`infrastructure`），本工程不采用 DDD 架构。
 
+## Bean 转换规范（强制）
+
+- Entity ↔ Response / Request ↔ Entity 的对象转换统一使用 MapStruct，禁止使用 `BeanUtils.copyProperties` 等反射方式。
+- MapStruct Converter 接口统一放置在 `converter` 包下，使用 `@Mapper(componentModel = "spring")` 声明为 Spring Bean。
+- Converter 接口命名统一为 `XxxConverter`，方法命名遵循 `toResponse`、`toPageResponse`、`toProfileResponse`、`toResponseList` 等语义化约定。
+- Converter 仅负责字段映射，不承载业务逻辑；复杂映射规则通过 `@Mapping` 注解显式声明。
+- Service 层通过构造器注入 Converter，在 `toResponse` 私有方法中委托 Converter 完成转换。
+
 ## 依赖方向约束（强制）
 
-- 必须保持单向依赖：`api -> service -> entity / mapper`。
-- `entity` 层禁止依赖 `api`、`service` 以及具体框架实现。
-- 控制器（`api/controller`）禁止直接依赖 `entity` 和 `mapper`，只能通过 `service` 间接访问。
+- 必须保持单向依赖：`controller -> service -> entity / mapper`；`controller` 和 `service` 均可引用 `api`（request/response）对象。
+- `converter` 依赖 `entity` 和 `api`（response），由 `service` 注入调用。
+- `entity` 层禁止依赖 `api`、`service`、`controller` 以及具体框架实现。
+- 控制器（`controller`）禁止直接依赖 `entity` 和 `mapper`，只能通过 `service` 间接访问。
 - 禁止循环依赖、禁止跨层反向依赖、禁止通过工具类绕过分层边界。
 - 跨模块调用优先通过显式契约（接口/DTO），禁止直接依赖对方基础设施实现。
 

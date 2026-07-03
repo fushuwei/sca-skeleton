@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.system.api.controller;
+package io.github.fushuwei.scaskeleton.system.controller;
 
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;

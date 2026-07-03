@@ -13,6 +13,7 @@ import io.github.fushuwei.scaskeleton.system.api.request.user.UserSaveRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserPageResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserProfileResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
+import io.github.fushuwei.scaskeleton.system.converter.UserConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysUser;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserDept;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
@@ -22,7 +23,6 @@ import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +50,8 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysUserDeptMapper userDeptMapper;
     /** Spring Security 密码加密器 */
     private final PasswordEncoder passwordEncoder;
+    /** Entity ↔ Response 转换器（MapStruct 生成） */
+    private final UserConverter userConverter;
 
     @Override
     public IPage<UserPageResponse> pageUsers(String tenantId, UserPageRequest req) {
@@ -262,9 +264,7 @@ public class SysUserServiceImpl implements SysUserService {
      * @return 用户响应对象
      */
     private UserResponse toResponse(SysUser user) {
-        UserResponse resp = new UserResponse();
-        BeanUtils.copyProperties(user, resp);
-        return resp;
+        return userConverter.toResponse(user);
     }
 
     @Override
@@ -278,11 +278,7 @@ public class SysUserServiceImpl implements SysUserService {
         SysUser user = userMapper.selectById(userId);
         if (user != null) {
             // 命中数据库时返回持久化资料，确保后台管理能力使用最新主数据
-            return UserProfileResponse.builder()
-                    .id(user.getId())
-                    .username(user.getUsername())
-                    .nickname(user.getNickname())
-                    .build();
+            return userConverter.toProfileResponse(user);
         }
 
         // 未命中数据库时回退 token claims，兼容 portal 等仅在认证域存在的用户
