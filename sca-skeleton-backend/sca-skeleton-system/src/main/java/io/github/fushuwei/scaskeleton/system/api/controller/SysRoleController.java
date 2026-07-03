@@ -44,14 +44,14 @@ public class SysRoleController {
     // 按 ID 查询角色详情，需 sys:role:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:role:query")
-    public Result<SysRole> getById(@PathVariable String id) {
+    public Result<SysRole> getById(@PathVariable("id") String id) {
         return Result.ok(roleService.getRoleById(id));
     }
 
     // 查询角色已分配的权限 ID 列表，需 sys:role:query
     @GetMapping("/{id}/permissions")
     @RequiresPermission("sys:role:query")
-    public Result<List<String>> getPermissionIds(@PathVariable String id) {
+    public Result<List<String>> getPermissionIds(@PathVariable("id") String id) {
         return Result.ok(roleService.getRolePermissionIds(id));
     }
 
@@ -79,7 +79,7 @@ public class SysRoleController {
     @DeleteMapping("/{id}")
     @RequiresPermission("sys:role:delete")
     @OperationLog(module = "角色管理", action = "删除角色")
-    public Result<Void> delete(@PathVariable String id) {
+    public Result<Void> delete(@PathVariable("id") String id) {
         roleService.deleteRole(id);
         return Result.ok();
     }
@@ -88,7 +88,7 @@ public class SysRoleController {
     @PutMapping("/{id}/permissions")
     @RequiresPermission("sys:role:assign-permission")
     @OperationLog(module = "角色管理", action = "分配权限", logArgs = false)
-    public Result<Void> assignPermissions(@PathVariable String id,
+    public Result<Void> assignPermissions(@PathVariable("id") String id,
                                               @RequestBody List<String> permissionIds) {
         roleService.assignPermissions(SecurityUtils.getTenantId(), id, permissionIds);
         return Result.ok();

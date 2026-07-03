@@ -34,7 +34,7 @@ public class SysDeptController {
     // 按 ID 查询部门详情，需 sys:dept:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:dept:query")
-    public Result<SysDept> getById(@PathVariable String id) {
+    public Result<SysDept> getById(@PathVariable("id") String id) {
         return Result.ok(deptService.getDeptById(id));
     }
 
@@ -57,7 +57,7 @@ public class SysDeptController {
     // 删除指定部门，需 sys:dept:delete
     @DeleteMapping("/{id}")
     @RequiresPermission("sys:dept:delete")
-    public Result<Void> delete(@PathVariable String id) {
+    public Result<Void> delete(@PathVariable("id") String id) {
         deptService.deleteDept(id);
         return Result.ok();
     }

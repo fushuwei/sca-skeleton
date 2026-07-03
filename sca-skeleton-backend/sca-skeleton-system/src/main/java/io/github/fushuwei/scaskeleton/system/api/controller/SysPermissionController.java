@@ -43,14 +43,14 @@ public class SysPermissionController {
     // 查询指定父节点下的按钮权限列表（用于列表行展开），需 sys:permission:list
     @GetMapping("/buttons/{parentId}")
     @RequiresPermission("sys:permission:list")
-    public Result<List<SysPermission>> buttons(@PathVariable String parentId) {
+    public Result<List<SysPermission>> buttons(@PathVariable("parentId") String parentId) {
         return Result.ok(permissionService.listButtonsByParentId(parentId));
     }
 
     // 按 ID 查询权限详情，需 sys:permission:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:permission:query")
-    public Result<SysPermission> getById(@PathVariable String id) {
+    public Result<SysPermission> getById(@PathVariable("id") String id) {
         return Result.ok(permissionService.getPermissionById(id));
     }
 
@@ -76,7 +76,7 @@ public class SysPermissionController {
     @DeleteMapping("/{id}")
     @RequiresPermission("sys:permission:delete")
     @OperationLog(module = "菜单管理", action = "删除菜单")
-    public Result<Void> delete(@PathVariable String id) {
+    public Result<Void> delete(@PathVariable("id") String id) {
         permissionService.deletePermission(id);
         return Result.ok();
     }

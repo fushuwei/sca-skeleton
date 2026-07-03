@@ -47,7 +47,7 @@ public class SysUserController {
     // 按 ID 查询用户详情，需 sys:user:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:user:query")
-    public Result<SysUser> getById(@PathVariable String id) {
+    public Result<SysUser> getById(@PathVariable("id") String id) {
         return Result.ok(userService.getUserById(id));
     }
 
@@ -75,7 +75,7 @@ public class SysUserController {
     @DeleteMapping("/{id}")
     @RequiresPermission("sys:user:delete")
     @OperationLog(module = "用户管理", action = "删除用户")
-    public Result<Void> delete(@PathVariable String id) {
+    public Result<Void> delete(@PathVariable("id") String id) {
         userService.deleteUser(id);
         return Result.ok();
     }
@@ -93,8 +93,8 @@ public class SysUserController {
     @PutMapping("/{id}/password/reset")
     @RequiresPermission("sys:user:reset-password")
     @OperationLog(module = "用户管理", action = "重置密码", logArgs = false)
-    public Result<Void> resetPassword(@PathVariable String id,
-                                          @RequestParam String newPassword) {
+    public Result<Void> resetPassword(@PathVariable("id") String id,
+                                          @RequestParam("newPassword") String newPassword) {
         userService.resetPassword(id, newPassword);
         return Result.ok();
     }
@@ -103,9 +103,9 @@ public class SysUserController {
     @PutMapping("/{id}/status")
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "变更用户状态")
-    public Result<Void> changeStatus(@PathVariable String id,
-                                         @RequestParam String status,
-                                         @RequestParam(required = false) String reason) {
+    public Result<Void> changeStatus(@PathVariable("id") String id,
+                                         @RequestParam("status") String status,
+                                         @RequestParam(value = "reason", required = false) String reason) {
         userService.changeStatus(id, status, reason);
         return Result.ok();
     }
