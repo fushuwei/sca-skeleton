@@ -37,13 +37,13 @@ public class SysDeptServiceImpl implements SysDeptService {
                 .eq(SysDept::getTenantId, tenantId)
                 .orderByAsc(SysDept::getSort));
         // 转换为响应对象列表
-        return depts.stream().map(this::toResponse).toList();
+        return depts.stream().map(deptConverter::toDeptResponse).toList();
     }
 
     @Override
     public DeptResponse getDeptById(String id) {
         // 按主键查询部门并转换为响应对象
-        return toResponse(loadDeptEntity(id));
+        return deptConverter.toDeptResponse(loadDeptEntity(id));
     }
 
     @Override
@@ -134,15 +134,5 @@ public class SysDeptServiceImpl implements SysDeptService {
             throw new BusinessException(ResultCode.NOT_FOUND, "部门不存在");
         }
         return dept;
-    }
-
-    /**
-     * 将部门实体转换为响应对象。
-     *
-     * @param dept 部门实体
-     * @return 部门响应对象
-     */
-    private DeptResponse toResponse(SysDept dept) {
-        return deptConverter.toDeptResponse(dept);
     }
 }

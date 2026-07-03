@@ -74,7 +74,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
         // 查询实体分页并转换为响应对象分页
         IPage<SysRole> entityPage = roleMapper.selectPage(page, wrapper);
-        return entityPage.convert(this::toResponse);
+        return entityPage.convert(roleConverter::toRoleResponse);
     }
 
     @Override
@@ -84,13 +84,13 @@ public class SysRoleServiceImpl implements SysRoleService {
                 .eq(SysRole::getTenantId, tenantId)
                 .orderByAsc(SysRole::getSort));
         // 转换为响应对象列表
-        return roles.stream().map(this::toResponse).toList();
+        return roles.stream().map(roleConverter::toRoleResponse).toList();
     }
 
     @Override
     public RoleResponse getRoleById(String id) {
         // 按主键查询角色并转换为响应对象
-        return toResponse(loadRoleEntity(id));
+        return roleConverter.toRoleResponse(loadRoleEntity(id));
     }
 
     @Override
@@ -211,15 +211,5 @@ public class SysRoleServiceImpl implements SysRoleService {
             throw new BusinessException(ResultCode.NOT_FOUND, "角色不存在");
         }
         return role;
-    }
-
-    /**
-     * 将角色实体转换为响应对象。
-     *
-     * @param role 角色实体
-     * @return 角色响应对象
-     */
-    private RoleResponse toResponse(SysRole role) {
-        return roleConverter.toRoleResponse(role);
     }
 }

@@ -67,7 +67,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public UserResponse getUserById(String id) {
         // 按主键查询用户并转换为响应对象
-        return toResponse(loadUserEntity(id));
+        return userConverter.toUserResponse(loadUserEntity(id));
     }
 
     @Override
@@ -255,16 +255,6 @@ public class SysUserServiceImpl implements SysUserService {
             throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在");
         }
         return user;
-    }
-
-    /**
-     * 将用户实体转换为响应对象（排除密码等敏感字段）。
-     *
-     * @param user 用户实体
-     * @return 用户响应对象
-     */
-    private UserResponse toResponse(SysUser user) {
-        return userConverter.toUserResponse(user);
     }
 
     @Override

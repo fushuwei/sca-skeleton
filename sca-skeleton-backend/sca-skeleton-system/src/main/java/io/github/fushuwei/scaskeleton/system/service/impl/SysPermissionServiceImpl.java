@@ -39,7 +39,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
                 .orderByAsc(SysPermission::getSort));
         // 转换为响应对象列表
-        return permissions.stream().map(this::toResponse).toList();
+        return permissions.stream().map(permissionConverter::toPermissionResponse).toList();
     }
 
     @Override
@@ -77,7 +77,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
 
         // 查询实体分页并转换为响应对象分页
         IPage<SysPermission> entityPage = permissionMapper.selectPage(page, wrapper);
-        return entityPage.convert(this::toResponse);
+        return entityPage.convert(permissionConverter::toPermissionResponse);
     }
 
     @Override
@@ -88,13 +88,13 @@ public class SysPermissionServiceImpl implements SysPermissionService {
                 .eq(SysPermission::getType, "button")
                 .orderByAsc(SysPermission::getSort));
         // 转换为响应对象列表
-        return buttons.stream().map(this::toResponse).toList();
+        return buttons.stream().map(permissionConverter::toPermissionResponse).toList();
     }
 
     @Override
     public PermissionResponse getPermissionById(String id) {
         // 按主键查询权限并转换为响应对象
-        return toResponse(loadPermissionEntity(id));
+        return permissionConverter.toPermissionResponse(loadPermissionEntity(id));
     }
 
     @Override
@@ -191,15 +191,5 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             throw new BusinessException(ResultCode.NOT_FOUND, "权限不存在");
         }
         return perm;
-    }
-
-    /**
-     * 将权限实体转换为响应对象。
-     *
-     * @param perm 权限实体
-     * @return 权限响应对象
-     */
-    private PermissionResponse toResponse(SysPermission perm) {
-        return permissionConverter.toPermissionResponse(perm);
     }
 }

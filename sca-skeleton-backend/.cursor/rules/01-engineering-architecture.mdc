@@ -56,7 +56,7 @@ alwaysApply: true
 - MapStruct Converter 接口统一放置在 `converter` 包下，使用 `@Mapper(componentModel = "spring")` 声明为 Spring Bean。
 - Converter 接口命名统一为 `XxxConverter`，方法命名遵循 `to<目标类名>` 约定（如 `toUserResponse`、`toUserProfileResponse`、`toDeptResponse`），方法名必须包含目标类型，禁止使用 `toResponse` 等泛化命名。
 - Converter 仅负责字段映射，不承载业务逻辑；复杂映射规则通过 `@Mapping` 注解显式声明。
-- Service 层通过构造器注入 Converter，在私有方法中委托 Converter 完成转换。
+- Service 层通过构造器注入 Converter，直接调用 Converter 方法完成转换（如 `userConverter.toUserResponse(user)`），禁止为单行委托定义额外的私有包装方法。
 
 ## 依赖方向约束（强制）
 
