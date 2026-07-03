@@ -443,13 +443,6 @@ async function handleSave() {
                     color="grey-7"
                   />
                   <span class="ellipsis">{{ scope.node.label }}</span>
-                  <q-badge
-                    v-if="scope.node.type"
-                    :color="scope.node.type === 'button' ? 'orange' : 'teal'"
-                    :label="scope.node.type"
-                    rounded
-                    class="q-ml-sm perm-type-badge"
-                  />
                 </div>
               </template>
             </q-tree>
@@ -551,12 +544,6 @@ async function handleSave() {
   padding: 4px 8px;
   min-height: 32px;
   border-radius: 4px;
-}
-
-.perm-type-badge {
-  font-size: 10px;
-  padding: 1px 6px;
-  text-transform: uppercase;
 }
 
 /* 修复 prefix 右侧多余间距 */
