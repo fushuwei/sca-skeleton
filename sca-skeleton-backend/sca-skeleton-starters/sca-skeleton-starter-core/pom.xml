@@ -48,18 +48,16 @@
             <artifactId>hutool-extra</artifactId>
         </dependency>
 
-        <!-- Lombok 代码简化工具（各业务模块共享，无需重复声明） -->
+        <!-- Lombok 代码简化工具（编译期注解，compile 作用域保证向下传递，spring-boot-maven-plugin excludes 负责排除） -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <scope>provided</scope>
         </dependency>
 
-        <!-- MapStruct 对象映射框架（编译期生成 Entity ↔ Response 转换代码，各业务模块共享） -->
+        <!-- MapStruct 对象映射框架（编译期注解，compile 作用域保证向下传递，注解类无运行时开销） -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
