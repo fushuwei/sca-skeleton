@@ -48,16 +48,20 @@
             <artifactId>hutool-extra</artifactId>
         </dependency>
 
-        <!-- Lombok 代码简化工具（编译期注解，compile 作用域保证向下传递，spring-boot-maven-plugin excludes 负责排除） -->
+        <!-- Lombok 代码简化工具 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
 
-        <!-- MapStruct 对象映射框架（编译期注解，compile 作用域保证向下传递，注解类无运行时开销） -->
+        <!-- MapStruct 对象映射框架 -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
         </dependency>
     </dependencies>
 </project>
