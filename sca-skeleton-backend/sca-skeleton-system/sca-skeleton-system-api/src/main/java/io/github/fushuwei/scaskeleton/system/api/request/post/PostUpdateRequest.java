@@ -5,8 +5,6 @@ import lombok.Data;
 
 /**
  * 更新岗位请求对象。
- * <p>
- * 岗位编码（code）创建后不可修改，故不包含在此对象中。
  *
  * @author Fu Wei
  */
@@ -20,6 +18,10 @@ public class PostUpdateRequest {
     /** 岗位名称 */
     @NotBlank(message = "岗位名称不能为空")
     private String name;
+
+    /** 岗位编码 */
+    @NotBlank(message = "岗位编码不能为空")
+    private String code;
 
     /** 排序号，越小越靠前 */
     private Integer sort;

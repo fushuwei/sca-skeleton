@@ -75,7 +75,7 @@ export const DEMO_MENUS: MenuItem[] = [
         path: "/system/org",
         title: "组织与岗位",
         children: [
-          { name: "SystemDept", path: "/system/dept", title: "部门管理", component: "PlaceholderView" },
+          { name: "SystemDept", path: "/system/dept", title: "部门管理", component: "DeptListView" },
           { name: "SystemPost", path: "/system/post", title: "岗位管理", component: "PostListView" }
         ]
       },

@@ -1,9 +1,12 @@
 package io.github.fushuwei.scaskeleton.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptResponse;
 import io.github.fushuwei.scaskeleton.system.converter.DeptConverter;
@@ -42,6 +45,43 @@ public class SysDeptServiceImpl implements SysDeptService {
     }
 
     @Override
+    public IPage<DeptResponse> pageDepts(String tenantId, DeptPageRequest req) {
+        // 构造分页对象
+        Page<SysDept> page = new Page<>(req.getPageNum(), req.getPageSize());
+
+        LambdaQueryWrapper<SysDept> wrapper = new LambdaQueryWrapper<SysDept>()
+                // 按租户隔离
+                .eq(SysDept::getTenantId, tenantId)
+                // 按父节点筛选子部门，parentId 为空时默认查根节点
+                .eq(SysDept::getParentId, StringUtils.hasText(req.getParentId()) ? req.getParentId() : "0")
+                // 关键词模糊匹配名称或编码
+                .and(StringUtils.hasText(req.getKeyword()),
+                        w -> w.like(SysDept::getName, req.getKeyword())
+                                .or().like(SysDept::getCode, req.getKeyword()))
+                // 状态筛选
+                .eq(StringUtils.hasText(req.getStatus()), SysDept::getStatus, req.getStatus());
+
+        // 安全排序：白名单校验通过后按指定字段排序，否则按 sort 升序
+        String orderBy = req.safeOrderBy();
+        boolean isAsc = "ASC".equalsIgnoreCase(req.safeOrderDirection());
+        if (orderBy != null) {
+            switch (orderBy) {
+                case "name" -> wrapper.orderBy(true, isAsc, SysDept::getName);
+                case "code" -> wrapper.orderBy(true, isAsc, SysDept::getCode);
+                case "sort" -> wrapper.orderBy(true, isAsc, SysDept::getSort);
+                case "status" -> wrapper.orderBy(true, isAsc, SysDept::getStatus);
+                case "create_time" -> wrapper.orderBy(true, isAsc, SysDept::getCreateTime);
+            }
+        } else {
+            wrapper.orderByAsc(SysDept::getSort);
+        }
+
+        // 查询实体分页并转换为响应对象分页
+        IPage<SysDept> entityPage = deptMapper.selectPage(page, wrapper);
+        return entityPage.convert(deptConverter::toDeptResponse);
+    }
+
+    @Override
     public DeptResponse getDeptById(String id) {
         // 按主键查询部门并转换为响应对象
         return deptConverter.toDeptResponse(loadDeptEntity(id));
@@ -50,6 +90,13 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createDept(String tenantId, DeptCreateRequest req) {
+        // 部门编码在同租户内唯一
+        long count = deptMapper.selectCount(new LambdaQueryWrapper<SysDept>()
+                .eq(SysDept::getTenantId, tenantId)
+                .eq(SysDept::getCode, req.getCode()));
+        if (count > 0) {
+            throw new BusinessException(ResultCode.ALREADY_EXISTS, "部门编码已存在");
+        }
         // 组装部门实体
         SysDept dept = new SysDept();
         dept.setTenantId(tenantId);
@@ -74,8 +121,19 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateDept(String tenantId, DeptUpdateRequest req) {
-        // 校验部门存在并加载当前快照（parentId / treePath 不在此接口变更）
+        // 校验部门存在并加载当前快照
         SysDept existing = loadDeptEntity(req.getId());
+        // 编码变更时校验同租户内唯一（排除自身）
+        if (StringUtils.hasText(req.getCode()) && !req.getCode().equals(existing.getCode())) {
+            long count = deptMapper.selectCount(new LambdaQueryWrapper<SysDept>()
+                    .eq(SysDept::getTenantId, tenantId)
+                    .eq(SysDept::getCode, req.getCode())
+                    .ne(SysDept::getId, req.getId()));
+            if (count > 0) {
+                throw new BusinessException(ResultCode.ALREADY_EXISTS, "部门编码已存在");
+            }
+            existing.setCode(req.getCode());
+        }
         existing.setName(req.getName());
         existing.setSort(req.getSort() != null ? req.getSort() : existing.getSort());
         existing.setLeader(req.getLeader());

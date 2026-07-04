@@ -416,7 +416,7 @@ SELECT t.* FROM (
     UNION ALL
     SELECT '1200', '1000', '组织与岗位', 'folder', NULL, NULL, NULL, 'sym_r_folder', 200, 1, 0, 'enabled', '0,1000,1200', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1201', '1200', '部门管理', 'menu', NULL, '/system/dept', 'PlaceholderView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1200,1201', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1201', '1200', '部门管理', 'menu', NULL, '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1200,1201', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     SELECT '1202', '1200', '岗位管理', 'menu', NULL, '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1200,1202', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL

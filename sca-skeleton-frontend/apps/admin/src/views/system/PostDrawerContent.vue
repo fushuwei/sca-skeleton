@@ -133,17 +133,11 @@ async function handleSave() {
             filled
             square
             :rules="formRules.code"
-            :disable="drawerReadonly || mode === 'edit'"
+            :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
             class="required-field"
-          >
-            <template v-if="mode === 'edit'" #append>
-              <q-icon name="sym_r_lock" size="18px" color="grey-6">
-                <q-tooltip>{{ t('postMgmt.codeLocked') }}</q-tooltip>
-              </q-icon>
-            </template>
-          </q-input>
+          />
         </div>
         <!-- 排序 -->
         <div class="col-12 col-md-6">

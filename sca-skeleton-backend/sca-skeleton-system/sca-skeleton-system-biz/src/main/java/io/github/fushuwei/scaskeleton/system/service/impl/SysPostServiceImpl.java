@@ -108,8 +108,19 @@ public class SysPostServiceImpl implements SysPostService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updatePost(String tenantId, PostUpdateRequest req) {
-        // 校验岗位存在并加载当前快照（编码不可改，故不更新 code）
+        // 校验岗位存在并加载当前快照
         SysPost existing = loadPostEntity(req.getId());
+        // 编码变更时校验同租户内唯一（排除自身）
+        if (StringUtils.hasText(req.getCode()) && !req.getCode().equals(existing.getCode())) {
+            long count = postMapper.selectCount(new LambdaQueryWrapper<SysPost>()
+                    .eq(SysPost::getTenantId, tenantId)
+                    .eq(SysPost::getCode, req.getCode())
+                    .ne(SysPost::getId, req.getId()));
+            if (count > 0) {
+                throw new BusinessException(ResultCode.ALREADY_EXISTS, "岗位编码已存在");
+            }
+            existing.setCode(req.getCode());
+        }
         existing.setName(req.getName());
         existing.setSort(req.getSort() != null ? req.getSort() : existing.getSort());
         existing.setRemark(req.getRemark());

@@ -9,6 +9,7 @@ const MENU_COMPONENT_MAP: Record<MenuComponent, () => Promise<unknown>> = { // �
   MenuListView: () => import("../views/system/MenuListView.vue"), // 将 MenuList 菜单映射到菜单管理页面。
   RoleListView: () => import("../views/system/RoleListView.vue"), // 将 RoleList 菜单映射到角色管理页面。
   PostListView: () => import("../views/system/PostListView.vue"), // 将 PostList 菜单映射到岗位管理页面。
+  DeptListView: () => import("../views/system/DeptListView.vue"), // 将 DeptList 菜单映射到部门管理页面。
   PlaceholderView: () => import("../views/common/PlaceholderView.vue") // 通用占位页。
 }; // 结束菜单组件映射表定义。
 

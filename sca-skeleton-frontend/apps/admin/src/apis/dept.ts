@@ -1,12 +1,38 @@
 import { request } from "./http";
-import type { ApiEnvelope, SysDept } from "../types/auth";
+import type { ApiEnvelope, SysDept, DeptPageRequest, IPage } from "../types/auth";
 
-/** 获取当前租户下部门列表 */
+/** 查询当前租户下部门列表 */
 export async function getDeptListApi(): Promise<ApiEnvelope<SysDept[]>> {
   return request<SysDept[]>({ method: "GET", url: "/sys/dept/list" });
+}
+
+/** 分页查询当前租户下部门列表 */
+export async function getDeptPageApi(
+  params: DeptPageRequest
+): Promise<ApiEnvelope<IPage<SysDept>>> {
+  return request<IPage<SysDept>>({
+    method: "GET",
+    url: "/sys/dept/page",
+    params
+  });
 }
 
 /** 按 ID 查询部门详情 */
 export async function getDeptByIdApi(id: string): Promise<ApiEnvelope<SysDept>> {
   return request<SysDept>({ method: "GET", url: `/sys/dept/${id}` });
+}
+
+/** 创建部门 */
+export async function createDeptApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "POST", url: "/sys/dept", data });
+}
+
+/** 更新部门 */
+export async function updateDeptApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "PUT", url: "/sys/dept", data });
+}
+
+/** 删除部门 */
+export async function deleteDeptApi(id: string): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "DELETE", url: `/sys/dept/${id}` });
 }

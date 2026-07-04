@@ -6,7 +6,7 @@ export interface CaptchaData {
 }
 
 /** 菜单挂载的页面组件标识（仅叶子节点需要） */
-export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView" | "RoleListView" | "PostListView";
+export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView" | "RoleListView" | "PostListView" | "DeptListView";
 
 export interface MenuItem {
   name: string;
@@ -132,6 +132,17 @@ export interface DeptTreeNode {
   parentId: string;
   children?: DeptTreeNode[];
   count?: number;
+}
+
+/** 部门分页查询请求参数 */
+export interface DeptPageRequest {
+  pageNum?: number;
+  pageSize?: number;
+  parentId?: string;
+  keyword?: string;
+  status?: string;
+  orderBy?: string;
+  orderDirection?: "asc" | "desc";
 }
 
 // ── 岗位管理相关类型 ──
