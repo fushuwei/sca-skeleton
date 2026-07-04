@@ -4,27 +4,22 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 创建 / 更新权限请求对象。
+ * 更新权限请求对象。
+ * <p>
+ * 父节点（parentId）和权限类型（type）创建后不可修改，故不包含在此对象中。
  *
  * @author Fu Wei
  */
 @Data
-public class PermissionSaveRequest {
+public class PermissionUpdateRequest {
 
-    /** 权限 ID，更新时必填，创建时为空 */
+    /** 权限 ID */
+    @NotBlank(message = "权限ID不能为空")
     private String id;
-
-    /** 父节点 ID，顶级为 "0" */
-    @NotBlank(message = "父节点ID不能为空")
-    private String parentId;
 
     /** 权限名称 */
     @NotBlank(message = "权限名称不能为空")
     private String name;
-
-    /** 类型：module-模块，folder-目录，menu-菜单，button-按钮 */
-    @NotBlank(message = "权限类型不能为空")
-    private String type;
 
     /** 权限标识，如 sys:user:list */
     private String code;

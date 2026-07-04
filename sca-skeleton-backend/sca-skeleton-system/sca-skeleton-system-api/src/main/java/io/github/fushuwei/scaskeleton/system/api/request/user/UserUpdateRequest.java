@@ -1,32 +1,26 @@
 package io.github.fushuwei.scaskeleton.system.api.request.user;
 
-import io.github.fushuwei.scaskeleton.core.validation.ValidGroup;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 创建 / 更新用户请求对象。
+ * 更新用户请求对象。
+ * <p>
+ * 用户名（username）和密码（password）不通过此接口修改，故不包含在此对象中。
  *
  * @author Fu Wei
  */
 @Data
-public class UserSaveRequest {
+public class UserUpdateRequest {
 
-    /** 用户ID（更新时必传） */
-    @NotBlank(groups = ValidGroup.Update.class, message = "用户ID不能为空")
+    /** 用户ID */
+    @NotBlank(message = "用户ID不能为空")
     private String id;
-
-    @NotBlank(groups = ValidGroup.Create.class, message = "用户名不能为空")
-    @Size(min = 2, max = 50, message = "用户名长度 2-50 个字符")
-    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "用户名只能包含字母、数字和下划线")
-    private String username;
-
-    /** 创建时可设初始密码；更新时如不传则不修改 */
-    @Size(min = 8, max = 20, message = "密码长度 8-20 个字符")
-    private String password;
 
     private String nickname;
     private String realName;
@@ -42,10 +36,6 @@ public class UserSaveRequest {
 
     @NotBlank(message = "用户类型不能为空")
     private String userType;
-
-    @Pattern(regexp = "^(active|inactive|locked|frozen|expired|disabled|cancelled)$",
-            message = "状态值不合法")
-    private String status;
 
     /** 部门ID列表（第一个为主部门） */
     private List<String> deptIds;

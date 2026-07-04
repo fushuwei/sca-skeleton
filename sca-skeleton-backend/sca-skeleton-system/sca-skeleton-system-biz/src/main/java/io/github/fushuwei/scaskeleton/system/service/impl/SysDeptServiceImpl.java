@@ -3,7 +3,8 @@ package io.github.fushuwei.scaskeleton.system.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
-import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptResponse;
 import io.github.fushuwei.scaskeleton.system.converter.DeptConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysDept;
@@ -48,7 +49,7 @@ public class SysDeptServiceImpl implements SysDeptService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createDept(String tenantId, DeptSaveRequest req) {
+    public void createDept(String tenantId, DeptCreateRequest req) {
         // 组装部门实体
         SysDept dept = new SysDept();
         dept.setTenantId(tenantId);
@@ -72,7 +73,7 @@ public class SysDeptServiceImpl implements SysDeptService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateDept(String tenantId, DeptSaveRequest req) {
+    public void updateDept(String tenantId, DeptUpdateRequest req) {
         // 校验部门存在并加载当前快照（parentId / treePath 不在此接口变更）
         SysDept existing = loadDeptEntity(req.getId());
         existing.setName(req.getName());

@@ -18,11 +18,6 @@
     <description>System service API contract: request/response DTOs + HTTP Interface remote declarations</description>
 
     <dependencies>
-        <!-- 核心基础：ValidGroup 校验分组、Result 统一响应体（远程接口返回值由拦截器自动解包） -->
-        <dependency>
-            <groupId>io.github.fushuwei</groupId>
-            <artifactId>sca-skeleton-starter-core</artifactId>
-        </dependency>
         <!-- Spring Web：@HttpExchange / @GetExchange / @PostExchange 等 HTTP Interface 注解 -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -32,6 +27,11 @@
         <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+        <!-- Lombok：Response / Request DTO 中的 @Data / @Builder 等注解 -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
     </dependencies>
 </project>

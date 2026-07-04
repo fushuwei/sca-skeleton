@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.fushuwei</groupId>
+        <artifactId>sca-skeleton-starters</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>sca-skeleton-starter-redis</artifactId>
+    <packaging>jar</packaging>
+
+    <name>SCA Skeleton Backend :: Starter :: Redis</name>
+    <description>SCA Skeleton Backend :: Redis 缓存 Starter（RedisTemplate 自动配置、RedisUtils 工具类）</description>
+
+    <dependencies>
+        <!-- 核心基础：SpringUtil（Hutool，RedisUtils 懒加载获取 Bean） -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-core</artifactId>
+        </dependency>
+
+        <!-- Redis 缓存与数据操作支持 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Autoconfigure：@AutoConfiguration、@ConditionalOnBean -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+    </dependencies>
+</project>

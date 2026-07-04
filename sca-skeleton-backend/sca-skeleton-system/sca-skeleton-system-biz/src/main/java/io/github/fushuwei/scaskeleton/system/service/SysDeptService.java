@@ -1,6 +1,7 @@
 package io.github.fushuwei.scaskeleton.system.service;
 
-import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptResponse;
 
 import java.util.List;
@@ -17,9 +18,9 @@ public interface SysDeptService {
 
     DeptResponse getDeptById(String id);
 
-    void createDept(String tenantId, DeptSaveRequest request);
+    void createDept(String tenantId, DeptCreateRequest request);
 
-    void updateDept(String tenantId, DeptSaveRequest request);
+    void updateDept(String tenantId, DeptUpdateRequest request);
 
     void deleteDept(String id);
 }

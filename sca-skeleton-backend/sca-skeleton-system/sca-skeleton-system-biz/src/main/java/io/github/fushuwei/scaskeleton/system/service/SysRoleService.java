@@ -2,7 +2,8 @@ package io.github.fushuwei.scaskeleton.system.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.role.RoleSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.role.RoleUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
 
 import java.util.List;
@@ -21,9 +22,9 @@ public interface SysRoleService {
 
     RoleResponse getRoleById(String id);
 
-    void createRole(String tenantId, RoleSaveRequest request);
+    void createRole(String tenantId, RoleCreateRequest request);
 
-    void updateRole(String tenantId, RoleSaveRequest request);
+    void updateRole(String tenantId, RoleUpdateRequest request);
 
     void deleteRole(String id);
 

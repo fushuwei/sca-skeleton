@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.core.util;
+package io.github.fushuwei.scaskeleton.redis.util;
 
 import cn.hutool.extra.spring.SpringUtil;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,6 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisConnectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -47,11 +46,13 @@ public final class RedisUtils {
      * 内部注入器
      * <p>
      * 监听 ApplicationReadyEvent，在 Spring 容器就绪后将 RedisTemplate
-     * 注入到静态字段，避免每次操作都通过 ApplicationContext 查找
+     * 注入到静态字段，避免每次操作都通过 ApplicationContext 查找。
+     * <p>
+     * 由 {@code RedisAutoConfiguration} 注册为 Bean，不使用 {@code @Component} 注解，
+     * 确保在任意包扫描配置下均能正确注册。
      */
-    @Component
     @RequiredArgsConstructor
-    static class Injector implements ApplicationListener<ApplicationReadyEvent> {
+    public static class Injector implements ApplicationListener<ApplicationReadyEvent> {
 
         private final RedisTemplate<String, Object> redisTemplate;
 

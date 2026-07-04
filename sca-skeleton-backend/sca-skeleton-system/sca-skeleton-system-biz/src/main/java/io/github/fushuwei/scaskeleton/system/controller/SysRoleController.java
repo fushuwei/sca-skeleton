@@ -2,12 +2,12 @@ package io.github.fushuwei.scaskeleton.system.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;
-import io.github.fushuwei.scaskeleton.core.validation.ValidGroup;
 import io.github.fushuwei.scaskeleton.logging.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.role.RoleSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.role.RoleUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysRoleService;
 import lombok.RequiredArgsConstructor;
@@ -61,7 +61,7 @@ public class SysRoleController {
     @RequiresPermission("sys:role:add")
     @OperationLog(module = "角色管理", action = "添加角色", logArgs = false)
     public Result<Void> create(
-            @Validated(ValidGroup.Create.class) @RequestBody RoleSaveRequest request) {
+            @Validated @RequestBody RoleCreateRequest request) {
         roleService.createRole(SecurityUtils.getTenantId(), request);
         return Result.ok();
     }
@@ -71,7 +71,7 @@ public class SysRoleController {
     @RequiresPermission("sys:role:edit")
     @OperationLog(module = "角色管理", action = "编辑角色", logArgs = false)
     public Result<Void> update(
-            @Validated(ValidGroup.Update.class) @RequestBody RoleSaveRequest request) {
+            @Validated @RequestBody RoleUpdateRequest request) {
         roleService.updateRole(SecurityUtils.getTenantId(), request);
         return Result.ok();
     }

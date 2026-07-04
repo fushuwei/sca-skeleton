@@ -4,15 +4,12 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 创建 / 更新部门请求对象。
+ * 创建部门请求对象。
  *
  * @author Fu Wei
  */
 @Data
-public class DeptSaveRequest {
-
-    /** 部门 ID，更新时必填，创建时为空 */
-    private String id;
+public class DeptCreateRequest {
 
     /** 上级部门 ID，顶级为 "0" */
     @NotBlank(message = "上级部门ID不能为空")

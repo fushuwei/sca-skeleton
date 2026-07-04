@@ -2,7 +2,8 @@ package io.github.fushuwei.scaskeleton.system.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionResponse;
 
 import java.util.List;
@@ -25,9 +26,9 @@ public interface SysPermissionService {
 
     PermissionResponse getPermissionById(String id);
 
-    void createPermission(PermissionSaveRequest request);
+    void createPermission(PermissionCreateRequest request);
 
-    void updatePermission(PermissionSaveRequest request);
+    void updatePermission(PermissionUpdateRequest request);
 
     void deletePermission(String id);
 }

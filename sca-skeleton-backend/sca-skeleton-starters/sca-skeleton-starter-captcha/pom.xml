@@ -24,6 +24,12 @@
             <artifactId>sca-skeleton-starter-core</artifactId>
         </dependency>
 
+        <!-- 项目 Redis Starter（验证码 Redis 存储与校验） -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-redis</artifactId>
+        </dependency>
+
         <!-- Spring Boot Web MVC 核心启动器 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

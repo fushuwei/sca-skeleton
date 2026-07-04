@@ -5,7 +5,8 @@ import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.logging.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysPermissionService;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +59,7 @@ public class SysPermissionController {
     @PostMapping
     @RequiresPermission("sys:permission:add")
     @OperationLog(module = "菜单管理", action = "添加菜单")
-    public Result<Void> create(@Validated @RequestBody PermissionSaveRequest request) {
+    public Result<Void> create(@Validated @RequestBody PermissionCreateRequest request) {
         permissionService.createPermission(request);
         return Result.ok();
     }
@@ -67,7 +68,7 @@ public class SysPermissionController {
     @PutMapping
     @RequiresPermission("sys:permission:edit")
     @OperationLog(module = "菜单管理", action = "编辑菜单")
-    public Result<Void> update(@Validated @RequestBody PermissionSaveRequest request) {
+    public Result<Void> update(@Validated @RequestBody PermissionUpdateRequest request) {
         permissionService.updatePermission(request);
         return Result.ok();
     }

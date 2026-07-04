@@ -134,6 +134,13 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <!-- 项目 Redis Starter（RedisTemplate 自动配置、RedisUtils 工具类） -->
+            <dependency>
+                <groupId>io.github.fushuwei</groupId>
+                <artifactId>sca-skeleton-starter-redis</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <!-- 项目 Web 层 Starter（自定义 Web 组件封装） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>

@@ -6,7 +6,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.role.RoleSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.role.RoleUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
 import io.github.fushuwei.scaskeleton.system.converter.RoleConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysRole;
@@ -95,7 +96,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createRole(String tenantId, RoleSaveRequest req) {
+    public void createRole(String tenantId, RoleCreateRequest req) {
         // 角色编码在同租户内唯一
         long count = roleMapper.selectCount(new LambdaQueryWrapper<SysRole>()
                 .eq(SysRole::getTenantId, tenantId)
@@ -120,7 +121,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateRole(String tenantId, RoleSaveRequest req) {
+    public void updateRole(String tenantId, RoleUpdateRequest req) {
         // 校验角色存在并加载当前快照（编码不可改，故不更新 code）
         SysRole existing = loadRoleEntity(req.getId());
         existing.setName(req.getName());

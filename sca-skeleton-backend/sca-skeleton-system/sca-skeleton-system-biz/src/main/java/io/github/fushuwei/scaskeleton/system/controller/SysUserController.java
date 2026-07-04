@@ -2,14 +2,14 @@ package io.github.fushuwei.scaskeleton.system.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;
-import io.github.fushuwei.scaskeleton.core.validation.ValidGroup;
 import io.github.fushuwei.scaskeleton.logging.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserBatchStatusRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPasswordResetRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.user.UserSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserStatusChangeRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserPageResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserProfileResponse;
@@ -59,7 +59,7 @@ public class SysUserController {
     @RequiresPermission("sys:user:add")
     @OperationLog(module = "用户管理", action = "新增用户", logArgs = false)
     public Result<Void> create(
-            @Validated(ValidGroup.Create.class) @RequestBody UserSaveRequest request) {
+            @Validated @RequestBody UserCreateRequest request) {
         userService.createUser(SecurityUtils.getTenantId(), request);
         return Result.ok();
     }
@@ -69,7 +69,7 @@ public class SysUserController {
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "编辑用户", logArgs = false)
     public Result<Void> update(
-            @Validated(ValidGroup.Update.class) @RequestBody UserSaveRequest request) {
+            @Validated @RequestBody UserUpdateRequest request) {
         userService.updateUser(SecurityUtils.getTenantId(), request);
         return Result.ok();
     }

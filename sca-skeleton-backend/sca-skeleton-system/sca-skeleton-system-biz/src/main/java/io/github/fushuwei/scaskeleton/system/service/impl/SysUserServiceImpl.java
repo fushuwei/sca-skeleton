@@ -9,7 +9,8 @@ import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.user.UserSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserPageResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserProfileResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
@@ -72,7 +73,7 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createUser(String tenantId, UserSaveRequest req) {
+    public void createUser(String tenantId, UserCreateRequest req) {
         // 用户名在同租户内唯一（仅后台用户类别）
         long count = userMapper.selectCount(new LambdaQueryWrapper<SysUser>()
                 .eq(SysUser::getTenantId, tenantId)
@@ -106,21 +107,16 @@ public class SysUserServiceImpl implements SysUserService {
         // 持久化用户主表
         userMapper.insert(user);
         // 同事务内建立角色、部门关联
-        saveUserRelations(tenantId, user.getId(), req);
+        saveUserRelations(tenantId, user.getId(), req.getRoleIds(), req.getDeptIds());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateUser(String tenantId, UserSaveRequest req) {
+    public void updateUser(String tenantId, UserUpdateRequest req) {
         // 校验用户存在并加载当前快照
         SysUser existing = loadUserEntity(req.getId());
 
-        // 内置用户不允许修改用户名
-        if (existing.getIsBuiltin() != null && existing.getIsBuiltin() == 1) {
-            req.setUsername(existing.getUsername());
-        }
-
-        // 更新可编辑字段（用户名由上方分支保护）
+        // 更新可编辑字段（用户名和密码不通过此接口修改）
         existing.setNickname(req.getNickname());
         existing.setRealName(req.getRealName());
         existing.setGender(req.getGender());
@@ -135,7 +131,7 @@ public class SysUserServiceImpl implements SysUserService {
 
         // 清除旧关联，重新建立
         deleteUserRelations(tenantId, req.getId());
-        saveUserRelations(tenantId, req.getId(), req);
+        saveUserRelations(tenantId, req.getId(), req.getRoleIds(), req.getDeptIds());
     }
 
     @Override
@@ -206,10 +202,10 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /** 保存用户-角色、用户-部门关联。 */
-    private void saveUserRelations(String tenantId, String userId, UserSaveRequest req) {
+    private void saveUserRelations(String tenantId, String userId, List<String> roleIds, List<String> deptIds) {
         // 批量插入用户-角色关联
-        if (!CollectionUtils.isEmpty(req.getRoleIds())) {
-            req.getRoleIds().forEach(roleId -> {
+        if (!CollectionUtils.isEmpty(roleIds)) {
+            roleIds.forEach(roleId -> {
                 SysUserRole ur = new SysUserRole();
                 ur.setTenantId(tenantId);
                 ur.setUserId(userId);
@@ -218,12 +214,12 @@ public class SysUserServiceImpl implements SysUserService {
             });
         }
         // 批量插入用户-部门关联（首个部门标记为主部门）
-        if (!CollectionUtils.isEmpty(req.getDeptIds())) {
-            for (int i = 0; i < req.getDeptIds().size(); i++) {
+        if (!CollectionUtils.isEmpty(deptIds)) {
+            for (int i = 0; i < deptIds.size(); i++) {
                 SysUserDept ud = new SysUserDept();
                 ud.setTenantId(tenantId);
                 ud.setUserId(userId);
-                ud.setDeptId(req.getDeptIds().get(i));
+                ud.setDeptId(deptIds.get(i));
                 ud.setIsPrimary(i == 0 ? 1 : 0);
                 userDeptMapper.insert(ud);
             }

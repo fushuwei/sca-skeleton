@@ -20,6 +20,8 @@
     <modules>
         <!-- 核心基础：异常体系、工具类、TraceId 上下文、UUID 生成规范，所有其他 Starter 的依赖基础 -->
         <module>sca-skeleton-starter-core</module>
+        <!-- Redis 缓存：RedisTemplate 自动配置、RedisUtils 工具类 -->
+        <module>sca-skeleton-starter-redis</module>
         <!-- Web 通用：统一响应体、全局异常处理、TraceId 过滤器、@RateLimit 限流 -->
         <module>sca-skeleton-starter-web</module>
         <!-- 日志增强：操作日志 AOP 注解、MDC 链路追踪辅助 -->

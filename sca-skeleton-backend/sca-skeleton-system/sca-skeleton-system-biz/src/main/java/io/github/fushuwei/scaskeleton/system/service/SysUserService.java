@@ -2,7 +2,8 @@ package io.github.fushuwei.scaskeleton.system.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.user.UserSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserPageResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserProfileResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
@@ -23,10 +24,10 @@ public interface SysUserService {
     UserResponse getUserById(String id);
 
     /** 创建用户（含关联部门、岗位、角色） */
-    void createUser(String tenantId, UserSaveRequest request);
+    void createUser(String tenantId, UserCreateRequest request);
 
     /** 更新用户信息 */
-    void updateUser(String tenantId, UserSaveRequest request);
+    void updateUser(String tenantId, UserUpdateRequest request);
 
     /** 删除用户（逻辑删除，同时清理关联关系） */
     void deleteUser(String id);

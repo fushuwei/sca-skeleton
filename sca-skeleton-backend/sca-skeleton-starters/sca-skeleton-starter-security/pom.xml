@@ -48,10 +48,10 @@
             <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
 
-        <!-- Redis 缓存与数据操作支持 -->
+        <!-- 项目 Redis Starter（RedisTemplate 自动配置、OAuth2 授权信息 Redis 存储） -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-redis</artifactId>
         </dependency>
 
         <!-- Spring Authorization Server 核心库（OAuth 2.1 授权服务器实现） -->

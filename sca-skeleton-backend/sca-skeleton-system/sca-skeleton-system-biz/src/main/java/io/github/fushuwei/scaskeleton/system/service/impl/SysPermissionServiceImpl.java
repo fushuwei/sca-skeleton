@@ -6,7 +6,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionSaveRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionResponse;
 import io.github.fushuwei.scaskeleton.system.converter.PermissionConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
@@ -99,7 +100,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createPermission(PermissionSaveRequest req) {
+    public void createPermission(PermissionCreateRequest req) {
         // 组装权限实体
         SysPermission permission = new SysPermission();
         permission.setParentId(req.getParentId());
@@ -128,7 +129,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updatePermission(PermissionSaveRequest req) {
+    public void updatePermission(PermissionUpdateRequest req) {
         // 校验权限存在并加载当前快照（parentId / treePath 不在此接口变更）
         SysPermission existing = loadPermissionEntity(req.getId());
         existing.setName(req.getName());
