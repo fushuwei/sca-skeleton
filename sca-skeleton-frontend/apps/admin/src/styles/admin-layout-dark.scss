@@ -946,6 +946,171 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+ * PostListView — 岗位管理页面深色模式
+ * ═══════════════════════════════════════════════════════════════ */
+
+.body--dark .post-list-shell {
+  /* 搜索区域 */
+  .search-area {
+    background: #1e1e1e;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .search-area-header {
+    background: #252525;
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .search-area-title {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .search-area-header .q-icon.text-grey-8 {
+    color: rgba(255, 255, 255, 0.72) !important;
+  }
+
+  /* 输入框 & 下拉 */
+  .q-field--filled .q-field__control {
+    background: #2d2d2d !important;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .q-field--filled .q-field__native,
+  .q-field--filled .q-field__input {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .q-field--filled .q-field__label {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .q-field .q-field__append,
+  .q-field .q-field__prepend {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  /* 搜索/折叠按钮 */
+  .search-collapse-btn {
+    color: rgba(255, 255, 255, 0.87) !important;
+  }
+
+  .search-collapse-btn:hover {
+    background: rgba(128, 128, 128, 0.28);
+  }
+
+  /* 搜索按钮 */
+  .search-btn.q-btn--unelevated {
+    background: rgba(0, 150, 136, 0.85) !important;
+  }
+
+  .search-btn.q-btn--unelevated:hover {
+    background: rgba(0, 150, 136, 1) !important;
+  }
+
+  .search-btn.q-btn--outline {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 0.87) !important;
+    background: transparent !important;
+  }
+
+  .search-btn.q-btn--outline:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+  }
+
+  /* 工具栏 */
+  .toolbar-area {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .toolbar-area .q-btn--outline {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 0.87) !important;
+    background: transparent !important;
+  }
+
+  .toolbar-area .q-btn--outline:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .toolbar-area .q-btn--unelevated:not(.q-btn--outline) {
+    background: rgba(0, 150, 136, 0.85) !important;
+  }
+
+  .toolbar-area .q-btn--unelevated:not(.q-btn--outline):hover {
+    background: rgba(0, 150, 136, 1) !important;
+  }
+
+  /* 选中提示 */
+  .selection-bar {
+    background: rgba(0, 150, 136, 0.12);
+    border-color: rgba(0, 150, 136, 0.25);
+  }
+
+  /* 表格 */
+  .post-table {
+    background: #1e1e1e;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .post-table thead tr th {
+    background: #252525 !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .post-table tbody tr {
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .post-table tbody tr:hover td {
+    background: rgba(0, 150, 136, 0.08) !important;
+  }
+
+  .post-table tbody tr.q-tr--selected td {
+    background: rgba(0, 150, 136, 0.14) !important;
+  }
+
+  .post-table tbody td {
+    color: rgba(255, 255, 255, 0.87);
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .post-table .q-table__bottom {
+    background: #1e1e1e;
+    color: rgba(255, 255, 255, 0.72);
+    border-top-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .post-table .q-table__bottom .q-pagination .q-btn:not(.q-btn--flat) {
+    background: rgba(0, 150, 136, 0.85) !important;
+    color: white !important;
+  }
+
+  .post-table .q-table__bottom .q-pagination .q-btn.q-btn--flat {
+    color: rgba(0, 150, 136, 0.85) !important;
+  }
+
+  .post-table--empty .q-table__bottom {
+    background: #1e1e1e !important;
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .empty-state-content {
+    color: rgba(255, 255, 255, 0.55) !important;
+  }
+
+  .text-grey-5,
+  .text-grey-6 {
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+
+  .text-grey-7 {
+    color: rgba(255, 255, 255, 0.55) !important;
+  }
+}
+
 /* 状态下拉弹出层（teleported to body）深色模式 */
 .body--dark .status-select-popup {
   background: #2d2d2d;

@@ -410,7 +410,7 @@ SELECT t.* FROM (
     UNION ALL
     SELECT '1101', '1100', '用户管理', 'menu', NULL, '/system/user', 'UserListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1100,1101', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1102', '1100', '角色管理', 'menu', NULL, '/system/role', 'PlaceholderView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1100,1102', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1102', '1100', '角色管理', 'menu', NULL, '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1100,1102', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     SELECT '1103', '1100', '菜单管理', 'menu', NULL, '/system/menu', 'MenuListView', 'sym_r_nest_eco_leaf', 300, 1, 0, 'enabled', '0,1000,1100,1103', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
@@ -418,7 +418,7 @@ SELECT t.* FROM (
     UNION ALL
     SELECT '1201', '1200', '部门管理', 'menu', NULL, '/system/dept', 'PlaceholderView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1200,1201', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1202', '1200', '岗位管理', 'menu', NULL, '/system/post', 'PlaceholderView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1200,1202', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1202', '1200', '岗位管理', 'menu', NULL, '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1200,1202', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     SELECT '1301', '1000', '字典管理', 'menu', NULL, '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 300, 1, 0, 'enabled', '0,1000,1301', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL

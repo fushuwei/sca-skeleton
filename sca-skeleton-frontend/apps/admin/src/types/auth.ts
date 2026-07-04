@@ -6,7 +6,7 @@ export interface CaptchaData {
 }
 
 /** 菜单挂载的页面组件标识（仅叶子节点需要） */
-export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView" | "RoleListView";
+export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView" | "RoleListView" | "PostListView";
 
 export interface MenuItem {
   name: string;
@@ -144,8 +144,20 @@ export interface SysPost {
   code: string;
   sort: number;
   remark: string;
+  version: number;
   createTime: string;
   updateTime: string;
+  createBy: string;
+  updateBy: string;
+}
+
+/** 岗位分页查询请求参数 */
+export interface PostPageRequest {
+  pageNum?: number;
+  pageSize?: number;
+  keyword?: string;
+  orderBy?: string;
+  orderDirection?: "asc" | "desc";
 }
 
 // ── 角色管理相关类型 ──

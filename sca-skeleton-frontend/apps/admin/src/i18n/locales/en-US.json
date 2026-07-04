@@ -263,6 +263,26 @@
     "selectedPermissions": "{count} selected",
     "searchPermission": "Search permission"
   },
+  "postMgmt": {
+    "createPost": "Add Position",
+    "addPost": "Add Position",
+    "editPost": "Edit Position",
+    "viewPost": "View Position",
+    "name": "Position Name",
+    "code": "Position Code",
+    "sort": "Sort",
+    "remark": "Remark",
+    "createTime": "Created At",
+    "keywordPlaceholder": "Search by position name / code",
+    "nameRequired": "Please input position name",
+    "codeRequired": "Please input position code",
+    "codeLocked": "Position code cannot be modified",
+    "deleteConfirm": "Confirm to delete position \"{name}\"?",
+    "batchDeleteConfirm": "Confirm to delete {count} selected position(s)? This cannot be undone.",
+    "batchDeleteResult": "Deleted {success} successfully, {fail} failed",
+    "saveSuccess": "Saved successfully",
+    "saveFail": "Failed to save"
+  },
   "menu": {
     "ModuleDatasource": "Data Source Center",
     "DsList": "Data Sources",
