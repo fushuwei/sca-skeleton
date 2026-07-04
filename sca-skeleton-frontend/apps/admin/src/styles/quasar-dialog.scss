@@ -1,0 +1,106 @@
+/**
+ * Quasar Dialog 企业级样式覆盖
+ *
+ * 设计理念：
+ * - 与现有 UI 保持一致：直角风格（border-radius: 0）、Material Symbols 图标
+ * - 主色 #009688（teal），暗色模式 #1e1e1e / #252525
+ * - 标题区有分隔线，消息区行高舒适，按钮区右对齐
+ * - 按钮去除 Material Design 大写转换，统一尺寸
+ */
+
+/* ═══ 遮罩层 ═══ */
+.q-dialog__backdrop {
+  background: rgba(0, 0, 0, 0.45) !important;
+}
+
+/* ═══ 对话框卡片主体 ═══ */
+.q-dialog__inner > .q-card {
+  width: 420px !important;
+  max-width: 90vw !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden;
+}
+
+/* ═══ 标题区域 ═══ */
+.q-dialog__inner > .q-card > .q-card__section:first-child {
+  padding: 20px 24px 14px !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: rgba(0, 0, 0, 0.87) !important;
+  line-height: 1.4;
+}
+
+/* ═══ 消息区域 ═══ */
+.q-dialog__inner > .q-card > .q-card__section:not(:first-child):not(:last-child) {
+  padding: 16px 24px !important;
+  font-size: 14px !important;
+  color: rgba(0, 0, 0, 0.68) !important;
+  line-height: 1.6 !important;
+}
+
+/* ═══ 按钮区域 ═══ */
+.q-dialog__inner > .q-card > .q-card__actions {
+  padding: 12px 16px !important;
+  justify-content: flex-end;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  gap: 8px;
+}
+
+/* 按钮通用 — 去除大写转换，统一尺寸 */
+.q-dialog__inner > .q-card > .q-card__actions .q-btn {
+  min-width: 72px;
+  height: 36px;
+  padding: 0 16px;
+  font-size: 13px;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 500;
+}
+
+/* 取消按钮（flat）— 灰色文字 + hover 浅灰背景 */
+.q-dialog__inner > .q-card > .q-card__actions .q-btn--flat {
+  color: rgba(0, 0, 0, 0.65) !important;
+}
+
+.q-dialog__inner > .q-card > .q-card__actions .q-btn--flat:hover .q-btn__wrapper {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* 确认按钮（unelevated + primary）— hover 加深 */
+.q-dialog__inner > .q-card > .q-card__actions .q-btn--unelevated:hover .q-btn__wrapper {
+  filter: brightness(0.92);
+}
+
+/* ═══ 暗色模式 ═══ */
+.body--dark .q-dialog__backdrop {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+.body--dark .q-dialog__inner > .q-card {
+  background: #1e1e1e !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+.body--dark .q-dialog__inner > .q-card > .q-card__section:first-child {
+  color: rgba(255, 255, 255, 0.87) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .q-dialog__inner > .q-card > .q-card__section:not(:first-child):not(:last-child) {
+  color: rgba(255, 255, 255, 0.68) !important;
+}
+
+.body--dark .q-dialog__inner > .q-card > .q-card__actions {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .q-dialog__inner > .q-card > .q-card__actions .q-btn--flat {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.body--dark .q-dialog__inner > .q-card > .q-card__actions .q-btn--flat:hover .q-btn__wrapper {
+  background: rgba(255, 255, 255, 0.06);
+}

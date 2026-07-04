@@ -17,6 +17,7 @@ import "@quasar/extras/material-icons/material-icons.css"; // 导入 Material Ic
 import "@quasar/extras/material-symbols-rounded/material-symbols-rounded.css"; // 导入 Material Symbols Rounded 字体。
 import "./styles/material-symbols-axes.scss"; // 全站 Material Symbols 默认 FILL=0 等可变轴。
 import "./styles/quasar-flat.scss"; // 导入全局直角风格样式覆盖。
+import "./styles/quasar-dialog.scss"; // Quasar Dialog 企业级样式覆盖。
 import "./styles/admin-layout-dark.scss"; // AdminLayout 壳层在 Dark 模式下的颜色修补。
 import { registerAdminTokenSync } from "./apis/http";
 import { useAuthStore } from "./stores/auth";

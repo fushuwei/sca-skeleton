@@ -147,6 +147,9 @@ const postOptions = ref<SysPost[]>([]);
 const roleOptions = ref<SysRole[]>([]);
 
 // ── 部门树 ──
+/** 部门树虚拟根节点 ID（不可选择） */
+const ROOT_DEPT_ID = "0";
+
 interface DeptTreeNode {
   id: string;
   label: string;
@@ -162,12 +165,14 @@ const deptMenuOpen = ref(false);
 /** 将扁平部门列表转换为树结构 */
 function buildDeptTree(depts: SysDept[]): DeptTreeNode[] {
   if (!depts.length) return [];
+  const sorted = [...depts].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+
   const map = new Map<string, DeptTreeNode>();
-  for (const d of depts) {
+  for (const d of sorted) {
     map.set(d.id, { id: d.id, label: d.name, parentId: d.parentId, children: [] });
   }
   const roots: DeptTreeNode[] = [];
-  for (const d of depts) {
+  for (const d of sorted) {
     const node = map.get(d.id)!;
     if (!d.parentId || d.parentId === "0") {
       roots.push(node);
@@ -181,6 +186,19 @@ function buildDeptTree(depts: SysDept[]): DeptTreeNode[] {
       }
     }
   }
+
+  // 清理空 children 数组，避免 q-tree 渲染多余的展开箭头
+  const cleanEmpty = (nodes: DeptTreeNode[]) => {
+    for (const n of nodes) {
+      if (n.children?.length) {
+        cleanEmpty(n.children);
+      } else {
+        delete n.children;
+      }
+    }
+  };
+  cleanEmpty(roots);
+
   return roots;
 }
 
@@ -198,7 +216,15 @@ function filterDeptTree(nodes: DeptTreeNode[], keyword: string): DeptTreeNode[] 
   return result;
 }
 
-const filteredDeptTreeNodes = computed(() => filterDeptTree(deptTreeNodes.value, deptSearchKey.value));
+/** 带虚拟根节点「全部」的树（q-tree 渲染用） */
+const deptTreeWithRoot = computed(() => [{
+  id: ROOT_DEPT_ID,
+  label: t("user.allDepts"),
+  parentId: "",
+  children: deptTreeNodes.value
+}] as DeptTreeNode[]);
+
+const filteredDeptTreeNodes = computed(() => filterDeptTree(deptTreeWithRoot.value, deptSearchKey.value));
 
 /** 搜索时自动展开所有节点 */
 watch(deptSearchKey, (val) => {
@@ -215,10 +241,10 @@ watch(deptSearchKey, (val) => {
   }
 });
 
-/** 部门树加载后默认展开第一级 */
+/** 部门树加载后默认展开根节点和第一级 */
 watch(deptTreeNodes, (nodes) => {
   if (nodes.length) {
-    deptTreeExpanded.value = nodes.map((n) => n.id);
+    deptTreeExpanded.value = [ROOT_DEPT_ID, ...nodes.map((n) => n.id)];
   }
 }, { immediate: true });
 
@@ -236,7 +262,7 @@ function findDeptLabel(nodes: DeptTreeNode[], id: string): string {
 
 const deptDisplayLabel = computed(() => {
   if (!form.deptId) return "";
-  return findDeptLabel(deptTreeNodes.value, form.deptId);
+  return findDeptLabel(deptTreeWithRoot.value, form.deptId);
 });
 
 /** 清空部门选择 */
@@ -245,8 +271,9 @@ function clearDeptSelection() {
   deptSearchKey.value = "";
 }
 
-/** 点击树节点选中部门（任意真实节点均可选，选中后关闭菜单） */
+/** 点击树节点选中部门（根节点「全部」不可选，选中后关闭菜单） */
 function onDeptTreeNodeClick(node: DeptTreeNode) {
+  if (node.id === ROOT_DEPT_ID) return;
   form.deptId = node.id;
   deptSearchKey.value = "";
   deptMenuRef.value?.hide();
@@ -264,6 +291,24 @@ const postMultiOptions = computed(() =>
 const roleMultiOptions = computed(() =>
   roleOptions.value.map((r) => ({ label: r.name, value: r.id }))
 );
+
+/** 岗位多选显示文本（逗号拼接，添加/编辑模式使用） */
+const postDisplayText = computed(() => {
+  if (!form.postIds.length) return "";
+  return form.postIds
+    .map((id) => postOptions.value.find((p) => p.id === id)?.name)
+    .filter(Boolean)
+    .join("、");
+});
+
+/** 角色多选显示文本（逗号拼接，添加/编辑模式使用） */
+const roleDisplayText = computed(() => {
+  if (!form.roleIds.length) return "";
+  return form.roleIds
+    .map((id) => roleOptions.value.find((r) => r.id === id)?.name)
+    .filter(Boolean)
+    .join("、");
+});
 
 async function loadDropdownData() {
   try {
@@ -608,7 +653,7 @@ async function handleSave() {
               @before-show="deptMenuOpen = true"
               @before-hide="deptMenuOpen = false"
             >
-              <div class="q-pa-sm" style="width: 300px">
+              <div class="q-pa-sm">
                 <q-input
                   v-model="deptSearchKey"
                   dense
@@ -622,7 +667,7 @@ async function handleSave() {
                     <q-icon name="sym_r_search" size="18px" />
                   </template>
                 </q-input>
-                <q-scroll-area style="height: 280px">
+                <q-scroll-area style="height: 300px">
                   <q-tree
                     :nodes="filteredDeptTreeNodes"
                     node-key="id"
@@ -636,7 +681,10 @@ async function handleSave() {
                     <template #default-header="scope">
                       <div
                         class="dept-tree-option row items-center no-wrap full-width"
-                        :class="{ 'dept-tree-option--leaf': !scope.node.children?.length }"
+                        :class="{
+                          'dept-tree-option--leaf': !scope.node.children?.length,
+                          'dept-tree-option--disabled': scope.node.id === ROOT_DEPT_ID
+                        }"
                         @click.stop="onDeptTreeNodeClick(scope.node)"
                       >
                         <q-icon
@@ -667,7 +715,8 @@ async function handleSave() {
             emit-value
             map-options
             multiple
-            use-chips
+            :use-chips="drawerReadonly"
+            :display-value="drawerReadonly ? undefined : postDisplayText"
             clearable
             :disable="drawerReadonly"
             hide-bottom-space
@@ -684,7 +733,8 @@ async function handleSave() {
             emit-value
             map-options
             multiple
-            use-chips
+            :use-chips="drawerReadonly"
+            :display-value="drawerReadonly ? undefined : roleDisplayText"
             clearable
             :rules="formRules.roleIds"
             :disable="drawerReadonly"
@@ -809,6 +859,22 @@ async function handleSave() {
   cursor: pointer;
 }
 
+.dept-tree-option--disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.dept-tree-option--disabled:hover {
+  background: transparent;
+}
+
+/* 多选下拉框 display-value 文本过长省略 */
+.user-drawer-form :deep(.q-select .q-field__native) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* 必填项星号红色高亮 */
 .required-field :deep(.q-field__label::after) {
   content: " *";
@@ -879,5 +945,15 @@ async function handleSave() {
 
 .body--dark .user-drawer-form .q-field--focused .q-field__control::after {
   border-color: #80cbc4;
+}
+
+/* 抽屉底部按钮区域分隔线 */
+.body--dark .user-drawer-footer {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 部门树下拉选项 */
+.body--dark .dept-tree-option:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 </style>
