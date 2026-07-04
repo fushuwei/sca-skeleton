@@ -15,7 +15,7 @@
     <packaging>jar</packaging>
 
     <name>SCA Skeleton Backend :: Starter :: Redis</name>
-    <description>SCA Skeleton Backend :: Redis 缓存 Starter（RedisTemplate 自动配置、RedisUtils 工具类）</description>
+    <description>SCA Skeleton Backend :: Redis 缓存 Starter（RedisTemplate、Redisson 分布式协调、RedisUtils 工具类）</description>
 
     <dependencies>
         <!-- 核心基础：SpringUtil（Hutool，RedisUtils 懒加载获取 Bean） -->
@@ -28,6 +28,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!-- Redisson：分布式限流、分布式锁等 Redis 协调能力 -->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
         </dependency>
     </dependencies>
 </project>

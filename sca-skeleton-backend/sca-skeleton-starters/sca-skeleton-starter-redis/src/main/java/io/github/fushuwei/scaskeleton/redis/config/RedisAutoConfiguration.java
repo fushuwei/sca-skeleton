@@ -4,7 +4,6 @@ import io.github.fushuwei.scaskeleton.redis.util.RedisUtils;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationListener;
@@ -14,8 +13,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
-import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET;
-
 /**
  * Redis 自动配置类
  *
@@ -24,7 +21,6 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
 @EnableCaching
 @AutoConfiguration
 @ConditionalOnBean(RedisConnectionFactory.class)
-@ConditionalOnWebApplication(type = SERVLET)  // 只允许在 Servlet 应用中加载该配置，如果是响应式服务（比如网关）则跳过此配置
 public class RedisAutoConfiguration {
 
     /**

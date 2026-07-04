@@ -34,10 +34,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        <!-- Redisson：@RateLimit 分布式限流（需业务服务配置 Redis） -->
+        <!-- Redisson：@RateLimit 分布式限流（编译期需要 RedissonClient 类，运行期由 starter-redis 传递提供） -->
         <dependency>
             <groupId>org.redisson</groupId>
             <artifactId>redisson-spring-boot-starter</artifactId>
+            <optional>true</optional>
         </dependency>
         <!-- Spring AOP：@RateLimit 切面支持 -->
         <dependency>
