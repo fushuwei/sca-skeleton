@@ -1,6 +1,6 @@
 import { createApp } from "vue"; // 导入创建 Vue 应用的方法。
 import { createPinia } from "pinia"; // 导入 Pinia 状态管理创建函数。
-import { Quasar } from "quasar"; // 导入 Quasar 主插件。
+import { Quasar, Dialog } from "quasar"; // 导入 Quasar 主插件与 Dialog 插件。
 import App from "./App.vue"; // 导入应用根组件。
 import { router } from "./router"; // 导入路由实例。
 import {
@@ -36,7 +36,7 @@ registerAdminTokenSync((accessToken, refreshToken) => {
 app.use(router); // 挂载路由到应用实例。
 app.use(i18n); // 挂载 vue-i18n。
 app.use(Quasar, {
-  plugins: {}, // 预留额外 Quasar 插件。
+  plugins: { Dialog }, // 注册 Quasar Dialog 插件（$q.dialog 可用）。
   lang: initialQuasarLang, // 与 i18n locale 一致。
   config: {
     dark: initialDark // `$q.dark` 初始态；头部按钮再 toggle 并持久化。
