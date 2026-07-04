@@ -14,6 +14,19 @@ import RoleDrawerContent from "./RoleDrawerContent.vue";
 const { t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
 
+/** 确认对话框：返回 Promise，点击确定时 resolve，点击取消时 reject */
+function confirmDialog(message: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    $q.dialog({
+      title: t("common.confirm"),
+      message,
+      cancel: true,
+      persistent: true,
+      focus: "cancel"
+    }).onOk(resolve).onCancel(reject);
+  });
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 搜索条件
 // ═══════════════════════════════════════════════════════════════
@@ -308,12 +321,7 @@ async function handleBatchDelete() {
   }
 
   try {
-    await $q.dialog({
-      title: t("common.confirm"),
-      message: t("roleMgmt.batchDeleteConfirm", { count: selectedRows.value.length }),
-      cancel: true,
-      persistent: true
-    });
+    await confirmDialog(t("roleMgmt.batchDeleteConfirm", { count: selectedRows.value.length }));
   } catch {
     return;
   }
@@ -361,12 +369,7 @@ async function handleDelete(role: SysRole) {
   }
 
   try {
-    await $q.dialog({
-      title: t("common.confirm"),
-      message: t("roleMgmt.deleteConfirm", { name: role.name }),
-      cancel: true,
-      persistent: true
-    });
+    await confirmDialog(t("roleMgmt.deleteConfirm", { name: role.name }));
   } catch {
     return;
   }

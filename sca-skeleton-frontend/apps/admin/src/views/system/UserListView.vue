@@ -17,6 +17,19 @@ import UserDrawerContent from "./UserDrawerContent.vue";
 const { t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
 
+/** 确认对话框：返回 Promise，点击确定时 resolve，点击取消时 reject */
+function confirmDialog(message: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    $q.dialog({
+      title: t("common.confirm"),
+      message,
+      cancel: true,
+      persistent: true,
+      focus: "cancel"
+    }).onOk(resolve).onCancel(reject);
+  });
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 部门树
 // ═══════════════════════════════════════════════════════════════
@@ -697,12 +710,7 @@ async function handleBatchDelete() {
   }
 
   try {
-    await $q.dialog({
-      title: t("common.confirm"),
-      message: t("user.batchDeleteConfirm", { count: selectedRows.value.length }),
-      cancel: true,
-      persistent: true
-    });
+    await confirmDialog(t("user.batchDeleteConfirm", { count: selectedRows.value.length }));
   } catch {
     return;
   }
@@ -758,12 +766,7 @@ async function handleDelete(user: SysUser) {
   }
 
   try {
-    await $q.dialog({
-      title: t("common.confirm"),
-      message: t("user.deleteConfirm", { username: user.username }),
-      cancel: true,
-      persistent: true
-    });
+    await confirmDialog(t("user.deleteConfirm", { username: user.username }));
   } catch {
     return;
   }
@@ -796,15 +799,10 @@ async function handleToggleStatus(user: SysUser) {
 
   const newStatus = user.status === "active" ? "inactive" : "active";
   try {
-    await $q.dialog({
-      title: t("common.confirm"),
-      message: t("user.statusChangeConfirm", {
-        username: user.username,
-        action: newStatus === "active" ? t("common.enable") : t("common.disable")
-      }),
-      cancel: true,
-      persistent: true
-    });
+    await confirmDialog(t("user.statusChangeConfirm", {
+      username: user.username,
+      action: newStatus === "active" ? t("common.enable") : t("common.disable")
+    }));
   } catch {
     return;
   }
@@ -832,12 +830,7 @@ async function handleResetPassword(user: SysUser) {
   }
 
   try {
-    await $q.dialog({
-      title: t("common.confirm"),
-      message: t("user.resetPasswordConfirm", { username: user.username }),
-      cancel: true,
-      persistent: true
-    });
+    await confirmDialog(t("user.resetPasswordConfirm", { username: user.username }));
   } catch {
     return;
   }

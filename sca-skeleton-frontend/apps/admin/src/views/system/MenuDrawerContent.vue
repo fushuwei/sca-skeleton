@@ -142,19 +142,62 @@ function buildMenuTree(perms: SysPermission[]): PermissionTreeNode[] {
   return roots;
 }
 
-/** 带根节点的树（q-tree 渲染用） */
-const menuTreeWithRoot = computed(() => [{
-  id: "0",
-  label: t("menuMgmt.allMenus"),
-  parentId: "",
-  type: "root",
-  icon: "",
-  children: menuTreeNodes.value
-}] as PermissionTreeNode[]);
+/** 获取当前编辑菜单的所有子孙节点 ID（含自身），用于编辑时排除 */
+function getSelfAndDescendantIds(): Set<string> {
+  const ids = new Set<string>();
+  if (props.mode !== "edit" || !props.permission?.id) return ids;
+  ids.add(props.permission.id);
+  const collect = (nodes: PermissionTreeNode[]) => {
+    for (const n of nodes) {
+      ids.add(n.id);
+      if (n.children?.length) collect(n.children);
+    }
+  };
+  // 从完整树中找到当前菜单节点并收集其子孙
+  const findAndCollect = (nodes: PermissionTreeNode[]): boolean => {
+    for (const n of nodes) {
+      if (n.id === props.permission!.id) {
+        collect(n.children || []);
+        return true;
+      }
+      if (n.children?.length && findAndCollect(n.children)) return true;
+    }
+    return false;
+  };
+  findAndCollect(menuTreeNodes.value);
+  return ids;
+}
+
+/** 过滤掉自身及子孙节点后的树（编辑模式使用） */
+function filterExcludedNodes(nodes: PermissionTreeNode[], excludeIds: Set<string>): PermissionTreeNode[] {
+  if (excludeIds.size === 0) return nodes;
+  return nodes
+    .filter(n => !excludeIds.has(n.id))
+    .map(n => ({
+      ...n,
+      children: n.children?.length ? filterExcludedNodes(n.children, excludeIds) : undefined
+    }));
+}
+
+/** 带根节点的树（q-tree 渲染用），编辑模式下排除自身及子孙 */
+const menuTreeWithRoot = computed(() => {
+  const excludeIds = getSelfAndDescendantIds();
+  const filteredChildren = excludeIds.size > 0
+    ? filterExcludedNodes(menuTreeNodes.value, excludeIds)
+    : menuTreeNodes.value;
+  return [{
+    id: "0",
+    label: t("menuMgmt.allMenus"),
+    parentId: "",
+    type: "root",
+    icon: "",
+    children: filteredChildren
+  }] as PermissionTreeNode[];
+});
 
 /** 过滤树节点（按关键字） */
 function filterMenuTree(nodes: PermissionTreeNode[], keyword: string): PermissionTreeNode[] {
-  if (!keyword.trim()) return nodes;
+  if (!keyword?.trim()) return nodes;
   const lower = keyword.toLowerCase();
   const result: PermissionTreeNode[] = [];
   for (const n of nodes) {
@@ -170,7 +213,7 @@ const filteredMenuTreeNodes = computed(() => filterMenuTree(menuTreeWithRoot.val
 
 /** 搜索时自动展开所有节点 */
 watch(menuSearchKey, (val) => {
-  if (val.trim()) {
+  if (val?.trim()) {
     const allKeys: string[] = [];
     const collectKeys = (nodes: PermissionTreeNode[]) => {
       for (const n of nodes) {
@@ -222,8 +265,8 @@ async function loadMenuTree() {
     if (result.code === 10_000 && result.data) {
       allPermissions.value = result.data;
       menuTreeNodes.value = buildMenuTree(result.data);
-      // 默认展开第一级
-      menuTreeExpanded.value = menuTreeNodes.value.map((n) => n.id);
+      // 默认展开「全部」根节点
+      menuTreeExpanded.value = ["0"];
     }
   } catch {
     // 静默失败
@@ -339,7 +382,7 @@ async function handleSave() {
             :display-value="menuDisplayLabel"
             :rules="formRules.parentId"
             lazy-rules
-            :disable="drawerReadonly || mode === 'edit'"
+            :disable="drawerReadonly"
             hide-bottom-space
             dropdown-icon="sym_r_arrow_drop_down"
             :class="{ 'menu-select--menu-open': menuMenuOpen }"

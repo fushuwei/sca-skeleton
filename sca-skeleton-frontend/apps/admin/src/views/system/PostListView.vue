@@ -14,6 +14,19 @@ import PostDrawerContent from "./PostDrawerContent.vue";
 const { t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
 
+/** 确认对话框：返回 Promise，点击确定时 resolve，点击取消时 reject */
+function confirmDialog(message: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    $q.dialog({
+      title: t("common.confirm"),
+      message,
+      cancel: true,
+      persistent: true,
+      focus: "cancel"
+    }).onOk(resolve).onCancel(reject);
+  });
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 搜索条件
 // ═══════════════════════════════════════════════════════════════
@@ -248,16 +261,11 @@ async function handleBatchDelete() {
     return;
   }
 
-  try {
-    await $q.dialog({
-      title: t("common.confirm"),
-      message: t("postMgmt.batchDeleteConfirm", { count: selectedRows.value.length }),
-      cancel: true,
-      persistent: true
-    });
-  } catch {
-    return;
-  }
+try {
+await confirmDialog(t("postMgmt.batchDeleteConfirm", { count: selectedRows.value.length }));
+} catch {
+return;
+}
 
   let successCount = 0;
   let failCount = 0;
@@ -296,16 +304,11 @@ function handleEdit(post: SysPost) {
 
 // 删除
 async function handleDelete(post: SysPost) {
-  try {
-    await $q.dialog({
-      title: t("common.confirm"),
-      message: t("postMgmt.deleteConfirm", { name: post.name }),
-      cancel: true,
-      persistent: true
-    });
-  } catch {
-    return;
-  }
+try {
+await confirmDialog(t("postMgmt.deleteConfirm", { name: post.name }));
+} catch {
+return;
+}
 
   try {
     const result = await deletePostApi(post.id);

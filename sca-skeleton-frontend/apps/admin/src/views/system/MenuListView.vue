@@ -15,6 +15,19 @@ import MenuDrawerContent from "./MenuDrawerContent.vue";
 const { t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
 
+/** 确认对话框：返回 Promise，点击确定时 resolve，点击取消时 reject */
+function confirmDialog(message: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    $q.dialog({
+      title: t("common.confirm"),
+      message,
+      cancel: true,
+      persistent: true,
+      focus: "cancel"
+    }).onOk(resolve).onCancel(reject);
+  });
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 菜单树
 // ═══════════════════════════════════════════════════════════════
@@ -565,12 +578,7 @@ function handleEdit(permission: SysPermission) {
 
 async function handleDelete(permission: SysPermission) {
   try {
-    await $q.dialog({
-      title: t("common.confirm"),
-      message: t("menuMgmt.deleteConfirm", { name: permission.name }),
-      cancel: true,
-      persistent: true
-    });
+    await confirmDialog(t("menuMgmt.deleteConfirm", { name: permission.name }));
   } catch {
     return;
   }
@@ -599,12 +607,7 @@ async function handleBatchDelete() {
   }
 
   try {
-    await $q.dialog({
-      title: t("common.confirm"),
-      message: t("menuMgmt.batchDeleteConfirm", { count: selectedRows.value.length }),
-      cancel: true,
-      persistent: true
-    });
+    await confirmDialog(t("menuMgmt.batchDeleteConfirm", { count: selectedRows.value.length }));
   } catch {
     return;
   }

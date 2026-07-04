@@ -15,6 +15,19 @@ import DeptDrawerContent from "./DeptDrawerContent.vue";
 const { t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
 
+/** 确认对话框：返回 Promise，点击确定时 resolve，点击取消时 reject */
+function confirmDialog(message: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    $q.dialog({
+      title: t("common.confirm"),
+      message,
+      cancel: true,
+      persistent: true,
+      focus: "cancel"
+    }).onOk(resolve).onCancel(reject);
+  });
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 部门树
 // ═══════════════════════════════════════════════════════════════
@@ -502,12 +515,7 @@ function handleEdit(dept: SysDept) {
 
 async function handleDelete(dept: SysDept) {
   try {
-    await $q.dialog({
-      title: t("common.confirm"),
-      message: t("deptMgmt.deleteConfirm", { name: dept.name }),
-      cancel: true,
-      persistent: true
-    });
+    await confirmDialog(t("deptMgmt.deleteConfirm", { name: dept.name }));
   } catch {
     return;
   }
@@ -536,12 +544,7 @@ async function handleBatchDelete() {
   }
 
   try {
-    await $q.dialog({
-      title: t("common.confirm"),
-      message: t("deptMgmt.batchDeleteConfirm", { count: selectedRows.value.length }),
-      cancel: true,
-      persistent: true
-    });
+    await confirmDialog(t("deptMgmt.batchDeleteConfirm", { count: selectedRows.value.length }));
   } catch {
     return;
   }

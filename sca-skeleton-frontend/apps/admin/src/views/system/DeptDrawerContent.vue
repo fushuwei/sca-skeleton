@@ -150,7 +150,7 @@ const deptTreeWithRoot = computed(() => {
 
 /** 过滤树节点（按关键字） */
 function filterDeptTree(nodes: DeptTreeNode[], keyword: string): DeptTreeNode[] {
-  if (!keyword.trim()) return nodes;
+  if (!keyword?.trim()) return nodes;
   const lower = keyword.toLowerCase();
   const result: DeptTreeNode[] = [];
   for (const n of nodes) {
@@ -166,7 +166,7 @@ const filteredDeptTreeNodes = computed(() => filterDeptTree(deptTreeWithRoot.val
 
 /** 搜索时自动展开所有节点 */
 watch(deptSearchKey, (val) => {
-  if (val.trim()) {
+  if (val?.trim()) {
     const allKeys: string[] = [];
     const collectKeys = (nodes: DeptTreeNode[]) => {
       for (const n of nodes) {
@@ -213,8 +213,8 @@ async function loadDeptTree() {
     const result = await getDeptListApi();
     if (result.code === 10_000 && result.data) {
       deptTreeNodes.value = buildDeptTree(result.data);
-      // 默认展开第一级
-      deptTreeExpanded.value = deptTreeNodes.value.map((n) => n.id);
+      // 默认展开「全部」根节点
+      deptTreeExpanded.value = ["0"];
     }
   } catch {
     // 静默失败

@@ -204,7 +204,7 @@ function buildDeptTree(depts: SysDept[]): DeptTreeNode[] {
 
 /** 过滤树节点（按关键字） */
 function filterDeptTree(nodes: DeptTreeNode[], keyword: string): DeptTreeNode[] {
-  if (!keyword.trim()) return nodes;
+  if (!keyword?.trim()) return nodes;
   const lower = keyword.toLowerCase();
   const result: DeptTreeNode[] = [];
   for (const n of nodes) {
@@ -228,7 +228,7 @@ const filteredDeptTreeNodes = computed(() => filterDeptTree(deptTreeWithRoot.val
 
 /** 搜索时自动展开所有节点 */
 watch(deptSearchKey, (val) => {
-  if (val.trim()) {
+  if (val?.trim()) {
     const allKeys: string[] = [];
     const collectKeys = (nodes: DeptTreeNode[]) => {
       for (const n of nodes) {
@@ -244,7 +244,7 @@ watch(deptSearchKey, (val) => {
 /** 部门树加载后默认展开根节点和第一级 */
 watch(deptTreeNodes, (nodes) => {
   if (nodes.length) {
-    deptTreeExpanded.value = [ROOT_DEPT_ID, ...nodes.map((n) => n.id)];
+    deptTreeExpanded.value = [ROOT_DEPT_ID];
   }
 }, { immediate: true });
 
@@ -264,12 +264,6 @@ const deptDisplayLabel = computed(() => {
   if (!form.deptId) return "";
   return findDeptLabel(deptTreeWithRoot.value, form.deptId);
 });
-
-/** 清空部门选择 */
-function clearDeptSelection() {
-  form.deptId = "";
-  deptSearchKey.value = "";
-}
 
 /** 点击树节点选中部门（根节点「全部」不可选，选中后关闭菜单） */
 function onDeptTreeNodeClick(node: DeptTreeNode) {
@@ -291,24 +285,6 @@ const postMultiOptions = computed(() =>
 const roleMultiOptions = computed(() =>
   roleOptions.value.map((r) => ({ label: r.name, value: r.id }))
 );
-
-/** 岗位多选显示文本（逗号拼接，添加/编辑模式使用） */
-const postDisplayText = computed(() => {
-  if (!form.postIds.length) return "";
-  return form.postIds
-    .map((id) => postOptions.value.find((p) => p.id === id)?.name)
-    .filter(Boolean)
-    .join("、");
-});
-
-/** 角色多选显示文本（逗号拼接，添加/编辑模式使用） */
-const roleDisplayText = computed(() => {
-  if (!form.roleIds.length) return "";
-  return form.roleIds
-    .map((id) => roleOptions.value.find((r) => r.id === id)?.name)
-    .filter(Boolean)
-    .join("、");
-});
 
 async function loadDropdownData() {
   try {
@@ -639,9 +615,6 @@ async function handleSave() {
             :class="{ 'dept-select--menu-open': deptMenuOpen }"
             class="required-field"
           >
-            <template #prepend v-if="form.deptId && !drawerReadonly">
-              <q-icon name="sym_r_close" class="cursor-pointer" size="18px" @click.stop="clearDeptSelection" />
-            </template>
             <q-menu
               ref="deptMenuRef"
               anchor="bottom left"
@@ -716,7 +689,6 @@ async function handleSave() {
             map-options
             multiple
             :use-chips="drawerReadonly"
-            :display-value="drawerReadonly ? undefined : postDisplayText"
             clearable
             :disable="drawerReadonly"
             hide-bottom-space
@@ -734,7 +706,6 @@ async function handleSave() {
             map-options
             multiple
             :use-chips="drawerReadonly"
-            :display-value="drawerReadonly ? undefined : roleDisplayText"
             clearable
             :rules="formRules.roleIds"
             :disable="drawerReadonly"
