@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author Fu Wei
  */
-@HttpExchange(url = "/dept")
+@HttpExchange("/dept")
 public interface SysDeptRemoteService {
 
     /**

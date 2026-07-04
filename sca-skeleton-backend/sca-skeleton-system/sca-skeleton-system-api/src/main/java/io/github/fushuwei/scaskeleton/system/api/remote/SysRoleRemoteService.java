@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author Fu Wei
  */
-@HttpExchange(url = "/role")
+@HttpExchange("/role")
 public interface SysRoleRemoteService {
 
     /**

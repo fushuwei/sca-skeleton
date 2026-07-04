@@ -16,7 +16,7 @@ import org.springframework.web.service.annotation.HttpExchange;
  *
  * @author Fu Wei
  */
-@HttpExchange(url = "/user")
+@HttpExchange("/user")
 public interface SysUserRemoteService {
 
     /**
