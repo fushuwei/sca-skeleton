@@ -97,13 +97,56 @@ function buildDeptTree(depts: SysDept[]): DeptTreeNode[] {
   return roots;
 }
 
-/** 带根节点的树（q-tree 渲染用） */
-const deptTreeWithRoot = computed(() => [{
-  id: "0",
-  label: t("deptMgmt.allDepts"),
-  parentId: "",
-  children: deptTreeNodes.value
-}] as DeptTreeNode[]);
+/** 获取当前编辑部门的所有子孙节点 ID（含自身），用于编辑时排除 */
+function getSelfAndDescendantIds(): Set<string> {
+  const ids = new Set<string>();
+  if (props.mode !== "edit" || !props.dept?.id) return ids;
+  ids.add(props.dept.id);
+  const collect = (nodes: DeptTreeNode[]) => {
+    for (const n of nodes) {
+      ids.add(n.id);
+      if (n.children?.length) collect(n.children);
+    }
+  };
+  // 从完整树中找到当前部门节点并收集其子孙
+  const findAndCollect = (nodes: DeptTreeNode[]): boolean => {
+    for (const n of nodes) {
+      if (n.id === props.dept!.id) {
+        collect(n.children || []);
+        return true;
+      }
+      if (n.children?.length && findAndCollect(n.children)) return true;
+    }
+    return false;
+  };
+  findAndCollect(deptTreeNodes.value);
+  return ids;
+}
+
+/** 过滤掉自身及子孙节点后的树（编辑模式使用） */
+function filterExcludedNodes(nodes: DeptTreeNode[], excludeIds: Set<string>): DeptTreeNode[] {
+  if (excludeIds.size === 0) return nodes;
+  return nodes
+    .filter(n => !excludeIds.has(n.id))
+    .map(n => ({
+      ...n,
+      children: n.children?.length ? filterExcludedNodes(n.children, excludeIds) : undefined
+    }));
+}
+
+/** 带根节点的树（q-tree 渲染用），编辑模式下排除自身及子孙 */
+const deptTreeWithRoot = computed(() => {
+  const excludeIds = getSelfAndDescendantIds();
+  const filteredChildren = excludeIds.size > 0
+    ? filterExcludedNodes(deptTreeNodes.value, excludeIds)
+    : deptTreeNodes.value;
+  return [{
+    id: "0",
+    label: t("deptMgmt.allDepts"),
+    parentId: "",
+    children: filteredChildren
+  }] as DeptTreeNode[];
+});
 
 /** 过滤树节点（按关键字） */
 function filterDeptTree(nodes: DeptTreeNode[], keyword: string): DeptTreeNode[] {
@@ -212,6 +255,13 @@ watch(() => props.defaultParentId, () => {
   }
 });
 
+// 部门编码自动转大写
+watch(() => form.code, (val) => {
+  if (val && val !== val.toUpperCase()) {
+    form.code = val.toUpperCase();
+  }
+});
+
 onMounted(() => {
   loadDeptTree();
 });
@@ -224,7 +274,6 @@ async function handleSave() {
   if (drawerReadonly.value) return;
 
   const data: Record<string, unknown> = {
-    parentId: form.parentId,
     name: form.name,
     code: form.code,
     leader: form.leader || undefined,
@@ -233,6 +282,11 @@ async function handleSave() {
     sort: form.sort,
     status: form.status
   };
+
+  // 添加模式传 parentId，编辑模式也传 parentId（支持修改上级部门）
+  if (props.mode === "add" || (props.mode === "edit" && form.parentId !== props.dept?.parentId)) {
+    data.parentId = form.parentId;
+  }
 
   try {
     formLoading.value = true;
@@ -275,7 +329,7 @@ async function handleSave() {
             :display-value="deptDisplayLabel"
             :rules="formRules.parentId"
             lazy-rules
-            :disable="drawerReadonly || mode === 'edit'"
+            :disable="drawerReadonly"
             hide-bottom-space
             dropdown-icon="sym_r_arrow_drop_down"
             :class="{ 'dept-select--menu-open': deptMenuOpen }"

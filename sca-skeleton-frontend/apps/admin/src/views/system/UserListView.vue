@@ -475,11 +475,18 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     sortable: true
   },
   {
+    name: "status",
+    field: "status",
+    label: t("user.status"),
+    align: "center",
+    sortable: true
+  },
+  {
     name: "deptName",
     field: "deptName",
     label: t("user.dept"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "phone",
@@ -494,13 +501,6 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     label: t("user.email"),
     align: "left",
     sortable: false
-  },
-  {
-    name: "status",
-    field: "status",
-    label: t("user.status"),
-    align: "center",
-    sortable: true
   },
   {
     name: "createTime",
@@ -527,7 +527,8 @@ const visibleColumns = ref(columns.value.map((c) => c.name));
 const SORT_FIELD_MAP: Record<string, string> = {
   realName: "real_name",
   userType: "user_type",
-  createTime: "create_time"
+  createTime: "create_time",
+  deptName: "dept_name"
 };
 
 // ── 标记初始加载是否完成（防止 @request 与 onMounted 重复请求） ──
@@ -675,15 +676,6 @@ watch(
 // 添加用户
 function handleCreate() {
   openUserDrawer("add");
-}
-
-// 批量修改（占位）
-function handleBatchEdit() {
-  if (!selectedRows.value.length) {
-    showToast(t("common.selectRowsFirst"), "warning");
-    return;
-  }
-  showToast(t("common.comingSoon"), "info");
 }
 
 // 批量删除
@@ -1132,19 +1124,6 @@ onMounted(() => {
           >
             <q-icon name="sym_r_add" size="20px" class="q-mr-xs" />
             {{ t('user.createUser') }}
-          </q-btn>
-          <q-btn
-            color="white"
-            text-color="grey-8"
-            outline
-            dense
-            no-caps
-            class="toolbar-btn"
-            :disable="!selectedRows.length"
-            @click="handleBatchEdit"
-          >
-            <q-icon name="sym_r_edit" size="20px" class="q-mr-xs" />
-            {{ t('common.batchEdit') }}
           </q-btn>
           <q-btn
             color="white"

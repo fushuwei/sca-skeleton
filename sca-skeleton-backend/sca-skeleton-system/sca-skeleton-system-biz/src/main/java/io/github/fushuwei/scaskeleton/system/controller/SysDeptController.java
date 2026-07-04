@@ -75,4 +75,13 @@ public class SysDeptController {
         deptService.deleteDept(id);
         return Result.ok();
     }
+
+    // 批量删除部门
+    @DeleteMapping("/batch")
+    @RequiresPermission("sys:dept:delete")
+    @OperationLog(module = "部门管理", action = "批量删除部门")
+    public Result<Void> batchDelete(@RequestBody List<String> ids) {
+        deptService.batchDeleteDepts(ids);
+        return Result.ok();
+    }
 }

@@ -31,4 +31,7 @@ public interface SysPermissionService {
     void updatePermission(PermissionUpdateRequest request);
 
     void deletePermission(String id);
+
+    /** 批量删除权限节点 */
+    void batchDeletePermissions(List<String> ids);
 }

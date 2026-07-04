@@ -16,9 +16,12 @@ import io.github.fushuwei.scaskeleton.system.service.SysDeptService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 部门管理服务实现。
@@ -123,6 +126,33 @@ public class SysDeptServiceImpl implements SysDeptService {
     public void updateDept(String tenantId, DeptUpdateRequest req) {
         // 校验部门存在并加载当前快照
         SysDept existing = loadDeptEntity(req.getId());
+
+        boolean parentChanged = false;
+        String oldParentId = existing.getParentId();
+
+        // 处理上级部门变更
+        if (StringUtils.hasText(req.getParentId()) && !req.getParentId().equals(existing.getParentId())) {
+            String newParentId = req.getParentId();
+
+            // 校验新上级部门不能是自己
+            if (newParentId.equals(existing.getId())) {
+                throw new BusinessException(ResultCode.VALIDATION_ERROR, "上级部门不能选择自己");
+            }
+
+            // 校验新上级部门不能是自己的下级部门（含递归）
+            if (!"0".equals(newParentId)) {
+                List<String> descendantIds = getDescendantIds(existing.getId());
+                if (descendantIds.contains(newParentId)) {
+                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "上级部门不能选择自己的下级部门");
+                }
+                // 校验新上级部门存在
+                loadDeptEntity(newParentId);
+            }
+
+            existing.setParentId(newParentId);
+            parentChanged = true;
+        }
+
         // 编码变更时校验同租户内唯一（排除自身）
         if (StringUtils.hasText(req.getCode()) && !req.getCode().equals(existing.getCode())) {
             long count = deptMapper.selectCount(new LambdaQueryWrapper<SysDept>()
@@ -134,13 +164,27 @@ public class SysDeptServiceImpl implements SysDeptService {
             }
             existing.setCode(req.getCode());
         }
+
+        // 更新其他字段
         existing.setName(req.getName());
         existing.setSort(req.getSort() != null ? req.getSort() : existing.getSort());
         existing.setLeader(req.getLeader());
         existing.setPhone(req.getPhone());
         existing.setEmail(req.getEmail());
         existing.setStatus(StringUtils.hasText(req.getStatus()) ? req.getStatus() : existing.getStatus());
+
+        // 如果上级部门变更，重新计算 treePath
+        if (parentChanged) {
+            String newTreePath = buildTreePath(existing.getParentId(), existing.getId());
+            existing.setTreePath(newTreePath);
+        }
+
         deptMapper.updateById(existing);
+
+        // 上级部门变更后，递归更新所有子孙部门的 treePath
+        if (parentChanged) {
+            updateDescendantsTreePath(existing);
+        }
     }
 
     @Override
@@ -157,6 +201,17 @@ public class SysDeptServiceImpl implements SysDeptService {
         }
         // 逻辑删除部门主表
         deptMapper.deleteById(id);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchDeleteDepts(List<String> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
+        for (String id : ids) {
+            deleteDept(id);
+        }
     }
 
     /**
@@ -178,6 +233,38 @@ public class SysDeptServiceImpl implements SysDeptService {
             return "0," + currentId;
         }
         return parent.getTreePath() + "," + currentId;
+    }
+
+    /**
+     * 获取指定部门的所有子孙部门 ID 列表（含子、孙、曾孙等递归下级）。
+     *
+     * @param parentId 父部门 ID
+     * @return 子孙部门 ID 列表
+     */
+    private List<String> getDescendantIds(String parentId) {
+        List<String> result = new ArrayList<>();
+        List<SysDept> children = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
+                .eq(SysDept::getParentId, parentId));
+        for (SysDept child : children) {
+            result.add(child.getId());
+            result.addAll(getDescendantIds(child.getId()));
+        }
+        return result;
+    }
+
+    /**
+     * 递归更新所有子孙部门的 treePath。
+     *
+     * @param parent 父部门实体（已更新 treePath）
+     */
+    private void updateDescendantsTreePath(SysDept parent) {
+        List<SysDept> children = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
+                .eq(SysDept::getParentId, parent.getId()));
+        for (SysDept child : children) {
+            child.setTreePath(parent.getTreePath() + "," + child.getId());
+            deptMapper.updateById(child);
+            updateDescendantsTreePath(child);
+        }
     }
 
     /**

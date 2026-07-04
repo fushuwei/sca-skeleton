@@ -85,6 +85,15 @@ public class SysRoleController {
         return Result.ok();
     }
 
+    // 批量删除角色
+    @DeleteMapping("/batch")
+    @RequiresPermission("sys:role:delete")
+    @OperationLog(module = "角色管理", action = "批量删除角色")
+    public Result<Void> batchDelete(@RequestBody List<String> ids) {
+        roleService.batchDeleteRoles(ids);
+        return Result.ok();
+    }
+
     // 为角色分配权限，需 sys:role:assign-permission；按当前租户隔离
     @PutMapping("/{id}/permissions")
     @RequiresPermission("sys:role:assign-permission")

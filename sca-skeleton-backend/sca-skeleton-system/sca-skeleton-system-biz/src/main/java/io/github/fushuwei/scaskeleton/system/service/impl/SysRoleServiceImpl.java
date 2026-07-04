@@ -151,6 +151,17 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchDeleteRoles(List<String> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
+        for (String id : ids) {
+            deleteRole(id);
+        }
+    }
+
+    @Override
     public List<String> getRolePermissionIds(String roleId) {
         // 校验角色存在
         loadRoleEntity(roleId);

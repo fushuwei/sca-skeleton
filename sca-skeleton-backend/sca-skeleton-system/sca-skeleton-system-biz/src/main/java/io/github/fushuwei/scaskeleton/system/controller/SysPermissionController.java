@@ -81,4 +81,13 @@ public class SysPermissionController {
         permissionService.deletePermission(id);
         return Result.ok();
     }
+
+    // 批量删除权限节点
+    @DeleteMapping("/batch")
+    @RequiresPermission("sys:permission:delete")
+    @OperationLog(module = "菜单管理", action = "批量删除菜单")
+    public Result<Void> batchDelete(@RequestBody List<String> ids) {
+        permissionService.batchDeletePermissions(ids);
+        return Result.ok();
+    }
 }

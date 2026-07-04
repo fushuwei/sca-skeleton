@@ -28,4 +28,7 @@ public interface SysDeptService {
     void updateDept(String tenantId, DeptUpdateRequest request);
 
     void deleteDept(String id);
+
+    /** 批量删除部门 */
+    void batchDeleteDepts(List<String> ids);
 }

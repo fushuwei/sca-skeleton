@@ -28,6 +28,9 @@ public interface SysRoleService {
 
     void deleteRole(String id);
 
+    /** 批量删除角色 */
+    void batchDeleteRoles(List<String> ids);
+
     /** 查询角色已分配的权限 ID 列表 */
     List<String> getRolePermissionIds(String roleId);
 

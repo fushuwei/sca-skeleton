@@ -16,6 +16,7 @@ import io.github.fushuwei.scaskeleton.system.service.SysPermissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -156,6 +157,17 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         }
         // 逻辑删除权限主表
         permissionMapper.deleteById(id);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchDeletePermissions(List<String> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
+        for (String id : ids) {
+            deletePermission(id);
+        }
     }
 
     /**

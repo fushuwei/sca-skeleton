@@ -245,18 +245,16 @@ function clearDeptSelection() {
   deptSearchKey.value = "";
 }
 
-/** 点击树节点（仅叶子节点可选，选中后关闭菜单） */
+/** 点击树节点选中部门（任意真实节点均可选，选中后关闭菜单） */
 function onDeptTreeNodeClick(node: DeptTreeNode) {
-  if (!node.children?.length) {
-    form.deptId = node.id;
-    deptSearchKey.value = "";
-    deptMenuRef.value?.hide();
-  }
+  form.deptId = node.id;
+  deptSearchKey.value = "";
+  deptMenuRef.value?.hide();
 }
 
-/** 节点图标 */
+/** 节点图标：使用 folder/folder_open 风格，与部门管理一致 */
 function deptNodeIcon(node: DeptTreeNode): string {
-  return node.children?.length ? "sym_r_folder" : "sym_r_article";
+  return deptTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
 }
 
 // ── 岗位、角色多选 ──

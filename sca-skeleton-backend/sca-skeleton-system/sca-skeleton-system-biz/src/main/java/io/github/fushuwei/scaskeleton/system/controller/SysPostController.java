@@ -77,4 +77,13 @@ public class SysPostController {
         postService.deletePost(id);
         return Result.ok();
     }
+
+    // 批量删除岗位
+    @DeleteMapping("/batch")
+    @RequiresPermission("sys:post:delete")
+    @OperationLog(module = "岗位管理", action = "批量删除岗位")
+    public Result<Void> batchDelete(@RequestBody List<String> ids) {
+        postService.batchDeletePosts(ids);
+        return Result.ok();
+    }
 }

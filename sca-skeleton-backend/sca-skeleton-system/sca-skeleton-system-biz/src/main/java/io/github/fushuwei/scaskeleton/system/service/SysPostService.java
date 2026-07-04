@@ -27,4 +27,7 @@ public interface SysPostService {
     void updatePost(String tenantId, PostUpdateRequest request);
 
     void deletePost(String id);
+
+    /** 批量删除岗位 */
+    void batchDeletePosts(List<String> ids);
 }

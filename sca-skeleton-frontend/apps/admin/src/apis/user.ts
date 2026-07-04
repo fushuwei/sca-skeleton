@@ -45,7 +45,7 @@ export async function resetUserPasswordApi(
   return request<null>({
     method: "PUT",
     url: `/sys/user/${id}/password/reset`,
-    params: { newPassword }
+    data: { newPassword }
   });
 }
 
@@ -58,6 +58,6 @@ export async function changeUserStatusApi(
   return request<null>({
     method: "PUT",
     url: `/sys/user/${id}/status`,
-    params: { status, ...(reason ? { reason } : {}) }
+    data: { status, ...(reason ? { reason } : {}) }
   });
 }

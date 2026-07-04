@@ -65,7 +65,14 @@
         GROUP BY u.id, d.name
         <choose>
             <when test="orderBy != null and orderBy != ''">
-                ORDER BY u.${orderBy} ${orderDirection}
+                <choose>
+                    <when test="orderBy == 'dept_name'">
+                        ORDER BY d.name ${orderDirection}
+                    </when>
+                    <otherwise>
+                        ORDER BY u.${orderBy} ${orderDirection}
+                    </otherwise>
+                </choose>
             </when>
             <otherwise>
                 ORDER BY u.create_time DESC

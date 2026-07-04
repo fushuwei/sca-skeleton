@@ -5,8 +5,6 @@ import lombok.Data;
 
 /**
  * 更新部门请求对象。
- * <p>
- * 上级部门（parentId）创建后不可修改，故不包含在此对象中。
  *
  * @author Fu Wei
  */
@@ -16,6 +14,9 @@ public class DeptUpdateRequest {
     /** 部门 ID */
     @NotBlank(message = "部门ID不能为空")
     private String id;
+
+    /** 上级部门 ID，根节点为 "0" */
+    private String parentId;
 
     /** 部门名称 */
     @NotBlank(message = "部门名称不能为空")
