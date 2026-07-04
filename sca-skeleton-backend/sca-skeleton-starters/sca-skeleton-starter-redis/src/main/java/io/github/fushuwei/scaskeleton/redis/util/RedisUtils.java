@@ -1,6 +1,5 @@
 package io.github.fushuwei.scaskeleton.redis.util;
 
-import cn.hutool.extra.spring.SpringUtil;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -32,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 public final class RedisUtils {
 
     /**
-     * RedisTemplate 实例，启动时由 Injector 或 getRedisTemplate 懒加载初始化
+     * RedisTemplate 实例，由 {@link Injector} 在应用就绪后注入
      */
     private static volatile RedisTemplate<String, Object> redisTemplate;
 
@@ -65,17 +64,14 @@ public final class RedisUtils {
     /**
      * 获取 RedisTemplate 实例
      * <p>
-     * 优先使用已缓存的静态引用；若未被 Injector 初始化（如 ApplicationReadyEvent 尚未触发），
-     * 则通过 SpringUtil 懒加载获取并缓存，后续调用不再查找
+     * RedisTemplate 由 {@link Injector} 在 {@code ApplicationReadyEvent} 时注入。
+     * 若此方法被提前调用（如 {@code @PostConstruct} 阶段），直接快速失败，
+     * 避免隐藏生命周期问题。
      */
-    @SuppressWarnings("unchecked")
     private static RedisTemplate<String, Object> getRedisTemplate() {
         if (redisTemplate == null) {
-            synchronized (RedisUtils.class) {
-                if (redisTemplate == null) {
-                    redisTemplate = SpringUtil.getBean(RedisTemplate.class);
-                }
-            }
+            throw new IllegalStateException(
+                    "RedisUtils 尚未初始化，请在应用就绪（ApplicationReadyEvent）后使用");
         }
         return redisTemplate;
     }
