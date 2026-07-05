@@ -8,6 +8,7 @@ import { getDeptListApi } from "../../apis/dept";
 import { getPostListApi } from "../../apis/post";
 import { getRoleListApi } from "../../apis/role";
 import { checkPasswordStrength } from "../../utils/passwordStrength";
+import DateTimePicker from "../../components/DateTimePicker.vue";
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -731,28 +732,20 @@ async function handleSave() {
         </div>
         <!-- 生效时间 -->
         <div class="col-12 col-md-6">
-          <q-input
+          <DateTimePicker
             v-model="form.effectiveStartTime"
             :label="t('user.effectiveStartTime')"
-            filled
-            square
-            type="datetime-local"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
-            hide-bottom-space
           />
         </div>
         <!-- 失效时间 -->
         <div class="col-12 col-md-6">
-          <q-input
+          <DateTimePicker
             v-model="form.effectiveEndTime"
             :label="t('user.effectiveEndTime')"
-            filled
-            square
-            type="datetime-local"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
-            hide-bottom-space
           />
         </div>
         <!-- 备注 -->
