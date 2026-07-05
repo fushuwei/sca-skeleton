@@ -94,18 +94,11 @@ function onKeydown(e: KeyboardEvent) {
     :disable="isDisabled"
     :rules="rules"
     :input-class="nativeInputClass"
+    clearable
+    @clear="onClear"
     @keydown="onKeydown"
   >
     <template #append>
-      <q-icon
-        v-if="modelValue && !isDisabled"
-        name="sym_r_close"
-        size="18px"
-        class="cursor-pointer q-mr-xs"
-        @click.stop="onClear"
-      >
-        <q-tooltip>{{ t("common.clear") }}</q-tooltip>
-      </q-icon>
       <q-icon
         name="sym_r_event"
         size="20px"
