@@ -21,8 +21,13 @@ const dateModel = ref("");
 /** QTime v-model（格式 HH:mm） */
 const timeModel = ref("");
 
-/** 弹窗是否禁用（查看模式或禁用模式） */
-const popupDisabled = computed(() => props.disable || props.readonly);
+/** 是否禁用交互（查看模式或禁用模式） */
+const isDisabled = computed(() => props.disable || props.readonly);
+
+/** 仅在可交互时为原生 input 添加自定义 class（隐藏光标、指针手型） */
+const nativeInputClass = computed(() =>
+  isDisabled.value ? "" : "datetime-picker-native-input"
+);
 
 /**
  * 从外部 modelValue（yyyy-MM-dd HH:mm:ss）同步到内部 date/time。
@@ -66,36 +71,49 @@ function onTimeUpdate(val: string | null) {
   emitValue(dateModel.value, timeModel.value);
 }
 
-function clearValue() {
+function onClear() {
   dateModel.value = "";
   timeModel.value = "";
   emit("update:modelValue", "");
 }
+
+/** 拦截键盘输入，仅允许 Tab / Escape 透传 */
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === "Tab" || e.key === "Escape") return;
+  e.preventDefault();
+}
 </script>
 
 <template>
-  <div class="datetime-picker-wrapper">
-    <q-input
-      :model-value="modelValue || ''"
-      :label="label"
-      filled
-      square
-      readonly
-      :disable="disable"
-      hide-bottom-space
-      :rules="rules"
-      :class="{ 'cursor-pointer': !popupDisabled }"
-    >
-      <template #append>
-        <q-icon
-          name="sym_r_event"
-          size="20px"
-          :class="{ 'cursor-pointer': !popupDisabled }"
-        />
-      </template>
-    </q-input>
+  <q-input
+    :model-value="modelValue || ''"
+    :label="label"
+    filled
+    square
+    hide-bottom-space
+    :disable="isDisabled"
+    :rules="rules"
+    :input-class="nativeInputClass"
+    @keydown="onKeydown"
+  >
+    <template #append>
+      <q-icon
+        v-if="modelValue && !isDisabled"
+        name="sym_r_close"
+        size="18px"
+        class="cursor-pointer q-mr-xs"
+        @click.stop="onClear"
+      >
+        <q-tooltip>{{ t("common.clear") }}</q-tooltip>
+      </q-icon>
+      <q-icon
+        name="sym_r_event"
+        size="20px"
+        :class="{ 'cursor-pointer': !isDisabled }"
+      />
+    </template>
     <q-menu
-      v-if="!popupDisabled"
+      v-if="!isDisabled"
       anchor="bottom left"
       self="top left"
       :offset="[0, 4]"
@@ -118,30 +136,27 @@ function clearValue() {
             @update:model-value="onTimeUpdate"
           />
         </div>
-        <div v-if="modelValue" class="row items-center justify-end q-pa-xs">
-          <q-btn
-            flat
-            dense
-            no-caps
-            color="grey-7"
-            size="sm"
-            :label="t('common.clear')"
-            @click="clearValue"
-            v-close-popup
-          />
-        </div>
       </div>
     </q-menu>
-  </div>
+  </q-input>
 </template>
 
 <style scoped>
-.datetime-picker-wrapper {
-  position: relative;
+/* 隐藏原生 input 的文本光标，并改为指针手型 */
+:deep(.datetime-picker-native-input) {
+  caret-color: transparent;
+  cursor: pointer;
 }
 
 /* QDate 与 QTime 之间的分隔线，使并排布局更有层次 */
 .datetime-picker-body :deep(.q-date + .q-time) {
   border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+</style>
+
+<style>
+/* 暗色模式：QDate 与 QTime 分隔线颜色调整 */
+.body--dark .datetime-picker-body .q-date + .q-time {
+  border-left-color: rgba(255, 255, 255, 0.08);
 }
 </style>
