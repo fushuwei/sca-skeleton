@@ -17,7 +17,7 @@
     "@zxcvbn-ts/language-zh": "^4.1.1",
     "axios": "1.15.2",
     "pinia": "3.0.4",
-    "quasar": "2.19.3",
+    "quasar": "2.21.0",
     "vue": "3.5.33",
     "vue-i18n": "^10.0.7",
     "vue-router": "5.0.6"
