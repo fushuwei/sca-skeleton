@@ -101,7 +101,6 @@ function onKeydown(e: KeyboardEvent) {
     <template #append>
       <q-icon
         name="sym_r_event"
-        size="20px"
         :class="{ 'cursor-pointer': !isDisabled }"
       />
     </template>
