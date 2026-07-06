@@ -171,6 +171,11 @@ const mergedRules = computed(() => {
   box-shadow: none !important;
 }
 
+/* 日期按钮恢复圆形 */
+.admin-datetime-picker :deep(.q-date .q-btn) {
+  border-radius: 50% !important;
+}
+
 /* 时间选择器：直角，去掉左边框和阴影 */
 .admin-datetime-picker :deep(.q-time) {
   border-radius: 0;
