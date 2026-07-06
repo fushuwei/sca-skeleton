@@ -148,6 +148,7 @@
     "pwdStrengthVeryStrong": "非常强",
     "effectiveStartTime": "生效时间",
     "effectiveEndTime": "失效时间",
+    "effectiveEndMustAfterStart": "失效时间必须晚于生效时间",
     "genderMale": "男",
     "genderFemale": "女",
     "pleaseSelect": "请选择",

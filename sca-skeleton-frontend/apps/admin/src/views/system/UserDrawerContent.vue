@@ -8,7 +8,7 @@ import { getDeptListApi } from "../../apis/dept";
 import { getPostListApi } from "../../apis/post";
 import { getRoleListApi } from "../../apis/role";
 import { checkPasswordStrength } from "../../utils/passwordStrength";
-
+import DateTimePicker from "../../components/DateTimePicker.vue";
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -107,6 +107,13 @@ const statusOptions = computed(() => [
 const mustChangePasswordOptions = computed(() => [
   { label: t("common.yes"), value: 1 },
   { label: t("common.no"), value: 0 }
+]);
+
+const effectiveEndRules = computed(() => [
+  (v: string) => {
+    if (!v || !form.effectiveStartTime) return true;
+    return v > form.effectiveStartTime || t("user.effectiveEndMustAfterStart");
+  }
 ]);
 
 // ── 密码强度校验 ──
@@ -732,26 +739,23 @@ async function handleSave() {
         </div>
         <!-- 生效时间 -->
         <div class="col-12 col-md-6">
-          <q-input
+          <DateTimePicker
             v-model="form.effectiveStartTime"
             :label="t('user.effectiveStartTime')"
-            filled
-            square
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
-            hide-bottom-space
+            :max="form.effectiveEndTime || undefined"
           />
         </div>
         <!-- 失效时间 -->
         <div class="col-12 col-md-6">
-          <q-input
+          <DateTimePicker
             v-model="form.effectiveEndTime"
             :label="t('user.effectiveEndTime')"
-            filled
-            square
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
-            hide-bottom-space
+            :min="form.effectiveStartTime || undefined"
+            :rules="effectiveEndRules"
           />
         </div>
         <!-- 备注 -->

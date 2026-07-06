@@ -148,6 +148,7 @@
     "pwdStrengthVeryStrong": "Very Strong",
     "effectiveStartTime": "Effective Start",
     "effectiveEndTime": "Effective End",
+    "effectiveEndMustAfterStart": "End time must be after start time",
     "genderMale": "Male",
     "genderFemale": "Female",
     "pleaseSelect": "Please select",
