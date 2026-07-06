@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { useQuasar } from "quasar";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysPost, PostPageRequest } from "../../types/auth";
@@ -9,23 +8,11 @@ import {
   getPostPageApi,
   deletePostApi
 } from "../../apis/post";
+import { useConfirmDialog } from "../../composables/useConfirmDialog";
 import PostDrawerContent from "./PostDrawerContent.vue";
 
 const { t } = useI18n({ useScope: "global" });
-const $q = useQuasar();
-
-/** 确认对话框：返回 Promise，点击确定时 resolve，点击取消时 reject */
-function confirmDialog(message: string): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    $q.dialog({
-      title: t("common.systemPrompt"),
-      message,
-      cancel: true,
-      persistent: true,
-      focus: "cancel"
-    }).onOk(resolve).onCancel(reject);
-  });
-}
+const { confirmDialog } = useConfirmDialog();
 
 // ═══════════════════════════════════════════════════════════════
 // 搜索条件
