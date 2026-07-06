@@ -124,16 +124,18 @@ function dateOptions(dateStr: string) {
   background: var(--q-card-background, #fff);
 }
 
-/* 日期选择器：直角，去掉右边框 */
+/* 日期选择器：直角，去掉右边框和阴影 */
 .admin-datetime-picker :deep(.q-date) {
   border-radius: 0;
-  border-right: none;
+  border-right: none !important;
+  box-shadow: none !important;
 }
 
-/* 时间选择器：直角，去掉左边框 */
+/* 时间选择器：直角，去掉左边框和阴影 */
 .admin-datetime-picker :deep(.q-time) {
   border-radius: 0;
-  border-left: none;
+  border-left: none !important;
+  box-shadow: none !important;
 }
 
 .body--dark .admin-datetime-picker {
