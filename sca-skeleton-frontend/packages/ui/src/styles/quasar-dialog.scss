@@ -36,7 +36,6 @@
 .q-dialog__inner > .q-card > .q-card__section:not(:first-child):not(:last-child) {
   padding: 16px 24px !important;
   font-size: 14px !important;
-  color: rgba(0, 0, 0, 0.68) !important;
   line-height: 1.6 !important;
 }
 
@@ -87,10 +86,6 @@
 .body--dark .q-dialog__inner > .q-card > .q-card__section:first-child {
   color: rgba(255, 255, 255, 0.87) !important;
   border-bottom-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .q-dialog__inner > .q-card > .q-card__section:not(:first-child):not(:last-child) {
-  color: rgba(255, 255, 255, 0.68) !important;
 }
 
 .body--dark .q-dialog__inner > .q-card > .q-card__actions {
