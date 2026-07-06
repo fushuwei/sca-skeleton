@@ -35,6 +35,8 @@ const emit = defineEmits<{
   "update:modelValue": [value: string];
 }>();
 
+const DATE_TIME_REGEX = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/;
+
 const popupRef = ref<{ show: () => void }>();
 
 const displayValue = computed({
@@ -56,6 +58,44 @@ function dateOptions(dateStr: string) {
   if (maxDate && dateStr > maxDate) return false;
   return true;
 }
+
+/** 校验日期时间是否合法 */
+function isValidDateTime(v: string): boolean | string {
+  if (!v) return true;
+
+  const match = v.match(DATE_TIME_REGEX);
+  if (!match) return "格式错误，应为 yyyy-MM-dd HH:mm:ss";
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+
+  // 使用 Date 对象自动处理闰年和各月天数
+  const date = new Date(year, month - 1, day, hour, minute, second);
+
+  // 验证各分量是否与输入一致（防止自动进位，如 2月30日 → 3月2日）
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day ||
+    date.getHours() !== hour ||
+    date.getMinutes() !== minute ||
+    date.getSeconds() !== second
+  ) {
+    return "日期时间无效";
+  }
+
+  return true;
+}
+
+/** 合并外部 rules 与内置日期校验 */
+const mergedRules = computed(() => {
+  const builtIn = [isValidDateTime];
+  return props.rules ? [...builtIn, ...props.rules] : builtIn;
+});
 </script>
 
 <template>
@@ -70,7 +110,7 @@ function dateOptions(dateStr: string) {
       :readonly="readonly"
       :clearable="clearable && !pickerDisabled"
       :hide-bottom-space="hideBottomSpace"
-      :rules="rules"
+      :rules="mergedRules"
     >
       <template v-if="!pickerDisabled" #append>
         <q-icon name="sym_r_event" class="cursor-pointer" @click="showPicker" />
