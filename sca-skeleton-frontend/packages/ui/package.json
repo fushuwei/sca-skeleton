@@ -6,6 +6,7 @@
   "main": "src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./styles/quasar-dialog.scss": "./src/styles/quasar-dialog.scss",
     "./vite-plugin": "./src/vite-plugin-dev-landing.ts"
   },
   "peerDependencies": {
