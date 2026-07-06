@@ -8,7 +8,7 @@ import {
   getPostPageApi,
   deletePostApi
 } from "../../apis/post";
-import { useConfirmDialog } from "../../composables/useConfirmDialog";
+import { useConfirmDialog } from "@repo/ui";
 import PostDrawerContent from "./PostDrawerContent.vue";
 
 const { t } = useI18n({ useScope: "global" });

@@ -7,16 +7,13 @@ import { ref, onMounted, nextTick, computed, onBeforeUnmount } from "vue";
 import { useDialogPluginComponent } from "quasar";
 
 const props = withDefaults(defineProps<{
-  title?: string;
+  title: string;
   message: string;
   type?: ConfirmDialogType;
-  confirmText?: string;
-  cancelText?: string;
+  confirmText: string;
+  cancelText: string;
 }>(), {
-  title: "系统提示",
   type: "confirm",
-  confirmText: "确认",
-  cancelText: "取消",
 });
 
 defineEmits([...useDialogPluginComponent.emits]);
@@ -54,8 +51,14 @@ function handleCardClick(e: MouseEvent) {
   focusCancel();
 }
 
-/** 全局 keydown 拦截 — 回车触发"取消"（除非"确认"按钮当前拥有焦点） */
+/** 全局 keydown 拦截 — 回车触发"取消"，ESC 关闭对话框（等同取消） */
 function handleKeydown(e: KeyboardEvent) {
+  if (e.key === "Escape") {
+    e.preventDefault();
+    e.stopPropagation();
+    onDialogCancel();
+    return;
+  }
   if (e.key !== "Enter") return;
   const confirmEl = confirmBtnRef.value?.$el;
   const cancelEl = cancelBtnRef.value?.$el;
@@ -189,11 +192,11 @@ onBeforeUnmount(() => {
 }
 
 .body--dark .confirm-dialog-card .confirm-dialog-confirm-btn {
-  background: #1976d2 !important;
+  background: #028276 !important;
   color: #ffffff !important;
 }
 
 .body--dark .confirm-dialog-card .confirm-dialog-confirm-btn:hover {
-  background: #2196f3 !important;
+  background: #026b62 !important;
 }
 </style>

@@ -9,7 +9,7 @@ import {
   getDeptPageApi,
   deleteDeptApi
 } from "../../apis/dept";
-import { useConfirmDialog } from "../../composables/useConfirmDialog";
+import { useConfirmDialog } from "@repo/ui";
 import DeptDrawerContent from "./DeptDrawerContent.vue";
 
 const { t } = useI18n({ useScope: "global" });

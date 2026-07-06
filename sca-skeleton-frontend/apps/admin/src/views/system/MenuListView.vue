@@ -9,7 +9,7 @@ import {
   getPermissionPageApi,
   deletePermissionApi
 } from "../../apis/permission";
-import { useConfirmDialog } from "../../composables/useConfirmDialog";
+import { useConfirmDialog } from "@repo/ui";
 import MenuDrawerContent from "./MenuDrawerContent.vue";
 
 const { t } = useI18n({ useScope: "global" });

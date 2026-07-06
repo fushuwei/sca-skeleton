@@ -1,6 +1,6 @@
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
-import ConfirmDialog, { type ConfirmDialogType } from "../components/ConfirmDialog.vue";
+import ConfirmDialog, { type ConfirmDialogType } from "../components/ConfirmDialog/ConfirmDialog.vue";
 
 export type { ConfirmDialogType };
 

@@ -11,7 +11,7 @@ import {
   resetUserPasswordApi
 } from "../../apis/user";
 import { getDeptListApi } from "../../apis/dept";
-import { useConfirmDialog } from "../../composables/useConfirmDialog";
+import { useConfirmDialog } from "@repo/ui";
 import UserDrawerContent from "./UserDrawerContent.vue";
 
 const { t } = useI18n({ useScope: "global" });

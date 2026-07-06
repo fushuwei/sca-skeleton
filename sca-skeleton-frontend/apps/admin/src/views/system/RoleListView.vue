@@ -8,7 +8,7 @@ import {
   getRolePageApi,
   deleteRoleApi
 } from "../../apis/role";
-import { useConfirmDialog } from "../../composables/useConfirmDialog";
+import { useConfirmDialog } from "@repo/ui";
 import RoleDrawerContent from "./RoleDrawerContent.vue";
 
 const { t } = useI18n({ useScope: "global" });
