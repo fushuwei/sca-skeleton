@@ -171,8 +171,8 @@ const mergedRules = computed(() => {
   box-shadow: none !important;
 }
 
-/* 日期按钮恢复圆形 */
-.admin-datetime-picker :deep(.q-date .q-btn) {
+/* 日期数字按钮恢复圆形，不影响月份/年份按钮 */
+.admin-datetime-picker :deep(.q-date__calendar-item .q-btn) {
   border-radius: 50% !important;
 }
 
