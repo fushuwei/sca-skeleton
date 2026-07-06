@@ -10,6 +10,7 @@
     "disable": "Disable",
     "confirm": "Confirm",
     "cancel": "Cancel",
+    "systemPrompt": "System Prompt",
     "loadFail": "Failed to load, please try again",
     "deleteSuccess": "Deleted successfully",
     "deleteFail": "Failed to delete",

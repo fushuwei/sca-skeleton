@@ -21,7 +21,7 @@ const $q = useQuasar();
 function confirmDialog(message: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     $q.dialog({
-      title: t("common.confirm"),
+      title: t("common.systemPrompt"),
       message,
       cancel: true,
       persistent: true,

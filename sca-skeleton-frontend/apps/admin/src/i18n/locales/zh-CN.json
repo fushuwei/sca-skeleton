@@ -10,6 +10,7 @@
     "disable": "停用",
     "confirm": "确认",
     "cancel": "取消",
+    "systemPrompt": "系统提示",
     "loadFail": "加载失败，请稍后重试",
     "deleteSuccess": "删除成功",
     "deleteFail": "删除失败",
