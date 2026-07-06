@@ -729,8 +729,14 @@ async function handleBatchDelete() {
 }
 
 // 查看
-function handleView(user: SysUser) {
-  openUserDrawer("view", user);
+async function handleView(user: SysUser) {
+  // 调用详情接口获取包含部门、岗位、角色关联的完整数据
+  const res = await getUserByIdApi(user.id);
+  if (res.code === 10_000 && res.data) {
+    openUserDrawer("view", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
 // 编辑
