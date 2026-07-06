@@ -192,11 +192,11 @@ onBeforeUnmount(() => {
 }
 
 .body--dark .confirm-dialog-card .confirm-dialog-confirm-btn {
-  background: #028276 !important;
+  background: rgba(0, 150, 136, 0.85) !important;
   color: #ffffff !important;
 }
 
 .body--dark .confirm-dialog-card .confirm-dialog-confirm-btn:hover {
-  background: #026b62 !important;
+  background: rgba(0, 150, 136, 1) !important;
 }
 </style>
