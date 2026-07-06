@@ -124,6 +124,18 @@ function dateOptions(dateStr: string) {
   background: var(--q-card-background, #fff);
 }
 
+/* 日期选择器：直角，去掉右边框 */
+.admin-datetime-picker :deep(.q-date) {
+  border-radius: 0;
+  border-right: none;
+}
+
+/* 时间选择器：直角，去掉左边框 */
+.admin-datetime-picker :deep(.q-time) {
+  border-radius: 0;
+  border-left: none;
+}
+
 .body--dark .admin-datetime-picker {
   background: #2d2d2d;
 }
