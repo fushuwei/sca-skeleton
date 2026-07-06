@@ -17,9 +17,11 @@ import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
 import io.github.fushuwei.scaskeleton.system.converter.UserConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysUser;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserDept;
+import io.github.fushuwei.scaskeleton.system.entity.SysUserPost;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserDeptMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysUserPostMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +51,8 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysUserRoleMapper userRoleMapper;
     /** 用户-部门关联 Mapper */
     private final SysUserDeptMapper userDeptMapper;
+    /** 用户-岗位关联 Mapper */
+    private final SysUserPostMapper userPostMapper;
     /** Spring Security 密码加密器 */
     private final PasswordEncoder passwordEncoder;
     /** Entity ↔ Response 转换器（MapStruct 生成） */
@@ -68,7 +72,34 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public UserResponse getUserById(String id) {
         // 按主键查询用户并转换为响应对象
-        return userConverter.toUserResponse(loadUserEntity(id));
+        SysUser user = loadUserEntity(id);
+        UserResponse response = userConverter.toUserResponse(user);
+
+        // 查询关联的部门ID列表
+        List<SysUserDept> userDepts = userDeptMapper.selectList(new LambdaQueryWrapper<SysUserDept>()
+                .eq(SysUserDept::getTenantId, user.getTenantId())
+                .eq(SysUserDept::getUserId, user.getId()));
+        response.setDeptIds(userDepts.stream()
+                .map(SysUserDept::getDeptId)
+                .toList());
+
+        // 查询关联的角色ID列表
+        List<SysUserRole> userRoles = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>()
+                .eq(SysUserRole::getTenantId, user.getTenantId())
+                .eq(SysUserRole::getUserId, user.getId()));
+        response.setRoleIds(userRoles.stream()
+                .map(SysUserRole::getRoleId)
+                .toList());
+
+        // 查询关联的岗位ID列表
+        List<SysUserPost> userPosts = userPostMapper.selectList(new LambdaQueryWrapper<SysUserPost>()
+                .eq(SysUserPost::getTenantId, user.getTenantId())
+                .eq(SysUserPost::getUserId, user.getId()));
+        response.setPostIds(userPosts.stream()
+                .map(SysUserPost::getPostId)
+                .toList());
+
+        return response;
     }
 
     @Override
@@ -106,8 +137,8 @@ public class SysUserServiceImpl implements SysUserService {
 
         // 持久化用户主表
         userMapper.insert(user);
-        // 同事务内建立角色、部门关联
-        saveUserRelations(tenantId, user.getId(), req.getRoleIds(), req.getDeptIds());
+        // 同事务内建立角色、部门、岗位关联
+        saveUserRelations(tenantId, user.getId(), req.getRoleIds(), req.getDeptIds(), req.getPostIds());
     }
 
     @Override
@@ -131,7 +162,7 @@ public class SysUserServiceImpl implements SysUserService {
 
         // 清除旧关联，重新建立
         deleteUserRelations(tenantId, req.getId());
-        saveUserRelations(tenantId, req.getId(), req.getRoleIds(), req.getDeptIds());
+        saveUserRelations(tenantId, req.getId(), req.getRoleIds(), req.getDeptIds(), req.getPostIds());
     }
 
     @Override
@@ -201,8 +232,9 @@ public class SysUserServiceImpl implements SysUserService {
         }
     }
 
-    /** 保存用户-角色、用户-部门关联。 */
-    private void saveUserRelations(String tenantId, String userId, List<String> roleIds, List<String> deptIds) {
+    /** 保存用户-角色、用户-部门、用户-岗位关联。 */
+    private void saveUserRelations(String tenantId, String userId, List<String> roleIds,
+                                   List<String> deptIds, List<String> postIds) {
         // 批量插入用户-角色关联
         if (!CollectionUtils.isEmpty(roleIds)) {
             roleIds.forEach(roleId -> {
@@ -224,9 +256,19 @@ public class SysUserServiceImpl implements SysUserService {
                 userDeptMapper.insert(ud);
             }
         }
+        // 批量插入用户-岗位关联
+        if (!CollectionUtils.isEmpty(postIds)) {
+            postIds.forEach(postId -> {
+                SysUserPost up = new SysUserPost();
+                up.setTenantId(tenantId);
+                up.setUserId(userId);
+                up.setPostId(postId);
+                userPostMapper.insert(up);
+            });
+        }
     }
 
-    /** 逻辑删除用户的所有角色和部门关联。 */
+    /** 逻辑删除用户的所有角色、部门和岗位关联。 */
     private void deleteUserRelations(String tenantId, String userId) {
         // 按租户 + 用户 ID 删除角色关联
         userRoleMapper.delete(new LambdaQueryWrapper<SysUserRole>()
@@ -236,6 +278,10 @@ public class SysUserServiceImpl implements SysUserService {
         userDeptMapper.delete(new LambdaQueryWrapper<SysUserDept>()
                 .eq(SysUserDept::getTenantId, tenantId)
                 .eq(SysUserDept::getUserId, userId));
+        // 按租户 + 用户 ID 删除岗位关联
+        userPostMapper.delete(new LambdaQueryWrapper<SysUserPost>()
+                .eq(SysUserPost::getTenantId, tenantId)
+                .eq(SysUserPost::getUserId, userId));
     }
 
     /**

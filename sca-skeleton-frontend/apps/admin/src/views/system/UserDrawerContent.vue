@@ -354,6 +354,10 @@ function initForm() {
     form.effectiveStartTime = props.user.effectiveStartTime || "";
     form.effectiveEndTime = props.user.effectiveEndTime || "";
     form.remark = props.user.remark;
+    // 回填关联数据：部门取第一个（主部门），岗位和角色直接赋列表
+    form.deptId = props.user.deptIds?.[0] ?? "";
+    form.postIds = props.user.postIds ? [...props.user.postIds] : [];
+    form.roleIds = props.user.roleIds ? [...props.user.roleIds] : [];
   }
 }
 
@@ -384,7 +388,7 @@ async function handleSave() {
     effectiveStartTime: form.effectiveStartTime || undefined,
     effectiveEndTime: form.effectiveEndTime || undefined,
     remark: form.remark || undefined,
-    deptId: form.deptId || undefined,
+    deptIds: form.deptId ? [form.deptId] : undefined,
     postIds: form.postIds.length ? form.postIds : undefined,
     roleIds: form.roleIds.length ? form.roleIds : undefined
   };

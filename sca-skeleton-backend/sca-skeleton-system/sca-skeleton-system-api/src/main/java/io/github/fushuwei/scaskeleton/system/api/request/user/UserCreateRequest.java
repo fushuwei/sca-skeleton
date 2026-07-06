@@ -1,6 +1,7 @@
 package io.github.fushuwei.scaskeleton.system.api.request.user;
 
 import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -51,7 +52,9 @@ public class UserCreateRequest {
     /** 角色ID列表 */
     private List<String> roleIds;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime effectiveStartTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime effectiveEndTime;
     private String remark;
 }

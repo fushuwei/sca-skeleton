@@ -28,6 +28,11 @@
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
+        <!-- Jackson Annotations：请求/响应 DTO 中的 @JsonFormat 等序列化注解（版本由 Spring Boot BOM 管理） -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
         <!-- Lombok：Response / Request DTO 中的 @Data / @Builder 等注解 -->
         <dependency>
             <groupId>org.projectlombok</groupId>

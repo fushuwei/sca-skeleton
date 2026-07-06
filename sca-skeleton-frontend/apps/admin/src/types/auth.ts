@@ -77,6 +77,12 @@ export interface SysUser {
   deptName?: string;
   /** 角色名称列表 */
   roleNames?: string;
+/** 关联的部门ID列表 */
+deptIds?: string[];
+/** 关联的岗位ID列表 */
+postIds?: string[];
+/** 关联的角色ID列表 */
+roleIds?: string[];
 }
 
 /** 用户分页查询请求参数 */

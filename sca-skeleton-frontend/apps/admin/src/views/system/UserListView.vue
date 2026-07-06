@@ -6,6 +6,7 @@ import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysUser, SysDept, DeptTreeNode, UserPageRequest } from "../../types/auth";
 import {
   getUserPageApi,
+  getUserByIdApi,
   deleteUserApi,
   changeUserStatusApi,
   resetUserPasswordApi
@@ -733,12 +734,18 @@ function handleView(user: SysUser) {
 }
 
 // 编辑
-function handleEdit(user: SysUser) {
+async function handleEdit(user: SysUser) {
   if (user.userType === "superadmin") {
     showToast(t("user.superadminCannotEdit"), "warning");
     return;
   }
-  openUserDrawer("edit", user);
+  // 调用详情接口获取包含部门、岗位、角色关联的完整数据
+  const res = await getUserByIdApi(user.id);
+  if (res.code === 10_000 && res.data) {
+    openUserDrawer("edit", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
 // 删除
