@@ -15,7 +15,7 @@ public final class JavaLangModule extends SimpleModule {
      * 构造函数
      */
     public JavaLangModule() {
-        super(PackageVersion.VERSION);
+        super(JavaLangModule.class.getName(), PackageVersion.VERSION, JavaLangModule.class.getName());
 
         // Long 类型的序列化，将 Long 类型序列化为字符串，防止精度丢失问题
         this.addSerializer(Long.class, ToStringSerializer.instance);

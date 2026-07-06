@@ -46,7 +46,7 @@ public final class JavaTimeModule extends SimpleModule {
      * 构造函数
      */
     public JavaTimeModule() {
-        super(PackageVersion.VERSION);
+        super(JavaTimeModule.class.getName(), PackageVersion.VERSION, JavaTimeModule.class.getName());
 
         // 序列化
         this.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DATETIME_PATTERN)));

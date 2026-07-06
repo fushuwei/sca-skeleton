@@ -1,6 +1,5 @@
 package io.github.fushuwei.scaskeleton.system.api.response.user;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -27,25 +26,20 @@ public class UserResponse {
     private String userType;
     private String status;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime statusTime;
 
     private String statusReason;
     private Integer loginFailCount;
     private Integer mustChangePassword;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime passwordUpdateTime;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime effectiveStartTime;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime effectiveEndTime;
 
     private String lastLoginIp;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastLoginTime;
 
     private Integer isBuiltin;
@@ -53,10 +47,8 @@ public class UserResponse {
     private String remark;
     private Integer version;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
 
     private String createBy;
