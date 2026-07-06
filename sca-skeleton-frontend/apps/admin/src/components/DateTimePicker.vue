@@ -104,13 +104,14 @@ function dateOptions(dateStr: string) {
             v-model="displayValue"
             :mask="PICKER_MASK"
             :options="dateOptions"
-            minimal
+            today-btn
           />
           <q-time
             v-model="displayValue"
             :mask="PICKER_MASK"
             format24h
             with-seconds
+            now-btn
           />
         </div>
       </div>
