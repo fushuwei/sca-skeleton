@@ -37,6 +37,9 @@ public class UserUpdateRequest {
     @NotBlank(message = "用户类型不能为空")
     private String userType;
 
+    /** 是否必须修改密码：0-否，1-是 */
+    private Integer mustChangePassword;
+
     /** 部门ID列表（第一个为主部门） */
     private List<String> deptIds;
 

@@ -154,6 +154,7 @@ public class SysUserServiceImpl implements SysUserService {
         existing.setPhone(req.getPhone());
         existing.setEmail(req.getEmail());
         existing.setUserType(req.getUserType());
+        existing.setMustChangePassword(req.getMustChangePassword());
         existing.setEffectiveStartTime(req.getEffectiveStartTime());
         existing.setEffectiveEndTime(req.getEffectiveEndTime());
         existing.setRemark(req.getRemark());
