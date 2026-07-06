@@ -268,20 +268,11 @@ public class SysUserServiceImpl implements SysUserService {
         }
     }
 
-    /** 逻辑删除用户的所有角色、部门和岗位关联。 */
+    /** 物理删除用户的所有角色、部门和岗位关联（关联表为纯关系数据，无需逻辑删除）。 */
     private void deleteUserRelations(String tenantId, String userId) {
-        // 按租户 + 用户 ID 删除角色关联
-        userRoleMapper.delete(new LambdaQueryWrapper<SysUserRole>()
-                .eq(SysUserRole::getTenantId, tenantId)
-                .eq(SysUserRole::getUserId, userId));
-        // 按租户 + 用户 ID 删除部门关联
-        userDeptMapper.delete(new LambdaQueryWrapper<SysUserDept>()
-                .eq(SysUserDept::getTenantId, tenantId)
-                .eq(SysUserDept::getUserId, userId));
-        // 按租户 + 用户 ID 删除岗位关联
-        userPostMapper.delete(new LambdaQueryWrapper<SysUserPost>()
-                .eq(SysUserPost::getTenantId, tenantId)
-                .eq(SysUserPost::getUserId, userId));
+        userRoleMapper.physicalDeleteByUser(tenantId, userId);
+        userDeptMapper.physicalDeleteByUser(tenantId, userId);
+        userPostMapper.physicalDeleteByUser(tenantId, userId);
     }
 
     /**
