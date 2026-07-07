@@ -75,6 +75,17 @@ public class SecurityUtils {
     }
 
     /**
+     * 判断当前认证用户是否为平台超级管理员
+     * <p>
+     * 从不透明令牌自省属性中读取 {@code is_superadmin} claim，值为 {@code "1"} 时返回 true。
+     *
+     * @return true 表示当前用户为平台超级管理员，未认证或非超管时返回 false
+     */
+    public static boolean isSuperAdmin() {
+        return "1".equals(getClaim(OAuth2AccessTokenClaimNames.IS_SUPER_ADMIN));
+    }
+
+    /**
      * 判断当前请求是否已通过认证（排除了匿名用户）
      *
      * @return true 表示已认证，false 表示未认证

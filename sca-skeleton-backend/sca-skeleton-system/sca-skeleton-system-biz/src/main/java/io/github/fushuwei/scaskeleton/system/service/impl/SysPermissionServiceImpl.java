@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
-import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionCreateRequest;
@@ -59,7 +58,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     @Override
     public List<PermissionResponse> listUserMenus() {
         // 超级管理员直接返回所有权限
-        if ("1".equals(SecurityUtils.getClaim(OAuth2AccessTokenClaimNames.IS_SUPER_ADMIN))) {
+        if (SecurityUtils.isSuperAdmin()) {
             List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
                     .eq(SysPermission::getStatus, "enabled")
                     .orderByAsc(SysPermission::getSort));
