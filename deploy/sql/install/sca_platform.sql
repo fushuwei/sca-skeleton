@@ -285,21 +285,6 @@ CREATE TABLE IF NOT EXISTS `sys_role` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色表';
 
 
--- 平台超级管理员角色
-INSERT INTO `sys_role` (
-    `id`, `tenant_id`, `name`, `code`, `data_scope`, `is_builtin`, `sort`, `remark`, `version`,
-    `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
-)
-SELECT
-    '1', '1', '平台超级管理员', 'ROLE_SUPERADMIN', 'all', 1, 1,
-    '系统内置超级管理员角色', 0,
-    'system', NOW(), 'system', NOW(), 0
-WHERE NOT EXISTS (
-    SELECT 1 FROM `sys_role`
-    WHERE `tenant_id` = '1' AND `code` = 'ROLE_SUPERADMIN' AND `is_deleted` = 0
-);
-
-
 -- ---------------------------------------------------
 -- 角色数据权限范围表
 -- ---------------------------------------------------
@@ -333,18 +318,6 @@ CREATE TABLE IF NOT EXISTS `sys_user_role` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户角色关联表';
 
-
--- 管理员角色绑定
-INSERT INTO `sys_user_role` (
-    `id`, `tenant_id`, `user_id`, `role_id`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
-)
-SELECT
-    '1', '1', '1', '1',
-    'system', NOW(), 'system', NOW(), 0
-WHERE NOT EXISTS (
-    SELECT 1 FROM `sys_user_role`
-    WHERE `user_id` = '1' AND `role_id` = '1' AND `is_deleted` = 0
-);
 
 
 -- ---------------------------------------------------

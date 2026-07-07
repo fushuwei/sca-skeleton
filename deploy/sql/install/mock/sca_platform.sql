@@ -137,7 +137,7 @@ INSERT INTO `sys_post` (
 
 
 -- ================================================================
--- 四、角色数据（正式脚本已内置平台超级管理员角色，此处仅补充业务角色）
+-- 四、角色数据（平台超级管理员通过 sys_user.is_superadmin 标记，不走角色体系）
 -- ================================================================
 
 INSERT INTO `sys_role` (
@@ -760,7 +760,7 @@ INSERT INTO `sys_user_role` (
 INSERT INTO `sys_user_role` (
     `id`, `tenant_id`, `user_id`, `role_id`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 ) VALUES
--- 正式脚本已绑定 admin 用户(id=1)到超级管理员角色(id=1)，此处绑定模拟用户
+-- 绑定模拟用户到角色（超级管理员通过 sys_user.is_superadmin 标记，不走角色体系）
 ('900001', '1', '2', '405', 'system', NOW(), 'system', NOW(), 0);
 
 
