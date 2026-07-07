@@ -1,6 +1,7 @@
 -- ================================================================
--- SCA Platform - 高校教育行业初始化数据脚本
--- 包含：部门、菜单、岗位、角色、用户等初始化数据
+-- SCA Platform - 高校教育行业模拟数据脚本
+-- 包含：部门、岗位、角色、用户等模拟数据（用于测试和演示）
+-- 注意：此脚本仅用于模拟数据，正式环境请使用 sca_platform.sql
 -- ================================================================
 
 -- 创建数据库
@@ -77,40 +78,10 @@ INSERT INTO `sys_dept` (
 
 
 -- ================================================================
--- 二、菜单/权限数据（从sca_platform.sql迁移 + 新增数据源管理模块）
+-- 二、菜单/权限数据（已迁移至sca_platform.sql正式脚本）
 -- ================================================================
-
-INSERT INTO `sys_permission` (
-    `id`, `parent_id`, `name`, `type`, `code`, `path`, `component`, `icon`,
-    `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `remark`,
-    `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
-) VALUES
--- 系统管理模块（从sca_platform.sql迁移）
-('1000', '0', '系统管理', 'module', NULL, NULL, NULL, 'sym_r_settings', 100, 1, 0, 'enabled', '0,1000', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('1100', '1000', '用户与权限', 'folder', NULL, NULL, NULL, 'sym_r_folder', 100, 1, 0, 'enabled', '0,1000,1100', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('1101', '1100', '用户管理', 'menu', NULL, '/system/user', 'UserListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1100,1101', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('1102', '1100', '角色管理', 'menu', NULL, '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1100,1102', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('1103', '1100', '菜单管理', 'menu', NULL, '/system/menu', 'MenuListView', 'sym_r_nest_eco_leaf', 300, 1, 0, 'enabled', '0,1000,1100,1103', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('1200', '1000', '组织与岗位', 'folder', NULL, NULL, NULL, 'sym_r_folder', 200, 1, 0, 'enabled', '0,1000,1200', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('1201', '1200', '部门管理', 'menu', NULL, '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1200,1201', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('1202', '1200', '岗位管理', 'menu', NULL, '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1200,1202', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('1301', '1000', '字典管理', 'menu', NULL, '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 300, 1, 0, 'enabled', '0,1000,1301', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('1302', '1000', '系统配置', 'menu', NULL, '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf', 400, 1, 0, 'enabled', '0,1000,1302', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('1303', '1000', '通知公告', 'menu', NULL, '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 500, 1, 0, 'enabled', '0,1000,1303', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('1304', '1000', '操作日志', 'menu', NULL, '/system/log/operation', 'PlaceholderView', 'sym_r_nest_eco_leaf', 600, 1, 0, 'enabled', '0,1000,1304', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('1305', '1000', '登录日志', 'menu', NULL, '/system/log/login', 'PlaceholderView', 'sym_r_nest_eco_leaf', 700, 1, 0, 'enabled', '0,1000,1305', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-
--- 数据源管理模块（新增）
-('5000', '0', '数据源管理', 'module', NULL, NULL, NULL, 'sym_r_database', 200, 1, 0, 'enabled', '0,5000', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('5100', '5000', '数据源管理', 'folder', NULL, NULL, NULL, 'sym_r_folder', 100, 1, 0, 'enabled', '0,5000,5100', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('5101', '5100', '数据源列表', 'menu', NULL, '/datasource/list', 'DataSourceListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,5000,5100,5101', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('5102', '5100', '数据源监控', 'menu', NULL, '/datasource/monitor', 'DataSourceMonitorView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,5000,5100,5102', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('5200', '5000', '数据查询', 'folder', NULL, NULL, NULL, 'sym_r_folder', 200, 1, 0, 'enabled', '0,5000,5200', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('5201', '5200', 'SQL查询', 'menu', NULL, '/datasource/sql-query', 'SqlQueryView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,5000,5200,5201', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('5202', '5200', '查询历史', 'menu', NULL, '/datasource/query-history', 'QueryHistoryView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,5000,5200,5202', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('5300', '5000', '驱动管理', 'folder', NULL, NULL, NULL, 'sym_r_folder', 300, 1, 0, 'enabled', '0,5000,5300', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('5301', '5300', '驱动列表', 'menu', NULL, '/datasource/driver-list', 'DriverListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,5000,5300,5301', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-('5302', '5300', '驱动上传', 'menu', NULL, '/datasource/driver-upload', 'DriverUploadView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,5000,5300,5302', NULL, 0, 'system', NOW(), 'system', NOW(), 0);
+-- 注意：菜单/权限数据已迁移至 sca_platform.sql 正式脚本中统一管理
+-- 包括：系统管理模块（含租户管理、系统与厂商等目录）和数据源管理模块
 
 
 -- ================================================================
@@ -397,7 +368,7 @@ INSERT INTO `sys_user` (
 
 -- ================================================================
 -- 七、前台用户数据（30名真实用户）
--- 密码统一使用：{bcrypt}$2b$10$O6pcDPNvxGrX1fA554.Cf.XWfovrwpSJFWYiyo//CTMqQigSQr6MS (portal)
+-- 密码统一使用：{bcrypt}$2b$10$O6pcDPNvxGrX1fA554.Cf.XWfovrwpSJFWYiyo//CTMqQigSQr6MS
 -- ================================================================
 
 INSERT INTO `sys_user` (

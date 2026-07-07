@@ -210,25 +210,6 @@ WHERE NOT EXISTS (
     WHERE `tenant_id` = '1' AND `username` = 'admin' AND `is_deleted` = 0
 );
 
--- 内置前台门户演示账号（密码与用户名相同：portal）
-INSERT INTO `sys_user` (
-    `id`, `tenant_id`, `username`, `password`, `nickname`, `real_name`, `gender`, `avatar`, `phone`, `email`,
-    `user_category`, `user_type`, `status`, `status_time`, `status_reason`, `login_fail_count`, `must_change_password`,
-    `password_update_time`, `effective_start_time`, `effective_end_time`, `last_login_ip`, `last_login_time`,
-    `is_builtin`, `source_type`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
-)
-SELECT
-    '2', '1', 'portal',
-    '{bcrypt}$2b$10$O6pcDPNvxGrX1fA554.Cf.XWfovrwpSJFWYiyo//CTMqQigSQr6MS',
-    '门户用户', '前台演示用户', NULL, NULL, NULL, NULL,
-    'frontend', 'member', 'active', NULL, NULL, 0, 0,
-    NOW(), NOW(), NULL, NULL, NULL,
-    1, 'initial', '系统内置门户演示账号', 0, 'system', NOW(), 'system', NOW(), 0
-WHERE NOT EXISTS (
-    SELECT 1 FROM `sys_user`
-    WHERE `tenant_id` = '1' AND `username` = 'portal' AND `is_deleted` = 0
-);
-
 
 -- ---------------------------------------------------
 -- 用户部门关联表
@@ -429,9 +410,56 @@ SELECT t.* FROM (
     SELECT '1304', '1000', '操作日志', 'menu', NULL, '/system/log/operation', 'PlaceholderView', 'sym_r_nest_eco_leaf', 600, 1, 0, 'enabled', '0,1000,1304', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     SELECT '1305', '1000', '登录日志', 'menu', NULL, '/system/log/login', 'PlaceholderView', 'sym_r_nest_eco_leaf', 700, 1, 0, 'enabled', '0,1000,1305', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '1400', '1000', '租户管理', 'folder', NULL, NULL, NULL, 'sym_r_folder', 600, 1, 0, 'enabled', '0,1000,1400', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '1401', '1400', '租户管理', 'menu', NULL, '/system/tenant', 'TenantListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1400,1401', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '1402', '1400', '套餐管理', 'menu', NULL, '/system/tenant-package', 'TenantPackageListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1400,1402', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '1500', '1000', '系统与厂商', 'folder', NULL, NULL, NULL, 'sym_r_folder', 700, 1, 0, 'enabled', '0,1000,1500', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '1501', '1500', '业务系统管理', 'menu', NULL, '/system/business-system', 'BusinessSystemListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1500,1501', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '1502', '1500', '厂商管理', 'menu', NULL, '/system/vendor', 'VendorListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1500,1502', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
 WHERE NOT EXISTS (
     SELECT 1 FROM `sys_permission` WHERE `id` = '1000' AND `is_deleted` = 0
+);
+
+
+-- 初始化数据源管理菜单权限
+INSERT INTO `sys_permission` (
+    `id`, `parent_id`, `name`, `type`, `code`, `path`, `component`, `icon`,
+    `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `remark`,
+    `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
+)
+SELECT t.* FROM (
+    SELECT '5000' AS `id`, '0' AS `parent_id`, '数据源管理' AS `name`, 'module' AS `type`, NULL AS `code`,
+           NULL AS `path`, NULL AS `component`, 'sym_r_database' AS `icon`,
+           200 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,5000' AS `tree_path`, NULL AS `remark`,
+           0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time', 0 AS `is_deleted`
+    UNION ALL
+    SELECT '5100', '5000', '数据源管理', 'folder', NULL, NULL, NULL, 'sym_r_folder', 100, 1, 0, 'enabled', '0,5000,5100', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '5101', '5100', '数据源列表', 'menu', NULL, '/datasource/list', 'DataSourceListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,5000,5100,5101', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '5102', '5100', '数据源监控', 'menu', NULL, '/datasource/monitor', 'DataSourceMonitorView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,5000,5100,5102', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '5200', '5000', '数据查询', 'folder', NULL, NULL, NULL, 'sym_r_folder', 200, 1, 0, 'enabled', '0,5000,5200', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '5201', '5200', 'SQL查询', 'menu', NULL, '/datasource/sql-query', 'SqlQueryView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,5000,5200,5201', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '5202', '5200', '查询历史', 'menu', NULL, '/datasource/query-history', 'QueryHistoryView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,5000,5200,5202', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '5300', '5000', '驱动管理', 'folder', NULL, NULL, NULL, 'sym_r_folder', 300, 1, 0, 'enabled', '0,5000,5300', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '5301', '5300', '驱动列表', 'menu', NULL, '/datasource/driver-list', 'DriverListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,5000,5300,5301', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    SELECT '5302', '5300', '驱动上传', 'menu', NULL, '/datasource/driver-upload', 'DriverUploadView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,5000,5300,5302', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+) AS t
+WHERE NOT EXISTS (
+    SELECT 1 FROM `sys_permission` WHERE `id` = '5000' AND `is_deleted` = 0
 );
 
 
