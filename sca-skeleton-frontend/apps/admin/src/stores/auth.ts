@@ -3,8 +3,8 @@ import type { Router } from "vue-router";
 import { consumePkceSession } from "@repo/shared";
 import { getAdminOAuthConfig } from "../config/oauth";
 import { getUserProfileApi } from "../apis/user";
+import { getUserMenusApi } from "../apis/permission";
 import { ensureDynamicRoutes, resetDynamicRoutes } from "../router/dynamic";
-import { DEMO_MENUS } from "../apis/mock/menus";
 import {
   MENUS_STORAGE_KEY,
   REFRESH_TOKEN_STORAGE_KEY,
@@ -45,14 +45,24 @@ export const useAuthStore = defineStore("auth", {
     isLoggedIn: (state): boolean => Boolean(state.token)
   },
   actions: {
-    /** OAuth2 PKCE 回调成功后写入令牌并加载演示菜单（菜单 API 待后续对接）。 */
+    /** OAuth2 PKCE 回调成功后写入令牌并加载菜单。 */
     async applyOAuthTokens(accessToken: string, refreshToken?: string): Promise<void> {
       this.token = accessToken;
       this.refreshToken = refreshToken ?? "";
-      this.menus = DEMO_MENUS;
       localStorage.setItem(TOKEN_STORAGE_KEY, this.token);
       if (refreshToken) {
         localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, refreshToken);
+      }
+      // 从后端获取用户菜单
+      try {
+        const result = await getUserMenusApi();
+        if (result.code === 10_000 && result.data) {
+          this.menus = result.data;
+        } else {
+          this.menus = [];
+        }
+      } catch {
+        this.menus = [];
       }
       localStorage.setItem(MENUS_STORAGE_KEY, JSON.stringify(this.menus));
       this.dynamicReady = false;

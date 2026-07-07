@@ -5,13 +5,20 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionResponse;
 import io.github.fushuwei.scaskeleton.system.converter.PermissionConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
+import io.github.fushuwei.scaskeleton.system.entity.SysRole;
+import io.github.fushuwei.scaskeleton.system.entity.SysRolePermission;
+import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.mapper.SysPermissionMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysRolePermissionMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysPermissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,7 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 权限管理服务实现。
@@ -34,12 +43,60 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     private final SysPermissionMapper permissionMapper;
     /** Entity ↔ Response 转换器（MapStruct 生成） */
     private final PermissionConverter permissionConverter;
+    /** 用户角色关联 Mapper */
+    private final SysUserRoleMapper userRoleMapper;
+    /** 角色权限关联 Mapper */
+    private final SysRolePermissionMapper rolePermissionMapper;
 
     @Override
     public List<PermissionResponse> listAllPermissions() {
         // 查询全局权限树（不按租户隔离），按 sort 升序
         List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
                 .orderByAsc(SysPermission::getSort));
+        // 转换为响应对象列表
+        return permissions.stream().map(permissionConverter::toPermissionResponse).toList();
+    }
+
+    @Override
+    public List<PermissionResponse> listUserMenus() {
+        // 获取当前登录用户ID
+        String userId = SecurityUtils.getUserId();
+        if (!StringUtils.hasText(userId)) {
+            return Collections.emptyList();
+        }
+
+        // 查询用户的角色列表
+        List<SysUserRole> userRoles = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>()
+                .eq(SysUserRole::getUserId, userId));
+        if (CollectionUtils.isEmpty(userRoles)) {
+            return Collections.emptyList();
+        }
+
+        // 获取角色ID列表
+        List<String> roleIds = userRoles.stream()
+                .map(SysUserRole::getRoleId)
+                .toList();
+
+        // 查询角色关联的权限ID列表
+        List<SysRolePermission> rolePermissions = rolePermissionMapper.selectList(new LambdaQueryWrapper<SysRolePermission>()
+                .in(SysRolePermission::getRoleId, roleIds));
+        if (CollectionUtils.isEmpty(rolePermissions)) {
+            return Collections.emptyList();
+        }
+
+        // 去重权限ID
+        List<String> permissionIds = rolePermissions.stream()
+                .map(SysRolePermission::getPermissionId)
+                .distinct()
+                .toList();
+
+        // 查询权限详情（仅菜单类型：folder 和 menu）
+        List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
+                .in(SysPermission::getId, permissionIds)
+                .in(SysPermission::getType, "folder", "menu")
+                .eq(SysPermission::getStatus, "enabled")
+                .orderByAsc(SysPermission::getSort));
+
         // 转换为响应对象列表
         return permissions.stream().map(permissionConverter::toPermissionResponse).toList();
     }

@@ -34,6 +34,12 @@ public class SysPermissionController {
         return Result.ok(permissionService.listAllPermissions());
     }
 
+    // 查询当前用户菜单列表（根据用户角色动态获取）
+    @GetMapping("/menus")
+    public Result<List<PermissionResponse>> menus() {
+        return Result.ok(permissionService.listUserMenus());
+    }
+
     // 分页查询指定父节点下的子权限列表，需 sys:permission:list
     @GetMapping("/page")
     @RequiresPermission("sys:permission:list")

@@ -18,6 +18,9 @@ public interface SysPermissionService {
     /** 查询全量权限树（用于权限分配界面） */
     List<PermissionResponse> listAllPermissions();
 
+    /** 查询当前用户菜单列表 */
+    List<PermissionResponse> listUserMenus();
+
     /** 分页查询指定父节点下的子权限列表 */
     IPage<PermissionResponse> pagePermissions(PermissionPageRequest request);
 

@@ -1,9 +1,14 @@
 import { request } from "./http";
-import type { ApiEnvelope, SysPermission, PermissionPageRequest, IPage } from "../types/auth";
+import type { ApiEnvelope, SysPermission, PermissionPageRequest, IPage, MenuItem } from "../types/auth";
 
 /** 查询全部权限列表 */
 export async function getPermissionListApi(): Promise<ApiEnvelope<SysPermission[]>> {
   return request<SysPermission[]>({ method: "GET", url: "/sys/permission/list" });
+}
+
+/** 查询当前用户菜单列表 */
+export async function getUserMenusApi(): Promise<ApiEnvelope<MenuItem[]>> {
+  return request<MenuItem[]>({ method: "GET", url: "/sys/permission/menus" });
 }
 
 /** 分页查询指定父节点下的子权限列表 */
