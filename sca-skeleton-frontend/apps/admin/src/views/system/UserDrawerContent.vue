@@ -34,8 +34,8 @@ const form = reactive({
   gender: "",
   phone: "",
   email: "",
-  userCategory: "",
   userType: "",
+  isSuperadmin: 0,
   status: "active",
   mustChangePassword: 1,
   effectiveStartTime: "",
@@ -53,7 +53,6 @@ const formRules = {
     (v: string) => v.length <= 50 || t("user.usernameLengthMax"),
     (v: string) => /^[a-zA-Z0-9_]+$/.test(v) || t("user.usernamePattern")
   ],
-  userCategory: [(v: string) => !!v || t("user.userCategoryRequired")],
   userType: [(v: string) => !!v || t("user.userTypeRequired")],
   deptId: [(v: string) => !!v || t("user.deptRequired")],
   roleIds: [(v: string[]) => v?.length > 0 || t("user.roleRequired")],
@@ -82,16 +81,9 @@ const genderOptions = computed(() => [
   { label: t("user.genderFemale"), value: "female" }
 ]);
 
-const userCategoryOptions = computed(() => [
-  { label: t("user.userCategoryBackend"), value: "backend" },
-  { label: t("user.userCategoryFrontend"), value: "frontend" }
-]);
-
 const userTypeOptions = computed(() => [
-  { label: "超级管理员", value: "superadmin" },
-  { label: "租户管理员", value: "tenant_admin" },
-  { label: "部门管理员", value: "dept_admin" },
-  { label: "普通用户", value: "normal" }
+  { label: t("user.categoryBackend"), value: "backend" },
+  { label: t("user.categoryFrontend"), value: "frontend" }
 ]);
 
 const statusOptions = computed(() => [
@@ -325,8 +317,8 @@ function resetForm() {
   form.gender = "";
   form.phone = "";
   form.email = "";
-  form.userCategory = "";
   form.userType = "";
+  form.isSuperadmin = 0;
   form.status = "active";
   form.mustChangePassword = 1;
   form.effectiveStartTime = "";
@@ -347,8 +339,8 @@ function initForm() {
     form.gender = props.user.gender;
     form.phone = props.user.phone;
     form.email = props.user.email;
-    form.userCategory = props.user.userCategory;
     form.userType = props.user.userType;
+    form.isSuperadmin = props.user.isSuperadmin ?? 0;
     form.status = props.user.status;
     form.mustChangePassword = props.user.mustChangePassword ?? 1;
     form.effectiveStartTime = props.user.effectiveStartTime || "";
@@ -381,8 +373,8 @@ async function handleSave() {
     gender: form.gender || undefined,
     phone: form.phone || undefined,
     email: form.email || undefined,
-    userCategory: form.userCategory,
     userType: form.userType,
+    isSuperadmin: form.isSuperadmin,
     status: form.status,
     mustChangePassword: form.mustChangePassword,
     effectiveStartTime: form.effectiveStartTime || undefined,
@@ -561,24 +553,6 @@ async function handleSave() {
         <!-- 用户类别 -->
         <div class="col-12 col-md-6">
           <q-select
-            v-model="form.userCategory"
-            :label="t('user.userCategory')"
-            filled
-            square
-            :options="userCategoryOptions"
-            option-label="label"
-            option-value="value"
-            emit-value
-            map-options
-            :rules="formRules.userCategory"
-            :disable="drawerReadonly"
-            hide-bottom-space
-            class="required-field"
-          />
-        </div>
-        <!-- 用户类型 -->
-        <div class="col-12 col-md-6">
-          <q-select
             v-model="form.userType"
             :label="t('user.userType')"
             filled
@@ -592,6 +566,17 @@ async function handleSave() {
             :disable="drawerReadonly"
             hide-bottom-space
             class="required-field"
+          />
+        </div>
+        <!-- 超级管理员 -->
+        <div class="col-12 col-md-6">
+          <q-toggle
+            v-model="form.isSuperadmin"
+            :label="t('user.isSuperadmin')"
+            :true-value="1"
+            :false-value="0"
+            :disable="drawerReadonly"
+            class="q-mt-sm"
           />
         </div>
         <!-- 状态 -->

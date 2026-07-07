@@ -29,7 +29,7 @@ public class ScaUserDetails implements UserDetails {
 
     private final String nickname;
 
-    private final String userType;
+    private final Integer isSuperadmin;
 
     private final List<String> permissions;
 
@@ -42,7 +42,7 @@ public class ScaUserDetails implements UserDetails {
     private final boolean credentialsNonExpired;
 
     public ScaUserDetails(String userId, String tenantId, String username, String password,
-            String nickname, String userType, List<String> permissions,
+            String nickname, Integer isSuperadmin, List<String> permissions,
             boolean enabled, boolean accountNonLocked,
             boolean accountNonExpired, boolean credentialsNonExpired) {
         this.userId = userId;
@@ -50,7 +50,7 @@ public class ScaUserDetails implements UserDetails {
         this.username = username;
         this.password = password;
         this.nickname = nickname;
-        this.userType = userType;
+        this.isSuperadmin = isSuperadmin;
         this.permissions = permissions != null ? permissions : List.of();
         this.enabled = enabled;
         this.accountNonLocked = accountNonLocked;

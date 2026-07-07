@@ -64,7 +64,7 @@ public class SysUserServiceImpl implements SysUserService {
         Page<UserPageResponse> page = new Page<>(req.getPageNum(), req.getPageSize());
         return userMapper.selectUserPage(page, tenantId,
                 req.getKeyword(), req.getUsername(), req.getNickname(),
-                req.getUserCategory(), req.getUserType(),
+                req.getUserType(),
                 req.getStatus(), req.getDeptId(),
                 req.safeOrderBy(), req.safeOrderDirection());
     }
@@ -109,7 +109,7 @@ public class SysUserServiceImpl implements SysUserService {
         long count = userMapper.selectCount(new LambdaQueryWrapper<SysUser>()
                 .eq(SysUser::getTenantId, tenantId)
                 .eq(SysUser::getUsername, req.getUsername())
-                .eq(SysUser::getUserCategory, "backend"));
+                .eq(SysUser::getUserType, "backend"));
         if (count > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "用户名已存在");
         }
@@ -126,8 +126,8 @@ public class SysUserServiceImpl implements SysUserService {
         user.setGender(req.getGender());
         user.setPhone(req.getPhone());
         user.setEmail(req.getEmail());
-        user.setUserCategory("backend");
-        user.setUserType(req.getUserType());
+        user.setUserType("backend");
+        user.setIsSuperadmin(req.getIsSuperadmin() != null ? req.getIsSuperadmin() : 0);
         user.setStatus(StringUtils.hasText(req.getStatus()) ? req.getStatus() : "active");
         user.setLoginFailCount(0);
         user.setMustChangePassword(1);
@@ -153,7 +153,7 @@ public class SysUserServiceImpl implements SysUserService {
         existing.setGender(req.getGender());
         existing.setPhone(req.getPhone());
         existing.setEmail(req.getEmail());
-        existing.setUserType(req.getUserType());
+        existing.setIsSuperadmin(req.getIsSuperadmin() != null ? req.getIsSuperadmin() : 0);
         existing.setMustChangePassword(req.getMustChangePassword());
         existing.setEffectiveStartTime(req.getEffectiveStartTime());
         existing.setEffectiveEndTime(req.getEffectiveEndTime());

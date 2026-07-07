@@ -39,7 +39,7 @@ public class ScaOpaqueAccessTokenClaimsCustomizer implements OAuth2TokenCustomiz
         claims.subject(userDetails.getUserId());
         claims.claim(OAuth2AccessTokenClaimNames.PREFERRED_USERNAME, userDetails.getUsername());
         claims.claim(OAuth2AccessTokenClaimNames.TENANT_ID, userDetails.getTenantId());
-        claims.claim(OAuth2AccessTokenClaimNames.USER_TYPE, userDetails.getUserType());
+        claims.claim(OAuth2AccessTokenClaimNames.IS_SUPER_ADMIN, userDetails.getIsSuperadmin());
         claims.claim(OAuth2AccessTokenClaimNames.NICKNAME, userDetails.getNickname());
         claims.claim(OAuth2AccessTokenClaimNames.AUTHORITIES, userDetails.getPermissions());
     }

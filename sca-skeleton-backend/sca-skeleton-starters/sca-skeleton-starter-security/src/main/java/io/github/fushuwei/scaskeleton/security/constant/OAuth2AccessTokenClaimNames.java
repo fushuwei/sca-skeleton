@@ -26,9 +26,9 @@ public class OAuth2AccessTokenClaimNames {
     public static final String PREFERRED_USERNAME = "preferred_username";
 
     /**
-     * 用户类型
+     * 是否平台超级管理员
      */
-    public static final String USER_TYPE = "user_type";
+    public static final String IS_SUPER_ADMIN = "is_superadmin";
 
     /**
      * 用户昵称

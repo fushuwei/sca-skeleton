@@ -34,8 +34,8 @@ public class UserUpdateRequest {
     @Email(message = "邮箱格式不正确")
     private String email;
 
-    @NotBlank(message = "用户类型不能为空")
-    private String userType;
+    /** 是否平台超级管理员（0否 1是，默认0） */
+    private Integer isSuperadmin;
 
     /** 是否必须修改密码：0-否，1-是 */
     private Integer mustChangePassword;

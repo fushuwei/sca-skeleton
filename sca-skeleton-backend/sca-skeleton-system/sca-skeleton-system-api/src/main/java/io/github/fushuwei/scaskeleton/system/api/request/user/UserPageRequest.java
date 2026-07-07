@@ -16,7 +16,7 @@ public class UserPageRequest {
 
     /** 允许排序的字段白名单，防止 SQL 注入 */
     private static final Set<String> ALLOWED_ORDER_FIELDS = Set.of(
-            "username", "nickname", "real_name", "user_type", "status", "create_time", "dept_name"
+            "username", "nickname", "real_name", "user_type", "is_superadmin", "status", "create_time", "dept_name"
     );
 
     /** 页码，从 1 开始 */
@@ -34,9 +34,7 @@ public class UserPageRequest {
     private String username;
     /** 昵称模糊查询 */
     private String nickname;
-    /** 用户类别筛选：backend / frontend */
-    private String userCategory;
-    /** 用户类型筛选：superadmin / tenant_admin / dept_admin / normal */
+    /** 用户类型筛选：backend / frontend */
     private String userType;
     /** 用户状态筛选 */
     private String status;

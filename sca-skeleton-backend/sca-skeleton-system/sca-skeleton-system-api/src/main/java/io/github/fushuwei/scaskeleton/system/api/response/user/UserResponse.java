@@ -22,8 +22,8 @@ public class UserResponse {
     private String avatar;
     private String phone;
     private String email;
-    private String userCategory;
     private String userType;
+    private Integer isSuperadmin;
     private String status;
 
     private LocalDateTime statusTime;

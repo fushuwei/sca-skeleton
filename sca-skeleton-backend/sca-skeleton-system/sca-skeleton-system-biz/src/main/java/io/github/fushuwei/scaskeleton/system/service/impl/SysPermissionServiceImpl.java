@@ -58,14 +58,8 @@ public class SysPermissionServiceImpl implements SysPermissionService {
 
     @Override
     public List<PermissionResponse> listUserMenus() {
-        // 从 token 中获取用户类型
-        String userType = SecurityUtils.getClaim(OAuth2AccessTokenClaimNames.USER_TYPE);
-        if (!StringUtils.hasText(userType)) {
-            return Collections.emptyList();
-        }
-
         // 超级管理员直接返回所有权限
-        if ("superadmin".equals(userType)) {
+        if ("1".equals(SecurityUtils.getClaim(OAuth2AccessTokenClaimNames.IS_SUPER_ADMIN))) {
             List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
                     .eq(SysPermission::getStatus, "enabled")
                     .orderByAsc(SysPermission::getSort));

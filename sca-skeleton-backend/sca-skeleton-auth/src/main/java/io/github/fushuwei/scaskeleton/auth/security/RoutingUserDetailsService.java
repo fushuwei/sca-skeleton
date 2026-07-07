@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 /**
  * 路由式用户详情服务：根据 {@link LoginChannelContext} 将认证请求分发到不同用户类别加载逻辑。
  * <p>
- * admin 渠道加载 {@code user_category=backend}；portal 渠道加载 {@code user_category=frontend}。
+ * admin 渠道加载 {@code user_type=backend}；portal 渠道加载 {@code user_type=frontend}。
  *
  * @author Fu Wei
  */

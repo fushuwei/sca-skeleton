@@ -54,10 +54,10 @@ export interface SysUser {
   avatar: string;
   phone: string;
   email: string;
-  /** 用户类别：backend / frontend */
-  userCategory: string;
-  /** 用户类型：superadmin / tenant_admin / dept_admin / normal */
+  /** 用户类型：backend 后台用户 / frontend 前台用户 */
   userType: string;
+  /** 是否平台超级管理员：0-否，1-是 */
+  isSuperadmin: number;
   /** 状态：active / inactive / locked / frozen / expired / disabled / cancelled */
   status: string;
   statusTime: string;
@@ -97,7 +97,6 @@ export interface UserPageRequest {
   keyword?: string;
   username?: string;
   nickname?: string;
-  userCategory?: string;
   userType?: string;
   status?: string;
   deptId?: string;

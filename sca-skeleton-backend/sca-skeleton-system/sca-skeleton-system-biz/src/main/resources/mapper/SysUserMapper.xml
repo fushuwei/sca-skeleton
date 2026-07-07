@@ -8,7 +8,7 @@
         SELECT
             u.id, u.tenant_id, u.username, u.nickname, u.real_name,
             u.gender, u.avatar, u.phone, u.email,
-            u.user_category, u.user_type, u.status,
+            u.user_type, u.is_superadmin, u.status,
             u.status_time, u.status_reason, u.login_fail_count,
             u.must_change_password, u.password_update_time,
             u.effective_start_time, u.effective_end_time,
@@ -36,10 +36,7 @@
         ) r ON r.user_id = u.id
         WHERE u.is_deleted = 0
           AND u.tenant_id = #{tenantId}
-          AND u.user_category = 'backend'
-        <if test="userCategory != null and userCategory != ''">
-            AND u.user_category = #{userCategory}
-        </if>
+          AND u.user_type = 'backend'
         <if test="userType != null and userType != ''">
             AND u.user_type = #{userType}
         </if>

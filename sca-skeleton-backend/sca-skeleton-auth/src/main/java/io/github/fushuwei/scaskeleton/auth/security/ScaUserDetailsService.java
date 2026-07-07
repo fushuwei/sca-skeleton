@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * 用户详情服务：从数据库加载用户信息用于 Spring Security 表单登录与 OAuth2 令牌颁发。
  * <p>
- * 管理后台加载 {@code user_category=backend}；前台门户加载 {@code user_category=frontend}。
+ * 管理后台加载 {@code user_type=backend}；前台门户加载 {@code user_type=frontend}。
  * 由 {@link RoutingUserDetailsService} 按 {@link LoginChannel} 路由调用。
  *
  * @author Fu Wei
@@ -32,7 +32,7 @@ public class ScaUserDetailsService {
     private final LoginAttemptService loginAttemptService;
 
     /**
-     * 按用户名加载后台用户（user_category=backend）。
+     * 按用户名加载后台用户（user_type=backend）。
      *
      * @param username 登录用户名
      * @return {@link ScaUserDetails}
@@ -43,7 +43,7 @@ public class ScaUserDetailsService {
         SysUser user = sysUserMapper.selectOne(
                 new LambdaQueryWrapper<SysUser>()
                         .eq(SysUser::getUsername, username)
-                        .eq(SysUser::getUserCategory, "backend")
+                        .eq(SysUser::getUserType, "backend")
         );
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在：" + username);
@@ -52,7 +52,7 @@ public class ScaUserDetailsService {
     }
 
     /**
-     * 按用户名加载前台门户用户（user_category=frontend）。
+     * 按用户名加载前台门户用户（user_type=frontend）。
      *
      * @param username 登录用户名
      * @return {@link ScaUserDetails}
@@ -63,7 +63,7 @@ public class ScaUserDetailsService {
         SysUser user = sysUserMapper.selectOne(
                 new LambdaQueryWrapper<SysUser>()
                         .eq(SysUser::getUsername, username)
-                        .eq(SysUser::getUserCategory, "frontend")
+                        .eq(SysUser::getUserType, "frontend")
         );
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在：" + username);
@@ -86,7 +86,7 @@ public class ScaUserDetailsService {
                 new LambdaQueryWrapper<SysUser>()
                         .eq(SysUser::getUsername, username)
                         .eq(SysUser::getTenantId, tenantId)
-                        .eq(SysUser::getUserCategory, "backend")
+                        .eq(SysUser::getUserType, "backend")
         );
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在：" + username);
@@ -131,7 +131,7 @@ public class ScaUserDetailsService {
                 user.getUsername(),
                 user.getPassword(),
                 user.getNickname(),
-                user.getUserType(),
+                user.getIsSuperadmin(),
                 permissions,
                 enabled,
                 accountNonLocked,

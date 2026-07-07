@@ -232,147 +232,147 @@ INSERT INTO `sys_role_permission` (
 
 INSERT INTO `sys_user` (
     `id`, `tenant_id`, `username`, `password`, `nickname`, `real_name`, `gender`, `avatar`, `phone`, `email`,
-    `user_category`, `user_type`, `status`, `status_time`, `status_reason`, `login_fail_count`, `must_change_password`,
+    `user_type`, `is_superadmin`, `status`, `status_time`, `status_reason`, `login_fail_count`, `must_change_password`,
     `password_update_time`, `effective_start_time`, `effective_end_time`, `last_login_ip`, `last_login_time`,
     `is_builtin`, `source_type`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 ) VALUES
 -- 1. 超级管理员
 ('200001', '1', 'zhangweiqiang', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '张校长', '张伟强', 'male', NULL, '13800138001', 'zhangwq@hust.edu.cn',
- 'backend', 'superadmin', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.100', '2026-07-06 09:15:00',
  1, 'initial', '校长，负责学校全面工作', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 2. 信息中心主任
 ('200002', '1', 'wangjianhua', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '王主任', '王建华', 'male', NULL, '13800138002', 'wangjh@hust.edu.cn',
- 'backend', 'dept_admin', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.101', '2026-07-06 08:30:00',
  0, 'manual', '信息中心主任，负责信息化建设', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 3. 教务处处长
 ('200003', '1', 'chenxiaoyan', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '陈处长', '陈晓燕', 'female', NULL, '13800138003', 'chenxy@hust.edu.cn',
- 'backend', 'dept_admin', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.102', '2026-07-06 08:45:00',
  0, 'manual', '教务处处长，负责教学管理工作', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 4. 科研处处长
 ('200004', '1', 'liuqiang', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '刘处长', '刘强', 'male', NULL, '13800138004', 'liuq@hust.edu.cn',
- 'backend', 'dept_admin', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.103', '2026-07-06 09:00:00',
  0, 'manual', '科研处处长，负责科研项目管理', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 5. 人事处处长
 ('200005', '1', 'wangfang', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '王处长', '王芳', 'female', NULL, '13800138005', 'wangf@hust.edu.cn',
- 'backend', 'dept_admin', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.104', '2026-07-06 09:10:00',
  0, 'manual', '人事处处长，负责教职工管理', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 6. 财务处处长
 ('200006', '1', 'zhaojun', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '赵处长', '赵军', 'male', NULL, '13800138006', 'zhaoj@hust.edu.cn',
- 'backend', 'dept_admin', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.105', '2026-07-06 08:20:00',
  0, 'manual', '财务处处长，负责财务管理工作', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 7. 学生处处长
 ('200007', '1', 'zhoumin', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '周处长', '周敏', 'female', NULL, '13800138007', 'zhoum@hust.edu.cn',
- 'backend', 'dept_admin', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.106', '2026-07-06 09:20:00',
  0, 'manual', '学生处处长，负责学生事务管理', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 8. 信息技术部主任
 ('200008', '1', 'chenwei', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '陈主任', '陈伟', 'male', NULL, '13800138008', 'chenw@hust.edu.cn',
- 'backend', 'dept_admin', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.107', '2026-07-06 08:50:00',
  0, 'manual', '信息技术部主任，负责技术开发', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 9. 数据管理部主任
 ('200009', '1', 'zhanglei', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '张主任', '张蕾', 'female', NULL, '13800138009', 'zhanglei@hust.edu.cn',
- 'backend', 'dept_admin', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.108', '2026-07-06 08:55:00',
  0, 'manual', '数据管理部主任，负责数据治理', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 10. 网络运维部主任
 ('200010', '1', 'ligang', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '李主任', '李刚', 'male', NULL, '13800138010', 'lig@hust.edu.cn',
- 'backend', 'dept_admin', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.109', '2026-07-06 09:05:00',
  0, 'manual', '网络运维部主任，负责网络运维', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 11. 数据库管理员
 ('200011', '1', 'liuyang', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '刘工', '刘洋', 'male', NULL, '13800138011', 'liuy@hust.edu.cn',
- 'backend', 'normal', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.110', '2026-07-06 09:25:00',
  0, 'manual', '数据库管理员，负责数据库运维', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 12. 系统运维工程师
 ('200012', '1', 'huangzhiyuan', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '黄工', '黄志远', 'male', NULL, '13800138012', 'huangzy@hust.edu.cn',
- 'backend', 'normal', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.111', '2026-07-06 08:40:00',
  0, 'manual', '系统运维工程师，负责系统监控', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 13. 数据分析师
 ('200013', '1', 'sunlihua', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '孙工', '孙丽华', 'female', NULL, '13800138013', 'sunlh@hust.edu.cn',
- 'backend', 'normal', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.112', '2026-07-06 09:30:00',
  0, 'manual', '数据分析师，负责数据分析报表', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 14. 计算机学院院长
 ('200014', '1', 'zhouzhiming', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '周院长', '周志明', 'male', NULL, '13800138014', 'zhouzm@hust.edu.cn',
- 'backend', 'dept_admin', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.113', '2026-07-06 08:35:00',
  0, 'manual', '计算机学院院长，负责学院全面工作', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 15. 招生办公室主任
 ('200015', '1', 'zhengxiuying', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '郑主任', '郑秀英', 'female', NULL, '13800138015', 'zhengxy@hust.edu.cn',
- 'backend', 'dept_admin', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.114', '2026-07-06 09:35:00',
  0, 'manual', '招生办公室主任，负责招生工作', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 16. 教务处副处长
 ('200016', '1', 'wujianping', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '吴副处长', '吴建平', 'male', NULL, '13800138016', 'wujp@hust.edu.cn',
- 'backend', 'normal', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.115', '2026-07-06 09:40:00',
  0, 'manual', '教务处副处长，协助处长工作', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 17. 科研处副处长
 ('200017', '1', 'wudehua', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '王副处长', '王德华', 'male', NULL, '13800138017', 'wangdh@hust.edu.cn',
- 'backend', 'normal', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.116', '2026-07-06 08:25:00',
  0, 'manual', '科研处副处长，协助处长工作', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 18. 财务处会计
 ('200018', '1', 'hezhiqiang', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '何会计', '何志强', 'male', NULL, '13800138018', 'hezq@hust.edu.cn',
- 'backend', 'normal', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.117', '2026-07-06 09:45:00',
  0, 'manual', '财务处会计，负责账务处理', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 19. 人事处副处长
 ('200019', '1', 'linzhenghua', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '林副处长', '林正华', 'male', NULL, '13800138019', 'linzh@hust.edu.cn',
- 'backend', 'normal', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.118', '2026-07-06 09:50:00',
  0, 'manual', '人事处副处长，协助处长工作', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 20. 系统运维工程师
 ('200020', '1', 'majiang', '{bcrypt}$2b$10$Z0k6MIe47KMVn6.Hpzt9juIuScAP5MMeYxcZ45Axq/m4A9K/AR5vC',
  '马工', '马强', 'male', NULL, '13800138020', 'maj@hust.edu.cn',
- 'backend', 'normal', 'active', NULL, NULL, 0, 0,
+ 'backend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '192.168.1.119', '2026-07-06 08:15:00',
  0, 'manual', '系统运维工程师，负责服务器维护', 0, 'system', NOW(), 'system', NOW(), 0);
 
@@ -384,190 +384,190 @@ INSERT INTO `sys_user` (
 
 INSERT INTO `sys_user` (
     `id`, `tenant_id`, `username`, `password`, `nickname`, `real_name`, `gender`, `avatar`, `phone`, `email`,
-    `user_category`, `user_type`, `status`, `status_time`, `status_reason`, `login_fail_count`, `must_change_password`,
+    `user_type`, `is_superadmin`, `status`, `status_time`, `status_reason`, `login_fail_count`, `must_change_password`,
     `password_update_time`, `effective_start_time`, `effective_end_time`, `last_login_ip`, `last_login_time`,
     `is_builtin`, `source_type`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 ) VALUES
 -- 教师用户（10名）
 ('300001', '1', 'liming', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '李老师', '李明', 'male', NULL, '13900139001', 'liming@hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.0.1', '2026-07-06 10:00:00',
  0, 'manual', '计算机学院副教授，研究方向为人工智能', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300002', '1', 'zhangyan', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '张老师', '张燕', 'female', NULL, '13900139002', 'zhangyan@hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.0.2', '2026-07-06 10:15:00',
  0, 'manual', '外国语学院讲师，研究方向为英语语言学', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300003', '1', 'wanggang', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '王老师', '王刚', 'male', NULL, '13900139003', 'wangg@hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.0.3', '2026-07-06 10:30:00',
  0, 'manual', '机械工程学院教授，研究方向为机器人技术', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300004', '1', 'liumin', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '刘老师', '刘敏', 'female', NULL, '13900139004', 'liumin@hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.0.4', '2026-07-06 10:45:00',
  0, 'manual', '经济管理学院副教授，研究方向为市场营销', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300005', '1', 'zhaoli', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '赵老师', '赵丽', 'female', NULL, '13900139005', 'zhaol@hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.0.5', '2026-07-06 11:00:00',
  0, 'manual', '理学院讲师，研究方向为应用数学', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300006', '1', 'sunwei', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '孙老师', '孙伟', 'male', NULL, '13900139006', 'sunw@hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.0.6', '2026-07-06 11:15:00',
  0, 'manual', '电子工程学院教授，研究方向为通信工程', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300007', '1', 'zhoujing', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '周老师', '周静', 'female', NULL, '13900139007', 'zhouj@hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.0.7', '2026-07-06 11:30:00',
  0, 'manual', '文学院副教授，研究方向为中国现当代文学', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300008', '1', 'wuhua', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '吴老师', '吴华', 'male', NULL, '13900139008', 'wuh@hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.0.8', '2026-07-06 11:45:00',
  0, 'manual', '法学院讲师，研究方向为宪法学', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300009', '1', 'zhengmei', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '郑老师', '郑梅', 'female', NULL, '13900139009', 'zhengm@hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.0.9', '2026-07-06 12:00:00',
  0, 'manual', '艺术学院副教授，研究方向为视觉传达', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300010', '1', 'huanghai', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '黄老师', '黄海', 'male', NULL, '13900139010', 'huangh@hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.0.10', '2026-07-06 12:15:00',
  0, 'manual', '体育部讲师，研究方向为体育训练', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 学生用户（15名）
 ('300011', '1', 'chenxiaoming', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '陈同学', '陈小明', 'male', NULL, '13900139011', 'chenxm@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.1', '2026-07-06 14:00:00',
  0, 'manual', '计算机学院2023级本科生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300012', '1', 'wanglihua', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '王同学', '王丽华', 'female', NULL, '13900139012', 'wanglh@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.2', '2026-07-06 14:15:00',
  0, 'manual', '经济管理学院2024级硕士研究生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300013', '1', 'liqiang', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '李同学', '李强', 'male', NULL, '13900139013', 'liqiang@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.3', '2026-07-06 14:30:00',
  0, 'manual', '机械工程学院2023级博士研究生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300014', '1', 'zhangmeiling', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '张同学', '张美玲', 'female', NULL, '13900139014', 'zhangml@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.4', '2026-07-06 14:45:00',
  0, 'manual', '外国语学院2024级本科生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300015', '1', 'wangpeng', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '王同学', '王鹏', 'male', NULL, '13900139015', 'wangp@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.5', '2026-07-06 15:00:00',
  0, 'manual', '电子工程学院2023级本科生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300016', '1', 'liuna', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '刘同学', '刘娜', 'female', NULL, '13900139016', 'liuna@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.6', '2026-07-06 15:15:00',
  0, 'manual', '理学院2024级硕士研究生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300017', '1', 'zhaogang', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '赵同学', '赵刚', 'male', NULL, '13900139017', 'zhaog@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.7', '2026-07-06 15:30:00',
  0, 'manual', '计算机学院2023级本科生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300018', '1', 'huangyan', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '黄同学', '黄燕', 'female', NULL, '13900139018', 'huangy@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.8', '2026-07-06 15:45:00',
  0, 'manual', '文学院2024级本科生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300019', '1', 'zhoujie', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '周同学', '周杰', 'male', NULL, '13900139019', 'zhouj@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.9', '2026-07-06 16:00:00',
  0, 'manual', '法学院2023级本科生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300020', '1', 'wumin', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '吴同学', '吴敏', 'female', NULL, '13900139020', 'wumin@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.10', '2026-07-06 16:15:00',
  0, 'manual', '艺术学院2024级本科生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300021', '1', 'sunhao', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '孙同学', '孙浩', 'male', NULL, '13900139021', 'sunh@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.11', '2026-07-06 16:30:00',
  0, 'manual', '计算机学院2024级硕士研究生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300022', '1', 'chenxiaoli', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '陈同学', '陈小丽', 'female', NULL, '13900139022', 'chenxl@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.12', '2026-07-06 16:45:00',
  0, 'manual', '经济管理学院2023级本科生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300023', '1', 'yangfei', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '杨同学', '杨飞', 'male', NULL, '13900139023', 'yangf@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.13', '2026-07-06 17:00:00',
  0, 'manual', '电子工程学院2024级本科生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300024', '1', 'hejing', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '何同学', '何静', 'female', NULL, '13900139024', 'hej@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.14', '2026-07-06 17:15:00',
  0, 'manual', '理学院2023级博士研究生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300025', '1', 'linbo', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '林同学', '林波', 'male', NULL, '13900139025', 'linb@student.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.1.15', '2026-07-06 17:30:00',
  0, 'manual', '机械工程学院2024级本科生', 0, 'system', NOW(), 'system', NOW(), 0),
 
 -- 校友和访问学者（5名）
 ('300026', '1', 'xufeng', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '徐校友', '徐峰', 'male', NULL, '13900139026', 'xuf@alumni.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.2.1', '2026-07-06 18:00:00',
  0, 'manual', '2015届毕业生，现就职于华为技术有限公司', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300027', '1', 'majing', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '马校友', '马静', 'female', NULL, '13900139027', 'maj@alumni.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.2.2', '2026-07-06 18:15:00',
  0, 'manual', '2018届毕业生，现就职于阿里巴巴集团', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300028', '1', 'gaoming', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '高校友', '高明', 'male', NULL, '13900139028', 'gaom@alumni.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.2.3', '2026-07-06 18:30:00',
  0, 'manual', '2020届毕业生，现就职于腾讯科技', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300029', '1', 'robert_wang', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '王教授', 'Robert Wang', 'male', NULL, '13900139029', 'robert@visiting.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.3.1', '2026-07-06 19:00:00',
  0, 'manual', 'MIT访问学者，研究方向为计算机视觉', 0, 'system', NOW(), 'system', NOW(), 0),
 
 ('300030', '1', 'sarah_li', '{bcrypt}$2b$10$T/ZPI4.46L/XsPyYZTLcmeUF3orBKCfrOjbDgJZUitKeT2d.1g6WG',
  '李博士', 'Sarah Li', 'female', NULL, '13900139030', 'sarah@visiting.hust.edu.cn',
- 'frontend', 'member', 'active', NULL, NULL, 0, 0,
+ 'frontend', 0, 'active', NULL, NULL, 0, 0,
  NOW(), NOW(), NULL, '10.0.3.2', '2026-07-06 19:15:00',
  0, 'manual', 'Stanford访问学者，研究方向为自然语言处理', 0, 'system', NOW(), 'system', NOW(), 0);
 

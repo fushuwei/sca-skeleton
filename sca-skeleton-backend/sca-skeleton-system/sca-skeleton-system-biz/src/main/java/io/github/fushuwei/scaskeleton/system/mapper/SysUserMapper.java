@@ -31,7 +31,6 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
                                      @Param("keyword") String keyword,
                                      @Param("username") String username,
                                      @Param("nickname") String nickname,
-                                     @Param("userCategory") String userCategory,
                                      @Param("userType") String userType,
                                      @Param("status") String status,
                                      @Param("deptId") String deptId,

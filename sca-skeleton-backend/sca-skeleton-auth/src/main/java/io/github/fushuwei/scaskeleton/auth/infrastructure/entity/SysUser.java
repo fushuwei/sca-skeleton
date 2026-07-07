@@ -32,11 +32,11 @@ public class SysUser extends BaseEntity {
     /** 昵称 */
     private String nickname;
 
-    /** 用户类别：backend 后台用户，frontend 前台用户 */
-    private String userCategory;
-
-    /** 用户类型：superadmin / tenant_admin / dept_admin / normal */
+    /** 用户类型：backend 后台用户，frontend 前台用户 */
     private String userType;
+
+    /** 是否平台超级管理员：0-否，1-是 */
+    private Integer isSuperadmin;
 
     /**
      * 账号状态：

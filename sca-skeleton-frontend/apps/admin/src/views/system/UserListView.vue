@@ -233,7 +233,6 @@ const searchForm = reactive<UserPageRequest>({
   keyword: "",
   username: "",
   nickname: "",
-  userCategory: "",
   userType: "",
   status: "",
   deptId: ""
@@ -258,18 +257,10 @@ const statusOptions = [
   { label: "user.statusCancelled", value: "cancelled" }
 ];
 
-// ── 用户类别选项 ──
-const userCategoryOptions = [
-  { label: "user.categoryBackend", value: "backend" },
-  { label: "user.categoryFrontend", value: "frontend" }
-];
-
 // ── 用户类型选项 ──
 const userTypeOptions = [
-  { label: "user.typeSuperAdmin", value: "superadmin" },
-  { label: "user.typeTenantAdmin", value: "tenant_admin" },
-  { label: "user.typeDeptAdmin", value: "dept_admin" },
-  { label: "user.typeNormal", value: "normal" }
+  { label: "user.categoryBackend", value: "backend" },
+  { label: "user.categoryFrontend", value: "frontend" }
 ];
 
 const statusColorOf = (s: string): string =>
@@ -285,31 +276,15 @@ const statusColorOf = (s: string): string =>
 
 const userTypeLabelOf = (t: string): string =>
   ({
-    superadmin: "超级管理员",
-    tenant_admin: "租户管理员",
-    dept_admin: "部门管理员",
-    normal: "普通用户"
+    backend: "后台用户",
+    frontend: "前台用户"
   }[t] ?? t);
 
 const userTypeColorOf = (t: string): string =>
   ({
-    superadmin: "red-8",
-    tenant_admin: "orange-8",
-    dept_admin: "blue-7",
-    normal: "grey-7"
-  }[t] ?? "grey-6");
-
-const userCategoryLabelOf = (c: string): string =>
-  ({
-    backend: "后台用户",
-    frontend: "前台用户"
-  }[c] ?? c);
-
-const userCategoryColorOf = (c: string): string =>
-  ({
     backend: "purple-7",
     frontend: "teal-7"
-  }[c] ?? "grey-6");
+  }[t] ?? "grey-6");
 
 const genderLabelOf = (g: string): string => (g === "male" ? "男" : g === "female" ? "女" : "-");
 
@@ -402,16 +377,16 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     sortable: true
   },
   {
-    name: "userCategory",
-    field: "userCategory",
-    label: t("user.userCategory"),
+    name: "userType",
+    field: "userType",
+    label: t("user.userType"),
     align: "center",
     sortable: true
   },
   {
-    name: "userType",
-    field: "userType",
-    label: t("user.userType"),
+    name: "isSuperadmin",
+    field: "isSuperadmin",
+    label: t("user.isSuperadmin"),
     align: "center",
     sortable: true
   },
@@ -467,9 +442,9 @@ const visibleColumns = ref(columns.value.map((c) => c.name));
 // ── 前端列名 → 后端排序列名映射 ──
 const SORT_FIELD_MAP: Record<string, string> = {
   realName: "real_name",
-  userType: "user_type",
   createTime: "create_time",
-  deptName: "dept_name"
+  deptName: "dept_name",
+  isSuperadmin: "is_superadmin"
 };
 
 // ── 标记初始加载是否完成（防止 @request 与 onMounted 重复请求） ──
@@ -525,7 +500,7 @@ async function loadTableData(
     keyword: searchForm.keyword || undefined,
     username: searchForm.username || undefined,
     nickname: searchForm.nickname || undefined,
-    userCategory: searchForm.userCategory || undefined,
+    
     userType: searchForm.userType || undefined,
     status: searchForm.status || undefined,
     deptId: searchForm.deptId || undefined,
@@ -590,8 +565,8 @@ function handleReset() {
   searchForm.keyword = "";
   searchForm.username = "";
   searchForm.nickname = "";
-  searchForm.userCategory = "";
-  searchForm.userType = "";
+  
+  
   searchForm.status = "";
   searchForm.deptId = "";
   extraSearch.phone = "";
@@ -681,7 +656,7 @@ async function handleView(user: SysUser) {
 
 // 编辑
 async function handleEdit(user: SysUser) {
-  if (user.userType === "superadmin") {
+  if (user.isSuperadmin === 1) {
     showToast(t("user.superadminCannotEdit"), "warning");
     return;
   }
@@ -696,7 +671,7 @@ async function handleEdit(user: SysUser) {
 
 // 删除
 async function handleDelete(user: SysUser) {
-  if (user.userType === "superadmin") {
+  if (user.isSuperadmin === 1) {
     showToast(t("user.superadminCannotEdit"), "warning");
     return;
   }
@@ -728,7 +703,7 @@ async function handleDelete(user: SysUser) {
 
 // 切换启用/停用状态
 async function handleToggleStatus(user: SysUser) {
-  if (user.userType === "superadmin") {
+  if (user.isSuperadmin === 1) {
     showToast(t("user.superadminCannotEdit"), "warning");
     return;
   }
@@ -947,29 +922,6 @@ onMounted(() => {
             </div>
             <div class="col-auto">
               <q-select
-                v-model="searchForm.userCategory"
-                filled
-                square
-                dense
-                :options="userCategoryOptions"
-                :option-label="(o) => (o ? t(o.label) : '')"
-                option-value="value"
-                emit-value
-                map-options
-                hide-bottom-space
-                clearable
-                transition-show="jump-up"
-                transition-hide="jump-down"
-                class="status-select"
-                popup-content-class="status-select-popup"
-              >
-                <template v-if="!searchForm.userCategory" v-slot:selected>
-                  <span class="status-placeholder">{{ t('user.categoryPlaceholder') }}</span>
-                </template>
-              </q-select>
-            </div>
-            <div class="col-auto">
-              <q-select
                 v-model="searchForm.userType"
                 filled
                 square
@@ -987,7 +939,7 @@ onMounted(() => {
                 popup-content-class="status-select-popup"
               >
                 <template v-if="!searchForm.userType" v-slot:selected>
-                  <span class="status-placeholder">{{ t('user.typePlaceholder') }}</span>
+                  <span class="status-placeholder">{{ t('user.categoryPlaceholder') }}</span>
                 </template>
               </q-select>
             </div>
@@ -1118,12 +1070,12 @@ onMounted(() => {
         </template>
 
         <!-- 用户类别列 -->
-        <template #body-cell-userCategory="props">
+        <template #body-cell-userType="props">
           <q-td :props="props">
             <q-badge
               v-if="props.value"
-              :color="userCategoryColorOf(props.value)"
-              :label="userCategoryLabelOf(props.value)"
+              :color="userTypeColorOf(props.value)"
+              :label="userTypeLabelOf(props.value)"
               rounded
               class="user-type-badge"
             />
@@ -1131,13 +1083,13 @@ onMounted(() => {
           </q-td>
         </template>
 
-        <!-- 用户类型列 -->
-        <template #body-cell-userType="props">
+        <!-- 超级管理员列 -->
+        <template #body-cell-isSuperadmin="props">
           <q-td :props="props">
             <q-badge
-              v-if="props.value"
-              :color="userTypeColorOf(props.value)"
-              :label="userTypeLabelOf(props.value)"
+              v-if="props.value === 1"
+              color="red-8"
+              :label="t('user.superadmin')"
               rounded
               class="user-type-badge"
             />
@@ -1204,7 +1156,7 @@ onMounted(() => {
               size="sm"
               color="primary"
               icon="sym_r_edit"
-              :disable="props.row.userType === 'superadmin'"
+              :disable="props.row.isSuperadmin === 1"
               @click.stop="handleEdit(props.row)"
             >
               <q-tooltip>{{ t("common.edit") }}</q-tooltip>
@@ -1220,7 +1172,7 @@ onMounted(() => {
                   ? 'sym_r_block'
                   : 'sym_r_check_circle'
               "
-              :disable="props.row.userType === 'superadmin'"
+              :disable="props.row.isSuperadmin === 1"
               @click="handleToggleStatus(props.row)"
             >
               <q-tooltip>{{
@@ -1234,7 +1186,7 @@ onMounted(() => {
               size="sm"
               color="warning"
               icon="sym_r_lock_reset"
-              :disable="props.row.userType === 'superadmin' && props.row.isBuiltin === 1"
+              :disable="props.row.isSuperadmin === 1 && props.row.isBuiltin === 1"
               @click="handleResetPassword(props.row)"
             >
               <q-tooltip>{{ t("user.resetPassword") }}</q-tooltip>
@@ -1246,7 +1198,7 @@ onMounted(() => {
               size="sm"
               color="negative"
               icon="sym_r_delete"
-              :disable="props.row.userType === 'superadmin'"
+              :disable="props.row.isSuperadmin === 1"
               @click="handleDelete(props.row)"
             >
               <q-tooltip>{{ t("common.delete") }}</q-tooltip>

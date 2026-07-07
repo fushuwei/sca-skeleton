@@ -35,8 +35,8 @@ public class UserCreateRequest {
     @Email(message = "邮箱格式不正确")
     private String email;
 
-    @NotBlank(message = "用户类型不能为空")
-    private String userType;
+    /** 是否平台超级管理员（0否 1是，默认0） */
+    private Integer isSuperadmin;
 
     @Pattern(regexp = "^(active|inactive|locked|frozen|expired|disabled|cancelled)$",
             message = "状态值不合法")

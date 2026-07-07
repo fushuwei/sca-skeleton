@@ -27,10 +27,10 @@ public class SysUser extends BaseEntity {
     private String avatar;
     private String phone;
     private String email;
-    /** 用户类别：backend / frontend */
-    private String userCategory;
-    /** 用户类型：superadmin / tenant_admin / dept_admin / normal */
+    /** 用户类型：backend 后台用户，frontend 前台用户 */
     private String userType;
+    /** 是否平台超级管理员：0-否，1-是，超级管理员绕过一切权限校验 */
+    private Integer isSuperadmin;
     /** 状态：active / inactive / locked / frozen / expired / disabled / cancelled */
     private String status;
     private LocalDateTime statusTime;
