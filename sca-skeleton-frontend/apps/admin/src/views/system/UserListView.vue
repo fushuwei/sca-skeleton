@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch, markRaw } from "vue";
+import { ref, reactive, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
@@ -31,64 +31,6 @@ let lastSelectedDeptId = "";
 const deptTreeExpanded = ref<string[]>([ROOT_ID]);
 const leftPanelWidth = ref(260);
 const leftPanelCollapsed = ref(false);
-
-/** 高校部门组织样例数据（API 无数据时回退展示），每个节点附带 count 模拟用户数 */
-const SAMPLE_DEPT_TREE: DeptTreeNode[] = markRaw([
-  {
-    id: "d-admin",
-    label: "党政办公室",
-    parentId: ROOT_ID,
-    count: 18,
-    children: [
-      { id: "d-admin-secretary", label: "秘书科", parentId: "d-admin", count: 5 },
-      { id: "d-admin-legal", label: "法务与合规科", parentId: "d-admin", count: 3 }
-    ]
-  },
-  {
-    id: "d-hr",
-    label: "人事处",
-    parentId: ROOT_ID,
-    count: 12,
-    children: [
-      { id: "d-hr-recruit", label: "招聘与配置科", parentId: "d-hr", count: 6 },
-      { id: "d-hr-salary", label: "薪酬福利科", parentId: "d-hr", count: 4 }
-    ]
-  },
-  {
-    id: "d-academic",
-    label: "教务处",
-    parentId: ROOT_ID,
-    count: 24,
-    children: [
-      { id: "d-academic-ug", label: "本科教学管理科", parentId: "d-academic", count: 8 },
-      { id: "d-academic-pg", label: "研究生培养科", parentId: "d-academic", count: 7 },
-      { id: "d-academic-quality", label: "教学质量监控科", parentId: "d-academic", count: 5 }
-    ]
-  },
-  {
-    id: "d-research",
-    label: "科研处",
-    parentId: ROOT_ID,
-    count: 15,
-    children: [
-      { id: "d-research-project", label: "项目管理科", parentId: "d-research", count: 8 },
-      { id: "d-research-achievement", label: "成果管理科", parentId: "d-research", count: 5 }
-    ]
-  },
-  {
-    id: "d-it",
-    label: "信息化建设与管理中心",
-    parentId: ROOT_ID,
-    count: 31,
-    children: [
-      { id: "d-it-infra", label: "网络与基础设施科", parentId: "d-it", count: 12 },
-      { id: "d-it-app", label: "应用系统开发科", parentId: "d-it", count: 16 }
-    ]
-  },
-  { id: "d-finance", label: "财务处", parentId: ROOT_ID, count: 9 },
-  { id: "d-student", label: "学生工作处", parentId: ROOT_ID, count: 21 },
-  { id: "d-intl", label: "国际交流合作处", parentId: ROOT_ID, count: 7 }
-]);
 
 /** 将后端返回的扁平部门列表转成树结构 */
 function buildDeptTree(depts: SysDept[]): DeptTreeNode[] {
@@ -158,12 +100,10 @@ async function loadDeptTree() {
       deptList.value = result.data;
       deptTreeNodes.value = buildDeptTree(result.data);
     } else {
-      const copy = JSON.parse(JSON.stringify(SAMPLE_DEPT_TREE)) as DeptTreeNode[];
-      deptTreeNodes.value = copy;
+      deptTreeNodes.value = [];
     }
   } catch {
-    const copy = JSON.parse(JSON.stringify(SAMPLE_DEPT_TREE)) as DeptTreeNode[];
-    deptTreeNodes.value = copy;
+    deptTreeNodes.value = [];
   } finally {
     deptTreeExpanded.value = [ROOT_ID];
     deptTreeLoading.value = false;
