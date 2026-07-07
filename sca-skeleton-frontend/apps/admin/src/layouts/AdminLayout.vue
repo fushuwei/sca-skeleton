@@ -50,11 +50,6 @@ const WORKBENCH_TAB_BASE = {
   icon: "sym_r_dashboard"
 };
 
-/** 侧栏不展示顶级模块（工作台由静态路由挂载，默认入口仍为 /dashboard） */
-const SIDEBAR_HIDDEN_MODULE_NAMES = new Set(["ModuleWorkbench"]);
-/** 侧栏手风琴顺序：数据资产在数据开发前，系统管理居末；未列出的模块排在约定项之后保持相对稳定 */
-const SIDEBAR_MODULE_ORDER = ["ModuleDatasource", "ModuleDataAsset", "ModuleDataDev", "ModuleOps", "ModuleSystem"];
-
 const username = computed(() => {
   void locale.value;
   return authStore.profile?.nickname ?? t("layout.defaultNickname");
@@ -92,26 +87,27 @@ function applyHeaderLocale(code) {
 }
 
 function translateMenuItemTitle(item) {
-  const key = `menu.${item.name}`;
-  if (item?.name && te(key)) {
+  const key = `menu.${item.component}`;
+  if (item?.component && te(key)) {
     return t(key);
   }
-  return item.title;
+  return item.name;
 }
 
-/** 将后端菜单树节点转为 Quasar QTree 节点（name 作 node-key，与动态路由 name 一致） */
+/** 将后端菜单树节点转为 Quasar QTree 节点 */
 function mapMenuToTreeNode(item) {
+  const nodeKey = item.component || item.name;
   if (item.children?.length) {
     return {
       label: translateMenuItemTitle(item),
-      name: item.name,
+      name: nodeKey,
       selectable: false,
       children: item.children.map(mapMenuToTreeNode)
     };
   }
   return {
     label: translateMenuItemTitle(item),
-    name: item.name
+    name: nodeKey
   };
 }
 
@@ -146,13 +142,9 @@ function filterTreeNodesByKeyword(nodes, keyword) {
   return result;
 }
 
+/** 侧栏模块直接按 DB sort 排序，不需要前端再排 */
 function menusOrderedForSidebar(menus) {
-  const filtered = menus.filter((item) => !SIDEBAR_HIDDEN_MODULE_NAMES.has(item.name));
-  const rank = (name) => {
-    const index = SIDEBAR_MODULE_ORDER.indexOf(name);
-    return index === -1 ? SIDEBAR_MODULE_ORDER.length : index;
-  };
-  return [...filtered].sort((a, b) => rank(a.name) - rank(b.name));
+  return menus;
 }
 
 /** 当前路由是否落在该模块树下（用于手风琴「含当前页」强调） */
@@ -161,7 +153,7 @@ function moduleTreeContainsActiveRoute(nodes, activeName) {
     return false;
   }
   for (const n of nodes) {
-    if (n.name === activeName) {
+    if (n.component === activeName) {
       return true;
     }
     if (n.children?.length && moduleTreeContainsActiveRoute(n.children, activeName)) {
@@ -195,9 +187,10 @@ function setTreeExpanded(moduleKey, keys) {
 /** 递归查找目标节点的所有祖先节点 key（用于展开路径） */
 function findAncestorPath(nodes, targetName, path) {
   for (const n of nodes) {
-    if (n.name === targetName) return path;
+    const nodeKey = n.component || n.name;
+    if (nodeKey === targetName) return path;
     if (n.children?.length) {
-      const result = findAncestorPath(n.children, targetName, [...path, n.name]);
+      const result = findAncestorPath(n.children, targetName, [...path, nodeKey]);
       if (result) return result;
     }
   }
@@ -207,7 +200,7 @@ function findAncestorPath(nodes, targetName, path) {
 const menuModules = computed(() => {
   void locale.value;
   return menusOrderedForSidebar(authStore.menus).map((item) => ({
-    key: item.name,
+    key: item.component,
     title: translateMenuItemTitle(item),
     icon: item.icon ?? "sym_r_folder",
     treeNodes: menuToTreeNodes(item)

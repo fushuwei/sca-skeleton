@@ -9,12 +9,12 @@ type MenuLeaf = ReturnType<typeof flattenRoutableMenus>[number]; // 与可路由
 
 /** 菜单尚未加载时的演示快捷入口（与 mock 菜单路径一致） */
 const FALLBACK_SHORTCUTS: MenuLeaf[] = [
-  { name: "DsList", path: "/datasource/list", title: "数据源列表", icon: "sym_r_database", component: "PlaceholderView" },
-  { name: "AssetModel", path: "/asset/model", title: "主题域模型", icon: "sym_r_inventory_2", component: "PlaceholderView" },
-  { name: "DevJobFlow", path: "/dev/job/flow", title: "任务编排", icon: "sym_r_account_tree", component: "PlaceholderView" },
-  { name: "OpsAlert", path: "/ops/alert", title: "告警中心", icon: "sym_r_monitor_heart", component: "PlaceholderView" },
-  { name: "SystemUser", path: "/system/user", title: "用户管理", icon: "sym_r_manage_accounts", component: "UserListView" },
-  { name: "DsCatalog", path: "/datasource/catalog", title: "元数据目录", icon: "sym_r_folder_open", component: "PlaceholderView" }
+  { id: "1", name: "数据源列表", path: "/datasource/list", icon: "sym_r_database", component: "PlaceholderView" },
+  { id: "2", name: "主题域模型", path: "/asset/model", icon: "sym_r_inventory_2", component: "PlaceholderView" },
+  { id: "3", name: "任务编排", path: "/dev/job/flow", icon: "sym_r_account_tree", component: "PlaceholderView" },
+  { id: "4", name: "告警中心", path: "/ops/alert", icon: "sym_r_monitor_heart", component: "PlaceholderView" },
+  { id: "5", name: "用户管理", path: "/system/user", icon: "sym_r_manage_accounts", component: "UserListView" },
+  { id: "6", name: "元数据目录", path: "/datasource/catalog", icon: "sym_r_folder_open", component: "PlaceholderView" }
 ];
 
 const nickname = computed(() => authStore.profile?.nickname ?? "管理员"); // 展示昵称。
@@ -106,7 +106,7 @@ const activityFeed = [
                 >
                   <q-icon :name="leaf.icon ?? 'sym_r_nest_eco_leaf'" size="22px" class="q-mr-md text-primary" />
                   <div class="column items-start min-w-0">
-                    <span class="text-body2 text-weight-medium ellipsis full-width">{{ leaf.title }}</span>
+                    <span class="text-body2 text-weight-medium ellipsis full-width">{{ leaf.name }}</span>
                     <span class="text-caption text-grey-6 ellipsis full-width">{{ leaf.path }}</span>
                   </div>
                   <q-icon name="sym_r_chevron_right" size="20px" class="q-ml-auto text-grey-5" />

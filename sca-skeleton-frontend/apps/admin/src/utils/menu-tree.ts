@@ -24,12 +24,12 @@ const MENU_ICON_FALLBACK = "sym_r_nest_eco_leaf";
  * 按路由 name 在菜单树中解析图标：仅使用**该菜单节点自身**的 `icon`（点击打开页签的叶子/菜单项），
  * **不**用手风琴顶级模块等祖先节点的图标。
  */
-export function getIconForMenuRouteName(items: MenuItem[], routeName: string): string {
+export function getIconForMenuRouteName(items: MenuItem[], routeComponent: string): string {
   function walk(nodes: MenuItem[]): string | null {
     for (const n of nodes) {
       const selfIcon = typeof n.icon === "string" && n.icon.trim() !== "" ? n.icon : undefined;
 
-      if (n.name === routeName) {
+      if (n.component === routeComponent) {
         return selfIcon ?? MENU_ICON_FALLBACK;
       }
 

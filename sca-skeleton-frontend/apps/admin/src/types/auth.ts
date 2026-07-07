@@ -9,12 +9,17 @@ export interface CaptchaData {
 export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView" | "RoleListView" | "PostListView" | "DeptListView";
 
 export interface MenuItem {
+  /** 主键ID（对应 SQL id 字段），唯一标识 */
+  id: string;
+  /** 权限名称（对应 SQL name 字段），用于侧边栏显示 */
   name: string;
+  /** 路由路径（对应 SQL path 字段） */
   path: string;
-  title: string;
-  /** 侧栏手风琴标题左侧图标，Material Symbols Rounded，如 sym_r_settings */
-  icon?: string;
+  /** 组件标识（对应 SQL component 字段），用于 Vue Router name 参数 */
   component?: MenuComponent;
+  /** 图标（对应 SQL icon 字段） */
+  icon?: string;
+  /** 子菜单 */
   children?: MenuItem[];
 }
 

@@ -10,7 +10,7 @@ import {
   REFRESH_TOKEN_STORAGE_KEY,
   TOKEN_STORAGE_KEY
 } from "../constants/auth-storage";
-import type { MenuItem, UserProfile } from "../types/auth";
+import type { MenuItem, UserProfile, SysPermission } from "../types/auth";
 
 function readCachedMenus(): MenuItem[] {
   const raw = localStorage.getItem(MENUS_STORAGE_KEY);
@@ -23,6 +23,61 @@ function readCachedMenus(): MenuItem[] {
   } catch {
     return [];
   }
+}
+
+/** 将后端返回的扁平权限列表转换为前端树形菜单 */
+function buildMenuTree(permissions: SysPermission[]): MenuItem[] {
+  if (!permissions.length) return [];
+
+  // 按 type 过滤：只保留 module、folder、menu
+  const filtered = permissions.filter(p => ["module", "folder", "menu"].includes(p.type));
+
+  // 按 sort 排序
+  const sorted = [...filtered].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+
+  // 构建 map
+  const map = new Map<string, MenuItem>();
+  for (const p of sorted) {
+    map.set(p.id, {
+      id: p.id,
+      name: p.name ?? "",
+      path: p.path ?? "",
+      component: p.component as MenuItem["component"] ?? undefined,
+      icon: p.icon ?? undefined,
+      children: []
+    });
+  }
+
+  // 构建树
+  const roots: MenuItem[] = [];
+  for (const p of sorted) {
+    const node = map.get(p.id)!;
+    if (!p.parentId || p.parentId === "0") {
+      roots.push(node);
+    } else {
+      const parent = map.get(p.parentId);
+      if (parent) {
+        parent.children = parent.children ?? [];
+        parent.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    }
+  }
+
+  // 清理空 children
+  const cleanEmpty = (nodes: MenuItem[]) => {
+    for (const n of nodes) {
+      if (n.children?.length) {
+        cleanEmpty(n.children);
+      } else {
+        delete n.children;
+      }
+    }
+  };
+  cleanEmpty(roots);
+
+  return roots;
 }
 
 interface AuthState {
@@ -57,7 +112,7 @@ export const useAuthStore = defineStore("auth", {
       try {
         const result = await getUserMenusApi();
         if (result.code === 10_000 && result.data) {
-          this.menus = result.data;
+          this.menus = buildMenuTree(result.data);
         } else {
           this.menus = [];
         }

@@ -15,19 +15,19 @@ const MENU_COMPONENT_MAP: Record<MenuComponent, () => Promise<unknown>> = { // �
 
 const dynamicRouteNameSet = new Set<string>(); // 定义已注册动态路由名称集合，避免重复注入。
 
-function buildDynamicRoutes(menus: MenuItem[]): RouteRecordRaw[] { // 定义菜单转动态路由构建函数。
-  const leaves = flattenRoutableMenus(menus); // 从树形菜单中取出全部可路由叶子。
-  return leaves.map((menu) => ({ // 将叶子菜单映射为路由数组。
-    path: menu.path.replace(/^\//, ""), // 将绝对路径转换为 Root 子路由相对路径。
-    name: menu.name, // 使用菜单名称作为路由名称。
-    component: MENU_COMPONENT_MAP[menu.component!], // 根据菜单组件标识绑定页面组件。
+function buildDynamicRoutes(menus: MenuItem[]): RouteRecordRaw[] {
+  const leaves = flattenRoutableMenus(menus);
+  return leaves.map((menu) => ({
+    path: menu.path.replace(/^\//, ""),
+    name: menu.component,
+    component: MENU_COMPONENT_MAP[menu.component!],
     meta: {
       requiresAuth: true,
-      title: menu.title,
-      icon: getIconForMenuRouteName(menus, menu.name)
-    } // 声明动态路由默认需要鉴权；meta.icon 仅取自该路由对应菜单节点自身 icon（非手风琴模块图标）。
-  })); // 返回动态路由集合。
-} // 结束动态路由构建函数。
+      title: menu.name,
+      icon: getIconForMenuRouteName(menus, menu.component!)
+    }
+  }));
+}
 
 export function ensureDynamicRoutes(router: Router, menus: MenuItem[]): void { // 定义动态路由注册函数。
   const dynamicRoutes = buildDynamicRoutes(menus); // 基于菜单构建动态路由列表。
