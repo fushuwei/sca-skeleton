@@ -438,7 +438,7 @@ SELECT t.* FROM (
     SELECT '2000' AS `id`, '0' AS `parent_id`, '数据源管理' AS `name`, 'module' AS `type`, NULL AS `code`,
            NULL AS `path`, NULL AS `component`, 'sym_r_database' AS `icon`,
            200 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,2000' AS `tree_path`, NULL AS `remark`,
-           0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time', 0 AS `is_deleted`
+           0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
     UNION ALL
     SELECT '2100', '2000', '数据源管理', 'folder', NULL, NULL, NULL, 'sym_r_folder', 100, 1, 0, 'enabled', '0,2000,2100', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
