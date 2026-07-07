@@ -201,7 +201,7 @@ INSERT INTO `sys_user` (
 SELECT
     '1', '1', 'admin',
     '{bcrypt}$2b$10$oW8PgdSN8jCUwZoApsRpc.8xhcCNInM8i0iH/6k.G7cmKB/5tb.Pq',
-    '管理员', '系统管理员', NULL, NULL, NULL, NULL,
+    '系统管理员', '系统管理员', NULL, NULL, NULL, NULL,
     'backend', 'superadmin', 'active', NULL, NULL, 0, 0,
     NOW(), NOW(), NULL, NULL, NULL,
     1, 'initial', '系统内置管理员账号', 0, 'system', NOW(), 'system', NOW(), 0
