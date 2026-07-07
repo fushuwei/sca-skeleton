@@ -25,11 +25,11 @@ function readCachedMenus(): MenuItem[] {
   }
 }
 
-/** 将后端返回的扁平权限列表转换为前端树形菜单 */
+/** 将后端返回的扁平权限列表转换为前端树形菜单（仅 module/folder/menu） */
 function buildMenuTree(permissions: SysPermission[]): MenuItem[] {
   if (!permissions.length) return [];
 
-  // 按 type 过滤：只保留 module、folder、menu
+  // 按 type 过滤：只保留 module、folder、menu（按钮权限不参与菜单树构建）
   const filtered = permissions.filter(p => ["module", "folder", "menu"].includes(p.type));
 
   // 按 sort 排序
@@ -83,6 +83,9 @@ function buildMenuTree(permissions: SysPermission[]): MenuItem[] {
 interface AuthState {
   token: string;
   refreshToken: string;
+  /** 当前用户所有权限（含 button），用于权限校验 */
+  permissions: SysPermission[];
+  /** 菜单树（仅 module/folder/menu），用于侧栏展示 */
   menus: MenuItem[];
   profile: UserProfile | null;
   dynamicReady: boolean;
@@ -92,6 +95,7 @@ export const useAuthStore = defineStore("auth", {
   state: (): AuthState => ({
     token: localStorage.getItem(TOKEN_STORAGE_KEY) ?? "",
     refreshToken: localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY) ?? "",
+    permissions: [],
     menus: readCachedMenus(),
     profile: null,
     dynamicReady: false
@@ -108,15 +112,18 @@ export const useAuthStore = defineStore("auth", {
       if (refreshToken) {
         localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, refreshToken);
       }
-      // 从后端获取用户菜单
+      // 从后端获取用户权限
       try {
         const result = await getUserMenusApi();
         if (result.code === 10_000 && result.data) {
+          this.permissions = result.data;
           this.menus = buildMenuTree(result.data);
         } else {
+          this.permissions = [];
           this.menus = [];
         }
       } catch {
+        this.permissions = [];
         this.menus = [];
       }
       localStorage.setItem(MENUS_STORAGE_KEY, JSON.stringify(this.menus));
@@ -150,6 +157,7 @@ export const useAuthStore = defineStore("auth", {
       const refreshToken = this.refreshToken;
       this.token = "";
       this.refreshToken = "";
+      this.permissions = [];
       this.menus = [];
       this.profile = null;
       this.dynamicReady = false;

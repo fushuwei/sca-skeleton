@@ -64,16 +64,15 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             return Collections.emptyList();
         }
 
-        // 超级管理员直接返回所有菜单
+        // 超级管理员直接返回所有权限
         if ("superadmin".equals(userType)) {
             List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
-                    .in(SysPermission::getType, "module", "folder", "menu")
                     .eq(SysPermission::getStatus, "enabled")
                     .orderByAsc(SysPermission::getSort));
             return permissions.stream().map(permissionConverter::toPermissionResponse).toList();
         }
 
-        // 普通用户根据角色获取菜单
+        // 普通用户根据角色获取权限
         String userId = SecurityUtils.getUserId();
         if (!StringUtils.hasText(userId)) {
             return Collections.emptyList();
@@ -104,10 +103,9 @@ public class SysPermissionServiceImpl implements SysPermissionService {
                 .distinct()
                 .toList();
 
-        // 查询权限详情（仅菜单类型：folder 和 menu）
+        // 查询权限详情（所有类型，前端负责过滤）
         List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
                 .in(SysPermission::getId, permissionIds)
-                .in(SysPermission::getType, "folder", "menu")
                 .eq(SysPermission::getStatus, "enabled")
                 .orderByAsc(SysPermission::getSort));
 
