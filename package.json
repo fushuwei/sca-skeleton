@@ -13,5 +13,8 @@
     "lint:admin": "pnpm --dir ./sca-skeleton-frontend lint:admin",
     "lint:portal": "pnpm --dir ./sca-skeleton-frontend lint:portal",
     "test": "pnpm --dir ./sca-skeleton-frontend test"
+  },
+  "devDependencies": {
+    "bcryptjs": "^3.0.3"
   }
 }
