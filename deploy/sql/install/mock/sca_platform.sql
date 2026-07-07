@@ -137,18 +137,15 @@ INSERT INTO `sys_post` (
 
 
 -- ================================================================
--- 四、角色数据
+-- 四、角色数据（正式脚本已内置平台超级管理员角色，此处仅补充业务角色）
 -- ================================================================
 
 INSERT INTO `sys_role` (
     `id`, `tenant_id`, `name`, `code`, `data_scope`, `is_builtin`, `sort`, `remark`, `version`,
     `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 ) VALUES
--- 平台级角色
-('1', '1', '平台超级管理员', 'ROLE_SUPERADMIN', 'all', 1, 1, '系统内置超级管理员角色，拥有所有权限', 0, 'system', NOW(), 'system', NOW(), 0),
-('100', '1', '系统管理员', 'ROLE_SYSTEM_ADMIN', 'all', 0, 2, '系统运维管理员，负责系统配置和维护', 0, 'system', NOW(), 'system', NOW(), 0),
-
 -- 业务管理角色
+('100', '1', '系统管理员', 'ROLE_SYSTEM_ADMIN', 'all', 0, 2, '系统运维管理员，负责系统配置和维护', 0, 'system', NOW(), 'system', NOW(), 0),
 ('200', '1', '教务管理员', 'ROLE_ACADEMIC_ADMIN', 'tenant', 0, 10, '教务处管理人员，管理课程、成绩、学籍等', 0, 'system', NOW(), 'system', NOW(), 0),
 ('201', '1', '科研管理员', 'ROLE_RESEARCH_ADMIN', 'tenant', 0, 11, '科研处管理人员，管理科研项目和成果', 0, 'system', NOW(), 'system', NOW(), 0),
 ('202', '1', '学生管理员', 'ROLE_STUDENT_ADMIN', 'tenant', 0, 12, '学生处管理人员，管理学生事务', 0, 'system', NOW(), 'system', NOW(), 0),
@@ -757,14 +754,14 @@ INSERT INTO `sys_user_role` (
 
 
 -- ================================================================
--- 十一、已有admin用户的角色绑定（保持兼容）
+-- 十一、模拟用户的角色绑定
 -- ================================================================
 
 INSERT INTO `sys_user_role` (
     `id`, `tenant_id`, `user_id`, `role_id`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 ) VALUES
-('900001', '1', '1', '1', 'system', NOW(), 'system', NOW(), 0),
-('900002', '1', '2', '405', 'system', NOW(), 'system', NOW(), 0);
+-- 正式脚本已绑定 admin 用户(id=1)到超级管理员角色(id=1)，此处绑定模拟用户
+('900001', '1', '2', '405', 'system', NOW(), 'system', NOW(), 0);
 
 
 -- 打开外键检查

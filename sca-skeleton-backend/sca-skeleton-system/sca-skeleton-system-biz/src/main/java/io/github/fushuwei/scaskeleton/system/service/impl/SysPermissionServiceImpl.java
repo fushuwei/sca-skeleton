@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionCreateRequest;
@@ -12,11 +13,9 @@ import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionUp
 import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionResponse;
 import io.github.fushuwei.scaskeleton.system.converter.PermissionConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
-import io.github.fushuwei.scaskeleton.system.entity.SysRole;
 import io.github.fushuwei.scaskeleton.system.entity.SysRolePermission;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.mapper.SysPermissionMapper;
-import io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRolePermissionMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysPermissionService;
@@ -59,7 +58,22 @@ public class SysPermissionServiceImpl implements SysPermissionService {
 
     @Override
     public List<PermissionResponse> listUserMenus() {
-        // 获取当前登录用户ID
+        // 从 token 中获取用户类型
+        String userType = SecurityUtils.getClaim(OAuth2AccessTokenClaimNames.USER_TYPE);
+        if (!StringUtils.hasText(userType)) {
+            return Collections.emptyList();
+        }
+
+        // 超级管理员直接返回所有菜单
+        if ("superadmin".equals(userType)) {
+            List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
+                    .in(SysPermission::getType, "module", "folder", "menu")
+                    .eq(SysPermission::getStatus, "enabled")
+                    .orderByAsc(SysPermission::getSort));
+            return permissions.stream().map(permissionConverter::toPermissionResponse).toList();
+        }
+
+        // 普通用户根据角色获取菜单
         String userId = SecurityUtils.getUserId();
         if (!StringUtils.hasText(userId)) {
             return Collections.emptyList();
