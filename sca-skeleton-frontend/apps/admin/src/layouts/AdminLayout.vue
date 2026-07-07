@@ -153,7 +153,7 @@ function moduleTreeContainsActiveRoute(nodes, activeName) {
     return false;
   }
   for (const n of nodes) {
-    if (n.component === activeName) {
+    if (n.name === activeName) {
       return true;
     }
     if (n.children?.length && moduleTreeContainsActiveRoute(n.children, activeName)) {
@@ -200,7 +200,7 @@ function findAncestorPath(nodes, targetName, path) {
 const menuModules = computed(() => {
   void locale.value;
   return menusOrderedForSidebar(authStore.menus).map((item) => ({
-    key: item.component,
+    key: item.id,
     title: translateMenuItemTitle(item),
     icon: item.icon ?? "sym_r_folder",
     treeNodes: menuToTreeNodes(item)

@@ -384,13 +384,6 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     sortable: true
   },
   {
-    name: "isSuperadmin",
-    field: "isSuperadmin",
-    label: t("user.isSuperadmin"),
-    align: "center",
-    sortable: true
-  },
-  {
     name: "status",
     field: "status",
     label: t("user.status"),
@@ -444,7 +437,7 @@ const SORT_FIELD_MAP: Record<string, string> = {
   realName: "real_name",
   createTime: "create_time",
   deptName: "dept_name",
-  isSuperadmin: "is_superadmin"
+  isSuperadmin: "is_superadmin" // 保留：超级管理员字段仍用于排序过滤，仅移除列展示
 };
 
 // ── 标记初始加载是否完成（防止 @request 与 onMounted 重复请求） ──
@@ -939,7 +932,7 @@ onMounted(() => {
                 popup-content-class="status-select-popup"
               >
                 <template v-if="!searchForm.userType" v-slot:selected>
-                  <span class="status-placeholder">{{ t('user.categoryPlaceholder') }}</span>
+                  <span class="status-placeholder">{{ t('user.typePlaceholder') }}</span>
                 </template>
               </q-select>
             </div>
@@ -1076,20 +1069,6 @@ onMounted(() => {
               v-if="props.value"
               :color="userTypeColorOf(props.value)"
               :label="userTypeLabelOf(props.value)"
-              rounded
-              class="user-type-badge"
-            />
-            <span v-else class="text-grey-5">-</span>
-          </q-td>
-        </template>
-
-        <!-- 超级管理员列 -->
-        <template #body-cell-isSuperadmin="props">
-          <q-td :props="props">
-            <q-badge
-              v-if="props.value === 1"
-              color="red-8"
-              :label="t('user.superadmin')"
               rounded
               class="user-type-badge"
             />
