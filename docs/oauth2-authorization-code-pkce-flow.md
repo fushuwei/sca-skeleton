@@ -7,7 +7,7 @@
 | 角色 | 说明 | 地址 |
 |------|------|------|
 | Browser | 用户浏览器 | — |
-| SPA | 单页应用（admin / portal） | `http://localhost:8080/admin/` 或 `http://localhost:8080/` |
+| SPA | 单页应用（admin / portal） | `http://localhost:8080`（admin）或 `http://localhost:9090`（portal） |
 | Gateway | Spring Cloud Gateway API 网关 | `http://localhost:9999` |
 | Auth Server | Spring Authorization Server 认证中心 | `http://localhost:9001`（内网） |
 | Resource Server | 资源服务器（如 system 服务） | 内网 `lb://sca-skeleton-system` |
@@ -21,8 +21,8 @@
 | `issuer` | `http://localhost:8080/auth` | 对外暴露的 OAuth2 根 URL |
 | `admin client_id` | `sca-admin-client` | 管理后台 OAuth2 客户端 |
 | `portal client_id` | `sca-portal-client` | 前台门户 OAuth2 客户端 |
-| `admin redirect_uri` | `http://localhost:8080/admin/oauth/callback` | admin 回调地址 |
-| `portal redirect_uri` | `http://localhost:8080/oauth/callback` | portal 回调地址 |
+| `admin redirect_uri` | `http://localhost:8080/oauth/callback`（开发） | admin 回调地址 |
+| `portal redirect_uri` | `http://localhost:9090/oauth/callback`（开发） | portal 回调地址 |
 | `access_token_ttl` | 900s | 访问令牌有效期 |
 | `refresh_token_ttl` | 7200s | 刷新令牌有效期 |
 | `authorization_code_ttl` | 60s | 授权码有效期 |
@@ -47,7 +47,7 @@ sequenceDiagram
     SPA->>SPA: 生成 state (随机字符串，防 CSRF)
     SPA->>Browser: 302 跳转授权端点
 
-    Note over Browser,GW: GET {issuer}/auth/oauth2/authorize?<br/>response_type=code<br/>&client_id=sca-admin-client<br/>&redirect_uri=http://localhost:8080/admin/oauth/callback<br/>&code_challenge={S256_challenge}<br/>&code_challenge_method=S256<br/>&state={random_state}<br/>&scope=openid profile offline_access all
+    Note over Browser,GW: GET {issuer}/auth/oauth2/authorize?<br/>response_type=code<br/>&client_id=sca-admin-client<br/>&redirect_uri=http://localhost:8080/oauth/callback<br/>&code_challenge={S256_challenge}<br/>&code_challenge_method=S256<br/>&state={random_state}<br/>&scope=openid profile offline_access all
 
     Note over Browser,RS: ══════ 阶段 2：网关转发 → 认证中心授权端点 ══════
 
@@ -167,7 +167,7 @@ sequenceDiagram
 
     Note over Auth: ② SAS OAuth2AuthorizationEndpointFilter
     Auth->>MySQL: RegisteredClientRepository.findByClientId("sca-admin-client")
-    MySQL-->>Auth: RegisteredClient {<br/>  clientId=sca-admin-client<br/>  clientAuthenticationMethod=NONE<br/>  authorizationGrantType=AUTHORIZATION_CODE, REFRESH_TOKEN<br/>  redirectUri=http://localhost:8080/admin/oauth/callback<br/>  requireProofKey=true<br/>  requireAuthorizationConsent=false<br/>}
+    MySQL-->>Auth: RegisteredClient {<br/>  clientId=sca-admin-client<br/>  clientAuthenticationMethod=NONE<br/>  authorizationGrantType=AUTHORIZATION_CODE, REFRESH_TOKEN<br/>  redirectUri=http://localhost:8080/oauth/callback<br/>  requireProofKey=true<br/>  requireAuthorizationConsent=false<br/>}
 
     Note over Auth: 验证：<br/>- response_type=code ✅<br/>- client_id 存在 ✅<br/>- redirect_uri 匹配 ✅<br/>- PKCE required → code_challenge 存在 ✅<br/>- requireAuthorizationConsent=false → 跳过 consent 页
 
@@ -177,19 +177,19 @@ sequenceDiagram
     Auth->>Redis: OAuth2AuthorizationService.save(authorization)<br/>① HSET auth:{id} → Hash 存储完整授权记录<br/>② SET idx:state:{state} → {id} (TTL)<br/>③ SET idx:code:{code} → {id} (TTL 60s)
     Note over Redis: authorization_code 仅存于 Redis<br/>不写入 MySQL oauth2_authorization 表
 
-    Auth->>GW: 302 Location: http://localhost:8080/admin/oauth/callback?<br/>code={authorization_code}&state={random_state}
-    GW->>Browser: 302 Location: http://localhost:8080/admin/oauth/callback?<br/>code={authorization_code}&state={random_state}
+    Auth->>GW: 302 Location: http://localhost:8080/oauth/callback?<br/>code={authorization_code}&state={random_state}
+    GW->>Browser: 302 Location: http://localhost:8080/oauth/callback?<br/>code={authorization_code}&state={random_state}
 
     Note over Browser,RS: ══════ 阶段 7：SPA 回调 → 令牌交换 (PKCE 验证) ══════
 
-    Browser->>SPA: GET /admin/oauth/callback?<br/>code={authorization_code}&state={random_state}
+    Browser->>SPA: GET /oauth/callback?<br/>code={authorization_code}&state={random_state}
 
     SPA->>SPA: 验证 state == 原始 state ✅<br/>(防 CSRF 攻击)
     SPA->>SPA: 取出之前存储的 code_verifier
 
     Note over SPA: 公共客户端 (ClientAuthenticationMethod=NONE)<br/>无需 client_secret，直接 POST token 端点
 
-    SPA->>GW: POST /auth/oauth2/token<br/>Content-Type: application/x-www-form-urlencoded<br/>Body:<br/>  grant_type=authorization_code<br/>&code={authorization_code}<br/>&redirect_uri=http://localhost:8080/admin/oauth/callback<br/>&code_verifier={original_verifier}<br/>&client_id=sca-admin-client
+    SPA->>GW: POST /auth/oauth2/token<br/>Content-Type: application/x-www-form-urlencoded<br/>Body:<br/>  grant_type=authorization_code<br/>&code={authorization_code}<br/>&redirect_uri=http://localhost:8080/oauth/callback<br/>&code_verifier={original_verifier}<br/>&client_id=sca-admin-client
 
     Note over GW: 白名单匹配 /auth/oauth2/token ✅<br/>(限流: replenishRate=10, burstCapacity=20)
     GW->>Auth: StripPrefix=1<br/>POST /oauth2/token<br/>Body: grant_type=authorization_code&code=...<br/>&redirect_uri=...&code_verifier=...&client_id=...
