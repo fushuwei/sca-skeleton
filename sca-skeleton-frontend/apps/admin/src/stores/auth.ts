@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import type { Router } from "vue-router";
-import { consumePkceSession } from "@repo/shared";
 import { getAdminOAuthConfig } from "../config/oauth";
 import { getUserProfileApi } from "../apis/user";
 import { getUserMenusApi } from "../apis/permission";
@@ -164,9 +163,8 @@ export const useAuthStore = defineStore("auth", {
       localStorage.removeItem(TOKEN_STORAGE_KEY);
       localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
       localStorage.removeItem(MENUS_STORAGE_KEY);
-      // 清除 sessionStorage 中残留的 PKCE 会话，避免二次登录时复用旧 state
-      // 导致 OAuth 回调 state 校验失败
-      consumePkceSession(oauthConfig.clientId);
+      // 按 state 做键后，不需要手动清除 PKCE 会话
+      // sessionStorage 会随 tab 关闭自动清空，且每个 OAuth 请求使用独立的 state
       resetDynamicRoutes(router);
       const logoutUrl = oauthConfig.authorizeUrl.replace("/oauth2/authorize", "/logout");
       const form = document.createElement("form");

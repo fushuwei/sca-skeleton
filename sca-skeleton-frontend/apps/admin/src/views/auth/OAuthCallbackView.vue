@@ -42,16 +42,11 @@ async function attemptLogin() {
   const oauthConfig = getAdminOAuthConfig();
   const code = typeof route.query.code === "string" ? route.query.code : "";
   const state = typeof route.query.state === "string" ? route.query.state : "";
-  const pkceSession = consumePkceSession(oauthConfig.clientId);
+  // 按 state 查找 PKCE 会话，state 天然唯一，不需要额外的 state 校验
+  const pkceSession = state ? consumePkceSession(state) : null;
 
   if (!code || !pkceSession) {
     errorMessage.value = "授权回调参数无效，正在重新登录…";
-    processing.value = false;
-    startRetryCountdown();
-    return;
-  }
-  if (state !== pkceSession.state) {
-    errorMessage.value = "state 校验失败，可能存在 CSRF 风险。正在重新登录…";
     processing.value = false;
     startRetryCountdown();
     return;

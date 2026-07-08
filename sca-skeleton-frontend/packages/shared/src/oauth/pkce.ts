@@ -105,32 +105,32 @@ export interface PkceSession {
 }
 
 /**
- * 构造 sessionStorage 键名（按 clientId 隔离 admin / portal）。
+ * 构造 sessionStorage 键名（按 state 隔离不同 OAuth 请求）。
+ * 使用 state 作为键，天然全局唯一，不依赖任何浏览器行为假设。
  *
- * @param clientId OAuth2 client_id
+ * @param state OAuth2 state 参数
  */
-function pkceStorageKey(clientId: string): string {
-  return `oauth_pkce_session:${clientId}`;
+function pkceStorageKey(state: string): string {
+  return `oauth_pkce:${state}`;
 }
 
 /**
  * 保存 PKCE 会话到 sessionStorage。
  *
- * @param clientId OAuth2 client_id
  * @param session  verifier / state / returnUrl
  */
-export function savePkceSession(clientId: string, session: PkceSession): void {
-  sessionStorage.setItem(pkceStorageKey(clientId), JSON.stringify(session));
+export function savePkceSession(session: PkceSession): void {
+  sessionStorage.setItem(pkceStorageKey(session.state), JSON.stringify(session));
 }
 
 /**
  * 读取并清除 PKCE 会话（一次性消费）。
  *
- * @param clientId OAuth2 client_id
+ * @param state OAuth2 state 参数
  */
-export function consumePkceSession(clientId: string): PkceSession | null {
-  const raw = sessionStorage.getItem(pkceStorageKey(clientId));
-  sessionStorage.removeItem(pkceStorageKey(clientId));
+export function consumePkceSession(state: string): PkceSession | null {
+  const raw = sessionStorage.getItem(pkceStorageKey(state));
+  sessionStorage.removeItem(pkceStorageKey(state));
   if (!raw) {
     return null;
   }
@@ -193,31 +193,11 @@ export async function startOAuthLogin(
   const normalizedReturnUrl = normalizeReturnUrl(returnUrl, config.basePath);
 
   try {
-    // 若 sessionStorage 中已有未消费的 PKCE session（上一次刷新遗留），直接沿用，
-    // 避免覆盖 state 导致回调时 state 校验失败
-    const existingRaw = sessionStorage.getItem(pkceStorageKey(config.clientId));
-    let codeVerifier: string;
-    let state: string;
-
-    if (existingRaw) {
-      try {
-        const existing = JSON.parse(existingRaw) as PkceSession;
-        codeVerifier = existing.codeVerifier;
-        state = existing.state;
-        // 更新 returnUrl（用户可能刷新后改变了目标页面）
-        existing.returnUrl = normalizedReturnUrl;
-        savePkceSession(config.clientId, existing);
-      } catch {
-        // 解析失败，走正常流程
-        codeVerifier = generateCodeVerifier();
-        state = generateState();
-        savePkceSession(config.clientId, { codeVerifier, state, returnUrl: normalizedReturnUrl });
-      }
-    } else {
-      codeVerifier = generateCodeVerifier();
-      state = generateState();
-      savePkceSession(config.clientId, { codeVerifier, state, returnUrl: normalizedReturnUrl });
-    }
+    // 始终生成全新 PKCE，不复用已有 session
+    // 按 state 做键后，每个 OAuth 请求天然隔离，不需要复用逻辑
+    const codeVerifier = generateCodeVerifier();
+    const state = generateState();
+    savePkceSession({ codeVerifier, state, returnUrl: normalizedReturnUrl });
 
     const codeChallenge = await generateCodeChallenge(codeVerifier);
     window.location.href = buildAuthorizeUrl(config, codeChallenge, state, options);
