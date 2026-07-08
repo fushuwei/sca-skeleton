@@ -66,13 +66,13 @@ sca:
       admin:
         id: "100"
         client-id: sca-admin-client
-        redirect-uri: ${AUTH_ADMIN_REDIRECT_URI:http://localhost:8080/admin/oauth/callback}
+        redirect-uri: ${AUTH_ADMIN_REDIRECT_URI:http://localhost:8080/oauth/callback}
         access-token-ttl: 900
         refresh-token-ttl: 7200
       portal:
         id: "200"
         client-id: sca-portal-client
-        redirect-uri: ${AUTH_PORTAL_REDIRECT_URI:http://localhost:8080/oauth/callback}
+        redirect-uri: ${AUTH_PORTAL_REDIRECT_URI:http://localhost:9090/oauth/callback}
         access-token-ttl: 900
         refresh-token-ttl: 7200
     jwt:

@@ -1,33 +1,30 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import vue from "@vitejs/plugin-vue";
 import UnoCSS from "unocss/vite";
-import { createDevLandingPlugin } from "@repo/ui/vite-plugin";
 
-export default defineConfig({
-  server: {
-    host: "localhost",
-    port: 5174,
-    proxy: {
-      "/api": {
-        target: "http://localhost:8080",
-        changeOrigin: true
-      },
-      "/auth": {
-        target: "http://localhost:8080",
-        changeOrigin: true
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const gatewayTarget = env.VITE_GATEWAY_TARGET || "";
+
+  return {
+    server: {
+      host: "localhost",
+      port: 9090,
+      proxy: {
+        "/api": {
+          target: gatewayTarget,
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/api/, "")
+        },
+        "/auth": {
+          target: gatewayTarget,
+          changeOrigin: true
+        }
       }
-    }
-  },
-  plugins: [
-    vue(),
-    UnoCSS(),
-    createDevLandingPlugin({
-      port: 5174,
-      appName: "SCA Portal",
-      targetUrl: "http://localhost:8080/",
-      gradientFrom: "#10b981",
-      gradientTo: "#06b6d4",
-      iconEmoji: "\u{1F310}"
-    })
-  ]
+    },
+    plugins: [
+      vue(),
+      UnoCSS()
+    ]
+  };
 });
