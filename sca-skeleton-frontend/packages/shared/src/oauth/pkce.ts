@@ -97,7 +97,7 @@ export interface OAuthTokenResponse {
   scope?: string;
 }
 
-/** 授权 redirect 前写入 sessionStorage 的 PKCE 临时会话。 */
+/** 授权 redirect 前写入 localStorage 的 PKCE 临时会话。 */
 export interface PkceSession {
   codeVerifier: string;
   state: string;
@@ -105,8 +105,9 @@ export interface PkceSession {
 }
 
 /**
- * 构造 sessionStorage 键名（按 state 隔离不同 OAuth 请求）。
+ * 构造 localStorage 键名（按 state 隔离不同 OAuth 请求）。
  * 使用 state 作为键，天然全局唯一，不依赖任何浏览器行为假设。
+ * 跨标签页、浏览器重启均不丢失。
  *
  * @param state OAuth2 state 参数
  */
@@ -115,12 +116,12 @@ function pkceStorageKey(state: string): string {
 }
 
 /**
- * 保存 PKCE 会话到 sessionStorage。
+ * 保存 PKCE 会话到 localStorage。
  *
  * @param session  verifier / state / returnUrl
  */
 export function savePkceSession(session: PkceSession): void {
-  sessionStorage.setItem(pkceStorageKey(session.state), JSON.stringify(session));
+  localStorage.setItem(pkceStorageKey(session.state), JSON.stringify(session));
 }
 
 /**
@@ -129,8 +130,8 @@ export function savePkceSession(session: PkceSession): void {
  * @param state OAuth2 state 参数
  */
 export function consumePkceSession(state: string): PkceSession | null {
-  const raw = sessionStorage.getItem(pkceStorageKey(state));
-  sessionStorage.removeItem(pkceStorageKey(state));
+  const raw = localStorage.getItem(pkceStorageKey(state));
+  localStorage.removeItem(pkceStorageKey(state));
   if (!raw) {
     return null;
   }
@@ -175,7 +176,7 @@ export function buildAuthorizeUrl(
  * @param config    OAuth 应用配置
  * @param returnUrl 登录成功后回跳的 SPA 路径
  */
-/** 防止快速刷新时重复发起 PKCE，覆盖 sessionStorage 中未消费的 state 导致校验失败。 */
+/** 防止快速刷新时重复发起 PKCE，覆盖 localStorage 中未消费的 state 导致校验失败。 */
 let loginRedirectLock = false;
 
 export async function startOAuthLogin(

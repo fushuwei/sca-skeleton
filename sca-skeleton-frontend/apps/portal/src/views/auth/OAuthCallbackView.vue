@@ -42,14 +42,21 @@ async function attemptLogin() {
   const pkceSession = state ? consumePkceSession(state) : null;
 
   if (!code || !pkceSession) {
-    errorMessage.value = "授权回调参数无效，正在重新登录…";
-    processing.value = false;
-    startRetryCountdown();
+    // 即使采用了 localStorage，如果用户彻底清空了缓存，或者极端的跨设备访问，
+    // 依然可能导致本地找不到 pkceSession（孤儿回调）。
+    // 此时最好的用户体验是直接静默重新发起授权，由于后端已登录，会瞬间跳回，用户无感知。
+    console.warn(
+      "[OAuth2 Callback] ⚠️ 未找到有效 code 或本地 PKCE 会话已丢失 (孤儿回调)。\n" +
+      "👉 这通常是因为浏览器重启、跨设备访问或本地缓存被清空。\n" +
+      "🔄 正在触发静默重试 (后台重新授权)..."
+    );
+    void startOAuthLogin(oauthConfig, "/");
     return;
   }
 
   try {
     const tokenResponse = await exchangeAuthorizationCode(oauthConfig, code, pkceSession.codeVerifier);
+    console.info("[OAuth2 Callback] ✅ 正常授权回调完成，Token 交换成功！");
     await authStore.applyOAuthTokens(tokenResponse.access_token, tokenResponse.refresh_token);
     await authStore.fetchProfile();
     // 防御性剥离 base 前缀后再传给 router.replace()
