@@ -42,6 +42,7 @@ const form = reactive({
 const formRules = computed(() => ({
   parentId: [(v: string) => !!v || t("menuMgmt.parentIdRequired")],
   name: [(v: string) => !!v?.trim() || t("menuMgmt.nameRequired")],
+  nameEn: [(v: string) => !!v?.trim() || t("menuMgmt.nameEnRequired")],
   type: [(v: string) => !!v || t("menuMgmt.typeRequired")],
   code: form.type === "button"
     ? [(v: string) => !!v?.trim() || t("menuMgmt.codeRequired")]
@@ -471,9 +472,12 @@ async function handleSave() {
             :label="t('menuMgmt.nameEn')"
             filled
             square
+            :rules="formRules.nameEn"
+            lazy-rules
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
+            class="required-field"
           />
         </div>
         <!-- 权限类型 -->
