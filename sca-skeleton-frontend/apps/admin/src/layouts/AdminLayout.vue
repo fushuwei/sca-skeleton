@@ -96,7 +96,7 @@ function translateMenuItemTitle(item) {
 
 /** 将后端菜单树节点转为 Quasar QTree 节点 */
 function mapMenuToTreeNode(item) {
-  const nodeKey = item.component || item.name;
+  const nodeKey = item.id;
   if (item.children?.length) {
     return {
       label: translateMenuItemTitle(item),

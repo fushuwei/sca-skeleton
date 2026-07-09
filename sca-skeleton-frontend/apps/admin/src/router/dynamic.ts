@@ -19,14 +19,14 @@ function buildDynamicRoutes(menus: MenuItem[]): RouteRecordRaw[] {
   const leaves = flattenRoutableMenus(menus);
   return leaves.map((menu) => ({
     path: menu.path.replace(/^\//, ""),
-    name: menu.component,
+    name: menu.id,
     component: MENU_COMPONENT_MAP[menu.component!],
     meta: {
       requiresAuth: true,
       title: menu.name,
       /** 英文标题（DB name_en），用于 Tab 标题国际化 */
       titleEn: menu.nameEn,
-      icon: getIconForMenuRouteName(menus, menu.component!)
+      icon: menu.icon || getIconForMenuRouteName(menus, menu.id)
     }
   }));
 }
