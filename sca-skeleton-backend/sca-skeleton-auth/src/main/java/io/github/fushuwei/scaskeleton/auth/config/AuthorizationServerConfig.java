@@ -1,15 +1,8 @@
 package io.github.fushuwei.scaskeleton.auth.config;
 
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
 import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLockProperties;
-import io.github.fushuwei.scaskeleton.auth.config.properties.AuthJwtProperties;
 import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLoginProperties;
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
-import io.github.fushuwei.scaskeleton.auth.jwk.AuthJwkKeyLoader;
 import io.github.fushuwei.scaskeleton.auth.security.filter.AuthorizeChannelIsolationFilter;
 import io.github.fushuwei.scaskeleton.auth.security.filter.PublicClientRefreshTokenAuthenticationFilter;
 import io.github.fushuwei.scaskeleton.auth.token.ScaOpaqueAccessTokenClaimsCustomizer;
@@ -27,14 +20,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
-import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2AccessTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.http.HttpMethod;
@@ -48,9 +38,6 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.io.IOException;
-import java.security.KeyPair;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
 
 /**
@@ -60,18 +47,13 @@ import java.time.Instant;
  */
 @Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
-@EnableConfigurationProperties({OAuth2ClientProperties.class, AuthJwtProperties.class, AuthLockProperties.class, AuthLoginProperties.class})
+@EnableConfigurationProperties({OAuth2ClientProperties.class, AuthLockProperties.class, AuthLoginProperties.class})
 public class AuthorizationServerConfig {
 
     /**
      * OAuth2 客户端与 issuer 等对外 URL 配置（issuer 默认值见 {@code sca-skeleton-auth-*.yaml}）
      */
     private final OAuth2ClientProperties oauth2ClientProperties;
-
-    /**
-     * RSA 密钥加载器（外部配置或内存生成）
-     */
-    private final AuthJwkKeyLoader authJwkKeyLoader;
 
     /**
      * 与表单登录链共享的 SavedRequest 缓存
@@ -133,7 +115,7 @@ public class AuthorizationServerConfig {
             new OAuth2AuthorizationServerConfigurer();
 
         http
-            // 仅匹配 OAuth2 / OIDC 标准端点（显式 pattern，避免 configurer 未初始化时 matcher 为空）
+            // 仅匹配 OAuth2 标准端点（显式 pattern，避免 configurer 未初始化时 matcher 为空）
             .securityMatcher("/oauth2/**", "/.well-known/**")
             // 显式禁用 CSRF：token / introspection / revocation 等机器端点不应要求 CSRF Token
             .csrf(csrf -> csrf.disable())
@@ -157,10 +139,6 @@ public class AuthorizationServerConfig {
                     oauth2TokenEndpointAuthenticationEntryPoint(),
                     oauth2TokenEndpointMatcher())
             );
-
-        // 启用 OIDC 端点（/.well-known/openid-configuration 等）
-        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-            .oidc(Customizer.withDefaults());
 
         return http.build();
     }
@@ -218,37 +196,14 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    public JWKSource<SecurityContext> jwkSource() {
-        // 1) 优先加载外部持久化 RSA 密钥，否则本地内存生成
-        KeyPair keyPair = authJwkKeyLoader.loadKeyPair();
-        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-        // 2) 构建 RSA JWK，kid 外部配置优先
-        RSAKey rsaKey = new RSAKey.Builder(publicKey)
-            .privateKey(privateKey)
-            .keyID(authJwkKeyLoader.resolveKeyId())
-            .build();
-        // 3) 封装为不可变 JWK 源，供 JWT 编码与 JWKS 端点使用
-        return new ImmutableJWKSet<>(new JWKSet(rsaKey));
-    }
-
-    @Bean
-    public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
-        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
-    }
-
-    @Bean
-    public OAuth2TokenGenerator<?> tokenGenerator(JWKSource<SecurityContext> jwkSource) {
+    public OAuth2TokenGenerator<?> tokenGenerator() {
         // 1) 不透明 access_token 生成器，挂载业务 claims 扩展
         OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
         accessTokenGenerator.setAccessTokenCustomizer(new ScaOpaqueAccessTokenClaimsCustomizer());
-        // 2) JWT 生成器（用于 OIDC id_token 等场景，非默认 access_token 格式）
-        JwtGenerator jwtGenerator = new JwtGenerator(
-            new org.springframework.security.oauth2.jwt.NimbusJwtEncoder(jwkSource));
-        // 3) refresh_token 生成器：使用自定义实现，允许向公共客户端签发 refresh_token（SAS 7.0 默认会拒绝）
-        // 4) 委托生成器：按 RegisteredClient 的 token 格式选择具体生成器
+        // 2) refresh_token 生成器：使用自定义实现，允许向公共客户端签发 refresh_token（SAS 7.0 默认会拒绝）
+        // 3) 委托生成器：按 RegisteredClient 的 token 格式选择具体生成器（不透明令牌 + 刷新令牌）
         return new DelegatingOAuth2TokenGenerator(
-            accessTokenGenerator, jwtGenerator, new ScaRefreshTokenGenerator());
+            accessTokenGenerator, new ScaRefreshTokenGenerator());
     }
 
     @Bean

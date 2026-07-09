@@ -21,7 +21,8 @@ public class OAuth2ClientProperties {
     private String publicPathPrefix = "/auth";
 
     /**
-     * 认证中心对外根 URL（经网关），作为 id_token 的 iss 声明，同时用于生成登录/授权重定向地址
+     * 浏览器可见的 OAuth2 授权服务根 URL（开发环境经 Vite 代理到网关，生产环境经 Nginx/网关对外暴露）
+     * 必须与前端访问地址一致，用于生成登录重定向和授权端点地址
      */
     private String issuer;
 

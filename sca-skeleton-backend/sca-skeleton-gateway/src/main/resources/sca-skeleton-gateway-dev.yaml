@@ -150,7 +150,6 @@ gateway:
       - /auth/oauth2/authorize
       - /auth/oauth2/token
       - /auth/oauth2/revoke
-      - /auth/oauth2/jwks
       - /auth/.well-known/**
       - /auth/login/**
       - /auth/logout

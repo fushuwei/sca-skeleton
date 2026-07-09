@@ -618,7 +618,7 @@ SELECT
     'authorization_code,refresh_token',
     NULL,
     NULL,
-    'openid,profile,offline_access,all',
+    'profile,offline_access,all',
     '{"settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
     '{"settings.token.reuse-refresh-tokens":false}'
 WHERE NOT EXISTS (
@@ -652,7 +652,7 @@ SELECT
     'authorization_code,refresh_token',
     NULL,
     NULL,
-    'openid,profile,offline_access,all',
+    'profile,offline_access,all',
     '{"settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
     '{"settings.token.reuse-refresh-tokens":false}'
 WHERE NOT EXISTS (

@@ -8,7 +8,6 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
@@ -110,8 +109,7 @@ public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
             .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
             // PKCE 回调地址（必须与 SPA 环境变量一致）
             .redirectUri(props.getRedirectUri())
-            .scope(OidcScopes.OPENID)
-            .scope(OidcScopes.PROFILE)
+            .scope("profile")
             .scope("offline_access")
             .scope("all")
             .clientSettings(ClientSettings.builder()
@@ -189,7 +187,6 @@ public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
             .reuseRefreshTokens(old.isReuseRefreshTokens())
             .authorizationCodeTimeToLive(old.getAuthorizationCodeTimeToLive())
             .deviceCodeTimeToLive(old.getDeviceCodeTimeToLive())
-            .idTokenSignatureAlgorithm(old.getIdTokenSignatureAlgorithm())
             .x509CertificateBoundAccessTokens(old.isX509CertificateBoundAccessTokens())
             .build();
         registeredClientRepository.save(RegisteredClient.from(client).tokenSettings(newSettings).build());

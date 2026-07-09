@@ -42,7 +42,7 @@
             <artifactId>sca-skeleton-starter-captcha</artifactId>
         </dependency>
 
-        <!-- OAuth 2.1 授权服务器（OAuth2.1 / OIDC 认证授权中心） -->
+        <!-- OAuth 2.1 授权服务器（授权码 + PKCE 认证授权中心） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-oauth2-authorization-server</artifactId>

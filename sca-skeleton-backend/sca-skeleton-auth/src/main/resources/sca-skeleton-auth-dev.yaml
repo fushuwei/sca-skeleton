@@ -58,7 +58,8 @@ sca:
     resource-server:
       enabled: false
   auth:
-    # 经 API 网关对外暴露的 issuer（浏览器可见的 OAuth/OIDC 根 URL，与网关 /auth/** 一致）
+    # 浏览器可见的 OAuth2 授权服务根 URL（开发环境经 Vite 代理到网关，生产环境经 Nginx/网关对外暴露）
+    # 必须与前端访问地址一致，用于生成登录重定向和授权端点地址
     issuer: ${AUTH_ISSUER:http://localhost:8080/auth}
     # 浏览器访问 Auth 登录页/表单时的 URL 前缀（网关 /auth/** → StripPrefix=1）
     public-path-prefix: ${AUTH_PUBLIC_PATH_PREFIX:/auth}
@@ -75,12 +76,6 @@ sca:
         redirect-uri: ${AUTH_PORTAL_REDIRECT_URI:http://localhost:9090/oauth/callback}
         access-token-ttl: 900
         refresh-token-ttl: 7200
-    jwt:
-      key-size: 2048
-      # 生产环境通过环境变量或 Nacos 注入持久化密钥（PEM 或 Base64）
-      # key-id: ${AUTH_JWT_KEY_ID:}
-      # private-key: ${AUTH_JWT_PRIVATE_KEY:}
-      # public-key: ${AUTH_JWT_PUBLIC_KEY:}
     lock:
       max-fail-count: 5
       lock-duration-seconds: 1800

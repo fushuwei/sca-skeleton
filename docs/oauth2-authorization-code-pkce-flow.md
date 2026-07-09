@@ -47,7 +47,7 @@ sequenceDiagram
     SPA->>SPA: 生成 state (随机字符串，防 CSRF)
     SPA->>Browser: 302 跳转授权端点
 
-    Note over Browser,GW: GET {issuer}/auth/oauth2/authorize?<br/>response_type=code<br/>&client_id=sca-admin-client<br/>&redirect_uri=http://localhost:8080/oauth/callback<br/>&code_challenge={S256_challenge}<br/>&code_challenge_method=S256<br/>&state={random_state}<br/>&scope=openid profile offline_access all
+    Note over Browser,GW: GET {issuer}/auth/oauth2/authorize?<br/>response_type=code<br/>&client_id=sca-admin-client<br/>&redirect_uri=http://localhost:8080/oauth/callback<br/>&code_challenge={S256_challenge}<br/>&code_challenge_method=S256<br/>&state={random_state}<br/>&scope=profile offline_access all
 
     Note over Browser,RS: ══════ 阶段 2：网关转发 → 认证中心授权端点 ══════
 
@@ -213,7 +213,7 @@ sequenceDiagram
     Auth->>Redis: OAuth2AuthorizationService.save(authorization)<br/>更新 Redis Hash：<br/>- access_token_value / access_token_issued_at /<br/>  access_token_expires_at / access_token_metadata<br/>- refresh_token_value / refresh_token_issued_at /<br/>  refresh_token_expires_at<br/>- 建索引 idx:access:{token} → id (TTL 900s)<br/>- 建索引 idx:refresh:{token} → id (TTL 7200s)<br/>- 删除旧 code 索引
     Auth->>Redis: 删除旧 code 索引 (authorization_code 已消费)
 
-    Auth->>GW: 200 OK<br/>Content-Type: application/json<br/>Body:<br/>{<br/>  "access_token": "{opaque_token}",<br/>  "refresh_token": "{refresh_token}",<br/>  "token_type": "Bearer",<br/>  "expires_in": 900,<br/>  "scope": "openid profile offline_access all"<br/>}
+    Auth->>GW: 200 OK<br/>Content-Type: application/json<br/>Body:<br/>{<br/>  "access_token": "{opaque_token}",<br/>  "refresh_token": "{refresh_token}",<br/>  "token_type": "Bearer",<br/>  "expires_in": 900,<br/>  "scope": "profile offline_access all"<br/>}
 
     GW->>SPA: 200 OK<br/>{ access_token, refresh_token, ... }
 
@@ -279,7 +279,7 @@ sequenceDiagram
 
     Auth->>Redis: OAuth2AuthorizationService.save(authorization)<br/>更新 access_token / refresh_token<br/>旧 refresh_token 索引被 removeIndexes 清除
 
-    Auth->>GW: 200 OK<br/>{<br/>  "access_token": "{new_opaque_token}",<br/>  "refresh_token": "{new_rotated_token}",<br/>  "token_type": "Bearer",<br/>  "expires_in": 900,<br/>  "scope": "openid profile offline_access all"<br/>}
+    Auth->>GW: 200 OK<br/>{<br/>  "access_token": "{new_opaque_token}",<br/>  "refresh_token": "{new_rotated_token}",<br/>  "token_type": "Bearer",<br/>  "expires_in": 900,<br/>  "scope": "profile offline_access all"<br/>}
 
     GW->>SPA: 200 OK (新令牌)
 
@@ -483,8 +483,7 @@ authorizationCodeTimeToLive(60s)          // 授权码 60s 有效期
 /auth/oauth2/authorize      — 授权端点（限流: 20/40 per sec）
 /auth/oauth2/token          — 令牌端点（限流: 10/20 per sec）
 /auth/oauth2/revoke         — 吊销端点
-/auth/oauth2/jwks           — JWKS 端点
-/auth/.well-known/**        — OIDC Discovery
+/auth/.well-known/**        — OAuth2 Discovery
 /auth/login/**              — 登录页与表单提交
 /auth/logout                — 退出端点
 /auth/captcha/**            — 验证码图片
@@ -508,7 +507,5 @@ authorizationCodeTimeToLive(60s)          // 授权码 60s 有效期
 | `/auth/login/authenticate` | POST | `application/x-www-form-urlencoded` | `username`, `password`, `loginChannel`, `captchaKey`, `captchaCode` | 表单登录 |
 | `/auth/oauth2/token` | POST | `application/x-www-form-urlencoded` | `grant_type`, `code`, `redirect_uri`, `code_verifier`, `client_id` (或 `grant_type=refresh_token`, `refresh_token`, `client_id`) | 令牌交换/刷新 |
 | `/auth/oauth2/revoke` | POST | `application/x-www-form-urlencoded` | `token`, `token_type_hint`, `client_id` | 吊销令牌 |
-| `/auth/oauth2/jwks` | GET | — | — | JWKS 公钥 |
-| `/auth/.well-known/openid-configuration` | GET | — | — | OIDC Discovery |
 | `/auth/logout` | POST | `application/x-www-form-urlencoded` | `access_token`, `refresh_token`, `channel` | 退出登录 |
 | `/auth/actuator/health` | GET | — | — | 健康检查 |
