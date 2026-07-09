@@ -3,7 +3,7 @@ import type { Router } from "vue-router";
 import { getAdminOAuthConfig } from "../config/oauth";
 import { getUserProfileApi } from "../apis/user";
 import { getUserMenusApi } from "../apis/permission";
-import { ensureDynamicRoutes, resetDynamicRoutes } from "../router/dynamic";
+import { ensureDynamicRoutes } from "../router/dynamic";
 import {
   MENUS_STORAGE_KEY,
   REFRESH_TOKEN_STORAGE_KEY,
@@ -155,18 +155,13 @@ export const useAuthStore = defineStore("auth", {
       const oauthConfig = getAdminOAuthConfig();
       const accessToken = this.token;
       const refreshToken = this.refreshToken;
-      this.token = "";
-      this.refreshToken = "";
-      this.permissions = [];
-      this.menus = [];
-      this.profile = null;
-      this.dynamicReady = false;
+
+      // 仅清除持久化状态，不清内存（form.submit 会触发浏览器导航，页面销毁后内存自然释放；
+      // 提前清空 menus / profile 会导致侧栏和头部在跳转前闪现空白/回退文案）
       localStorage.removeItem(TOKEN_STORAGE_KEY);
       localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
       localStorage.removeItem(MENUS_STORAGE_KEY);
-      // 按 state 做键后，不需要手动清除 PKCE 会话
-      // sessionStorage 会随 tab 关闭自动清空，且每个 OAuth 请求使用独立的 state
-      resetDynamicRoutes(router);
+
       const logoutUrl = oauthConfig.authorizeUrl.replace("/oauth2/authorize", "/logout");
       const form = document.createElement("form");
       form.method = "POST";
