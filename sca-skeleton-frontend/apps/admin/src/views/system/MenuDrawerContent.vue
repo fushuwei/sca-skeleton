@@ -26,6 +26,7 @@ const form = reactive({
   id: "",
   parentId: "",
   name: "",
+  nameEn: "",
   type: "",
   code: "",
   path: "",
@@ -277,6 +278,7 @@ function resetForm() {
   form.id = "";
   form.parentId = props.defaultParentId || "0";
   form.name = "";
+  form.nameEn = "";
   form.type = "";
   form.code = "";
   form.path = "";
@@ -295,6 +297,7 @@ function initForm() {
     form.id = props.permission.id;
     form.parentId = props.permission.parentId;
     form.name = props.permission.name;
+    form.nameEn = props.permission.nameEn || "";
     form.type = props.permission.type;
     form.code = props.permission.code || "";
     form.path = props.permission.path || "";
@@ -329,6 +332,7 @@ async function handleSave() {
   const data: Record<string, unknown> = {
     parentId: form.parentId,
     name: form.name,
+    nameEn: form.nameEn || undefined,
     type: form.type,
     code: form.code || undefined,
     path: form.path || undefined,
@@ -458,6 +462,18 @@ async function handleSave() {
             :readonly="drawerReadonly"
             hide-bottom-space
             class="required-field"
+          />
+        </div>
+        <!-- 英文菜单名称 -->
+        <div class="col-12 col-md-6">
+          <q-input
+            v-model.trim="form.nameEn"
+            :label="t('menuMgmt.nameEn')"
+            filled
+            square
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
           />
         </div>
         <!-- 权限类型 -->

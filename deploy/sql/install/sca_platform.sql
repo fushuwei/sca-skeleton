@@ -327,6 +327,7 @@ CREATE TABLE IF NOT EXISTS `sys_permission` (
     `id`              VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
     `parent_id`       VARCHAR(64)     NOT NULL DEFAULT '0'        COMMENT '父权限ID',
     `name`            VARCHAR(255)    NOT NULL                    COMMENT '权限名称',
+    `name_en`         VARCHAR(255)    DEFAULT NULL                COMMENT '英文权限名称，用于国际化',
     `type`            VARCHAR(10)     NOT NULL                    COMMENT '权限类型（module模块 folder目录 menu菜单 button按钮）',
     `code`            VARCHAR(255)    DEFAULT NULL                COMMENT '权限标识（如: system:user:list）',
     `path`            VARCHAR(255)    DEFAULT NULL                COMMENT '路由地址',
@@ -350,51 +351,51 @@ CREATE TABLE IF NOT EXISTS `sys_permission` (
 
 -- 初始化系统管理菜单权限（对应前端 mock 菜单"系统管理"部分）
 INSERT INTO `sys_permission` (
-    `id`, `parent_id`, `name`, `type`, `code`, `path`, `component`, `icon`,
+    `id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`,
     `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `remark`,
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT t.* FROM (
-    SELECT '1000' AS `id`, '0' AS `parent_id`, '系统管理' AS `name`, 'module' AS `type`, NULL AS `code`,
+    SELECT '1000' AS `id`, '0' AS `parent_id`, '系统管理' AS `name`, 'System' AS `name_en`, 'module' AS `type`, NULL AS `code`,
            NULL AS `path`, NULL AS `component`, 'sym_r_settings' AS `icon`,
            200 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,1000' AS `tree_path`, NULL AS `remark`,
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
     UNION ALL
-    SELECT '1100', '1000', '租户管理', 'folder', NULL, NULL, NULL, 'sym_r_folder', 100, 1, 0, 'enabled', '0,1000,1100', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1100', '1000', '租户管理', 'Tenant Management', 'folder', NULL, NULL, NULL, 'sym_r_folder', 100, 1, 0, 'enabled', '0,1000,1100', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1101', '1100', '租户管理', 'menu', NULL, '/system/tenant', 'TenantListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1100,1101', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1101', '1100', '租户管理', 'Tenants', 'menu', NULL, '/system/tenant', 'TenantListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1100,1101', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1102', '1100', '套餐管理', 'menu', NULL, '/system/tenant-package', 'TenantPackageListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1100,1102', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1102', '1100', '套餐管理', 'Packages', 'menu', NULL, '/system/tenant-package', 'TenantPackageListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1100,1102', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1200', '1000', '用户与权限', 'folder', NULL, NULL, NULL, 'sym_r_folder', 200, 1, 0, 'enabled', '0,1000,1200', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1200', '1000', '用户与权限', 'Users & Permissions', 'folder', NULL, NULL, NULL, 'sym_r_folder', 200, 1, 0, 'enabled', '0,1000,1200', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1201', '1200', '用户管理', 'menu', NULL, '/system/user', 'UserListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1200,1201', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1201', '1200', '用户管理', 'Users', 'menu', NULL, '/system/user', 'UserListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1200,1201', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1202', '1200', '角色管理', 'menu', NULL, '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1200,1202', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1202', '1200', '角色管理', 'Roles', 'menu', NULL, '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1200,1202', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1203', '1200', '菜单管理', 'menu', NULL, '/system/menu', 'MenuListView', 'sym_r_nest_eco_leaf', 300, 1, 0, 'enabled', '0,1000,1200,1203', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1203', '1200', '菜单管理', 'Menus', 'menu', NULL, '/system/menu', 'MenuListView', 'sym_r_nest_eco_leaf', 300, 1, 0, 'enabled', '0,1000,1200,1203', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1300', '1000', '组织与岗位', 'folder', NULL, NULL, NULL, 'sym_r_folder', 300, 1, 0, 'enabled', '0,1000,1300', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1300', '1000', '组织与岗位', 'Organization', 'folder', NULL, NULL, NULL, 'sym_r_folder', 300, 1, 0, 'enabled', '0,1000,1300', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1301', '1300', '部门管理', 'menu', NULL, '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1300,1301', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1301', '1300', '部门管理', 'Departments', 'menu', NULL, '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1300,1301', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1302', '1300', '岗位管理', 'menu', NULL, '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1300,1302', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1302', '1300', '岗位管理', 'Positions', 'menu', NULL, '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1300,1302', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1400', '1000', '系统与厂商', 'folder', NULL, NULL, NULL, 'sym_r_folder', 400, 1, 0, 'enabled', '0,1000,1400', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1400', '1000', '系统与厂商', 'System & Vendors', 'folder', NULL, NULL, NULL, 'sym_r_folder', 400, 1, 0, 'enabled', '0,1000,1400', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1401', '1400', '业务系统管理', 'menu', NULL, '/system/business-system', 'BusinessSystemListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1400,1401', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1401', '1400', '业务系统管理', 'Business Systems', 'menu', NULL, '/system/business-system', 'BusinessSystemListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,1000,1400,1401', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1402', '1400', '厂商管理', 'menu', NULL, '/system/vendor', 'VendorListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1400,1402', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1402', '1400', '厂商管理', 'Vendors', 'menu', NULL, '/system/vendor', 'VendorListView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,1000,1400,1402', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1500', '1000', '字典管理', 'menu', NULL, '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 500, 1, 0, 'enabled', '0,1000,1500', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1500', '1000', '字典管理', 'Dictionaries', 'menu', NULL, '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 500, 1, 0, 'enabled', '0,1000,1500', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1501', '1000', '系统配置', 'menu', NULL, '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf', 600, 1, 0, 'enabled', '0,1000,1501', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1501', '1000', '系统配置', 'System Config', 'menu', NULL, '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf', 600, 1, 0, 'enabled', '0,1000,1501', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1502', '1000', '通知公告', 'menu', NULL, '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 700, 1, 0, 'enabled', '0,1000,1502', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1502', '1000', '通知公告', 'Announcements', 'menu', NULL, '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 700, 1, 0, 'enabled', '0,1000,1502', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1503', '1000', '操作日志', 'menu', NULL, '/system/log/operation', 'PlaceholderView', 'sym_r_nest_eco_leaf', 800, 1, 0, 'enabled', '0,1000,1503', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1503', '1000', '操作日志', 'Operation Logs', 'menu', NULL, '/system/log/operation', 'PlaceholderView', 'sym_r_nest_eco_leaf', 800, 1, 0, 'enabled', '0,1000,1503', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '1504', '1000', '登录日志', 'menu', NULL, '/system/log/login', 'PlaceholderView', 'sym_r_nest_eco_leaf', 900, 1, 0, 'enabled', '0,1000,1504', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1504', '1000', '登录日志', 'Login Logs', 'menu', NULL, '/system/log/login', 'PlaceholderView', 'sym_r_nest_eco_leaf', 900, 1, 0, 'enabled', '0,1000,1504', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
 WHERE NOT EXISTS (
     SELECT 1 FROM `sys_permission` WHERE `id` = '1000' AND `is_deleted` = 0
@@ -403,21 +404,21 @@ WHERE NOT EXISTS (
 
 -- 初始化数据源管理菜单权限
 INSERT INTO `sys_permission` (
-    `id`, `parent_id`, `name`, `type`, `code`, `path`, `component`, `icon`,
+    `id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`,
     `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `remark`,
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT t.* FROM (
-    SELECT '2000' AS `id`, '0' AS `parent_id`, '数据源管理' AS `name`, 'module' AS `type`, NULL AS `code`,
+    SELECT '2000' AS `id`, '0' AS `parent_id`, '数据源管理' AS `name`, 'Data Source' AS `name_en`, 'module' AS `type`, NULL AS `code`,
            NULL AS `path`, NULL AS `component`, 'sym_r_database' AS `icon`,
            100 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,2000' AS `tree_path`, NULL AS `remark`,
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
     UNION ALL
-    SELECT '2100', '2000', '数据源管理', 'menu', NULL, '/datasource/list', 'DataSourceListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,2000,2100', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '2100', '2000', '数据源管理', 'Data Sources', 'menu', NULL, '/datasource/list', 'DataSourceListView', 'sym_r_nest_eco_leaf', 100, 1, 0, 'enabled', '0,2000,2100', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '2200', '2000', '数据查询', 'menu', NULL, '/datasource/sql-query', 'SqlQueryView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,2000,2200', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '2200', '2000', '数据查询', 'SQL Query', 'menu', NULL, '/datasource/sql-query', 'SqlQueryView', 'sym_r_nest_eco_leaf', 200, 1, 0, 'enabled', '0,2000,2200', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '2300', '2000', '驱动管理', 'menu', NULL, '/datasource/driver-list', 'DriverListView', 'sym_r_nest_eco_leaf', 300, 1, 0, 'enabled', '0,2000,2300', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '2300', '2000', '驱动管理', 'Drivers', 'menu', NULL, '/datasource/driver-list', 'DriverListView', 'sym_r_nest_eco_leaf', 300, 1, 0, 'enabled', '0,2000,2300', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
 WHERE NOT EXISTS (
     SELECT 1 FROM `sys_permission` WHERE `id` = '2000' AND `is_deleted` = 0

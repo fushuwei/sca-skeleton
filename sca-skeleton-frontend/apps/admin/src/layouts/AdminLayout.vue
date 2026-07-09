@@ -21,7 +21,7 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const $q = useQuasar();
-const { locale, t, te } = useI18n({ useScope: "global" });
+const { locale, t } = useI18n({ useScope: "global" });
 
 const LEFT_DRAWER_WIDTH_MIN = 300;
 const LEFT_DRAWER_WIDTH_MAX = 450;
@@ -87,9 +87,9 @@ function applyHeaderLocale(code) {
 }
 
 function translateMenuItemTitle(item) {
-  const key = `menu.${item.component}`;
-  if (item?.component && te(key)) {
-    return t(key);
+  void locale.value;
+  if (locale.value === "en-US" && item.nameEn) {
+    return item.nameEn;
   }
   return item.name;
 }
@@ -278,10 +278,11 @@ function tabTitleFromRoute(routeLike) {
   if (path === WORKBENCH_PATH || name === "ModuleWorkbench") {
     return t("layout.workbench");
   }
-  const menuKey = `menu.${name}`;
-  if (name && te(menuKey)) {
-    return t(menuKey);
+  // 英文环境优先使用 titleEn（DB name_en）
+  if (locale.value === "en-US" && routeLike.meta?.titleEn) {
+    return String(routeLike.meta.titleEn);
   }
+  // 回退到 meta.title（DB name 原始中文名称）
   const raw = routeLike.meta?.title;
   if (raw != null && String(raw).trim() !== "") {
     return String(raw);

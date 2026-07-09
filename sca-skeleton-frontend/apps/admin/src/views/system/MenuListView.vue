@@ -344,6 +344,13 @@ const columns = computed<QTableColumn<SysPermission>[]>(() => [
     headerClasses: "sticky-col-left"
   },
   {
+    name: "nameEn",
+    field: "nameEn",
+    label: t("menuMgmt.nameEn"),
+    align: "left",
+    sortable: false
+  },
+  {
     name: "type",
     field: "type",
     label: t("menuMgmt.type"),
@@ -895,6 +902,12 @@ onMounted(() => {
         <template #body-cell-name="props">
           <q-td :props="props">
             <span>{{ props.row.name }}</span>
+          </q-td>
+        </template>
+
+        <template #body-cell-nameEn="props">
+          <q-td :props="props">
+            <span>{{ props.row.nameEn || "-" }}</span>
           </q-td>
         </template>
 

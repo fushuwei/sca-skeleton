@@ -24,6 +24,8 @@ function buildDynamicRoutes(menus: MenuItem[]): RouteRecordRaw[] {
     meta: {
       requiresAuth: true,
       title: menu.name,
+      /** 英文标题（DB name_en），用于 Tab 标题国际化 */
+      titleEn: menu.nameEn,
       icon: getIconForMenuRouteName(menus, menu.component!)
     }
   }));

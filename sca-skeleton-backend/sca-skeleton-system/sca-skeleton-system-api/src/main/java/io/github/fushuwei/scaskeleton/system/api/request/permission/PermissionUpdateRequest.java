@@ -21,6 +21,9 @@ public class PermissionUpdateRequest {
     @NotBlank(message = "权限名称不能为空")
     private String name;
 
+    /** 英文菜单名称，用于国际化 */
+    private String nameEn;
+
     /** 权限标识，如 sys:user:list */
     private String code;
     /** 前端路由地址 */

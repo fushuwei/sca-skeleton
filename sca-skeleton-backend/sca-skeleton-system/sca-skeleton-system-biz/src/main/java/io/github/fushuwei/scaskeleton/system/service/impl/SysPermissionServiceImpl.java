@@ -168,6 +168,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         SysPermission permission = new SysPermission();
         permission.setParentId(req.getParentId());
         permission.setName(req.getName());
+        permission.setNameEn(req.getNameEn());
         permission.setType(req.getType());
         permission.setCode(req.getCode());
         permission.setPath(req.getPath());
@@ -196,6 +197,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         // 校验权限存在并加载当前快照（parentId / treePath 不在此接口变更）
         SysPermission existing = loadPermissionEntity(req.getId());
         existing.setName(req.getName());
+        existing.setNameEn(req.getNameEn());
         existing.setCode(req.getCode());
         existing.setPath(req.getPath());
         existing.setComponent(req.getComponent());

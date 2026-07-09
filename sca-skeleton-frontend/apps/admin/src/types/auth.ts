@@ -13,6 +13,8 @@ export interface MenuItem {
   id: string;
   /** 权限名称（对应 SQL name 字段），用于侧边栏显示 */
   name: string;
+  /** 英文菜单名称（对应 SQL name_en 字段），英文环境下显示 */
+  nameEn?: string;
   /** 路由路径（对应 SQL path 字段） */
   path: string;
   /** 组件标识（对应 SQL component 字段），用于 Vue Router name 参数 */
@@ -218,6 +220,8 @@ export interface SysPermission {
   /** 父权限ID，顶级为 "0" */
   parentId: string;
   name: string;
+  /** 英文菜单名称，用于国际化 */
+  nameEn?: string;
   /** 类型：folder-目录，menu-菜单，button-按钮 */
   type: string;
   /** 权限标识，如 sys:user:list */

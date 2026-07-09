@@ -40,6 +40,7 @@ function buildMenuTree(permissions: SysPermission[]): MenuItem[] {
     map.set(p.id, {
       id: p.id,
       name: p.name ?? "",
+      nameEn: p.nameEn || undefined,
       path: p.path ?? "",
       component: p.component as MenuItem["component"] ?? undefined,
       icon: p.icon ?? undefined,

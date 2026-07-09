@@ -19,6 +19,8 @@ public class SysPermission extends BaseEntity {
     /** 父权限ID，顶级为 "0" */
     private String parentId;
     private String name;
+    /** 英文菜单名称，用于国际化 */
+    private String nameEn;
     /** 类型：module-模块，folder-目录，menu-菜单，button-按钮 */
     private String type;
     /** 权限标识，如 sys:user:list */
