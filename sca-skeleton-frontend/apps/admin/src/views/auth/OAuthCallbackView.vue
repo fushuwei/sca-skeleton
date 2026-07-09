@@ -140,8 +140,10 @@ onMounted(() => {
 }
 
 .loading-text {
+  margin: 0;
   font-size: 16px;
   color: #666;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
 .error-box {
