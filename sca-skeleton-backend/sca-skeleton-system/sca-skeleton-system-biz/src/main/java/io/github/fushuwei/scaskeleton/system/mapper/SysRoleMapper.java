@@ -19,14 +19,12 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
     /**
      * 分页查询角色，关联子查询一次性查出权限数量。
      *
-     * @param page           分页对象
-     * @param queryWrapper   查询条件
-     * @param orderByOverride 非表字段排序（如 permission_count ASC），可为 null
+     * @param page          分页对象
+     * @param queryWrapper  查询条件
      * @return 分页结果（每条记录含 permissionCount）
      */
     IPage<SysRole> selectRolePage(IPage<SysRole> page,
-                                  @Param(Constants.WRAPPER) Wrapper<SysRole> queryWrapper,
-                                  @Param("orderByOverride") String orderByOverride);
+                                  @Param(Constants.WRAPPER) Wrapper<SysRole> queryWrapper);
 
     /**
      * 查询指定用户的角色列表。

@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.system.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.Version;
@@ -31,8 +32,11 @@ public class SysRole extends BaseEntity {
     private Integer sort;
     private String remark;
 
-    /** 关联的权限数量（非表字段，仅用于接收 SQL 查询结果） */
-    @TableField(exist = false)
+    /** 关联的权限数量（非表字段，仅用于排序和展示） */
+    @TableField(value = "permission_count",
+                insertStrategy = FieldStrategy.NEVER,
+                updateStrategy = FieldStrategy.NEVER,
+                select = false)
     private Integer permissionCount;
 
     @Version

@@ -61,7 +61,6 @@ public class SysRoleServiceImpl implements SysRoleService {
         // 安全排序：白名单校验通过后按指定字段排序，否则按 sort 升序
         String orderBy = req.safeOrderBy();
         boolean isAsc = "ASC".equalsIgnoreCase(req.safeOrderDirection());
-        String orderByOverride = null;
         if (orderBy != null) {
             switch (orderBy) {
                 case "name" -> wrapper.orderBy(true, isAsc, SysRole::getName);
@@ -69,14 +68,14 @@ public class SysRoleServiceImpl implements SysRoleService {
                 case "data_scope" -> wrapper.orderBy(true, isAsc, SysRole::getDataScope);
                 case "sort" -> wrapper.orderBy(true, isAsc, SysRole::getSort);
                 case "create_time" -> wrapper.orderBy(true, isAsc, SysRole::getCreateTime);
-                case "permission_count" -> orderByOverride = "permission_count " + (isAsc ? "ASC" : "DESC");
+                case "permission_count" -> wrapper.orderBy(true, isAsc, SysRole::getPermissionCount);
             }
         } else {
             wrapper.orderByAsc(SysRole::getSort);
         }
 
         // 查询实体分页并转换为响应对象分页
-        IPage<SysRole> entityPage = roleMapper.selectRolePage(page, wrapper, orderByOverride);
+        IPage<SysRole> entityPage = roleMapper.selectRolePage(page, wrapper);
         return entityPage.convert(roleConverter::toRoleResponse);
     }
 
