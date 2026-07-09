@@ -7,7 +7,7 @@ import { createRoleApi, updateRoleApi } from "../../apis/role";
 import { getRolePermissionIdsApi } from "../../apis/role";
 import { getPermissionListApi } from "../../apis/permission";
 
-const { t } = useI18n({ useScope: "global" });
+const { t, locale } = useI18n({ useScope: "global" });
 
 const props = defineProps<{
   mode: "add" | "edit" | "view";
@@ -57,7 +57,8 @@ const dataScopeOptions = computed(() => [
 
 // ── 权限树 ──
 const permTreeLoading = ref(false);
-const permTreeNodes = ref<PermissionTreeNode[]>([]);
+const allPermissions = ref<SysPermission[]>([]);
+const permTreeNodes = computed(() => buildPermTree(allPermissions.value));
 const permTreeExpanded = ref<string[]>([]);
 const permTreeTicked = ref<string[]>([]);
 const permSearchKey = ref("");
@@ -72,10 +73,11 @@ function buildPermTree(perms: SysPermission[]): PermissionTreeNode[] {
   const sorted = [...perms].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
 
   const map = new Map<string, PermissionTreeNode>();
+  const isEn = locale.value.startsWith("en");
   for (const p of sorted) {
     map.set(p.id, {
       id: p.id,
-      label: p.name,
+      label: (isEn && p.nameEn) ? p.nameEn : p.name,
       parentId: p.parentId,
       type: p.type,
       icon: p.icon || "",
@@ -172,7 +174,7 @@ async function loadPermTree() {
   try {
     const result = await getPermissionListApi();
     if (result.code === 10_000 && result.data) {
-      permTreeNodes.value = buildPermTree(result.data);
+      allPermissions.value = result.data;
       // 默认展开第一级
       permTreeExpanded.value = permTreeNodes.value.map((n) => n.id);
       // 树加载完成后，执行待处理的权限回显操作
@@ -197,7 +199,7 @@ async function loadRolePermissions(roleId: string) {
   try {
     const result = await getRolePermissionIdsApi(roleId);
     if (result.code === 10_000 && result.data) {
-      if (permTreeNodes.value.length === 0) {
+      if (allPermissions.value.length === 0) {
         // 权限树尚未加载，暂存待处理
         pendingPermIds.value = result.data;
       } else {
@@ -235,7 +237,7 @@ function initForm() {
     form.remark = props.role.remark || "";
     // 查看模式且超管角色：默认勾选所有权限
     if (drawerReadonly.value && props.role.code === "ROLE_SUPERADMIN") {
-      if (permTreeNodes.value.length === 0) {
+      if (allPermissions.value.length === 0) {
         pendingTickAll.value = true;
       } else {
         tickAllPermissions();
