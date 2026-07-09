@@ -21,7 +21,8 @@ const { confirmDialog } = useConfirmDialog();
 
 const ROOT_ID = "0";
 const menuTreeLoading = ref(false);
-const menuTreeNodes = ref<PermissionTreeNode[]>([]);
+const allPermissions = ref<SysPermission[]>([]);
+const menuTreeNodes = computed(() => buildMenuTree(allPermissions.value));
 const selectedMenuId = ref<string>("");
 let lastSelectedMenuId = "";
 const menuTreeExpanded = ref<string[]>([ROOT_ID]);
@@ -94,12 +95,12 @@ async function loadMenuTree() {
   try {
     const result = await getPermissionListApi();
     if (result.code === 10_000 && result.data?.length) {
-      menuTreeNodes.value = buildMenuTree(result.data);
+      allPermissions.value = result.data;
     } else {
-      menuTreeNodes.value = [];
+      allPermissions.value = [];
     }
   } catch {
-    menuTreeNodes.value = [];
+    allPermissions.value = [];
   } finally {
     menuTreeExpanded.value = [ROOT_ID];
     menuTreeLoading.value = false;
@@ -636,8 +637,6 @@ async function handleBatchDelete() {
 
 // ═══════════════════════════════════════════════════════════════
 // 生命周期
-// ═══════════════════════════════════════════════════════════════
-
 onMounted(() => {
   loadMenuTree();
   loadTableData();

@@ -90,7 +90,7 @@ const yesNoOptions = computed(() => [
 
 // ── 上级菜单树（排除 button 类型） ──
 const allPermissions = ref<SysPermission[]>([]);
-const menuTreeNodes = ref<PermissionTreeNode[]>([]);
+const menuTreeNodes = computed(() => buildMenuTree(allPermissions.value));
 const menuTreeExpanded = ref<string[]>([]);
 const menuSearchKey = ref("");
 const menuMenuRef = ref();
@@ -267,7 +267,6 @@ async function loadMenuTree() {
     const result = await getPermissionListApi();
     if (result.code === 10_000 && result.data) {
       allPermissions.value = result.data;
-      menuTreeNodes.value = buildMenuTree(result.data);
       // 默认展开「全部」根节点
       menuTreeExpanded.value = ["0"];
     }
