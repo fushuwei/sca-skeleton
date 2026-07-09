@@ -68,6 +68,7 @@ async function attemptLogin() {
     const safeReturnUrl = stripBasePrefix(pkceSession.returnUrl, oauthConfig.basePath) || "/dashboard";
     await router.replace(safeReturnUrl);
   } catch (error) {
+    console.error("[OAuth2 Callback] ❌ 授权失败或 Token 交换异常:", error);
     errorMessage.value = error instanceof Error ? error.message : "登录失败，正在重试…";
     processing.value = false;
     startRetryCountdown();
