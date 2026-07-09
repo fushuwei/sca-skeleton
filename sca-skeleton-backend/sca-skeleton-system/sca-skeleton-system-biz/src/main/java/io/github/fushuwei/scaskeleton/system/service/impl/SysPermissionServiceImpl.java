@@ -114,9 +114,10 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         LambdaQueryWrapper<SysPermission> wrapper = new LambdaQueryWrapper<SysPermission>()
                 // 按父节点筛选子权限，parentId 为空时默认查根节点
                 .eq(SysPermission::getParentId, StringUtils.hasText(req.getParentId()) ? req.getParentId() : "0")
-                // 关键词模糊匹配名称或权限标识
+                // 关键词模糊匹配名称（中文/英文）或权限标识
                 .and(StringUtils.hasText(req.getKeyword()),
                         w -> w.like(SysPermission::getName, req.getKeyword())
+                                .or().like(SysPermission::getNameEn, req.getKeyword())
                                 .or().like(SysPermission::getCode, req.getKeyword()))
                 // 类型筛选
                 .eq(StringUtils.hasText(req.getType()), SysPermission::getType, req.getType())
