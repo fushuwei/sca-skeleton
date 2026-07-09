@@ -348,7 +348,7 @@ const columns = computed<QTableColumn<SysPermission>[]>(() => [
     field: "nameEn",
     label: t("menuMgmt.nameEn"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "type",
@@ -430,6 +430,7 @@ const visibleColumns = ref(columns.value.map((c) => c.name));
 // ── 前端列名 → 后端排序列名映射 ──
 const SORT_FIELD_MAP: Record<string, string> = {
   name: "name",
+  nameEn: "name_en",
   type: "type",
   code: "code",
   sort: "sort",

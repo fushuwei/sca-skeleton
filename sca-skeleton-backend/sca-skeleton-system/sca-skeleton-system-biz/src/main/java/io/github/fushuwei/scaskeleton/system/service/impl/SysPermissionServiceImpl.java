@@ -130,6 +130,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         if (orderBy != null) {
             switch (orderBy) {
                 case "name" -> wrapper.orderBy(true, isAsc, SysPermission::getName);
+                case "name_en" -> wrapper.orderBy(true, isAsc, SysPermission::getNameEn);
                 case "code" -> wrapper.orderBy(true, isAsc, SysPermission::getCode);
                 case "type" -> wrapper.orderBy(true, isAsc, SysPermission::getType);
                 case "sort" -> wrapper.orderBy(true, isAsc, SysPermission::getSort);
