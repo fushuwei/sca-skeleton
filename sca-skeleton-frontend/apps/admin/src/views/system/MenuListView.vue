@@ -12,7 +12,7 @@ import {
 import { useConfirmDialog } from "@repo/ui";
 import MenuDrawerContent from "./MenuDrawerContent.vue";
 
-const { t } = useI18n({ useScope: "global" });
+const { t, locale } = useI18n({ useScope: "global" });
 const { confirmDialog } = useConfirmDialog();
 
 // ═══════════════════════════════════════════════════════════════
@@ -35,10 +35,11 @@ function buildMenuTree(perms: SysPermission[]): PermissionTreeNode[] {
   const sorted = [...filtered].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
 
   const map = new Map<string, PermissionTreeNode>();
+  const isEn = locale.value.startsWith("en");
   for (const p of sorted) {
     map.set(p.id, {
       id: p.id,
-      label: p.name,
+      label: (isEn && p.nameEn) ? p.nameEn : p.name,
       parentId: p.parentId,
       type: p.type,
       icon: p.icon || "",
