@@ -29,6 +29,8 @@ public class RoleResponse {
     private Integer version;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
+    /** 关联的权限数量 */
+    private Integer permissionCount;
     private String createBy;
     private String updateBy;
 }

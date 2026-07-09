@@ -137,6 +137,13 @@ const columns = computed<QTableColumn<SysRole>[]>(() => [
     sortable: true
   },
   {
+    name: "permissionCount",
+    field: "permissionCount",
+    label: t("roleMgmt.permissionCount"),
+    align: "center",
+    sortable: true
+  },
+  {
     name: "isBuiltin",
     field: "isBuiltin",
     label: t("roleMgmt.isBuiltin"),
@@ -175,6 +182,7 @@ const SORT_FIELD_MAP: Record<string, string> = {
   code: "code",
   dataScope: "data_scope",
   sort: "sort",
+  permissionCount: "permission_count",
   createTime: "create_time"
 };
 

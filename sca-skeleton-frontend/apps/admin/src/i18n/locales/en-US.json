@@ -239,6 +239,7 @@
     "sort": "Sort",
     "remark": "Remark",
     "createTime": "Created At",
+    "permissionCount": "Permissions",
     "scopeAll": "All",
     "scopeTenant": "Tenant",
     "scopeDeptAndSub": "Dept & Sub",

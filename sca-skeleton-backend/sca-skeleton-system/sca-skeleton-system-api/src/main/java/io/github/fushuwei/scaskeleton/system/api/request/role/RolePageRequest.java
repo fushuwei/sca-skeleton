@@ -16,7 +16,7 @@ public class RolePageRequest {
 
     /** 允许排序的字段白名单，防止 SQL 注入 */
     private static final Set<String> ALLOWED_ORDER_FIELDS = Set.of(
-            "name", "code", "data_scope", "sort", "create_time"
+            "name", "code", "data_scope", "sort", "create_time", "permission_count"
     );
 
     /** 页码，从 1 开始 */

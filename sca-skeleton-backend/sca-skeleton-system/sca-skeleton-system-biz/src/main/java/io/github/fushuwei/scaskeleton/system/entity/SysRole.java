@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.system.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.Version;
 import io.github.fushuwei.scaskeleton.mybatis.base.BaseEntity;
@@ -29,6 +30,10 @@ public class SysRole extends BaseEntity {
     private Integer isBuiltin;
     private Integer sort;
     private String remark;
+
+    /** 关联的权限数量（非表字段，仅用于接收 SQL 查询结果） */
+    @TableField(exist = false)
+    private Integer permissionCount;
 
     @Version
     private Integer version;

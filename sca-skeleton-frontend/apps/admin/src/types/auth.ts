@@ -196,6 +196,8 @@ export interface SysRole {
   isBuiltin: number;
   sort: number;
   remark: string;
+  /** 关联的权限数量 */
+  permissionCount: number;
   createTime: string;
   updateTime: string;
 }
