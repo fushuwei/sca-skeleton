@@ -108,7 +108,7 @@ async function loadMenuTree() {
 }
 
 function handleMenuNodeClick(node: PermissionTreeNode) {
-  searchForm.parentId = node.id === ROOT_ID ? "0" : node.id;
+  searchForm.parentId = node.id === ROOT_ID ? undefined : node.id;
   handleSearch();
 }
 
@@ -125,7 +125,7 @@ function onMenuTreeSelect(nodeId: string) {
   lastSelectedMenuId = nodeId;
 
   if (nodeId === ROOT_ID) {
-    searchForm.parentId = "0";
+    searchForm.parentId = undefined;
     handleSearch();
     return;
   }
@@ -231,7 +231,7 @@ function endResize() {
 const searchForm = reactive<PermissionPageRequest>({
   pageNum: 1,
   pageSize: 10,
-  parentId: "0",
+  parentId: undefined,
   keyword: "",
   type: "",
   status: ""
@@ -479,7 +479,7 @@ async function loadTableData(
   const params: PermissionPageRequest = {
     pageNum,
     pageSize,
-    parentId: searchForm.parentId || "0",
+    parentId: searchForm.parentId || undefined,
     keyword: searchForm.keyword || undefined,
     type: searchForm.type || undefined,
     status: searchForm.status || undefined,
@@ -541,7 +541,7 @@ function handleReset() {
   searchForm.keyword = "";
   searchForm.type = "";
   searchForm.status = "";
-  searchForm.parentId = "0";
+  searchForm.parentId = undefined;
   selectedMenuId.value = "";
   lastSelectedMenuId = "";
   tablePagination.value.page = 1;

@@ -28,7 +28,7 @@ public class PermissionPageRequest {
     @Max(value = 100, message = "每页条数不能超过 100")
     private Integer pageSize = 20;
 
-    /** 父节点 ID，顶级为 "0" */
+    /** 父节点 ID，为空时不按父节点过滤（返回全部记录） */
     private String parentId;
 
     /** 综合搜索关键词（名称、权限标识模糊匹配） */
