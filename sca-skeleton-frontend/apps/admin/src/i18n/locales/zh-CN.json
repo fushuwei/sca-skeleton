@@ -182,6 +182,7 @@
     "viewMenu": "查看菜单",
     "name": "菜单名称（中文）",
     "nameEn": "菜单名称（英文）",
+    "nameOnList": "菜单名称",
     "code": "权限标识",
     "type": "类型",
     "typeModule": "模块",

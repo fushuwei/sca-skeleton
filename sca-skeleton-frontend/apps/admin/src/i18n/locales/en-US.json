@@ -182,6 +182,7 @@
     "viewMenu": "View Menu",
     "name": "Menu Name (CN)",
     "nameEn": "Menu Name (EN)",
+    "nameOnList": "Menu Name",
     "code": "Permission Code",
     "type": "Type",
     "typeModule": "Module",

@@ -339,18 +339,11 @@ const columns = computed<QTableColumn<SysPermission>[]>(() => [
   {
     name: "name",
     field: "name",
-    label: t("menuMgmt.name"),
+    label: t("menuMgmt.nameOnList"),
     align: "left",
     sortable: true,
     classes: "sticky-col-left",
     headerClasses: "sticky-col-left"
-  },
-  {
-    name: "nameEn",
-    field: "nameEn",
-    label: t("menuMgmt.nameEn"),
-    align: "left",
-    sortable: true
   },
   {
     name: "type",
@@ -432,7 +425,6 @@ const visibleColumns = ref(columns.value.map((c) => c.name));
 // ── 前端列名 → 后端排序列名映射 ──
 const SORT_FIELD_MAP: Record<string, string> = {
   name: "name",
-  nameEn: "name_en",
   type: "type",
   code: "code",
   sort: "sort",
@@ -899,16 +891,10 @@ onMounted(() => {
         :class="['menu-table', { 'menu-table--empty': !tableRows.length }]"
         @request="loadTableData"
       >
-        <!-- 名称列 -->
+        <!-- 名称列：中文展示 name，英文展示 nameEn -->
         <template #body-cell-name="props">
           <q-td :props="props">
-            <span>{{ props.row.name }}</span>
-          </q-td>
-        </template>
-
-        <template #body-cell-nameEn="props">
-          <q-td :props="props">
-            <span>{{ props.row.nameEn || "-" }}</span>
+            <span>{{ locale.startsWith("en") && props.row.nameEn ? props.row.nameEn : props.row.name }}</span>
           </q-td>
         </template>
 
