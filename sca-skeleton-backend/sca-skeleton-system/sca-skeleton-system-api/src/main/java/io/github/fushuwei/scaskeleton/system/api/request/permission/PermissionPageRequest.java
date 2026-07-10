@@ -16,7 +16,7 @@ public class PermissionPageRequest {
 
     /** 允许排序的字段白名单，防止 SQL 注入 */
     private static final Set<String> ALLOWED_ORDER_FIELDS = Set.of(
-            "name", "name_en", "code", "type", "sort", "status", "create_time"
+            "name", "name_en", "code", "type", "sort", "status", "create_time", "tree_path"
     );
 
     /** 页码，从 1 开始 */

@@ -86,7 +86,7 @@ const menuTreeWithRoot = computed(() => [{
   parentId: "",
   type: "root",
   icon: "",
-  count: menuTreeNodes.value.length,
+  count: allPermissions.value.filter((p) => p.type !== "button").length,
   children: menuTreeNodes.value
 }] as PermissionTreeNode[]);
 
@@ -474,7 +474,7 @@ async function loadTableData(
   }
 
   const sortBy = sortState.value.sortBy || undefined;
-  const orderBy = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : undefined;
+  const orderBy = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : (!searchForm.parentId ? "tree_path" : undefined);
 
   const params: PermissionPageRequest = {
     pageNum,
