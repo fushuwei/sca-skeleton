@@ -6,7 +6,7 @@ export interface CaptchaData {
 }
 
 /** 菜单挂载的页面组件标识（仅叶子节点需要） */
-export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView" | "RoleListView" | "PostListView" | "DeptListView";
+export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView" | "RoleListView" | "PostListView" | "DeptListView" | "TenantPackageListView";
 
 export interface MenuItem {
   /** 主键ID（对应 SQL id 字段），唯一标识 */
@@ -271,4 +271,42 @@ export interface PermissionTreeNode {
   icon: string;
   children?: PermissionTreeNode[];
   count?: number;
+}
+
+// ── 租户套餐管理相关类型 ──
+
+/** 系统租户套餐实体（对应后端 SysTenantPackage） */
+export interface SysTenantPackage {
+  id: string;
+  name: string;
+  code: string;
+  /** 套餐状态：enabled / disabled */
+  status: string;
+  /** 用户数限制，-1 表示不限 */
+  userLimit: number;
+  /** API 调用限制/日，-1 表示不限 */
+  apiLimit: number;
+  /** 存储限制(MB)，-1 表示不限 */
+  storageLimit: number;
+  /** 有效期天数，-1 表示不限 */
+  expireDays: number;
+  sort: number;
+  remark: string;
+  version: number;
+  /** 关联的权限数量 */
+  permissionCount: number;
+  createTime: string;
+  updateTime: string;
+  createBy: string;
+  updateBy: string;
+}
+
+/** 套餐分页查询请求参数 */
+export interface TenantPackagePageRequest {
+  pageNum?: number;
+  pageSize?: number;
+  keyword?: string;
+  status?: string;
+  orderBy?: string;
+  orderDirection?: "asc" | "desc";
 }
