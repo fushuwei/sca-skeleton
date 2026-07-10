@@ -20,75 +20,87 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- 一、部门数据（高校教育行业，共60个部门）
 -- ================================================================
 
+-- 排序值规则：
+--   顶级部门（parent_id=0）：sort = 1
+--   一级部门：从 10 开始递增 1，两位数（10-99）
+--   二级部门：前两位是一级部门排序值，后两位从 10 开始递增 1（10-99），格式 XXYY
+--   三级部门：前两位是一级部门排序值，中间两位是二级部门排序值，最后一位从 1 开始递增，格式 XXYYZ
 INSERT INTO `sys_dept` (
     `id`, `tenant_id`, `parent_id`, `name`, `code`, `sort`, `leader`, `phone`, `email`, `status`, `tree_path`,
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 ) VALUES
--- 顶级：学校
+-- 顶级：学校 (sort = 1)
 ('100', '1', '0', '华东科技大学', 'university', 1, '张伟强', '021-65551000', 'admin@hust.edu.cn', 'enabled', '0,100', 0, 'system', NOW(), 'system', NOW(), 0),
 
--- 一级：行政管理部门
+-- 一级：行政管理部门 (sort = 10-27)
 ('101', '1', '100', '校办公室', 'admin_office', 10, '李明', '021-65551001', 'admin_office@hust.edu.cn', 'enabled', '0,100,101', 0, 'system', NOW(), 'system', NOW(), 0),
-('102', '1', '100', '人事处', 'hr_dept', 20, '王芳', '021-65551002', 'hr@hust.edu.cn', 'enabled', '0,100,102', 0, 'system', NOW(), 'system', NOW(), 0),
-('1021', '1', '102', '人事科', 'hr_personnel', 10, '张伟', '021-65551021', 'hr_personnel@hust.edu.cn', 'enabled', '0,100,102,1021', 0, 'system', NOW(), 'system', NOW(), 0),
-('1022', '1', '102', '师资科', 'hr_faculty', 20, '李娜', '021-65551022', 'hr_faculty@hust.edu.cn', 'enabled', '0,100,102,1022', 0, 'system', NOW(), 'system', NOW(), 0),
-('103', '1', '100', '财务处', 'finance_dept', 30, '赵军', '021-65551003', 'finance@hust.edu.cn', 'enabled', '0,100,103', 0, 'system', NOW(), 'system', NOW(), 0),
-('1031', '1', '103', '会计科', 'finance_accounting', 10, '刘芳', '021-65551031', 'finance_accounting@hust.edu.cn', 'enabled', '0,100,103,1031', 0, 'system', NOW(), 'system', NOW(), 0),
-('1032', '1', '103', '预算科', 'finance_budget', 20, '陈明', '021-65551032', 'finance_budget@hust.edu.cn', 'enabled', '0,100,103,1032', 0, 'system', NOW(), 'system', NOW(), 0),
-('104', '1', '100', '教务处', 'academic_affairs', 40, '陈晓燕', '021-65551004', 'jwc@hust.edu.cn', 'enabled', '0,100,104', 0, 'system', NOW(), 'system', NOW(), 0),
-('1041', '1', '104', '教务科', 'academic_affairs_office', 10, '王丽', '021-65551041', 'jwc_office@hust.edu.cn', 'enabled', '0,100,104,1041', 0, 'system', NOW(), 'system', NOW(), 0),
-('1042', '1', '104', '学籍管理科', 'academic_registration', 20, '张强', '021-65551042', 'xjgl@hust.edu.cn', 'enabled', '0,100,104,1042', 0, 'system', NOW(), 'system', NOW(), 0),
-('1043', '1', '104', '教学质量科', 'academic_quality', 30, '李红', '021-65551043', 'jxzl@hust.edu.cn', 'enabled', '0,100,104,1043', 0, 'system', NOW(), 'system', NOW(), 0),
-('105', '1', '100', '科研处', 'research_dept', 50, '刘强', '021-65551005', 'research@hust.edu.cn', 'enabled', '0,100,105', 0, 'system', NOW(), 'system', NOW(), 0),
-('1051', '1', '105', '科研项目科', 'research_project', 10, '王刚', '021-65551051', 'research_project@hust.edu.cn', 'enabled', '0,100,105,1051', 0, 'system', NOW(), 'system', NOW(), 0),
-('1052', '1', '105', '成果转化科', 'research_transfer', 20, '赵敏', '021-65551052', 'research_transfer@hust.edu.cn', 'enabled', '0,100,105,1052', 0, 'system', NOW(), 'system', NOW(), 0),
-('106', '1', '100', '学生工作处', 'student_affairs', 60, '周敏', '021-65551006', 'xsc@hust.edu.cn', 'enabled', '0,100,106', 0, 'system', NOW(), 'system', NOW(), 0),
-('1061', '1', '106', '学生管理科', 'student_management', 10, '陈静', '021-65551061', 'xsgl@hust.edu.cn', 'enabled', '0,100,106,1061', 0, 'system', NOW(), 'system', NOW(), 0),
-('1062', '1', '106', '资助管理中心', 'student_financial_aid', 20, '刘洋', '021-65551062', 'zzzx@hust.edu.cn', 'enabled', '0,100,106,1062', 0, 'system', NOW(), 'system', NOW(), 0),
-('107', '1', '100', '研究生院', 'graduate_school', 70, '吴建国', '021-65551007', 'yjsy@hust.edu.cn', 'enabled', '0,100,107', 0, 'system', NOW(), 'system', NOW(), 0),
-('108', '1', '100', '国际交流处', 'intl_office', 80, '孙丽华', '021-65551008', 'intl@hust.edu.cn', 'enabled', '0,100,108', 0, 'system', NOW(), 'system', NOW(), 0),
-('109', '1', '100', '招生办公室', 'admission_office', 90, '黄志远', '021-65551009', 'zsb@hust.edu.cn', 'enabled', '0,100,109', 0, 'system', NOW(), 'system', NOW(), 0),
-('110', '1', '100', '就业指导中心', 'career_center', 100, '郑秀英', '021-65551010', 'career@hust.edu.cn', 'enabled', '0,100,110', 0, 'system', NOW(), 'system', NOW(), 0),
-('111', '1', '100', '审计处', 'audit_dept', 110, '何志强', '021-65551011', 'audit@hust.edu.cn', 'enabled', '0,100,111', 0, 'system', NOW(), 'system', NOW(), 0),
-('112', '1', '100', '纪检监察处', 'discipline_dept', 120, '林正华', '021-65551012', 'jijian@hust.edu.cn', 'enabled', '0,100,112', 0, 'system', NOW(), 'system', NOW(), 0),
-('113', '1', '100', '组织部', 'org_dept', 130, '马国强', '021-65551013', 'zzb@hust.edu.cn', 'enabled', '0,100,113', 0, 'system', NOW(), 'system', NOW(), 0),
-('114', '1', '100', '宣传部', 'propaganda_dept', 140, '罗敏', '021-65551014', 'xcb@hust.edu.cn', 'enabled', '0,100,114', 0, 'system', NOW(), 'system', NOW(), 0),
-('115', '1', '100', '统战部', 'united_front', 150, '谢文', '021-65551015', 'tzb@hust.edu.cn', 'enabled', '0,100,115', 0, 'system', NOW(), 'system', NOW(), 0),
-('116', '1', '100', '工会', 'labor_union', 160, '杨红', '021-65551016', 'gh@hust.edu.cn', 'enabled', '0,100,116', 0, 'system', NOW(), 'system', NOW(), 0),
-('117', '1', '100', '团委', 'youth_league', 170, '朱峰', '021-65551017', 'tw@hust.edu.cn', 'enabled', '0,100,117', 0, 'system', NOW(), 'system', NOW(), 0),
-('118', '1', '100', '保卫处', 'security_dept', 180, '韩刚', '021-65551018', 'bwc@hust.edu.cn', 'enabled', '0,100,118', 0, 'system', NOW(), 'system', NOW(), 0),
-('119', '1', '100', '后勤管理处', 'logistics_dept', 190, '曹建平', '021-65551019', 'hq@hust.edu.cn', 'enabled', '0,100,119', 0, 'system', NOW(), 'system', NOW(), 0),
-('120', '1', '100', '国有资产管理处', 'asset_dept', 200, '许明', '021-65551020', 'zcc@hust.edu.cn', 'enabled', '0,100,120', 0, 'system', NOW(), 'system', NOW(), 0),
+('102', '1', '100', '人事处', 'hr_dept', 11, '王芳', '021-65551002', 'hr@hust.edu.cn', 'enabled', '0,100,102', 0, 'system', NOW(), 'system', NOW(), 0),
+-- 二级：人事处下属 (sort = 1110, 1111)
+('1021', '1', '102', '人事科', 'hr_personnel', 1110, '张伟', '021-65551021', 'hr_personnel@hust.edu.cn', 'enabled', '0,100,102,1021', 0, 'system', NOW(), 'system', NOW(), 0),
+('1022', '1', '102', '师资科', 'hr_faculty', 1111, '李娜', '021-65551022', 'hr_faculty@hust.edu.cn', 'enabled', '0,100,102,1022', 0, 'system', NOW(), 'system', NOW(), 0),
+('103', '1', '100', '财务处', 'finance_dept', 12, '赵军', '021-65551003', 'finance@hust.edu.cn', 'enabled', '0,100,103', 0, 'system', NOW(), 'system', NOW(), 0),
+-- 二级：财务处下属 (sort = 1210, 1211)
+('1031', '1', '103', '会计科', 'finance_accounting', 1210, '刘芳', '021-65551031', 'finance_accounting@hust.edu.cn', 'enabled', '0,100,103,1031', 0, 'system', NOW(), 'system', NOW(), 0),
+('1032', '1', '103', '预算科', 'finance_budget', 1211, '陈明', '021-65551032', 'finance_budget@hust.edu.cn', 'enabled', '0,100,103,1032', 0, 'system', NOW(), 'system', NOW(), 0),
+('104', '1', '100', '教务处', 'academic_affairs', 13, '陈晓燕', '021-65551004', 'jwc@hust.edu.cn', 'enabled', '0,100,104', 0, 'system', NOW(), 'system', NOW(), 0),
+-- 二级：教务处下属 (sort = 1310, 1311, 1312)
+('1041', '1', '104', '教务科', 'academic_affairs_office', 1310, '王丽', '021-65551041', 'jwc_office@hust.edu.cn', 'enabled', '0,100,104,1041', 0, 'system', NOW(), 'system', NOW(), 0),
+('1042', '1', '104', '学籍管理科', 'academic_registration', 1311, '张强', '021-65551042', 'xjgl@hust.edu.cn', 'enabled', '0,100,104,1042', 0, 'system', NOW(), 'system', NOW(), 0),
+('1043', '1', '104', '教学质量科', 'academic_quality', 1312, '李红', '021-65551043', 'jxzl@hust.edu.cn', 'enabled', '0,100,104,1043', 0, 'system', NOW(), 'system', NOW(), 0),
+('105', '1', '100', '科研处', 'research_dept', 14, '刘强', '021-65551005', 'research@hust.edu.cn', 'enabled', '0,100,105', 0, 'system', NOW(), 'system', NOW(), 0),
+-- 二级：科研处下属 (sort = 1410, 1411)
+('1051', '1', '105', '科研项目科', 'research_project', 1410, '王刚', '021-65551051', 'research_project@hust.edu.cn', 'enabled', '0,100,105,1051', 0, 'system', NOW(), 'system', NOW(), 0),
+('1052', '1', '105', '成果转化科', 'research_transfer', 1411, '赵敏', '021-65551052', 'research_transfer@hust.edu.cn', 'enabled', '0,100,105,1052', 0, 'system', NOW(), 'system', NOW(), 0),
+('106', '1', '100', '学生工作处', 'student_affairs', 15, '周敏', '021-65551006', 'xsc@hust.edu.cn', 'enabled', '0,100,106', 0, 'system', NOW(), 'system', NOW(), 0),
+-- 二级：学生工作处下属 (sort = 1510, 1511)
+('1061', '1', '106', '学生管理科', 'student_management', 1510, '陈静', '021-65551061', 'xsgl@hust.edu.cn', 'enabled', '0,100,106,1061', 0, 'system', NOW(), 'system', NOW(), 0),
+('1062', '1', '106', '资助管理中心', 'student_financial_aid', 1511, '刘洋', '021-65551062', 'zzzx@hust.edu.cn', 'enabled', '0,100,106,1062', 0, 'system', NOW(), 'system', NOW(), 0),
+('107', '1', '100', '研究生院', 'graduate_school', 16, '吴建国', '021-65551007', 'yjsy@hust.edu.cn', 'enabled', '0,100,107', 0, 'system', NOW(), 'system', NOW(), 0),
+('108', '1', '100', '国际交流处', 'intl_office', 17, '孙丽华', '021-65551008', 'intl@hust.edu.cn', 'enabled', '0,100,108', 0, 'system', NOW(), 'system', NOW(), 0),
+('109', '1', '100', '招生办公室', 'admission_office', 18, '黄志远', '021-65551009', 'zsb@hust.edu.cn', 'enabled', '0,100,109', 0, 'system', NOW(), 'system', NOW(), 0),
+('110', '1', '100', '就业指导中心', 'career_center', 19, '郑秀英', '021-65551010', 'career@hust.edu.cn', 'enabled', '0,100,110', 0, 'system', NOW(), 'system', NOW(), 0),
+('111', '1', '100', '审计处', 'audit_dept', 20, '何志强', '021-65551011', 'audit@hust.edu.cn', 'enabled', '0,100,111', 0, 'system', NOW(), 'system', NOW(), 0),
+('112', '1', '100', '纪检监察处', 'discipline_dept', 21, '林正华', '021-65551012', 'jijian@hust.edu.cn', 'enabled', '0,100,112', 0, 'system', NOW(), 'system', NOW(), 0),
+('113', '1', '100', '组织部', 'org_dept', 22, '马国强', '021-65551013', 'zzb@hust.edu.cn', 'enabled', '0,100,113', 0, 'system', NOW(), 'system', NOW(), 0),
+('114', '1', '100', '宣传部', 'propaganda_dept', 23, '罗敏', '021-65551014', 'xcb@hust.edu.cn', 'enabled', '0,100,114', 0, 'system', NOW(), 'system', NOW(), 0),
+('115', '1', '100', '统战部', 'united_front', 24, '谢文', '021-65551015', 'tzb@hust.edu.cn', 'enabled', '0,100,115', 0, 'system', NOW(), 'system', NOW(), 0),
+('116', '1', '100', '工会', 'labor_union', 25, '杨红', '021-65551016', 'gh@hust.edu.cn', 'enabled', '0,100,116', 0, 'system', NOW(), 'system', NOW(), 0),
+('117', '1', '100', '团委', 'youth_league', 26, '朱峰', '021-65551017', 'tw@hust.edu.cn', 'enabled', '0,100,117', 0, 'system', NOW(), 'system', NOW(), 0),
+('118', '1', '100', '保卫处', 'security_dept', 27, '韩刚', '021-65551018', 'bwc@hust.edu.cn', 'enabled', '0,100,118', 0, 'system', NOW(), 'system', NOW(), 0),
+('119', '1', '100', '后勤管理处', 'logistics_dept', 28, '曹建平', '021-65551019', 'hq@hust.edu.cn', 'enabled', '0,100,119', 0, 'system', NOW(), 'system', NOW(), 0),
+('120', '1', '100', '国有资产管理处', 'asset_dept', 29, '许明', '021-65551020', 'zcc@hust.edu.cn', 'enabled', '0,100,120', 0, 'system', NOW(), 'system', NOW(), 0),
 
--- 一级：信息中心
+-- 一级：信息中心 (sort = 30)
 ('200', '1', '100', '信息中心', 'info_center', 30, '王建华', '021-65552000', 'info_center@hust.edu.cn', 'enabled', '0,100,200', 0, 'system', NOW(), 'system', NOW(), 0),
-('201', '1', '200', '信息技术部', 'info_tech', 10, '陈伟', '021-65552001', 'info_tech@hust.edu.cn', 'enabled', '0,100,200,201', 0, 'system', NOW(), 'system', NOW(), 0),
-('202', '1', '200', '数据管理部', 'data_mgmt', 20, '张蕾', '021-65552002', 'data_mgmt@hust.edu.cn', 'enabled', '0,100,200,202', 0, 'system', NOW(), 'system', NOW(), 0),
-('203', '1', '200', '网络运维部', 'network_ops', 30, '李刚', '021-65552003', 'network@hust.edu.cn', 'enabled', '0,100,200,203', 0, 'system', NOW(), 'system', NOW(), 0),
-('204', '1', '200', '系统开发部', 'sys_dev', 40, '刘洋', '021-65552004', 'sys_dev@hust.edu.cn', 'enabled', '0,100,200,204', 0, 'system', NOW(), 'system', NOW(), 0),
+-- 二级：信息中心下属 (sort = 3010, 3011, 3012, 3013)
+('201', '1', '200', '信息技术部', 'info_tech', 3010, '陈伟', '021-65552001', 'info_tech@hust.edu.cn', 'enabled', '0,100,200,201', 0, 'system', NOW(), 'system', NOW(), 0),
+('202', '1', '200', '数据管理部', 'data_mgmt', 3011, '张蕾', '021-65552002', 'data_mgmt@hust.edu.cn', 'enabled', '0,100,200,202', 0, 'system', NOW(), 'system', NOW(), 0),
+('203', '1', '200', '网络运维部', 'network_ops', 3012, '李刚', '021-65552003', 'network@hust.edu.cn', 'enabled', '0,100,200,203', 0, 'system', NOW(), 'system', NOW(), 0),
+('204', '1', '200', '系统开发部', 'sys_dev', 3013, '刘洋', '021-65552004', 'sys_dev@hust.edu.cn', 'enabled', '0,100,200,204', 0, 'system', NOW(), 'system', NOW(), 0),
 
--- 一级：二级学院（12个）
-('300', '1', '100', '计算机学院', 'cs_college', 50, '周志明', '021-65553000', 'cs@hust.edu.cn', 'enabled', '0,100,300', 0, 'system', NOW(), 'system', NOW(), 0),
-('3001', '1', '300', '计算机科学系', 'cs_science', 10, '王建华', '021-65553001', 'cs_science@hust.edu.cn', 'enabled', '0,100,300,3001', 0, 'system', NOW(), 'system', NOW(), 0),
-('3002', '1', '300', '软件工程系', 'cs_software', 20, '李明', '021-65553002', 'cs_software@hust.edu.cn', 'enabled', '0,100,300,3002', 0, 'system', NOW(), 'system', NOW(), 0),
-('3003', '1', '300', '计算机实验中心', 'cs_lab', 30, '张强', '021-65553003', 'cs_lab@hust.edu.cn', 'enabled', '0,100,300,3003', 0, 'system', NOW(), 'system', NOW(), 0),
-('301', '1', '100', '电子工程学院', 'ee_college', 60, '吴建平', '021-65553010', 'ee@hust.edu.cn', 'enabled', '0,100,301', 0, 'system', NOW(), 'system', NOW(), 0),
-('302', '1', '100', '机械工程学院', 'me_college', 70, '王德华', '021-65553020', 'me@hust.edu.cn', 'enabled', '0,100,302', 0, 'system', NOW(), 'system', NOW(), 0),
-('303', '1', '100', '经济管理学院', 'em_college', 80, '孙丽', '021-65553030', 'em@hust.edu.cn', 'enabled', '0,100,303', 0, 'system', NOW(), 'system', NOW(), 0),
-('304', '1', '100', '外国语学院', 'fl_college', 90, '张敏', '021-65553040', 'fl@hust.edu.cn', 'enabled', '0,100,304', 0, 'system', NOW(), 'system', NOW(), 0),
-('305', '1', '100', '理学院', 'science_college', 100, '陈晓', '021-65553050', 'science@hust.edu.cn', 'enabled', '0,100,305', 0, 'system', NOW(), 'system', NOW(), 0),
-('306', '1', '100', '文学院', 'lit_college', 110, '刘芳', '021-65553060', 'lit@hust.edu.cn', 'enabled', '0,100,306', 0, 'system', NOW(), 'system', NOW(), 0),
-('307', '1', '100', '法学院', 'law_college', 120, '赵刚', '021-65553070', 'law@hust.edu.cn', 'enabled', '0,100,307', 0, 'system', NOW(), 'system', NOW(), 0),
-('308', '1', '100', '艺术学院', 'art_college', 130, '黄华', '021-65553080', 'art@hust.edu.cn', 'enabled', '0,100,308', 0, 'system', NOW(), 'system', NOW(), 0),
-('309', '1', '100', '体育部', 'pe_dept', 140, '韩强', '021-65553090', 'pe@hust.edu.cn', 'enabled', '0,100,309', 0, 'system', NOW(), 'system', NOW(), 0),
-('310', '1', '100', '马克思主义学院', 'marx_college', 150, '林红', '021-65553100', 'marx@hust.edu.cn', 'enabled', '0,100,310', 0, 'system', NOW(), 'system', NOW(), 0),
-('311', '1', '100', '医学院', 'medical_college', 160, '杨明', '021-65553110', 'medical@hust.edu.cn', 'enabled', '0,100,311', 0, 'system', NOW(), 'system', NOW(), 0),
+-- 一级：二级学院（12个）(sort = 31-42)
+('300', '1', '100', '计算机学院', 'cs_college', 31, '周志明', '021-65553000', 'cs@hust.edu.cn', 'enabled', '0,100,300', 0, 'system', NOW(), 'system', NOW(), 0),
+-- 二级：计算机学院下属 (sort = 3110, 3111, 3112)
+('3001', '1', '300', '计算机科学系', 'cs_science', 3110, '王建华', '021-65553001', 'cs_science@hust.edu.cn', 'enabled', '0,100,300,3001', 0, 'system', NOW(), 'system', NOW(), 0),
+('3002', '1', '300', '软件工程系', 'cs_software', 3111, '李明', '021-65553002', 'cs_software@hust.edu.cn', 'enabled', '0,100,300,3002', 0, 'system', NOW(), 'system', NOW(), 0),
+('3003', '1', '300', '计算机实验中心', 'cs_lab', 3112, '张强', '021-65553003', 'cs_lab@hust.edu.cn', 'enabled', '0,100,300,3003', 0, 'system', NOW(), 'system', NOW(), 0),
+('301', '1', '100', '电子工程学院', 'ee_college', 32, '吴建平', '021-65553010', 'ee@hust.edu.cn', 'enabled', '0,100,301', 0, 'system', NOW(), 'system', NOW(), 0),
+('302', '1', '100', '机械工程学院', 'me_college', 33, '王德华', '021-65553020', 'me@hust.edu.cn', 'enabled', '0,100,302', 0, 'system', NOW(), 'system', NOW(), 0),
+('303', '1', '100', '经济管理学院', 'em_college', 34, '孙丽', '021-65553030', 'em@hust.edu.cn', 'enabled', '0,100,303', 0, 'system', NOW(), 'system', NOW(), 0),
+('304', '1', '100', '外国语学院', 'fl_college', 35, '张敏', '021-65553040', 'fl@hust.edu.cn', 'enabled', '0,100,304', 0, 'system', NOW(), 'system', NOW(), 0),
+('305', '1', '100', '理学院', 'science_college', 36, '陈晓', '021-65553050', 'science@hust.edu.cn', 'enabled', '0,100,305', 0, 'system', NOW(), 'system', NOW(), 0),
+('306', '1', '100', '文学院', 'lit_college', 37, '刘芳', '021-65553060', 'lit@hust.edu.cn', 'enabled', '0,100,306', 0, 'system', NOW(), 'system', NOW(), 0),
+('307', '1', '100', '法学院', 'law_college', 38, '赵刚', '021-65553070', 'law@hust.edu.cn', 'enabled', '0,100,307', 0, 'system', NOW(), 'system', NOW(), 0),
+('308', '1', '100', '艺术学院', 'art_college', 39, '黄华', '021-65553080', 'art@hust.edu.cn', 'enabled', '0,100,308', 0, 'system', NOW(), 'system', NOW(), 0),
+('309', '1', '100', '体育部', 'pe_dept', 40, '韩强', '021-65553090', 'pe@hust.edu.cn', 'enabled', '0,100,309', 0, 'system', NOW(), 'system', NOW(), 0),
+('310', '1', '100', '马克思主义学院', 'marx_college', 41, '林红', '021-65553100', 'marx@hust.edu.cn', 'enabled', '0,100,310', 0, 'system', NOW(), 'system', NOW(), 0),
+('311', '1', '100', '医学院', 'medical_college', 42, '杨明', '021-65553110', 'medical@hust.edu.cn', 'enabled', '0,100,311', 0, 'system', NOW(), 'system', NOW(), 0),
 
--- 一级：教学辅助单位
-('400', '1', '100', '图书馆', 'library', 170, '张秀兰', '021-65554000', 'library@hust.edu.cn', 'enabled', '0,100,400', 0, 'system', NOW(), 'system', NOW(), 0),
-('401', '1', '100', '实验中心', 'lab_center', 180, '王强', '021-65554001', 'lab@hust.edu.cn', 'enabled', '0,100,401', 0, 'system', NOW(), 'system', NOW(), 0),
-('402', '1', '100', '网络中心', 'net_center', 190, '李伟', '021-65554002', 'net@hust.edu.cn', 'enabled', '0,100,402', 0, 'system', NOW(), 'system', NOW(), 0),
-('403', '1', '100', '教育技术中心', 'edtech_center', 200, '陈军', '021-65554003', 'edtech@hust.edu.cn', 'enabled', '0,100,403', 0, 'system', NOW(), 'system', NOW(), 0);
+-- 一级：教学辅助单位 (sort = 43-46)
+('400', '1', '100', '图书馆', 'library', 43, '张秀兰', '021-65554000', 'library@hust.edu.cn', 'enabled', '0,100,400', 0, 'system', NOW(), 'system', NOW(), 0),
+('401', '1', '100', '实验中心', 'lab_center', 44, '王强', '021-65554001', 'lab@hust.edu.cn', 'enabled', '0,100,401', 0, 'system', NOW(), 'system', NOW(), 0),
+('402', '1', '100', '网络中心', 'net_center', 45, '李伟', '021-65554002', 'net@hust.edu.cn', 'enabled', '0,100,402', 0, 'system', NOW(), 'system', NOW(), 0),
+('403', '1', '100', '教育技术中心', 'edtech_center', 46, '陈军', '021-65554003', 'edtech@hust.edu.cn', 'enabled', '0,100,403', 0, 'system', NOW(), 'system', NOW(), 0);
 
 
 -- ================================================================
