@@ -349,106 +349,112 @@ CREATE TABLE IF NOT EXISTS `sys_permission` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='权限表';
 
 
--- 初始化系统管理菜单权限（对应前端 mock 菜单"系统管理"部分）
+-- 初始化菜单权限
+-- ID 规则：
+--   数据源管理模块：1000 开头（1000～1999）
+--   后续业务模块：中间号段按需分配
+--   系统管理模块：9999 开头（9900～9999），永远排在最后
 -- 排序值规则：
---   一级菜单（module）：从 10 开始递增 1，两位数（10-99）
+--   一级菜单（module）：10 = 数据源管理，99 = 系统管理，后续模块在 11-98 之间添加
 --   二级菜单（folder/menu）：前两位是一级菜单排序值，后两位从 10 开始递增 1（10-99），格式 XXYY
 --   三级菜单（menu）：前两位是一级菜单排序值，中间两位是二级菜单排序值，最后一位从 1 开始递增，格式 XXYYZ
+
+-- 数据源管理菜单权限（第一个模块，ID 1000 开头）
 INSERT INTO `sys_permission` (
     `id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`,
     `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `remark`,
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT t.* FROM (
-    -- 一级菜单：系统管理 (sort = 10)
-    SELECT '1000' AS `id`, '0' AS `parent_id`, '系统管理' AS `name`, 'System' AS `name_en`, 'module' AS `type`, NULL AS `code`,
-           NULL AS `path`, NULL AS `component`, 'sym_r_settings' AS `icon`,
+    -- 一级菜单：数据源管理 (sort = 10)
+    SELECT '1000' AS `id`, '0' AS `parent_id`, '数据源管理' AS `name`, 'Data Source' AS `name_en`, 'module' AS `type`, NULL AS `code`,
+           NULL AS `path`, NULL AS `component`, 'sym_r_database' AS `icon`,
            10 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,1000' AS `tree_path`, NULL AS `remark`,
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
     UNION ALL
-    -- 二级菜单：租户管理 (sort = 1010, 一级菜单10 + 二级序号10)
-    SELECT '1100', '1000', '租户管理', 'Tenant Management', 'folder', NULL, NULL, NULL, 'sym_r_folder', 1010, 1, 0, 'enabled', '0,1000,1100', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 二级菜单：数据源管理 (sort = 1010, 一级菜单10 + 二级序号10)
+    SELECT '1100', '1000', '数据源管理', 'Data Sources', 'menu', NULL, '/datasource/list', 'DataSourceListView', 'sym_r_nest_eco_leaf', 1010, 1, 0, 'enabled', '0,1000,1100', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：租户管理 (sort = 10101, 一级菜单10 + 二级菜单10 + 三级序号1)
-    SELECT '1101', '1100', '租户管理', 'Tenants', 'menu', NULL, '/system/tenant', 'TenantListView', 'sym_r_nest_eco_leaf', 10101, 1, 0, 'enabled', '0,1000,1100,1101', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 二级菜单：数据查询 (sort = 1011, 一级菜单10 + 二级序号11)
+    SELECT '1200', '1000', '数据查询', 'SQL Query', 'menu', NULL, '/datasource/sql-query', 'SqlQueryView', 'sym_r_nest_eco_leaf', 1011, 1, 0, 'enabled', '0,1000,1200', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：套餐管理 (sort = 10102, 一级菜单10 + 二级菜单10 + 三级序号2)
-    SELECT '1102', '1100', '套餐管理', 'Packages', 'menu', NULL, '/system/tenant-package', 'TenantPackageListView', 'sym_r_nest_eco_leaf', 10102, 1, 0, 'enabled', '0,1000,1100,1102', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 二级菜单：用户与权限 (sort = 1011, 一级菜单10 + 二级序号11)
-    SELECT '1200', '1000', '用户与权限', 'Users & Permissions', 'folder', NULL, NULL, NULL, 'sym_r_folder', 1011, 1, 0, 'enabled', '0,1000,1200', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 三级菜单：用户管理 (sort = 10111, 一级菜单10 + 二级菜单11 + 三级序号1)
-    SELECT '1201', '1200', '用户管理', 'Users', 'menu', NULL, '/system/user', 'UserListView', 'sym_r_nest_eco_leaf', 10111, 1, 0, 'enabled', '0,1000,1200,1201', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 三级菜单：角色管理 (sort = 10112, 一级菜单10 + 二级菜单11 + 三级序号2)
-    SELECT '1202', '1200', '角色管理', 'Roles', 'menu', NULL, '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 10112, 1, 0, 'enabled', '0,1000,1200,1202', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 三级菜单：菜单管理 (sort = 10113, 一级菜单10 + 二级菜单11 + 三级序号3)
-    SELECT '1203', '1200', '菜单管理', 'Menus', 'menu', NULL, '/system/menu', 'MenuListView', 'sym_r_nest_eco_leaf', 10113, 1, 0, 'enabled', '0,1000,1200,1203', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 二级菜单：组织与岗位 (sort = 1012, 一级菜单10 + 二级序号12)
-    SELECT '1300', '1000', '组织与岗位', 'Organization', 'folder', NULL, NULL, NULL, 'sym_r_folder', 1012, 1, 0, 'enabled', '0,1000,1300', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 三级菜单：部门管理 (sort = 10121, 一级菜单10 + 二级菜单12 + 三级序号1)
-    SELECT '1301', '1300', '部门管理', 'Departments', 'menu', NULL, '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 10121, 1, 0, 'enabled', '0,1000,1300,1301', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 三级菜单：岗位管理 (sort = 10122, 一级菜单10 + 二级菜单12 + 三级序号2)
-    SELECT '1302', '1300', '岗位管理', 'Positions', 'menu', NULL, '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 10122, 1, 0, 'enabled', '0,1000,1300,1302', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 二级菜单：系统与厂商 (sort = 1013, 一级菜单10 + 二级序号13)
-    SELECT '1400', '1000', '系统与厂商', 'System & Vendors', 'folder', NULL, NULL, NULL, 'sym_r_folder', 1013, 1, 0, 'enabled', '0,1000,1400', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 三级菜单：业务系统管理 (sort = 10131, 一级菜单10 + 二级菜单13 + 三级序号1)
-    SELECT '1401', '1400', '业务系统管理', 'Business Systems', 'menu', NULL, '/system/business-system', 'BusinessSystemListView', 'sym_r_nest_eco_leaf', 10131, 1, 0, 'enabled', '0,1000,1400,1401', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 三级菜单：厂商管理 (sort = 10132, 一级菜单10 + 二级菜单13 + 三级序号2)
-    SELECT '1402', '1400', '厂商管理', 'Vendors', 'menu', NULL, '/system/vendor', 'VendorListView', 'sym_r_nest_eco_leaf', 10132, 1, 0, 'enabled', '0,1000,1400,1402', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 二级菜单：字典管理 (sort = 1014, 一级菜单10 + 二级序号14)
-    SELECT '1500', '1000', '字典管理', 'Dictionaries', 'menu', NULL, '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 1014, 1, 0, 'enabled', '0,1000,1500', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 二级菜单：系统配置 (sort = 1015, 一级菜单10 + 二级序号15)
-    SELECT '1501', '1000', '系统配置', 'System Config', 'menu', NULL, '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf', 1015, 1, 0, 'enabled', '0,1000,1501', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 二级菜单：通知公告 (sort = 1016, 一级菜单10 + 二级序号16)
-    SELECT '1502', '1000', '通知公告', 'Announcements', 'menu', NULL, '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 1016, 1, 0, 'enabled', '0,1000,1502', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 二级菜单：操作日志 (sort = 1017, 一级菜单10 + 二级序号17)
-    SELECT '1503', '1000', '操作日志', 'Operation Logs', 'menu', NULL, '/system/log/operation', 'PlaceholderView', 'sym_r_nest_eco_leaf', 1017, 1, 0, 'enabled', '0,1000,1503', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 二级菜单：登录日志 (sort = 1018, 一级菜单10 + 二级序号18)
-    SELECT '1504', '1000', '登录日志', 'Login Logs', 'menu', NULL, '/system/log/login', 'PlaceholderView', 'sym_r_nest_eco_leaf', 1018, 1, 0, 'enabled', '0,1000,1504', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 二级菜单：驱动管理 (sort = 1012, 一级菜单10 + 二级序号12)
+    SELECT '1300', '1000', '驱动管理', 'Drivers', 'menu', NULL, '/datasource/driver-list', 'DriverListView', 'sym_r_nest_eco_leaf', 1012, 1, 0, 'enabled', '0,1000,1300', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
 WHERE NOT EXISTS (
     SELECT 1 FROM `sys_permission` WHERE `id` = '1000' AND `is_deleted` = 0
 );
 
 
--- 初始化数据源管理菜单权限
+-- 系统管理菜单权限（最后一个模块，ID 9999 开头，sort = 99）
 INSERT INTO `sys_permission` (
     `id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`,
     `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `remark`,
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT t.* FROM (
-    -- 一级菜单：数据源管理 (sort = 11)
-    SELECT '2000' AS `id`, '0' AS `parent_id`, '数据源管理' AS `name`, 'Data Source' AS `name_en`, 'module' AS `type`, NULL AS `code`,
-           NULL AS `path`, NULL AS `component`, 'sym_r_database' AS `icon`,
-           11 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,2000' AS `tree_path`, NULL AS `remark`,
+    -- 一级菜单：系统管理 (sort = 99)
+    SELECT '9999' AS `id`, '0' AS `parent_id`, '系统管理' AS `name`, 'System' AS `name_en`, 'module' AS `type`, NULL AS `code`,
+           NULL AS `path`, NULL AS `component`, 'sym_r_settings' AS `icon`,
+           99 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,9999' AS `tree_path`, NULL AS `remark`,
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
     UNION ALL
-    -- 二级菜单：数据源管理 (sort = 1110, 一级菜单11 + 二级序号10)
-    SELECT '2100', '2000', '数据源管理', 'Data Sources', 'menu', NULL, '/datasource/list', 'DataSourceListView', 'sym_r_nest_eco_leaf', 1110, 1, 0, 'enabled', '0,2000,2100', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 二级菜单：租户管理 (sort = 9910, 一级菜单99 + 二级序号10)
+    SELECT '9910', '9999', '租户管理', 'Tenant Management', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9910, 1, 0, 'enabled', '0,9999,9910', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：数据查询 (sort = 1111, 一级菜单11 + 二级序号11)
-    SELECT '2200', '2000', '数据查询', 'SQL Query', 'menu', NULL, '/datasource/sql-query', 'SqlQueryView', 'sym_r_nest_eco_leaf', 1111, 1, 0, 'enabled', '0,2000,2200', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 三级菜单：租户管理 (sort = 99101, 一级菜单99 + 二级菜单10 + 三级序号1)
+    SELECT '9911', '9910', '租户管理', 'Tenants', 'menu', NULL, '/system/tenant', 'TenantListView', 'sym_r_nest_eco_leaf', 99101, 1, 0, 'enabled', '0,9999,9910,9911', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：驱动管理 (sort = 1112, 一级菜单11 + 二级序号12)
-    SELECT '2300', '2000', '驱动管理', 'Drivers', 'menu', NULL, '/datasource/driver-list', 'DriverListView', 'sym_r_nest_eco_leaf', 1112, 1, 0, 'enabled', '0,2000,2300', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 三级菜单：套餐管理 (sort = 99102, 一级菜单99 + 二级菜单10 + 三级序号2)
+    SELECT '9912', '9910', '套餐管理', 'Packages', 'menu', NULL, '/system/tenant-package', 'TenantPackageListView', 'sym_r_nest_eco_leaf', 99102, 1, 0, 'enabled', '0,9999,9910,9912', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 二级菜单：用户与权限 (sort = 9911, 一级菜单99 + 二级序号11)
+    SELECT '9920', '9999', '用户与权限', 'Users & Permissions', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9911, 1, 0, 'enabled', '0,9999,9920', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 三级菜单：用户管理 (sort = 99111, 一级菜单99 + 二级菜单11 + 三级序号1)
+    SELECT '9921', '9920', '用户管理', 'Users', 'menu', NULL, '/system/user', 'UserListView', 'sym_r_nest_eco_leaf', 99111, 1, 0, 'enabled', '0,9999,9920,9921', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 三级菜单：角色管理 (sort = 99112, 一级菜单99 + 二级菜单11 + 三级序号2)
+    SELECT '9922', '9920', '角色管理', 'Roles', 'menu', NULL, '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 99112, 1, 0, 'enabled', '0,9999,9920,9922', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 三级菜单：菜单管理 (sort = 99113, 一级菜单99 + 二级菜单11 + 三级序号3)
+    SELECT '9923', '9920', '菜单管理', 'Menus', 'menu', NULL, '/system/menu', 'MenuListView', 'sym_r_nest_eco_leaf', 99113, 1, 0, 'enabled', '0,9999,9920,9923', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 二级菜单：组织与岗位 (sort = 9912, 一级菜单99 + 二级序号12)
+    SELECT '9930', '9999', '组织与岗位', 'Organization', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9912, 1, 0, 'enabled', '0,9999,9930', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 三级菜单：部门管理 (sort = 99121, 一级菜单99 + 二级菜单12 + 三级序号1)
+    SELECT '9931', '9930', '部门管理', 'Departments', 'menu', NULL, '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 99121, 1, 0, 'enabled', '0,9999,9930,9931', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 三级菜单：岗位管理 (sort = 99122, 一级菜单99 + 二级菜单12 + 三级序号2)
+    SELECT '9932', '9930', '岗位管理', 'Positions', 'menu', NULL, '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 99122, 1, 0, 'enabled', '0,9999,9930,9932', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 二级菜单：系统与厂商 (sort = 9913, 一级菜单99 + 二级序号13)
+    SELECT '9940', '9999', '系统与厂商', 'System & Vendors', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9913, 1, 0, 'enabled', '0,9999,9940', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 三级菜单：业务系统管理 (sort = 99131, 一级菜单99 + 二级菜单13 + 三级序号1)
+    SELECT '9941', '9940', '业务系统管理', 'Business Systems', 'menu', NULL, '/system/business-system', 'BusinessSystemListView', 'sym_r_nest_eco_leaf', 99131, 1, 0, 'enabled', '0,9999,9940,9941', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 三级菜单：厂商管理 (sort = 99132, 一级菜单99 + 二级菜单13 + 三级序号2)
+    SELECT '9942', '9940', '厂商管理', 'Vendors', 'menu', NULL, '/system/vendor', 'VendorListView', 'sym_r_nest_eco_leaf', 99132, 1, 0, 'enabled', '0,9999,9940,9942', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 二级菜单：字典管理 (sort = 9914, 一级菜单99 + 二级序号14)
+    SELECT '9950', '9999', '字典管理', 'Dictionaries', 'menu', NULL, '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9914, 1, 0, 'enabled', '0,9999,9950', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 二级菜单：系统配置 (sort = 9915, 一级菜单99 + 二级序号15)
+    SELECT '9951', '9999', '系统配置', 'System Config', 'menu', NULL, '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9915, 1, 0, 'enabled', '0,9999,9951', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 二级菜单：通知公告 (sort = 9916, 一级菜单99 + 二级序号16)
+    SELECT '9952', '9999', '通知公告', 'Announcements', 'menu', NULL, '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9916, 1, 0, 'enabled', '0,9999,9952', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 二级菜单：操作日志 (sort = 9917, 一级菜单99 + 二级序号17)
+    SELECT '9953', '9999', '操作日志', 'Operation Logs', 'menu', NULL, '/system/log/operation', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9953', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 二级菜单：登录日志 (sort = 9918, 一级菜单99 + 二级序号18)
+    SELECT '9954', '9999', '登录日志', 'Login Logs', 'menu', NULL, '/system/log/login', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9918, 1, 0, 'enabled', '0,9999,9954', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
 WHERE NOT EXISTS (
-    SELECT 1 FROM `sys_permission` WHERE `id` = '2000' AND `is_deleted` = 0
+    SELECT 1 FROM `sys_permission` WHERE `id` = '9999' AND `is_deleted` = 0
 );
 
 
