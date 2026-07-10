@@ -34,9 +34,9 @@ public class TenantPackageCreateRequest {
     @Min(value = -1, message = "API调用限制不能小于 -1")
     private Integer apiLimit = -1;
 
-    /** 存储限制(MB)，-1 表示不限 */
+    /** 存储限制(GB)，-1 表示不限 */
     @Min(value = -1, message = "存储限制不能小于 -1")
-    private Long storageLimit = -1L;
+    private Integer storageLimit = -1;
 
     /** 有效期天数，-1 表示不限 */
     @Min(value = -1, message = "有效期天数不能小于 -1")

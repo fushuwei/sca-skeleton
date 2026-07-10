@@ -21,8 +21,8 @@ public class TenantPackageResponse {
     private Integer userLimit;
     /** API 调用限制/日，-1 表示不限 */
     private Integer apiLimit;
-    /** 存储限制(MB)，-1 表示不限 */
-    private Long storageLimit;
+    /** 存储限制(GB)，-1 表示不限 */
+    private Integer storageLimit;
     /** 有效期天数，-1 表示不限 */
     private Integer expireDays;
     private Integer sort;

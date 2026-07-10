@@ -27,10 +27,10 @@ const form = reactive({
   name: "",
   code: "",
   status: "enabled",
-  userLimit: -1,
-  apiLimit: -1,
-  storageLimit: -1,
-  expireDays: -1,
+  userLimit: -1 as number | null,
+  apiLimit: -1 as number | null,
+  storageLimit: -1 as number | null,
+  expireDays: -1 as number | null,
   sort: 100,
   remark: "",
   permissionIds: [] as string[]
@@ -45,28 +45,44 @@ const expireDaysUnlimited = ref(true);
 function onUserLimitToggle(val: boolean | null) {
   const checked = !!val;
   userLimitUnlimited.value = checked;
-  form.userLimit = checked ? -1 : 0;
+  form.userLimit = checked ? -1 : null;
 }
 function onApiLimitToggle(val: boolean | null) {
   const checked = !!val;
   apiLimitUnlimited.value = checked;
-  form.apiLimit = checked ? -1 : 0;
+  form.apiLimit = checked ? -1 : null;
 }
 function onStorageLimitToggle(val: boolean | null) {
   const checked = !!val;
   storageLimitUnlimited.value = checked;
-  form.storageLimit = checked ? -1 : 0;
+  form.storageLimit = checked ? -1 : null;
 }
 function onExpireDaysToggle(val: boolean | null) {
   const checked = !!val;
   expireDaysUnlimited.value = checked;
-  form.expireDays = checked ? -1 : 30;
+  form.expireDays = checked ? -1 : null;
+}
+
+/** 限额校验：勾选无限制时跳过；未勾选时必填且必须为大于 0 的整数 */
+function validateLimit(unlimited: boolean, val: number | null): true | string {
+  if (unlimited) return true;
+  if (val === null) {
+    return t("tenantPackageMgmt.limitRequired");
+  }
+  if (!Number.isInteger(val) || val <= 0) {
+    return t("tenantPackageMgmt.limitPositiveInteger");
+  }
+  return true;
 }
 
 const formRules = computed(() => ({
   name: [(v: string) => !!v?.trim() || t("tenantPackageMgmt.nameRequired")],
   code: [(v: string) => !!v?.trim() || t("tenantPackageMgmt.codeRequired")],
-  status: [(v: string) => !!v || t("tenantPackageMgmt.statusRequired")]
+  status: [(v: string) => !!v || t("tenantPackageMgmt.statusRequired")],
+  userLimit: [(v: number | null) => validateLimit(userLimitUnlimited.value, v)],
+  apiLimit: [(v: number | null) => validateLimit(apiLimitUnlimited.value, v)],
+  storageLimit: [(v: number | null) => validateLimit(storageLimitUnlimited.value, v)],
+  expireDays: [(v: number | null) => validateLimit(expireDaysUnlimited.value, v)]
 }));
 
 /** 套餐编码输入处理：自动转小写 */
@@ -403,8 +419,9 @@ async function handleSave() {
               filled
               square
               type="number"
-              :disable="drawerReadonly || userLimitUnlimited"
-              :readonly="drawerReadonly"
+              :disable="drawerReadonly"
+              :readonly="drawerReadonly || userLimitUnlimited"
+              :rules="formRules.userLimit"
               hide-bottom-space
             >
               <template #append>
@@ -426,8 +443,9 @@ async function handleSave() {
               filled
               square
               type="number"
-              :disable="drawerReadonly || apiLimitUnlimited"
-              :readonly="drawerReadonly"
+              :disable="drawerReadonly"
+              :readonly="drawerReadonly || apiLimitUnlimited"
+              :rules="formRules.apiLimit"
               hide-bottom-space
             >
               <template #append>
@@ -449,8 +467,9 @@ async function handleSave() {
               filled
               square
               type="number"
-              :disable="drawerReadonly || storageLimitUnlimited"
-              :readonly="drawerReadonly"
+              :disable="drawerReadonly"
+              :readonly="drawerReadonly || storageLimitUnlimited"
+              :rules="formRules.storageLimit"
               hide-bottom-space
             >
               <template #append>
@@ -472,8 +491,9 @@ async function handleSave() {
               filled
               square
               type="number"
-              :disable="drawerReadonly || expireDaysUnlimited"
-              :readonly="drawerReadonly"
+              :disable="drawerReadonly"
+              :readonly="drawerReadonly || expireDaysUnlimited"
+              :rules="formRules.expireDays"
               hide-bottom-space
             >
               <template #append>
@@ -631,6 +651,11 @@ async function handleSave() {
   font-size: 14px;
   font-weight: 600;
   color: rgba(0, 0, 0, 0.87);
+}
+
+/* 限额配置中"无限制"复选框标签字体大小 */
+.limit-section :deep(.q-checkbox__label) {
+  font-size: 16px;
 }
 
 /* 权限分配区域 */

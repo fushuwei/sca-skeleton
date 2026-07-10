@@ -598,7 +598,7 @@ onMounted(() => {
         <!-- 存储限制列 -->
         <template #body-cell-storageLimit="props">
           <q-td :props="props">
-            <span :class="{ 'text-grey-6': isUnlimited(props.value) }">{{ isUnlimited(props.value) ? formatLimit(props.value) : formatLimit(props.value) + ' MB' }}</span>
+            <span :class="{ 'text-grey-6': isUnlimited(props.value) }">{{ isUnlimited(props.value) ? formatLimit(props.value) : formatLimit(props.value) + ' GB' }}</span>
           </q-td>
         </template>
 

@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `sys_tenant_package` (
     `status`          VARCHAR(10)     NOT NULL                    COMMENT '套餐状态（enabled 启用，disabled 禁用）',
     `user_limit`      INT             DEFAULT -1                  COMMENT '用户数限制',
     `api_limit`       INT             DEFAULT -1                  COMMENT 'API调用限制/日',
-    `storage_limit`   BIGINT          DEFAULT -1                  COMMENT '存储限制(MB)',
+    `storage_limit`   INT             DEFAULT -1                  COMMENT '存储限制(GB)',
     `expire_days`     INT             DEFAULT -1                  COMMENT '有效期天数',
     `sort`            INT             NOT NULL DEFAULT 100        COMMENT '排序，数字越小越靠前',
     `remark`          TEXT            DEFAULT NULL                COMMENT '备注',

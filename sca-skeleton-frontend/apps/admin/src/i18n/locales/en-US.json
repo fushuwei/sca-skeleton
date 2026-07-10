@@ -329,7 +329,7 @@
     "statusPlaceholder": "Select status",
     "userLimit": "User Limit",
     "apiLimit": "API Limit",
-    "storageLimit": "Storage (MB)",
+    "storageLimit": "Storage (GB)",
     "expireDays": "Validity (Days)",
     "unlimited": "Unlimited",
     "limitConfig": "Limit Configuration",
@@ -352,6 +352,8 @@
     "saveFail": "Failed to save",
     "permissionAssign": "Permission Assignment",
     "selectedPermissions": "{count} selected",
-    "searchPermission": "Search permission"
+    "searchPermission": "Search permission",
+    "limitRequired": "Please input limit value",
+    "limitPositiveInteger": "Must be a positive integer greater than 0"
   }
 }

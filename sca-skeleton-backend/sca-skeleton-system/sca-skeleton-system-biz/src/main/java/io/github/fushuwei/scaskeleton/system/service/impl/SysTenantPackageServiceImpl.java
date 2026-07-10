@@ -110,7 +110,7 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
         pkg.setStatus(req.getStatus());
         pkg.setUserLimit(req.getUserLimit() != null ? req.getUserLimit() : -1);
         pkg.setApiLimit(req.getApiLimit() != null ? req.getApiLimit() : -1);
-        pkg.setStorageLimit(req.getStorageLimit() != null ? req.getStorageLimit() : -1L);
+        pkg.setStorageLimit(req.getStorageLimit() != null ? req.getStorageLimit() : -1);
         pkg.setExpireDays(req.getExpireDays() != null ? req.getExpireDays() : -1);
         pkg.setSort(req.getSort() != null ? req.getSort() : 100);
         pkg.setRemark(req.getRemark());
@@ -129,7 +129,7 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
         existing.setStatus(req.getStatus());
         existing.setUserLimit(req.getUserLimit() != null ? req.getUserLimit() : -1);
         existing.setApiLimit(req.getApiLimit() != null ? req.getApiLimit() : -1);
-        existing.setStorageLimit(req.getStorageLimit() != null ? req.getStorageLimit() : -1L);
+        existing.setStorageLimit(req.getStorageLimit() != null ? req.getStorageLimit() : -1);
         existing.setExpireDays(req.getExpireDays() != null ? req.getExpireDays() : -1);
         existing.setSort(req.getSort() != null ? req.getSort() : existing.getSort());
         existing.setRemark(req.getRemark());

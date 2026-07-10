@@ -329,7 +329,7 @@
     "statusPlaceholder": "请选择状态",
     "userLimit": "用户数限制",
     "apiLimit": "API调用限制",
-    "storageLimit": "存储限制(MB)",
+    "storageLimit": "存储限制(GB)",
     "expireDays": "有效期(天)",
     "unlimited": "无限制",
     "limitConfig": "限额配置",
@@ -352,6 +352,8 @@
     "saveFail": "保存失败",
     "permissionAssign": "权限分配",
     "selectedPermissions": "已选择 {count} 项",
-    "searchPermission": "搜索权限"
+    "searchPermission": "搜索权限",
+    "limitRequired": "请输入限额值",
+    "limitPositiveInteger": "必须为大于 0 的整数"
   }
 }
