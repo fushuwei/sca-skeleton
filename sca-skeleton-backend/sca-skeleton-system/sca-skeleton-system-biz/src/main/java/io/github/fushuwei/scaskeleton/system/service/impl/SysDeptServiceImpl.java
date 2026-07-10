@@ -55,8 +55,8 @@ public class SysDeptServiceImpl implements SysDeptService {
         LambdaQueryWrapper<SysDept> wrapper = new LambdaQueryWrapper<SysDept>()
                 // 按租户隔离
                 .eq(SysDept::getTenantId, tenantId)
-                // 按父节点筛选子部门，parentId 为空时默认查根节点
-                .eq(SysDept::getParentId, StringUtils.hasText(req.getParentId()) ? req.getParentId() : "0")
+                // 按父节点筛选子部门，parentId 为空时不按父节点过滤（返回全部记录）
+                .eq(StringUtils.hasText(req.getParentId()), SysDept::getParentId, req.getParentId())
                 // 关键词模糊匹配名称或编码
                 .and(StringUtils.hasText(req.getKeyword()),
                         w -> w.like(SysDept::getName, req.getKeyword())
@@ -74,6 +74,7 @@ public class SysDeptServiceImpl implements SysDeptService {
                 case "sort" -> wrapper.orderBy(true, isAsc, SysDept::getSort);
                 case "status" -> wrapper.orderBy(true, isAsc, SysDept::getStatus);
                 case "create_time" -> wrapper.orderBy(true, isAsc, SysDept::getCreateTime);
+                case "tree_path" -> wrapper.orderBy(true, isAsc, SysDept::getTreePath);
             }
         } else {
             wrapper.orderByAsc(SysDept::getSort);

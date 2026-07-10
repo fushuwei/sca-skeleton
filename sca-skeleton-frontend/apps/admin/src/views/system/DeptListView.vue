@@ -21,6 +21,7 @@ const { confirmDialog } = useConfirmDialog();
 
 const ROOT_ID = "0";
 const deptTreeLoading = ref(false);
+const allDepts = ref<SysDept[]>([]);
 const deptTreeNodes = ref<DeptTreeNode[]>([]);
 const selectedDeptId = ref<string>("");
 let lastSelectedDeptId = "";
@@ -79,7 +80,7 @@ const deptTreeWithRoot = computed(() => [{
   id: ROOT_ID,
   label: t("deptMgmt.allDepts"),
   parentId: "",
-  count: deptTreeNodes.value.length,
+  count: allDepts.value.length,
   children: deptTreeNodes.value
 }] as DeptTreeNode[]);
 
@@ -88,11 +89,14 @@ async function loadDeptTree() {
   try {
     const result = await getDeptListApi();
     if (result.code === 10_000 && result.data?.length) {
+      allDepts.value = result.data;
       deptTreeNodes.value = buildDeptTree(result.data);
     } else {
+      allDepts.value = [];
       deptTreeNodes.value = [];
     }
   } catch {
+    allDepts.value = [];
     deptTreeNodes.value = [];
   } finally {
     deptTreeExpanded.value = [ROOT_ID];
@@ -101,7 +105,7 @@ async function loadDeptTree() {
 }
 
 function handleDeptNodeClick(node: DeptTreeNode) {
-  searchForm.parentId = node.id === ROOT_ID ? "0" : node.id;
+  searchForm.parentId = node.id === ROOT_ID ? undefined : node.id;
   handleSearch();
 }
 
@@ -118,7 +122,7 @@ function onDeptTreeSelect(nodeId: string) {
   lastSelectedDeptId = nodeId;
 
   if (nodeId === ROOT_ID) {
-    searchForm.parentId = "0";
+    searchForm.parentId = undefined;
     handleSearch();
     return;
   }
@@ -219,7 +223,7 @@ function endResize() {
 const searchForm = reactive<DeptPageRequest>({
   pageNum: 1,
   pageSize: 10,
-  parentId: "0",
+  parentId: undefined,
   keyword: "",
   status: ""
 });
@@ -403,12 +407,12 @@ async function loadTableData(
   }
 
   const sortBy = sortState.value.sortBy || undefined;
-  const orderBy = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : undefined;
+  const orderBy = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : (!searchForm.parentId ? "tree_path" : undefined);
 
   const params: DeptPageRequest = {
     pageNum,
     pageSize,
-    parentId: searchForm.parentId || "0",
+    parentId: searchForm.parentId || undefined,
     keyword: searchForm.keyword || undefined,
     status: searchForm.status || undefined,
     orderBy,
@@ -468,7 +472,7 @@ function handleJumpToPage() {
 function handleReset() {
   searchForm.keyword = "";
   searchForm.status = "";
-  searchForm.parentId = "0";
+  searchForm.parentId = undefined;
   selectedDeptId.value = "";
   lastSelectedDeptId = "";
   tablePagination.value.page = 1;

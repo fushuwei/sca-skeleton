@@ -16,7 +16,7 @@ public class DeptPageRequest {
 
     /** 允许排序的字段白名单，防止 SQL 注入 */
     private static final Set<String> ALLOWED_ORDER_FIELDS = Set.of(
-            "name", "code", "sort", "status", "create_time"
+            "name", "code", "sort", "status", "create_time", "tree_path"
     );
 
     /** 页码，从 1 开始 */
@@ -28,7 +28,7 @@ public class DeptPageRequest {
     @Max(value = 100, message = "每页条数不能超过 100")
     private Integer pageSize = 20;
 
-    /** 父节点 ID，顶级为 "0" */
+    /** 父节点 ID，为空时不按父节点过滤（返回全部记录） */
     private String parentId;
 
     /** 综合搜索关键词（名称、编码模糊匹配） */
