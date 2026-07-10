@@ -746,23 +746,23 @@ function beginRightDrawerResize(e) {
                   v-close-popup
                   clickable
                   class="top-locale-menu-item"
-                  @click="applyHeaderLocale('en-US')"
-                >
-                  <q-item-section avatar class="top-locale-flag">🇺🇸</q-item-section>
-                  <q-item-section>{{ t('layout.localeEnglish') }}</q-item-section>
-                  <q-item-section v-if="locale === 'en-US'" side>
-                    <q-icon name="sym_r_check" class="top-locale-check" />
-                  </q-item-section>
-                </q-item>
-                <q-item
-                  v-close-popup
-                  clickable
-                  class="top-locale-menu-item"
                   @click="applyHeaderLocale('zh-CN')"
                 >
                   <q-item-section avatar class="top-locale-flag">🇨🇳</q-item-section>
                   <q-item-section>{{ t('layout.localeChinese') }}</q-item-section>
                   <q-item-section v-if="locale === 'zh-CN'" side>
+                    <q-icon name="sym_r_check" class="top-locale-check" />
+                  </q-item-section>
+                </q-item>
+                <q-item
+                    v-close-popup
+                    clickable
+                    class="top-locale-menu-item"
+                    @click="applyHeaderLocale('en-US')"
+                >
+                  <q-item-section avatar class="top-locale-flag">🇺🇸</q-item-section>
+                  <q-item-section>{{ t('layout.localeEnglish') }}</q-item-section>
+                  <q-item-section v-if="locale === 'en-US'" side>
                     <q-icon name="sym_r_check" class="top-locale-check" />
                   </q-item-section>
                 </q-item>
