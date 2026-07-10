@@ -407,7 +407,7 @@ async function loadTableData(
   }
 
   const sortBy = sortState.value.sortBy || undefined;
-  const orderBy = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : (!searchForm.parentId ? "tree_path" : undefined);
+  const orderBy = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : (!searchForm.parentId ? "sort" : undefined);
 
   const params: DeptPageRequest = {
     pageNum,
