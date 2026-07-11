@@ -6,7 +6,7 @@ export interface CaptchaData {
 }
 
 /** 菜单挂载的页面组件标识（仅叶子节点需要） */
-export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView" | "RoleListView" | "PostListView" | "DeptListView" | "TenantPackageListView";
+export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView" | "RoleListView" | "PostListView" | "DeptListView" | "TenantPackageListView" | "TenantListView";
 
 export interface MenuItem {
   /** 主键ID（对应 SQL id 字段），唯一标识 */
@@ -307,6 +307,45 @@ export interface TenantPackagePageRequest {
   pageSize?: number;
   keyword?: string;
   status?: string;
+  orderBy?: string;
+  orderDirection?: "asc" | "desc";
+}
+
+// ── 租户管理相关类型 ──
+
+/** 系统租户实体（对应后端 SysTenant） */
+export interface SysTenant {
+  id: string;
+  name: string;
+  code: string;
+  packageId: string;
+  /** 套餐名称（关联查询） */
+  packageName: string;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  domainName: string;
+  /** 账号数量限制，-1 表示不限 */
+  accountLimit: number;
+  /** 过期时间（NULL表示永不过期） */
+  expireTime: string | null;
+  /** 租户状态：normal / disabled / expired / cancelled */
+  status: string;
+  remark: string;
+  version: number;
+  createTime: string;
+  updateTime: string;
+  createBy: string;
+  updateBy: string;
+}
+
+/** 租户分页查询请求参数 */
+export interface TenantPageRequest {
+  pageNum?: number;
+  pageSize?: number;
+  keyword?: string;
+  status?: string;
+  packageId?: string;
   orderBy?: string;
   orderDirection?: "asc" | "desc";
 }

@@ -98,7 +98,7 @@ INSERT INTO `sys_tenant` (
     `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
-    '1', '平台默认租户', 'default', '1',
+    '1', '默认租户', 'default', '1',
     NULL, NULL, NULL, NULL,
     -1, NULL, 'normal', NULL, '系统内置租户', 0,
     'system', NOW(), 'system', NOW(), 0
