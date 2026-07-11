@@ -3,13 +3,18 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper">
 
-    <!-- 角色分页查询（含权限数量），使用关联子查询避免 GROUP BY 膨胀 -->
+    <!-- 角色分页查询（含权限数量），使用关联子查询避免 GROUP BY 膨胀。
+         权限个数仅统计 menu 和 button 类别（模块/目录不计入）。 -->
     <select id="selectRolePage" resultType="io.github.fushuwei.scaskeleton.system.entity.SysRole">
         SELECT r.*,
                (SELECT COUNT(*)
                 FROM sys_role_permission rp
+                         INNER JOIN sys_permission perm
+                                    ON perm.id = rp.permission_id
+                                        AND perm.is_deleted = 0
                 WHERE rp.role_id = r.id
-                  AND rp.is_deleted = 0) AS permission_count
+                  AND rp.is_deleted = 0
+                  AND perm.type IN ('menu', 'button')) AS permission_count
         FROM sys_role r
         ${ew.customSqlSegment}
     </select>

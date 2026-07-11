@@ -4,18 +4,25 @@
 <mapper namespace="io.github.fushuwei.scaskeleton.system.mapper.SysTenantPackageMapper">
 
     <!-- 套餐分页查询（含权限数量），使用关联子查询避免 GROUP BY 膨胀。
-         内置默认套餐（code='default'）拥有全部权限，其权限个数直接取权限表总数。 -->
+         内置默认套餐（code='default'）拥有全部权限。
+         权限个数仅统计 menu 和 button 类别（模块/目录不计入）。 -->
     <select id="selectPackagePage" resultType="io.github.fushuwei.scaskeleton.system.entity.SysTenantPackage">
         SELECT p.*,
                CASE
                    WHEN p.code = 'default' THEN (
-                       SELECT COUNT(*) FROM sys_permission perm WHERE perm.is_deleted = 0
+                       SELECT COUNT(*) FROM sys_permission perm
+                       WHERE perm.is_deleted = 0
+                         AND perm.type IN ('menu', 'button')
                    )
                    ELSE (
                        SELECT COUNT(*)
                        FROM sys_tenant_package_permission tpp
+                                INNER JOIN sys_permission perm
+                                           ON perm.id = tpp.permission_id
+                                               AND perm.is_deleted = 0
                        WHERE tpp.package_id = p.id
                          AND tpp.is_deleted = 0
+                         AND perm.type IN ('menu', 'button')
                    )
                END AS permission_count
         FROM sys_tenant_package p

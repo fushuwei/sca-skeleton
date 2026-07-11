@@ -8,8 +8,6 @@ import java.util.List;
 
 /**
  * 更新租户套餐请求对象。
- * <p>
- * 套餐编码（code）创建后不可修改，故不包含在此对象中。
  *
  * @author Fu Wei
  */
@@ -23,6 +21,10 @@ public class TenantPackageUpdateRequest {
     /** 套餐名称 */
     @NotBlank(message = "套餐名称不能为空")
     private String name;
+
+    /** 套餐编码 */
+    @NotBlank(message = "套餐编码不能为空")
+    private String code;
 
     /** 套餐状态（enabled 启用，disabled 禁用） */
     @NotBlank(message = "套餐状态不能为空")

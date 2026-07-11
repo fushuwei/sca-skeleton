@@ -101,10 +101,16 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createPackage(TenantPackageCreateRequest req) {
+        // 套餐名称唯一
+        long nameCount = packageMapper.selectCount(new LambdaQueryWrapper<SysTenantPackage>()
+                .eq(SysTenantPackage::getName, req.getName()));
+        if (nameCount > 0) {
+            throw new BusinessException(ResultCode.ALREADY_EXISTS, "套餐名称已存在");
+        }
         // 套餐编码唯一
-        long count = packageMapper.selectCount(new LambdaQueryWrapper<SysTenantPackage>()
+        long codeCount = packageMapper.selectCount(new LambdaQueryWrapper<SysTenantPackage>()
                 .eq(SysTenantPackage::getCode, req.getCode()));
-        if (count > 0) {
+        if (codeCount > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "套餐编码已存在");
         }
         // 组装套餐实体
@@ -127,9 +133,24 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updatePackage(TenantPackageUpdateRequest req) {
-        // 校验套餐存在并加载当前快照（编码不可改，故不更新 code）
+        // 校验套餐存在并加载当前快照
         SysTenantPackage existing = loadPackageEntity(req.getId());
+        // 套餐名称唯一（排除自身）
+        long nameCount = packageMapper.selectCount(new LambdaQueryWrapper<SysTenantPackage>()
+                .eq(SysTenantPackage::getName, req.getName())
+                .ne(SysTenantPackage::getId, req.getId()));
+        if (nameCount > 0) {
+            throw new BusinessException(ResultCode.ALREADY_EXISTS, "套餐名称已存在");
+        }
+        // 套餐编码唯一（排除自身）
+        long codeCount = packageMapper.selectCount(new LambdaQueryWrapper<SysTenantPackage>()
+                .eq(SysTenantPackage::getCode, req.getCode())
+                .ne(SysTenantPackage::getId, req.getId()));
+        if (codeCount > 0) {
+            throw new BusinessException(ResultCode.ALREADY_EXISTS, "套餐编码已存在");
+        }
         existing.setName(req.getName());
+        existing.setCode(req.getCode());
         existing.setStatus(req.getStatus());
         existing.setUserLimit(req.getUserLimit() != null ? req.getUserLimit() : -1);
         existing.setApiLimit(req.getApiLimit() != null ? req.getApiLimit() : -1);
@@ -173,9 +194,10 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     @Override
     public List<String> getPackagePermissionIds(String packageId) {
         SysTenantPackage pkg = loadPackageEntity(packageId);
-        // 内置默认套餐拥有全部权限，直接返回所有权限 ID
+        // 内置默认套餐拥有全部权限，返回 menu 和 button 类别的权限 ID
         if (DEFAULT_PACKAGE_CODE.equals(pkg.getCode())) {
-            return permissionMapper.selectList(null).stream()
+            return permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
+                            .in(SysPermission::getType, "menu", "button")).stream()
                     .map(SysPermission::getId)
                     .collect(Collectors.toList());
         }
