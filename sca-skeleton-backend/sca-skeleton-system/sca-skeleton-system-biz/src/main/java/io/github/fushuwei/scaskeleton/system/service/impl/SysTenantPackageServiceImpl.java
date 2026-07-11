@@ -10,8 +10,10 @@ import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPac
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageResponse;
 import io.github.fushuwei.scaskeleton.system.converter.TenantPackageConverter;
+import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenantPackage;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenantPackagePermission;
+import io.github.fushuwei.scaskeleton.system.mapper.SysPermissionMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantPackageMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantPackagePermissionMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysTenantPackageService;
@@ -39,6 +41,8 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     /** 默认套餐编码，内置套餐不允许删除 */
     private static final String DEFAULT_PACKAGE_CODE = "default";
 
+    /** 权限 Mapper */
+    private final SysPermissionMapper permissionMapper;
     /** 套餐主表 Mapper */
     private final SysTenantPackageMapper packageMapper;
     /** 套餐-权限关联 Mapper */
@@ -168,8 +172,13 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
 
     @Override
     public List<String> getPackagePermissionIds(String packageId) {
-        // 校验套餐存在
-        loadPackageEntity(packageId);
+        SysTenantPackage pkg = loadPackageEntity(packageId);
+        // 内置默认套餐拥有全部权限，直接返回所有权限 ID
+        if (DEFAULT_PACKAGE_CODE.equals(pkg.getCode())) {
+            return permissionMapper.selectList(null).stream()
+                    .map(SysPermission::getId)
+                    .collect(Collectors.toList());
+        }
         // 查询套餐已分配的权限 ID 列表
         List<SysTenantPackagePermission> list = packagePermissionMapper.selectList(
                 new LambdaQueryWrapper<SysTenantPackagePermission>()
