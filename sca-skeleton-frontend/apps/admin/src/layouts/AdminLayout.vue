@@ -1761,7 +1761,7 @@ function beginRightDrawerResize(e) {
 
 /* 模块图标列宽度（非右侧展开箭头）；图标距左侧由表头 .q-item 的 padding-left 统一控制 */
 .left-menu-expansion :deep(.q-item > .q-item__section--avatar) {
-  min-width: 46px;
+  min-width: 36px;
 }
 
 /* 手风琴标题行前置模块图标：`q-icon` 字形类在根节点 */
