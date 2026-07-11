@@ -446,7 +446,6 @@ async function handleSave() {
                   @update:model-value="onUserLimitToggle"
                   :label="t('tenantPackageMgmt.unlimited')"
                   :disable="drawerReadonly"
-                  dense
                 />
               </template>
             </q-input>
@@ -470,7 +469,6 @@ async function handleSave() {
                   @update:model-value="onApiLimitToggle"
                   :label="t('tenantPackageMgmt.unlimited')"
                   :disable="drawerReadonly"
-                  dense
                 />
               </template>
             </q-input>
@@ -494,7 +492,6 @@ async function handleSave() {
                   @update:model-value="onStorageLimitToggle"
                   :label="t('tenantPackageMgmt.unlimited')"
                   :disable="drawerReadonly"
-                  dense
                 />
               </template>
             </q-input>
@@ -518,7 +515,6 @@ async function handleSave() {
                   @update:model-value="onExpireDaysToggle"
                   :label="t('tenantPackageMgmt.unlimited')"
                   :disable="drawerReadonly"
-                  dense
                 />
               </template>
             </q-input>
@@ -669,9 +665,13 @@ async function handleSave() {
   color: rgba(0, 0, 0, 0.87);
 }
 
-/* 限额配置中"无限制"复选框标签字体大小 */
+/* 限额配置中"无限制"复选框尺寸与列表页保持一致 */
+.limit-section :deep(.q-checkbox__inner) {
+  font-size: 32px;
+}
+
 .limit-section :deep(.q-checkbox__label) {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 /* 权限分配区域 */
