@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 /**
  * 操作日志分页查询请求对象。
@@ -13,6 +14,12 @@ import java.time.LocalDateTime;
  */
 @Data
 public class OperationLogPageRequest {
+
+    /** 允许排序的字段白名单，防止 SQL 注入 */
+    private static final Set<String> ALLOWED_ORDER_FIELDS = Set.of(
+            "operation_time", "username", "module", "action",
+            "http_method", "request_uri", "client_ip", "cost_ms", "success"
+    );
 
     /** 页码，从 1 开始 */
     @Min(value = 1, message = "页码不能小于 1")
@@ -40,4 +47,26 @@ public class OperationLogPageRequest {
 
     /** 查询结束时间 */
     private LocalDateTime endTime;
+
+    /** 排序字段 */
+    private String orderBy;
+
+    /** 排序方向：asc / desc */
+    private String orderDirection;
+
+    /** 校验并返回安全的排序字段名，不在白名单内则返回 null */
+    public String safeOrderBy() {
+        if (orderBy != null && ALLOWED_ORDER_FIELDS.contains(orderBy)) {
+            return orderBy;
+        }
+        return null;
+    }
+
+    /** 返回安全的排序方向，默认 asc */
+    public String safeOrderDirection() {
+        if ("desc".equalsIgnoreCase(orderDirection)) {
+            return "DESC";
+        }
+        return "ASC";
+    }
 }

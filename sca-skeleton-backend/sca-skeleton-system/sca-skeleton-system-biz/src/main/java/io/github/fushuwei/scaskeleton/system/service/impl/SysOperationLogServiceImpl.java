@@ -43,8 +43,26 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
                 .like(StringUtils.hasText(req.getUsername()), SysOperationLog::getUsername, req.getUsername())
                 .eq(req.getSuccess() != null, SysOperationLog::getSuccess, req.getSuccess())
                 .ge(req.getStartTime() != null, SysOperationLog::getOperationTime, req.getStartTime())
-                .le(req.getEndTime() != null, SysOperationLog::getOperationTime, req.getEndTime())
-                .orderByDesc(SysOperationLog::getOperationTime);
+                .le(req.getEndTime() != null, SysOperationLog::getOperationTime, req.getEndTime());
+
+        // 动态排序
+        String orderBy = req.safeOrderBy();
+        boolean isAsc = "ASC".equalsIgnoreCase(req.safeOrderDirection());
+        if (orderBy != null) {
+            switch (orderBy) {
+                case "operation_time" -> wrapper.orderBy(true, isAsc, SysOperationLog::getOperationTime);
+                case "username" -> wrapper.orderBy(true, isAsc, SysOperationLog::getUsername);
+                case "module" -> wrapper.orderBy(true, isAsc, SysOperationLog::getModule);
+                case "action" -> wrapper.orderBy(true, isAsc, SysOperationLog::getAction);
+                case "http_method" -> wrapper.orderBy(true, isAsc, SysOperationLog::getHttpMethod);
+                case "request_uri" -> wrapper.orderBy(true, isAsc, SysOperationLog::getRequestUri);
+                case "client_ip" -> wrapper.orderBy(true, isAsc, SysOperationLog::getClientIp);
+                case "cost_ms" -> wrapper.orderBy(true, isAsc, SysOperationLog::getCostMs);
+                case "success" -> wrapper.orderBy(true, isAsc, SysOperationLog::getSuccess);
+            }
+        } else {
+            wrapper.orderByDesc(SysOperationLog::getOperationTime);
+        }
 
         IPage<SysOperationLog> entityPage = operationLogMapper.selectPage(page, wrapper);
         return entityPage.convert(operationLogConverter::toOperationLogResponse);

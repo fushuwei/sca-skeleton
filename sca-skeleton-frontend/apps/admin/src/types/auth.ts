@@ -385,4 +385,6 @@ export interface OperationLogPageRequest {
   success?: boolean;
   startTime?: string;
   endTime?: string;
+  orderBy?: string;
+  orderDirection?: string;
 }

@@ -119,6 +119,7 @@ const tablePagination = ref({
   descending: false
 });
 const selectedRows = ref<SysOperationLog[]>([]);
+const sortState = ref<{ sortBy: string; descending: boolean }>({ sortBy: "", descending: false });
 const jumpToPage = ref<number | null>(null);
 const curPage = ref(1);
 
@@ -129,7 +130,7 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
     field: "operationTime",
     label: t("operationLog.operationTime"),
     align: "left",
-    sortable: false,
+    sortable: true,
     format: (val: string) => formatDateTime(val)
   },
   {
@@ -137,49 +138,49 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
     field: "username",
     label: t("operationLog.username"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "module",
     field: "module",
     label: t("operationLog.module"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "action",
     field: "action",
     label: t("operationLog.action"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "httpMethod",
     field: "httpMethod",
     label: t("operationLog.httpMethod"),
     align: "center",
-    sortable: false
+    sortable: true
   },
   {
     name: "requestUri",
     field: "requestUri",
     label: t("operationLog.requestUri"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "clientIp",
     field: "clientIp",
     label: t("operationLog.clientIp"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "costMs",
     field: "costMs",
     label: t("operationLog.costMs"),
-    align: "right",
-    sortable: false,
+    align: "left",
+    sortable: true,
     format: (val: number) => (val !== null && val !== undefined ? val + "ms" : "-")
   },
   {
@@ -187,7 +188,7 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
     field: "success",
     label: t("operationLog.status"),
     align: "center",
-    sortable: false
+    sortable: true
   },
   {
     name: "actions",
@@ -197,6 +198,19 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
     sortable: false
   }
 ]);
+
+// ── 前端列名 → 后端排序列名映射 ──
+const SORT_FIELD_MAP: Record<string, string> = {
+  operationTime: "operation_time",
+  username: "username",
+  module: "module",
+  action: "action",
+  httpMethod: "http_method",
+  requestUri: "request_uri",
+  clientIp: "client_ip",
+  costMs: "cost_ms",
+  success: "success"
+};
 
 const visibleColumns = ref(columns.value.map((c) => c.name));
 
@@ -226,6 +240,16 @@ async function loadTableData(
   const pageSize = Number(props?.pagination?.rowsPerPage ?? tablePagination.value.rowsPerPage) || 10;
   const pageNum = curPage.value || 1;
 
+  if (props?.pagination) {
+    sortState.value.sortBy = props.pagination.sortBy ?? "";
+    sortState.value.descending = props.pagination.descending ?? false;
+    tablePagination.value.sortBy = props.pagination.sortBy ?? "";
+    tablePagination.value.descending = props.pagination.descending ?? false;
+  }
+
+  const sortBy = sortState.value.sortBy || undefined;
+  const orderBy = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : undefined;
+
   const params: OperationLogPageRequest = {
     pageNum,
     pageSize,
@@ -234,7 +258,9 @@ async function loadTableData(
     username: searchForm.username || undefined,
     success: searchForm.success,
     startTime: searchForm.startTime || undefined,
-    endTime: searchForm.endTime || undefined
+    endTime: searchForm.endTime || undefined,
+    orderBy,
+    orderDirection: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
   };
 
   try {
@@ -531,14 +557,14 @@ onMounted(() => {
             :disable="!selectedRows.length"
             @click.stop="handleBatchDelete"
           >
-            <q-icon name="sym_r_delete_sweep" size="20px" class="q-mr-xs" />
+            <q-icon name="sym_r_delete" size="20px" class="q-mr-xs" />
             {{ t('operationLog.batchDelete') }}
           </q-btn>
           <q-btn
             v-if="isSuperAdmin"
             color="white"
             text-color="negative"
-            flat
+            outline
             dense
             no-caps
             class="toolbar-btn"
