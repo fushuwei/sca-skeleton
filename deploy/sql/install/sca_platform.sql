@@ -448,7 +448,7 @@ SELECT t.* FROM (
     SELECT '9952', '9999', '通知公告', 'Announcements', 'menu', NULL, '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9916, 1, 0, 'enabled', '0,9999,9952', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     -- 二级菜单：操作日志 (sort = 9917, 一级菜单99 + 二级序号17)
-    SELECT '9953', '9999', '操作日志', 'Operation Logs', 'menu', NULL, '/system/log/operation', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9953', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9953', '9999', '操作日志', 'Operation Logs', 'menu', NULL, '/system/log/operation', 'OperationLogListView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9953', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     -- 二级菜单：登录日志 (sort = 9918, 一级菜单99 + 二级序号18)
     SELECT '9954', '9999', '登录日志', 'Login Logs', 'menu', NULL, '/system/log/login', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9918, 1, 0, 'enabled', '0,9999,9954', NULL, 0, 'system', NOW(), 'system', NOW(), 0
@@ -586,21 +586,25 @@ CREATE TABLE IF NOT EXISTS `sys_login_log` (
 -- ---------------------------------------------------
 CREATE TABLE IF NOT EXISTS `sys_operation_log` (
     `id`              VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
-    `tenant_id`       VARCHAR(64)     DEFAULT NULL                COMMENT '租户ID',
-    `user_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '用户ID',
+    `trace_id`        VARCHAR(64)     DEFAULT NULL                COMMENT '链路追踪ID',
+    `user_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '操作人ID',
+    `username`        VARCHAR(100)    DEFAULT NULL                COMMENT '操作人用户名',
     `module`          VARCHAR(100)    DEFAULT NULL                COMMENT '操作模块',
-    `type`            VARCHAR(20)     DEFAULT NULL                COMMENT '操作类型',
-    `request_url`     VARCHAR(500)    DEFAULT NULL                COMMENT '请求地址',
-    `request_method`  VARCHAR(10)     DEFAULT NULL                COMMENT '请求方法',
-    `request_params`  TEXT            DEFAULT NULL                COMMENT '请求参数',
-    `response_result` TEXT            DEFAULT NULL                COMMENT '返回结果',
-    `cost_time`       VARCHAR(10)     DEFAULT NULL                COMMENT '耗时',
-    `ip`              VARCHAR(128)    DEFAULT NULL                COMMENT 'IP地址',
-    `location`        VARCHAR(255)    DEFAULT NULL                COMMENT '操作位置',
-    `status`          VARCHAR(20)     DEFAULT NULL                COMMENT '操作状态',
-    `error_msg`       TEXT            DEFAULT NULL                COMMENT '错误信息',
+    `action`          VARCHAR(100)    DEFAULT NULL                COMMENT '操作动作',
+    `http_method`     VARCHAR(10)     DEFAULT NULL                COMMENT '请求方法（GET/POST等）',
+    `request_uri`     VARCHAR(500)    DEFAULT NULL                COMMENT '请求路径',
+    `class_name`      VARCHAR(255)    DEFAULT NULL                COMMENT '目标类全限定名',
+    `method_name`     VARCHAR(100)    DEFAULT NULL                COMMENT '目标方法名',
+    `request_args`    TEXT            DEFAULT NULL                COMMENT '请求参数（JSON）',
+    `response_result` TEXT            DEFAULT NULL                COMMENT '响应结果（JSON）',
+    `success`         TINYINT(1)      NOT NULL DEFAULT 1          COMMENT '是否成功（0失败 1成功）',
+    `error_message`   TEXT            DEFAULT NULL                COMMENT '异常信息',
+    `cost_ms`         BIGINT          DEFAULT NULL                COMMENT '操作耗时（毫秒）',
+    `client_ip`       VARCHAR(128)    DEFAULT NULL                COMMENT '客户端IP',
     `operation_time`  DATETIME        NOT NULL                    COMMENT '操作时间',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    KEY `idx_operation_time` (`operation_time`),
+    KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='操作日志表';
 
 
