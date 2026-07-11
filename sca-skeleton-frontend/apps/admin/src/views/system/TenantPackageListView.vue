@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysTenantPackage, TenantPackagePageRequest } from "../../types/auth";
@@ -63,6 +64,7 @@ const isUnlimited = (val: number | null | undefined): boolean =>
 type DrawerMode = "add" | "edit" | "view";
 
 const drawerOpen = ref(false);
+useEscCloseDrawer(drawerOpen);
 const drawerMode = ref<DrawerMode>("add");
 const drawerPkg = ref<SysTenantPackage | undefined>(undefined);
 

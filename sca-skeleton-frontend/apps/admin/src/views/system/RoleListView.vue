@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysRole, RolePageRequest } from "../../types/auth";
@@ -64,6 +65,7 @@ const dataScopeColorOf = (s: string): string =>
 type DrawerMode = "add" | "edit" | "view";
 
 const drawerOpen = ref(false);
+useEscCloseDrawer(drawerOpen);
 const drawerMode = ref<DrawerMode>("add");
 const drawerRole = ref<SysRole | undefined>(undefined);
 

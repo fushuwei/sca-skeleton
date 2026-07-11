@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysOperationLog, OperationLogPageRequest } from "../../types/auth";
 import {
   getOperationLogPageApi,
-  getOperationLogByIdApi,
   batchDeleteOperationLogApi,
   clearAllOperationLogApi
 } from "../../apis/operation-log";
@@ -72,8 +72,8 @@ const costColorOf = (ms: number): string => {
 // ═══════════════════════════════════════════════════════════════
 
 const drawerOpen = ref(false);
+useEscCloseDrawer(drawerOpen);
 const detailData = ref<SysOperationLog | null>(null);
-const detailLoading = ref(false);
 
 const drawerTitle = computed(() => t("operationLog.detailTitle"));
 const drawerIcon = computed(() => "sym_r_visibility");
@@ -82,26 +82,9 @@ function closeDrawer() {
   drawerOpen.value = false;
 }
 
-async function handleViewDetail(row: SysOperationLog) {
-  detailLoading.value = true;
+function handleViewDetail(row: SysOperationLog) {
+  detailData.value = row;
   drawerOpen.value = true;
-  detailData.value = null;
-  try {
-    const result = await getOperationLogByIdApi(row.id);
-    if (result.code === 10_000) {
-      detailData.value = result.data;
-    } else {
-      showToast(result.message || t("common.loadFail"), "negative");
-      drawerOpen.value = false;
-    }
-  } catch (error) {
-    if (!isNotificationHandled(error)) {
-      showToast(t("common.loadFail"), "negative");
-    }
-    drawerOpen.value = false;
-  } finally {
-    detailLoading.value = false;
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -770,8 +753,7 @@ onMounted(() => {
               />
             </div>
             <div class="log-drawer-body">
-              <q-inner-loading :showing="detailLoading" color="primary" />
-              <template v-if="detailData && !detailLoading">
+              <template v-if="detailData">
                 <!-- ── 概览信息卡片 ── -->
                 <div class="detail-section">
                   <div class="detail-section-header row items-center no-wrap q-mb-sm">

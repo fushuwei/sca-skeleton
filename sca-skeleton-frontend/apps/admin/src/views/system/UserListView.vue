@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysUser, SysDept, DeptTreeNode, UserPageRequest } from "../../types/auth";
@@ -295,6 +296,7 @@ const genderLabelOf = (g: string): string => (g === "male" ? "男" : g === "fema
 type DrawerMode = "add" | "edit" | "view";
 
 const drawerOpen = ref(false);
+useEscCloseDrawer(drawerOpen);
 const drawerMode = ref<DrawerMode>("add");
 const drawerUser = ref<SysUser | undefined>(undefined);
 
