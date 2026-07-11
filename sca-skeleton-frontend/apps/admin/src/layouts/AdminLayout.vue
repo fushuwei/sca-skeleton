@@ -384,8 +384,9 @@ function bindMainTabsScroll() {
 
 onMounted(() => {
   bindMainTabsScroll();
-  // 刷新浏览器后，自动展开当前 Tab 对应的菜单模块手风琴和树路径
-  locateCurrentTab();
+  // 刷新浏览器后，自动展开当前 Tab 对应的菜单模块手风琴和树路径。
+  // 跳过滚动定位，避免 scrollIntoView 在 CSS 过渡动画期间强制同步布局导致卡顿。
+  locateCurrentTab(false);
 });
 
 watch(
@@ -492,8 +493,13 @@ function collapseAllModules() {
   expandedModuleKeys.value = [];
 }
 
-/** 定位当前 Tab 对应的菜单项：展开所属模块手风琴并滚动到选中节点 */
-function locateCurrentTab() {
+/**
+ * 定位当前 Tab 对应的菜单项：展开所属模块手风琴并（可选）滚动到选中节点。
+ * @param scroll 是否在展开后滚动定位到选中节点。刷新场景下应传 false，
+ *               因为 scrollIntoView 会强制同步布局，在手风琴 CSS 过渡动画期间
+ *               引发掉帧，导致菜单树从上向下滑出时在选中节点处卡顿。
+ */
+function locateCurrentTab(scroll = true) {
   const name = activeRouteName.value;
   if (!name) return;
 
@@ -507,29 +513,26 @@ function locateCurrentTab() {
   );
   if (!matchedModule) return;
 
-  /** 展开该模块的手风琴（若已展开则不重复赋值） */
-  const needExpandAccordion = !expandedModuleKeys.value.includes(matchedModule.key);
-  if (needExpandAccordion) {
+  /** 同步设置手风琴和树展开状态（同一 tick），让 Vue 一次渲染到位，
+   *  避免树展开与手风琴 CSS 过渡动画重叠导致的高度跳变 */
+  if (!expandedModuleKeys.value.includes(matchedModule.key)) {
     expandedModuleKeys.value = [...expandedModuleKeys.value, matchedModule.key];
   }
 
-  /** 第一步：等手风琴展开动画完成 */
-  nextTick(() => {
-    /** 展开树中从根到目标节点的路径 */
-    const ancestorPath = findAncestorPath(matchedModule.treeNodes, name, []) ?? [];
-    const currentExpanded = getTreeExpanded(matchedModule.key);
-    const mergedExpanded = [...new Set([...currentExpanded, ...ancestorPath])];
-    setTreeExpanded(matchedModule.key, mergedExpanded);
+  const ancestorPath = findAncestorPath(matchedModule.treeNodes, name, []) ?? [];
+  const currentExpanded = getTreeExpanded(matchedModule.key);
+  const mergedExpanded = [...new Set([...currentExpanded, ...ancestorPath])];
+  setTreeExpanded(matchedModule.key, mergedExpanded);
 
-    /** 第二步：等树节点展开渲染完成后滚动 */
+  if (scroll) {
     nextTick(() => {
       const scrollArea = document.querySelector(".left-menu-scroll");
       const selectedNode = scrollArea?.querySelector(".q-tree__node--selected");
       if (selectedNode) {
-        selectedNode.scrollIntoView({ behavior: "smooth", block: "center" });
+        selectedNode.scrollIntoView({ block: "center" });
       }
     });
-  });
+  }
 }
 
 function openLeftSearchToolbar() {
