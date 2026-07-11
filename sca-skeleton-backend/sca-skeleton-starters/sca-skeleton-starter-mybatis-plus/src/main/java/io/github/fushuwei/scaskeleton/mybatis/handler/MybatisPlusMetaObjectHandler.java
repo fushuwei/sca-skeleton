@@ -2,7 +2,6 @@ package io.github.fushuwei.scaskeleton.mybatis.handler;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
-import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.reflection.MetaObject;
 import org.jspecify.annotations.Nullable;
@@ -14,12 +13,14 @@ import java.time.LocalDateTime;
  * <p>
  * 在 INSERT / UPDATE 时自动填充 {@code BaseEntity} 中的以下字段：
  * <ul>
- *   <li>{@code id}：32 位小写 UUID，仅在 INSERT 且字段为 null 时填充</li>
  *   <li>{@code createTime}：INSERT 时填充当前时间</li>
  *   <li>{@code updateTime}：INSERT 和 UPDATE 时均填充当前时间</li>
  *   <li>{@code createBy}：INSERT 时从 {@link CurrentUserProvider} 读取当前用户 ID</li>
  *   <li>{@code updateBy}：INSERT 和 UPDATE 时均从 {@link CurrentUserProvider} 读取当前用户 ID</li>
  * </ul>
+ * <p>
+ * 主键 {@code id} 由 {@link io.github.fushuwei.scaskeleton.mybatis.incrementer.UuidV7IdentifierGenerator}
+ * 通过 {@code @TableId(type = IdType.ASSIGN_UUID)} 机制生成，不在此处理。
  *
  * @author Fu Wei
  */
@@ -35,17 +36,12 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
     }
 
     /**
-     * INSERT 时触发，填充 id、createTime、updateTime、createBy、updateBy。
+     * INSERT 时触发，填充 createTime、updateTime、createBy、updateBy。
      *
      * @param metaObject MyBatis 元对象，用于读写实体字段
      */
     @Override
     public void insertFill(MetaObject metaObject) {
-        // 仅在 id 字段为 null 时才生成，避免业务层已手动设置 id 的场景被覆盖
-        if (metaObject.hasSetter("id") && metaObject.getValue("id") == null) {
-            this.strictInsertFill(metaObject, "id", String.class, UuidUtils.nextSimpleStr());
-        }
-
         // 记录当前时间作为创建与更新时间
         LocalDateTime now = LocalDateTime.now();
         this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, now);

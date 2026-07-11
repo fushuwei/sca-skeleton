@@ -1,10 +1,12 @@
 package io.github.fushuwei.scaskeleton.mybatis.config;
 
 import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.core.incrementer.IdentifierGenerator;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import io.github.fushuwei.scaskeleton.mybatis.incrementer.UuidV7IdentifierGenerator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,5 +46,18 @@ public class MybatisPlusConfig {
         interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
 
         return interceptor;
+    }
+
+    /**
+     * 注册自定义主键生成器，使用 UUID v7 替代 MyBatis-Plus 默认的随机 UUID。
+     * <p>
+     * 配合 {@code @TableId(type = IdType.ASSIGN_UUID)} 使用，INSERT 时由框架调用生成主键。
+     *
+     * @return UUID v7 主键生成器
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public IdentifierGenerator identifierGenerator() {
+        return new UuidV7IdentifierGenerator();
     }
 }

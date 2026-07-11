@@ -31,7 +31,7 @@ public abstract class BaseEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /** 主键：32 位小写无连字符 UUID，INSERT 时由 MetaObjectHandler 自动填充，禁止使用自增 ID */
+    /** 主键：32 位小写无连字符 UUID v7（时间排序），INSERT 时由自定义 IdentifierGenerator 自动生成 */
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
