@@ -27,20 +27,20 @@ const form = reactive({
   name: "",
   code: "",
   status: "enabled",
-  userLimit: -1 as number | null,
-  apiLimit: -1 as number | null,
-  storageLimit: -1 as number | null,
-  expireDays: -1 as number | null,
+  userLimit: null as number | null,
+  apiLimit: null as number | null,
+  storageLimit: null as number | null,
+  expireDays: null as number | null,
   sort: 100,
   remark: "",
   permissionIds: [] as string[]
 });
 
 // ── 限额无限制开关：true 时对应字段为 -1（不限），false 时可输入具体值 ──
-const userLimitUnlimited = ref(true);
-const apiLimitUnlimited = ref(true);
-const storageLimitUnlimited = ref(true);
-const expireDaysUnlimited = ref(true);
+const userLimitUnlimited = ref(false);
+const apiLimitUnlimited = ref(false);
+const storageLimitUnlimited = ref(false);
+const expireDaysUnlimited = ref(false);
 
 function onUserLimitToggle(val: boolean | null) {
   const checked = !!val;
@@ -153,6 +153,22 @@ function buildPermTree(perms: SysPermission[]): PermissionTreeNode[] {
   return roots;
 }
 
+/** 收集权限树中所有叶子节点的 ID（leaf-filtered 模式要求 ticked 数组仅含叶子节点） */
+function collectLeafIds(nodes: PermissionTreeNode[]): Set<string> {
+  const leafIds = new Set<string>();
+  const collect = (list: PermissionTreeNode[]) => {
+    for (const n of list) {
+      if (n.children?.length) {
+        collect(n.children);
+      } else {
+        leafIds.add(n.id);
+      }
+    }
+  };
+  collect(nodes);
+  return leafIds;
+}
+
 /** 节点图标：模块/目录用 folder/folder_open（随展开状态切换），菜单用 nest_eco_leaf，按钮无图标 */
 function permNodeIcon(node: PermissionTreeNode): string {
   if (node.type === "module" || node.type === "folder") {
@@ -201,8 +217,11 @@ async function loadPermTree() {
       allPermissions.value = result.data;
       permTreeExpanded.value = permTreeNodes.value.map((n) => n.id);
       if (pendingPermIds.value) {
-        permTreeTicked.value = pendingPermIds.value;
-        form.permissionIds = [...pendingPermIds.value];
+        // 过滤为仅叶子节点 ID，匹配 q-tree leaf-filtered 策略
+        const leafIds = collectLeafIds(permTreeNodes.value);
+        const filtered = pendingPermIds.value.filter((id) => leafIds.has(id));
+        permTreeTicked.value = filtered;
+        form.permissionIds = [...filtered];
         pendingPermIds.value = null;
       }
     }
@@ -221,8 +240,11 @@ async function loadPackagePermissions(packageId: string) {
       if (allPermissions.value.length === 0) {
         pendingPermIds.value = result.data;
       } else {
-        permTreeTicked.value = result.data;
-        form.permissionIds = [...result.data];
+        // 过滤为仅叶子节点 ID，匹配 q-tree leaf-filtered 策略
+        const leafIds = collectLeafIds(permTreeNodes.value);
+        const filtered = result.data.filter((id) => leafIds.has(id));
+        permTreeTicked.value = filtered;
+        form.permissionIds = [...filtered];
       }
     }
   } catch {
@@ -235,17 +257,17 @@ function resetForm() {
   form.name = "";
   form.code = "";
   form.status = "enabled";
-  form.userLimit = -1;
-  form.apiLimit = -1;
-  form.storageLimit = -1;
-  form.expireDays = -1;
+  form.userLimit = null;
+  form.apiLimit = null;
+  form.storageLimit = null;
+  form.expireDays = null;
   form.sort = 100;
   form.remark = "";
   form.permissionIds = [];
-  userLimitUnlimited.value = true;
-  apiLimitUnlimited.value = true;
-  storageLimitUnlimited.value = true;
-  expireDaysUnlimited.value = true;
+  userLimitUnlimited.value = false;
+  apiLimitUnlimited.value = false;
+  storageLimitUnlimited.value = false;
+  expireDaysUnlimited.value = false;
   permTreeTicked.value = [];
 }
 
