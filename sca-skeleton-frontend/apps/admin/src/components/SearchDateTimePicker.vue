@@ -119,24 +119,8 @@ function validate(v: string): string {
       :error="hasError"
       error-message=""
     >
-      <template #append>
-        <!-- Quasar error 状态原生会显示感叹号图标，此处为其添加 tooltip -->
-        <q-icon
-          v-if="hasError"
-          name="sym_r_error"
-          color="negative"
-          class="cursor-pointer"
-        >
-          <q-tooltip anchor="top middle" self="bottom middle" class="bg-negative text-white">
-            {{ errorMessage }}
-          </q-tooltip>
-        </q-icon>
-        <q-icon
-          v-if="!pickerDisabled"
-          name="sym_r_event"
-          class="cursor-pointer"
-          @click="showPicker"
-        />
+      <template v-if="!pickerDisabled" #append>
+        <q-icon name="sym_r_event" class="cursor-pointer" @click="showPicker" />
       </template>
     </q-input>
     <q-popup-proxy
