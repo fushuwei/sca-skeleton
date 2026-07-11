@@ -469,6 +469,11 @@ async function handleSave() {
   border-top-color: rgba(255, 255, 255, 0.08);
 }
 
+/* 有效期提示文案暗色模式 */
+.body--dark .validity-hint {
+  color: rgba(255, 255, 255, 0.45);
+}
+
 /* 联系信息区域暗色模式 */
 .body--dark .contact-section {
   border-color: rgba(255, 255, 255, 0.08);
