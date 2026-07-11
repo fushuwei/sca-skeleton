@@ -674,6 +674,11 @@ async function handleSave() {
   font-size: 14px;
 }
 
+/* 限额配置中勾选"无限制"后文本框保持实线底边框（覆盖 Quasar readonly 默认虚线） */
+.limit-section :deep(.q-field--filled.q-field--readonly .q-field__control:before) {
+  border-bottom-style: none;
+}
+
 /* 权限分配区域 */
 .perm-section {
   border: 1px solid rgba(0, 0, 0, 0.08);
