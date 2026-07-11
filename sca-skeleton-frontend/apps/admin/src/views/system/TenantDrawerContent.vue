@@ -38,24 +38,6 @@ const form = reactive({
   version: null as number | null
 });
 
-// ── 生效时间无限制开关：true 时 effectiveTime 为空（立即生效），false 时可选择日期 ──
-const effectiveTimeUnlimited = ref(false);
-
-function onEffectiveTimeToggle(val: boolean | null) {
-  const checked = !!val;
-  effectiveTimeUnlimited.value = checked;
-  form.effectiveTime = checked ? "" : "";
-}
-
-// ── 过期时间无限制开关：true 时 expireTime 为空（永不过期），false 时可选择日期 ──
-const expireTimeUnlimited = ref(false);
-
-function onExpireTimeToggle(val: boolean | null) {
-  const checked = !!val;
-  expireTimeUnlimited.value = checked;
-  form.expireTime = checked ? "" : "";
-}
-
 const formRules = computed(() => ({
   name: [(v: string) => !!v?.trim() || t("tenantMgmt.nameRequired")],
   code: [(v: string) => !!v?.trim() || t("tenantMgmt.codeRequired")],
@@ -116,8 +98,6 @@ function resetForm() {
   form.expireTime = "";
   form.remark = "";
   form.version = null;
-  effectiveTimeUnlimited.value = false;
-  expireTimeUnlimited.value = false;
 }
 
 function initForm() {
@@ -136,10 +116,6 @@ function initForm() {
     form.expireTime = props.tenant.expireTime || "";
     form.remark = props.tenant.remark || "";
     form.version = props.tenant.version ?? null;
-
-    // 同步无限制开关状态
-    effectiveTimeUnlimited.value = !form.effectiveTime;
-    expireTimeUnlimited.value = !form.expireTime;
   }
 }
 
@@ -165,8 +141,8 @@ async function handleSave() {
     contactPhone: form.contactPhone || undefined,
     contactEmail: form.contactEmail || undefined,
     domainName: form.domainName || undefined,
-    effectiveTime: effectiveTimeUnlimited.value ? null : (form.effectiveTime || null),
-    expireTime: expireTimeUnlimited.value ? null : (form.expireTime || null),
+    effectiveTime: form.effectiveTime || null,
+    expireTime: form.expireTime || null,
     remark: form.remark || undefined
   };
 
@@ -338,56 +314,24 @@ async function handleSave() {
           <!-- 生效时间 -->
           <div class="col-12 col-md-6">
             <DateTimePicker
-              v-if="!effectiveTimeUnlimited"
               v-model="form.effectiveTime"
               :label="t('tenantMgmt.effectiveTime')"
               :disable="drawerReadonly"
               :readonly="drawerReadonly"
               clearable
             />
-            <q-input
-              v-else
-              :model-value="t('tenantMgmt.immediateEffect')"
-              :label="t('tenantMgmt.effectiveTime')"
-              filled
-              square
-              readonly
-              hide-bottom-space
-            />
-            <q-checkbox
-              :model-value="effectiveTimeUnlimited"
-              @update:model-value="onEffectiveTimeToggle"
-              :label="t('tenantMgmt.immediateEffect')"
-              :disable="drawerReadonly"
-              class="q-mt-xs"
-            />
+            <div class="validity-hint q-mt-xs">{{ t('tenantMgmt.effectiveTimeHint') }}</div>
           </div>
           <!-- 过期时间 -->
           <div class="col-12 col-md-6">
             <DateTimePicker
-              v-if="!expireTimeUnlimited"
               v-model="form.expireTime"
               :label="t('tenantMgmt.expireTime')"
               :disable="drawerReadonly"
               :readonly="drawerReadonly"
               clearable
             />
-            <q-input
-              v-else
-              :model-value="t('tenantMgmt.neverExpires')"
-              :label="t('tenantMgmt.expireTime')"
-              filled
-              square
-              readonly
-              hide-bottom-space
-            />
-            <q-checkbox
-              :model-value="expireTimeUnlimited"
-              @update:model-value="onExpireTimeToggle"
-              :label="t('tenantMgmt.neverExpires')"
-              :disable="drawerReadonly"
-              class="q-mt-xs"
-            />
+            <div class="validity-hint q-mt-xs">{{ t('tenantMgmt.expireTimeHint') }}</div>
           </div>
         </div>
       </div>
@@ -485,23 +429,11 @@ async function handleSave() {
   color: rgba(0, 0, 0, 0.87);
 }
 
-/* 限额配置中"无限制"复选框尺寸与列表页保持一致 */
-.limit-section :deep(.q-checkbox__inner) {
-  font-size: 32px;
-}
-
-.limit-section :deep(.q-checkbox__label) {
-  font-size: 14px;
-}
-
-/* 限额配置中勾选"无限制"后文本框保持实线底边框（覆盖 Quasar readonly 默认虚线） */
-.limit-section :deep(.q-field--filled.q-field--readonly .q-field__control:before) {
-  border-bottom-style: none;
-}
-
-/* 限额输入框 append 区域的 checkbox 不挤压 */
-.limit-section :deep(.q-field__append) {
-  white-space: nowrap;
+/* 有效期提示文案 */
+.validity-hint {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  line-height: 1.5;
 }
 </style>
 

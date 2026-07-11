@@ -381,6 +381,8 @@
     "immediateEffect": "Immediate",
     "neverExpires": "Never Expires",
     "validityConfig": "Validity Configuration",
+    "effectiveTimeHint": "Leave empty for immediate effect",
+    "expireTimeHint": "Leave empty for never expire",
     "remark": "Remark",
     "createTime": "Created At",
     "keywordPlaceholder": "Search by tenant name / code",
