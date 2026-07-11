@@ -805,7 +805,9 @@ onMounted(() => {
                 icon="sym_r_close"
                 class="tenant-drawer-close-btn"
                 @click="closeTenantDrawer"
-              />
+              >
+                <q-tooltip>{{ t("common.close") }}</q-tooltip>
+              </q-btn>
             </div>
             <div class="tenant-drawer-body">
               <TenantDrawerContent

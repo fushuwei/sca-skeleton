@@ -750,7 +750,9 @@ onMounted(() => {
                 icon="sym_r_close"
                 class="log-drawer-close-btn"
                 @click="closeDrawer"
-              />
+              >
+                <q-tooltip>{{ t("common.close") }}</q-tooltip>
+              </q-btn>
             </div>
             <div class="log-drawer-body">
               <template v-if="detailData">

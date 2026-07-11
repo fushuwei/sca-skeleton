@@ -756,7 +756,9 @@ onMounted(() => {
                 icon="sym_r_close"
                 class="pkg-drawer-close-btn"
                 @click="closePkgDrawer"
-              />
+              >
+                <q-tooltip>{{ t("common.close") }}</q-tooltip>
+              </q-btn>
             </div>
             <div class="pkg-drawer-body">
               <TenantPackageDrawerContent

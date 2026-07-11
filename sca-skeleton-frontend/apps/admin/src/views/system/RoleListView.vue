@@ -706,7 +706,9 @@ onMounted(() => {
                 icon="sym_r_close"
                 class="role-drawer-close-btn"
                 @click="closeRoleDrawer"
-              />
+              >
+                <q-tooltip>{{ t("common.close") }}</q-tooltip>
+              </q-btn>
             </div>
             <div class="role-drawer-body">
               <RoleDrawerContent

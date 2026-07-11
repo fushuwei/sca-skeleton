@@ -1270,7 +1270,9 @@ onMounted(() => {
                 icon="sym_r_close"
                 class="user-drawer-close-btn"
                 @click="closeUserDrawer"
-              />
+              >
+                <q-tooltip>{{ t("common.close") }}</q-tooltip>
+              </q-btn>
             </div>
             <div class="user-drawer-body">
               <UserDrawerContent
