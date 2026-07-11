@@ -475,14 +475,14 @@ onMounted(() => {
                 </template>
               </q-select>
             </div>
-            <div class="col-auto">
+            <div class="col-auto datetime-picker-col">
               <SearchDateTimePicker
                 v-model="searchForm.startTime"
                 :placeholder="t('operationLog.startTime')"
                 clearable
               />
             </div>
-            <div class="col-auto">
+            <div class="col-auto datetime-picker-col">
               <SearchDateTimePicker
                 v-model="searchForm.endTime"
                 :placeholder="t('operationLog.endTime')"
@@ -921,6 +921,11 @@ onMounted(() => {
 .status-select :deep(.q-field__control) {
   min-height: 40px;
   min-width: 120px;
+}
+
+/* 日期选择器固定宽度，避免 error/clear 图标出现时宽度变化 */
+.datetime-picker-col {
+  width: 250px;
 }
 
 .status-placeholder {
