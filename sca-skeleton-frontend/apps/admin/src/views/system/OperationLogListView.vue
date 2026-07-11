@@ -773,81 +773,124 @@ onMounted(() => {
             <div class="log-drawer-body">
               <q-inner-loading :showing="detailLoading" color="primary" />
               <template v-if="detailData && !detailLoading">
-                <q-list dense separator class="log-detail-list">
-                  <q-item>
-                    <q-item-section class="col-4 text-grey-7">{{ t("operationLog.module") }}</q-item-section>
-                    <q-item-section>{{ detailData.module || "-" }}</q-item-section>
-                  </q-item>
-                  <q-item>
-                    <q-item-section class="col-4 text-grey-7">{{ t("operationLog.action") }}</q-item-section>
-                    <q-item-section>{{ detailData.action || "-" }}</q-item-section>
-                  </q-item>
-                  <q-item>
-                    <q-item-section class="col-4 text-grey-7">{{ t("operationLog.username") }}</q-item-section>
-                    <q-item-section>{{ detailData.username || "-" }}</q-item-section>
-                  </q-item>
-                  <q-item>
-                    <q-item-section class="col-4 text-grey-7">{{ t("operationLog.status") }}</q-item-section>
-                    <q-item-section>
-                      <q-badge
-                        :color="statusColorOf(detailData.success)"
-                        :label="statusLabelOf(detailData.success)"
-                        rounded
-                        class="log-type-badge"
-                      />
-                    </q-item-section>
-                  </q-item>
-                  <q-item>
-                    <q-item-section class="col-4 text-grey-7">{{ t("operationLog.httpMethod") }}</q-item-section>
-                    <q-item-section>
-                      <q-badge
-                        v-if="detailData.httpMethod"
-                        :color="methodColorOf(detailData.httpMethod)"
-                        :label="detailData.httpMethod"
-                        rounded
-                        class="log-type-badge"
-                      />
-                      <span v-else class="text-grey-5">-</span>
-                    </q-item-section>
-                  </q-item>
-                  <q-item>
-                    <q-item-section class="col-4 text-grey-7">{{ t("operationLog.requestUri") }}</q-item-section>
-                    <q-item-section>{{ detailData.requestUri || "-" }}</q-item-section>
-                  </q-item>
-                  <q-item>
-                    <q-item-section class="col-4 text-grey-7">{{ t("operationLog.clientIp") }}</q-item-section>
-                    <q-item-section>{{ detailData.clientIp || "-" }}</q-item-section>
-                  </q-item>
-                  <q-item>
-                    <q-item-section class="col-4 text-grey-7">{{ t("operationLog.costMs") }}</q-item-section>
-                    <q-item-section>{{ detailData.costMs }}ms</q-item-section>
-                  </q-item>
-                  <q-item>
-                    <q-item-section class="col-4 text-grey-7">{{ t("operationLog.operationTime") }}</q-item-section>
-                    <q-item-section>{{ formatDateTime(detailData.operationTime) }}</q-item-section>
-                  </q-item>
-                  <q-item>
-                    <q-item-section class="col-4 text-grey-7">{{ t("operationLog.traceId") }}</q-item-section>
-                    <q-item-section>{{ detailData.traceId || "-" }}</q-item-section>
-                  </q-item>
-                  <q-item>
-                    <q-item-section class="col-4 text-grey-7">{{ t("operationLog.className") }}</q-item-section>
-                    <q-item-section>{{ detailData.className || "-" }}</q-item-section>
-                  </q-item>
-                  <q-item>
-                    <q-item-section class="col-4 text-grey-7">{{ t("operationLog.methodName") }}</q-item-section>
-                    <q-item-section>{{ detailData.methodName || "-" }}</q-item-section>
-                  </q-item>
-                  <q-item v-if="detailData.errorMessage">
-                    <q-item-section class="col-4 text-grey-7">{{ t("operationLog.errorMessage") }}</q-item-section>
-                    <q-item-section class="text-negative">{{ detailData.errorMessage }}</q-item-section>
-                  </q-item>
-                </q-list>
-                <q-separator class="q-my-md" />
-                <div class="text-subtitle2 q-mb-sm">{{ t("operationLog.requestArgs") }}</div>
-                <pre class="json-block">{{ formatJson(detailData.requestArgs) }}</pre>
-                <div class="text-subtitle2 q-mb-sm q-mt-md">{{ t("operationLog.responseResult") }}</div>
-                <pre class="json-block">{{ formatJson(detailData.responseResult) }}</pre>
+                <!-- ── 概览信息卡片 ── -->
+                <div class="detail-section">
+                  <div class="detail-section-header row items-center no-wrap q-mb-sm">
+                    <q-icon name="sym_r_info" size="20px" class="q-mr-xs" color="grey-8" />
+                    <span class="detail-section-title">{{ t('operationLog.detailTitle') }}</span>
+                  </div>
+                  <div class="detail-grid">
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.module") }}</div>
+                      <div class="detail-field-value">{{ detailData.module || "-" }}</div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.action") }}</div>
+                      <div class="detail-field-value">{{ detailData.action || "-" }}</div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.username") }}</div>
+                      <div class="detail-field-value">{{ detailData.username || "-" }}</div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.status") }}</div>
+                      <div class="detail-field-value">
+                        <q-badge
+                          :color="statusColorOf(detailData.success)"
+                          :label="statusLabelOf(detailData.success)"
+                          rounded
+                          class="log-type-badge"
+                        />
+                      </div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.httpMethod") }}</div>
+                      <div class="detail-field-value">
+                        <q-badge
+                          v-if="detailData.httpMethod"
+                          :color="methodColorOf(detailData.httpMethod)"
+                          :label="detailData.httpMethod"
+                          rounded
+                          class="log-type-badge"
+                        />
+                        <span v-else class="text-grey-5">-</span>
+                      </div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.costMs") }}</div>
+                      <div class="detail-field-value">{{ detailData.costMs }}ms</div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.operationTime") }}</div>
+                      <div class="detail-field-value">{{ formatDateTime(detailData.operationTime) }}</div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.clientIp") }}</div>
+                      <div class="detail-field-value">{{ detailData.clientIp || "-" }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ── 请求信息卡片 ── -->
+                <div class="detail-section q-mt-md">
+                  <div class="detail-section-header row items-center no-wrap q-mb-sm">
+                    <q-icon name="sym_r_api" size="20px" class="q-mr-xs" color="grey-8" />
+                    <span class="detail-section-title">{{ t('operationLog.requestInfo') }}</span>
+                  </div>
+                  <div class="detail-field detail-field--full">
+                    <div class="detail-field-label">{{ t("operationLog.requestUri") }}</div>
+                    <div class="detail-field-value detail-field-value--mono">{{ detailData.requestUri || "-" }}</div>
+                  </div>
+                </div>
+
+                <!-- ── 追踪信息卡片 ── -->
+                <div class="detail-section q-mt-md">
+                  <div class="detail-section-header row items-center no-wrap q-mb-sm">
+                    <q-icon name="sym_r_track_changes" size="20px" class="q-mr-xs" color="grey-8" />
+                    <span class="detail-section-title">{{ t('operationLog.traceInfo') }}</span>
+                  </div>
+                  <div class="detail-grid">
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.traceId") }}</div>
+                      <div class="detail-field-value detail-field-value--mono">{{ detailData.traceId || "-" }}</div>
+                    </div>
+                    <div class="detail-field detail-field--full">
+                      <div class="detail-field-label">{{ t("operationLog.className") }}</div>
+                      <div class="detail-field-value detail-field-value--mono">{{ detailData.className || "-" }}</div>
+                    </div>
+                    <div class="detail-field detail-field--full">
+                      <div class="detail-field-label">{{ t("operationLog.methodName") }}</div>
+                      <div class="detail-field-value detail-field-value--mono">{{ detailData.methodName || "-" }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ── 异常信息卡片（仅有错误时显示） ── -->
+                <div v-if="detailData.errorMessage" class="detail-section detail-section--error q-mt-md">
+                  <div class="detail-section-header row items-center no-wrap q-mb-sm">
+                    <q-icon name="sym_r_error" size="20px" class="q-mr-xs" color="negative" />
+                    <span class="detail-section-title detail-section-title--error">{{ t('operationLog.errorMessage') }}</span>
+                  </div>
+                  <pre class="json-block json-block--error">{{ detailData.errorMessage }}</pre>
+                </div>
+
+                <!-- ── 请求参数 JSON ── -->
+                <div class="detail-section q-mt-md">
+                  <div class="detail-section-header row items-center no-wrap q-mb-sm">
+                    <q-icon name="sym_r_code" size="20px" class="q-mr-xs" color="grey-8" />
+                    <span class="detail-section-title">{{ t('operationLog.requestArgs') }}</span>
+                  </div>
+                  <pre class="json-block">{{ formatJson(detailData.requestArgs) }}</pre>
+                </div>
+
+                <!-- ── 响应结果 JSON ── -->
+                <div class="detail-section q-mt-md">
+                  <div class="detail-section-header row items-center no-wrap q-mb-sm">
+                    <q-icon name="sym_r_data_object" size="20px" class="q-mr-xs" color="grey-8" />
+                    <span class="detail-section-title">{{ t('operationLog.responseResult') }}</span>
+                  </div>
+                  <pre class="json-block">{{ formatJson(detailData.responseResult) }}</pre>
+                </div>
               </template>
             </div>
           </div>
@@ -1180,6 +1223,68 @@ onMounted(() => {
   vertical-align: middle;
 }
 
+/* ═══ 详情抽屉卡片样式 ═══ */
+.detail-section {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.detail-section--error {
+  border-color: rgba(255, 0, 0, 0.2);
+  background: rgba(255, 0, 0, 0.02);
+}
+
+.detail-section-header {
+  height: 24px;
+}
+
+.detail-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.detail-section-title--error {
+  color: var(--q-negative);
+}
+
+/* 字段网格布局 */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+
+.detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.detail-field--full {
+  grid-column: 1 / -1;
+}
+
+.detail-field-label {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  line-height: 1.5;
+}
+
+.detail-field-value {
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.87);
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.detail-field-value--mono {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 12px;
+}
+
 /* JSON 展示块 */
 .json-block {
   background: rgba(0, 0, 0, 0.03);
@@ -1198,6 +1303,43 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.json-block--error {
+  background: rgba(255, 0, 0, 0.04);
+  color: var(--q-negative);
+  border: 1px solid rgba(255, 0, 0, 0.12);
+}
+
+.body--dark .json-block--error {
+  background: rgba(255, 0, 0, 0.08);
+  border-color: rgba(255, 0, 0, 0.2);
+}
+
+/* 详情卡片暗色模式 */
+.body--dark .detail-section {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.body--dark .detail-section-title {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .detail-section-header .q-icon {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.body--dark .detail-field-label {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.body--dark .detail-field-value {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .detail-section--error {
+  border-color: rgba(255, 0, 0, 0.25);
+  background: rgba(255, 0, 0, 0.06);
+}
+
 /* ═══ 本地右侧抽屉 ═══ */
 .log-local-drawer-mask {
   position: fixed;
@@ -1209,7 +1351,7 @@ onMounted(() => {
 }
 
 .log-local-drawer {
-  width: 680px;
+  width: 720px;
   max-width: 100vw;
   height: 100%;
   background: #fff;
