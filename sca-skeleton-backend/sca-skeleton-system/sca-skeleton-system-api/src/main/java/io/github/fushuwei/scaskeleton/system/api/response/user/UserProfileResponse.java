@@ -20,4 +20,7 @@ public class UserProfileResponse {
 
     /** 昵称（展示用） */
     private String nickname;
+
+    /** 是否平台超级管理员：0-否，1-是 */
+    private Integer isSuperadmin;
 }

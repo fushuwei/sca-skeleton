@@ -11,10 +11,15 @@ import {
   clearAllOperationLogApi
 } from "../../apis/operation-log";
 import { useConfirmDialog } from "@repo/ui";
-import DateTimePicker from "../../components/DateTimePicker.vue";
+import { useAuthStore } from "../../stores/auth";
+import SearchDateTimePicker from "../../components/SearchDateTimePicker.vue";
 
 const { t } = useI18n({ useScope: "global" });
 const { confirmDialog } = useConfirmDialog();
+const authStore = useAuthStore();
+
+// 仅超级管理员可批量删除/清空日志
+const isSuperAdmin = computed(() => authStore.profile?.isSuperadmin === 1);
 
 // ═══════════════════════════════════════════════════════════════
 // 搜索条件
@@ -471,16 +476,16 @@ onMounted(() => {
               </q-select>
             </div>
             <div class="col-auto">
-              <DateTimePicker
+              <SearchDateTimePicker
                 v-model="searchForm.startTime"
-                :label="t('operationLog.startTime')"
+                :placeholder="t('operationLog.startTime')"
                 clearable
               />
             </div>
             <div class="col-auto">
-              <DateTimePicker
+              <SearchDateTimePicker
                 v-model="searchForm.endTime"
-                :label="t('operationLog.endTime')"
+                :placeholder="t('operationLog.endTime')"
                 clearable
               />
             </div>
@@ -516,6 +521,7 @@ onMounted(() => {
       <div class="toolbar-area row items-center no-wrap">
         <div class="toolbar-left row items-center no-wrap">
           <q-btn
+            v-if="isSuperAdmin"
             color="white"
             text-color="negative"
             outline
@@ -529,6 +535,7 @@ onMounted(() => {
             {{ t('operationLog.batchDelete') }}
           </q-btn>
           <q-btn
+            v-if="isSuperAdmin"
             color="white"
             text-color="negative"
             flat

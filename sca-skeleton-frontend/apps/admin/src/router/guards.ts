@@ -85,7 +85,8 @@ export function setupRouterGuards(router: Router): void {
     // ── 已登录 ──
     if (authStore.isLoggedIn) {
       authStore.ensureRoutes(router);
-      if (!authStore.profile) {
+      // profile 为空或缺少 isSuperadmin 字段（兼容旧版 profile 缓存）时重新拉取
+      if (!authStore.profile || authStore.profile.isSuperadmin === undefined) {
         try {
           await authStore.fetchProfile();
         } catch {

@@ -315,6 +315,7 @@ public class SysUserServiceImpl implements SysUserService {
                 .id(userId)
                 .username(username)
                 .nickname(StringUtils.hasText(nickname) ? nickname : username)
+                .isSuperadmin(SecurityUtils.isSuperAdmin() ? 1 : 0)
                 .build();
     }
 }

@@ -1,9 +1,11 @@
 package io.github.fushuwei.scaskeleton.system.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.github.fushuwei.scaskeleton.core.exception.ForbiddenException;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.logging.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
+import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.operationlog.OperationLogPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.operationlog.OperationLogResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysOperationLogService;
@@ -39,20 +41,26 @@ public class SysOperationLogController {
         return Result.ok(operationLogService.getLogById(id));
     }
 
-    // 批量删除操作日志，需 sys:operation-log:delete
+    // 批量删除操作日志，仅超级管理员可操作
     @DeleteMapping("/batch")
     @RequiresPermission("sys:operation-log:delete")
     @OperationLog(module = "操作日志", action = "批量删除日志", logArgs = false)
     public Result<Void> batchDelete(@RequestBody List<String> ids) {
+        if (!SecurityUtils.isSuperAdmin()) {
+            throw new ForbiddenException("仅超级管理员可批量删除操作日志");
+        }
         operationLogService.batchDeleteLogs(ids);
         return Result.ok();
     }
 
-    // 清空全部操作日志，需 sys:operation-log:delete
+    // 清空全部操作日志，仅超级管理员可操作
     @DeleteMapping("/clear")
     @RequiresPermission("sys:operation-log:delete")
     @OperationLog(module = "操作日志", action = "清空日志")
     public Result<Void> clearAll() {
+        if (!SecurityUtils.isSuperAdmin()) {
+            throw new ForbiddenException("仅超级管理员可清空操作日志");
+        }
         operationLogService.clearAllLogs();
         return Result.ok();
     }

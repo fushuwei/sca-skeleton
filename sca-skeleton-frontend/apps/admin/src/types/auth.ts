@@ -29,6 +29,8 @@ export interface UserProfile {
   id: string;
   username: string;
   nickname: string;
+  /** 是否平台超级管理员：0-否，1-是 */
+  isSuperadmin: number;
 }
 
 export interface ApiEnvelope<T> {
