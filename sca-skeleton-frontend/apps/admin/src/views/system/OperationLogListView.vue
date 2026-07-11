@@ -180,8 +180,7 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
     field: "costMs",
     label: t("operationLog.costMs"),
     align: "left",
-    sortable: true,
-    format: (val: number) => (val !== null && val !== undefined ? val + "ms" : "-")
+    sortable: true
   },
   {
     name: "success",
@@ -777,7 +776,7 @@ onMounted(() => {
                 <div class="detail-section">
                   <div class="detail-section-header row items-center no-wrap q-mb-sm">
                     <q-icon name="sym_r_info" size="20px" class="q-mr-xs" color="grey-8" />
-                    <span class="detail-section-title">{{ t('operationLog.detailTitle') }}</span>
+                    <span class="detail-section-title">{{ t('operationLog.overviewInfo') }}</span>
                   </div>
                   <div class="detail-grid">
                     <div class="detail-field">
@@ -791,34 +790,6 @@ onMounted(() => {
                     <div class="detail-field">
                       <div class="detail-field-label">{{ t("operationLog.username") }}</div>
                       <div class="detail-field-value">{{ detailData.username || "-" }}</div>
-                    </div>
-                    <div class="detail-field">
-                      <div class="detail-field-label">{{ t("operationLog.status") }}</div>
-                      <div class="detail-field-value">
-                        <q-badge
-                          :color="statusColorOf(detailData.success)"
-                          :label="statusLabelOf(detailData.success)"
-                          rounded
-                          class="log-type-badge"
-                        />
-                      </div>
-                    </div>
-                    <div class="detail-field">
-                      <div class="detail-field-label">{{ t("operationLog.httpMethod") }}</div>
-                      <div class="detail-field-value">
-                        <q-badge
-                          v-if="detailData.httpMethod"
-                          :color="methodColorOf(detailData.httpMethod)"
-                          :label="detailData.httpMethod"
-                          rounded
-                          class="log-type-badge"
-                        />
-                        <span v-else class="text-grey-5">-</span>
-                      </div>
-                    </div>
-                    <div class="detail-field">
-                      <div class="detail-field-label">{{ t("operationLog.costMs") }}</div>
-                      <div class="detail-field-value">{{ detailData.costMs }}ms</div>
                     </div>
                     <div class="detail-field">
                       <div class="detail-field-label">{{ t("operationLog.operationTime") }}</div>
@@ -837,9 +808,35 @@ onMounted(() => {
                     <q-icon name="sym_r_api" size="20px" class="q-mr-xs" color="grey-8" />
                     <span class="detail-section-title">{{ t('operationLog.requestInfo') }}</span>
                   </div>
-                  <div class="detail-field detail-field--full">
-                    <div class="detail-field-label">{{ t("operationLog.requestUri") }}</div>
-                    <div class="detail-field-value detail-field-value--mono">{{ detailData.requestUri || "-" }}</div>
+                  <div class="detail-grid">
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.status") }}</div>
+                      <div class="detail-field-value">
+                        <q-badge
+                          :color="statusColorOf(detailData.success)"
+                          :label="statusLabelOf(detailData.success)"
+                          rounded
+                          class="log-type-badge"
+                        />
+                      </div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.costMs") }}</div>
+                      <div class="detail-field-value">{{ detailData.costMs }}ms</div>
+                    </div>
+                    <div class="detail-field detail-field--full">
+                      <div class="detail-field-label">{{ t("operationLog.requestUri") }}</div>
+                      <div class="detail-field-value detail-field-value--mono">
+                        <q-badge
+                          v-if="detailData.httpMethod"
+                          :color="methodColorOf(detailData.httpMethod)"
+                          :label="detailData.httpMethod"
+                          rounded
+                          class="q-mr-sm"
+                        />
+                        {{ detailData.requestUri || "-" }}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -865,15 +862,6 @@ onMounted(() => {
                   </div>
                 </div>
 
-                <!-- ── 异常信息卡片（仅有错误时显示） ── -->
-                <div v-if="detailData.errorMessage" class="detail-section detail-section--error q-mt-md">
-                  <div class="detail-section-header row items-center no-wrap q-mb-sm">
-                    <q-icon name="sym_r_error" size="20px" class="q-mr-xs" color="negative" />
-                    <span class="detail-section-title detail-section-title--error">{{ t('operationLog.errorMessage') }}</span>
-                  </div>
-                  <pre class="json-block json-block--error">{{ detailData.errorMessage }}</pre>
-                </div>
-
                 <!-- ── 请求参数 JSON ── -->
                 <div class="detail-section q-mt-md">
                   <div class="detail-section-header row items-center no-wrap q-mb-sm">
@@ -890,6 +878,15 @@ onMounted(() => {
                     <span class="detail-section-title">{{ t('operationLog.responseResult') }}</span>
                   </div>
                   <pre class="json-block">{{ formatJson(detailData.responseResult) }}</pre>
+                </div>
+
+                <!-- ── 异常信息卡片（仅有错误时显示） ── -->
+                <div v-if="detailData.errorMessage" class="detail-section detail-section--error q-mt-md">
+                  <div class="detail-section-header row items-center no-wrap q-mb-sm">
+                    <q-icon name="sym_r_error" size="20px" class="q-mr-xs" color="negative" />
+                    <span class="detail-section-title detail-section-title--error">{{ t('operationLog.errorMessage') }}</span>
+                  </div>
+                  <pre class="json-block json-block--error">{{ detailData.errorMessage }}</pre>
                 </div>
               </template>
             </div>
