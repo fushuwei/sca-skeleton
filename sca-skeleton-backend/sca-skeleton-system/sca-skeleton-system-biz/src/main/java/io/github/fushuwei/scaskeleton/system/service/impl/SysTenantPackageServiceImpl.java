@@ -56,6 +56,8 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
         Page<SysTenantPackage> page = new Page<>(req.getPageNum(), req.getPageSize());
 
         LambdaQueryWrapper<SysTenantPackage> wrapper = new LambdaQueryWrapper<SysTenantPackage>()
+                // 逻辑删除过滤（自定义 SQL 不自动追加 @TableLogic 条件，需显式指定）
+                .eq(SysTenantPackage::getIsDeleted, 0)
                 // 关键词模糊匹配名称或编码
                 .and(StringUtils.hasText(req.getKeyword()),
                         w -> w.like(SysTenantPackage::getName, req.getKeyword())

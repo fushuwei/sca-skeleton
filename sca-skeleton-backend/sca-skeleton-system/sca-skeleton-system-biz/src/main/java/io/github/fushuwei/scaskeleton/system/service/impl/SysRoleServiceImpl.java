@@ -49,6 +49,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         Page<SysRole> page = new Page<>(req.getPageNum(), req.getPageSize());
 
         LambdaQueryWrapper<SysRole> wrapper = new LambdaQueryWrapper<SysRole>()
+                // 逻辑删除过滤（自定义 SQL 不自动追加 @TableLogic 条件，需显式指定）
+                .eq(SysRole::getIsDeleted, 0)
                 // 按租户隔离
                 .eq(SysRole::getTenantId, tenantId)
                 // 关键词模糊匹配名称或编码
