@@ -384,6 +384,8 @@ function bindMainTabsScroll() {
 
 onMounted(() => {
   bindMainTabsScroll();
+  // 刷新浏览器后，自动展开当前 Tab 对应的菜单模块手风琴和树路径
+  locateCurrentTab();
 });
 
 watch(
