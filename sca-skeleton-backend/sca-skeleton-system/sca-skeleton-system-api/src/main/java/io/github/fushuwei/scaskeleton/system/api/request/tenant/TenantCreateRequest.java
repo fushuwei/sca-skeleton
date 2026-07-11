@@ -1,6 +1,5 @@
 package io.github.fushuwei.scaskeleton.system.api.request.tenant;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -38,9 +37,8 @@ public class TenantCreateRequest {
     /** 绑定独立域名 */
     private String domainName;
 
-    /** 账号数量限制，-1 表示不限 */
-    @Min(value = -1, message = "账号数量限制不能小于 -1")
-    private Integer accountLimit = -1;
+    /** 生效时间（NULL表示立即生效） */
+    private LocalDateTime effectiveTime;
 
     /** 过期时间（NULL表示永不过期） */
     private LocalDateTime expireTime;

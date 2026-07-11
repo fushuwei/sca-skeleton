@@ -16,7 +16,7 @@ public class TenantPageRequest {
 
     /** 允许排序的字段白名单，防止 SQL 注入 */
     private static final Set<String> ALLOWED_ORDER_FIELDS = Set.of(
-            "name", "code", "status", "account_limit", "expire_time", "create_time"
+            "name", "code", "status", "effective_time", "expire_time", "create_time"
     );
 
     /** 页码，从 1 开始 */

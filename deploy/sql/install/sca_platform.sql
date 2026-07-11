@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS `sys_tenant` (
     `contact_phone`   VARCHAR(255)    DEFAULT NULL                COMMENT '联系人电话',
     `contact_email`   VARCHAR(255)    DEFAULT NULL                COMMENT '联系人邮箱',
     `domain_name`     VARCHAR(255)    DEFAULT NULL                COMMENT '绑定独立域名',
-    `account_limit`   INT             DEFAULT -1                  COMMENT '账号数量限制（-1不限）',
+    `effective_time`  DATETIME        DEFAULT NULL                COMMENT '生效时间（NULL表示立即生效）',
     `expire_time`     DATETIME        DEFAULT NULL                COMMENT '过期时间（NULL表示永不过期）',
     `status`          VARCHAR(20)     NOT NULL                    COMMENT '租户状态（normal 正常，disabled 禁用，expired 过期，cancelled 注销）',
     `config_json`     JSON            DEFAULT NULL                COMMENT '租户个性化配置（Logo、主题、策略等）',
@@ -94,13 +94,13 @@ CREATE TABLE IF NOT EXISTS `sys_tenant` (
 -- 默认平台租户
 INSERT INTO `sys_tenant` (
     `id`, `name`, `code`, `package_id`, `contact_name`, `contact_phone`, `contact_email`, `domain_name`,
-    `account_limit`, `expire_time`, `status`, `config_json`, `remark`, `version`,
+    `effective_time`, `expire_time`, `status`, `config_json`, `remark`, `version`,
     `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
     '1', '默认租户', 'default', '1',
     NULL, NULL, NULL, NULL,
-    -1, NULL, 'normal', NULL, '系统内置租户', 0,
+    NULL, NULL, 'normal', NULL, '系统内置租户', 0,
     'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (
     SELECT 1 FROM `sys_tenant` WHERE `code` = 'default' AND `is_deleted` = 0

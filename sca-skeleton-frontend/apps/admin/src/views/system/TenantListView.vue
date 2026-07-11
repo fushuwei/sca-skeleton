@@ -67,16 +67,17 @@ async function loadPackageFilterOptions() {
   }
 }
 
-// ── 限额显示：-1 表示无限制 ──
-const formatLimit = (val: number | null | undefined): string => {
-  if (val === null || val === undefined || val === -1) {
-    return t("tenantMgmt.unlimited");
-  }
-  return String(val);
+// ── 生效时间显示：null 表示立即生效 ──
+const formatEffectiveTime = (val: string | null | undefined): string => {
+  if (!val) return t("tenantMgmt.immediateEffect");
+  return new Date(val).toLocaleString("zh-CN", {
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+  });
 };
 
-const isUnlimited = (val: number | null | undefined): boolean =>
-  val === null || val === undefined || val === -1;
+const isImmediateEffect = (val: string | null | undefined): boolean =>
+  !val;
 
 // ── 过期时间显示：null 表示永不过期 ──
 const formatExpireTime = (val: string | null | undefined): string => {
@@ -191,9 +192,9 @@ const columns = computed<QTableColumn<SysTenant>[]>(() => [
     sortable: false
   },
   {
-    name: "accountLimit",
-    field: "accountLimit",
-    label: t("tenantMgmt.accountLimit"),
+    name: "effectiveTime",
+    field: "effectiveTime",
+    label: t("tenantMgmt.effectiveTime"),
     align: "center",
     sortable: true
   },
@@ -228,7 +229,7 @@ const SORT_FIELD_MAP: Record<string, string> = {
   name: "name",
   code: "code",
   status: "status",
-  accountLimit: "account_limit",
+  effectiveTime: "effective_time",
   expireTime: "expire_time",
   createTime: "create_time"
 };
@@ -664,10 +665,10 @@ onMounted(() => {
           </q-td>
         </template>
 
-        <!-- 账号数量限制列 -->
-        <template #body-cell-accountLimit="props">
+        <!-- 生效时间列 -->
+        <template #body-cell-effectiveTime="props">
           <q-td :props="props">
-            <span :class="{ 'text-grey-6': isUnlimited(props.value) }">{{ formatLimit(props.value) }}</span>
+            <span :class="{ 'text-grey-6': isImmediateEffect(props.value) }">{{ formatEffectiveTime(props.value) }}</span>
           </q-td>
         </template>
 

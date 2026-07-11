@@ -376,11 +376,11 @@
     "contactPhone": "联系人电话",
     "contactEmail": "联系人邮箱",
     "domainName": "绑定域名",
-    "accountLimit": "账号数量限制",
+    "effectiveTime": "生效时间",
     "expireTime": "过期时间",
-    "unlimited": "无限制",
+    "immediateEffect": "立即生效",
     "neverExpires": "永不过期",
-    "limitConfig": "限额配置",
+    "validityConfig": "有效期配置",
     "remark": "备注",
     "createTime": "创建时间",
     "keywordPlaceholder": "请输入租户名称/编码搜索",
@@ -394,8 +394,6 @@
     "cannotDeleteBuiltin": "系统内置租户不允许删除",
     "cannotDeleteBuiltinBatch": "不能删除系统内置租户：{names}",
     "saveSuccess": "保存成功",
-    "saveFail": "保存失败",
-    "limitRequired": "请输入限额值",
-    "limitPositiveInteger": "必须为大于 0 的整数"
+    "saveFail": "保存失败"
   }
 }

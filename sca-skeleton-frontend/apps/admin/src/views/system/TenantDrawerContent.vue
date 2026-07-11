@@ -32,19 +32,19 @@ const form = reactive({
   contactPhone: "",
   contactEmail: "",
   domainName: "",
-  accountLimit: null as number | null,
+  effectiveTime: "" as string,
   expireTime: "" as string,
   remark: "",
   version: null as number | null
 });
 
-// ── 账号数量限制无限制开关：true 时对应字段为 -1（不限），false 时可输入具体值 ──
-const accountLimitUnlimited = ref(false);
+// ── 生效时间无限制开关：true 时 effectiveTime 为空（立即生效），false 时可选择日期 ──
+const effectiveTimeUnlimited = ref(false);
 
-function onAccountLimitToggle(val: boolean | null) {
+function onEffectiveTimeToggle(val: boolean | null) {
   const checked = !!val;
-  accountLimitUnlimited.value = checked;
-  form.accountLimit = checked ? -1 : null;
+  effectiveTimeUnlimited.value = checked;
+  form.effectiveTime = checked ? "" : "";
 }
 
 // ── 过期时间无限制开关：true 时 expireTime 为空（永不过期），false 时可选择日期 ──
@@ -56,24 +56,11 @@ function onExpireTimeToggle(val: boolean | null) {
   form.expireTime = checked ? "" : "";
 }
 
-/** 账号限额校验：勾选无限制时跳过；未勾选时必填且必须为大于 0 的整数 */
-function validateAccountLimit(unlimited: boolean, val: number | null): true | string {
-  if (unlimited) return true;
-  if (val === null) {
-    return t("tenantMgmt.limitRequired");
-  }
-  if (!Number.isInteger(val) || val <= 0) {
-    return t("tenantMgmt.limitPositiveInteger");
-  }
-  return true;
-}
-
 const formRules = computed(() => ({
   name: [(v: string) => !!v?.trim() || t("tenantMgmt.nameRequired")],
   code: [(v: string) => !!v?.trim() || t("tenantMgmt.codeRequired")],
   packageId: [(v: string) => !!v || t("tenantMgmt.packageRequired")],
-  status: [(v: string) => !!v || t("tenantMgmt.statusRequired")],
-  accountLimit: [(v: number | null) => validateAccountLimit(accountLimitUnlimited.value, v)]
+  status: [(v: string) => !!v || t("tenantMgmt.statusRequired")]
 }));
 
 /** 租户编码输入处理：自动转小写 */
@@ -125,11 +112,11 @@ function resetForm() {
   form.contactPhone = "";
   form.contactEmail = "";
   form.domainName = "";
-  form.accountLimit = null;
+  form.effectiveTime = "";
   form.expireTime = "";
   form.remark = "";
   form.version = null;
-  accountLimitUnlimited.value = false;
+  effectiveTimeUnlimited.value = false;
   expireTimeUnlimited.value = false;
 }
 
@@ -145,13 +132,13 @@ function initForm() {
     form.contactPhone = props.tenant.contactPhone || "";
     form.contactEmail = props.tenant.contactEmail || "";
     form.domainName = props.tenant.domainName || "";
-    form.accountLimit = props.tenant.accountLimit ?? -1;
+    form.effectiveTime = props.tenant.effectiveTime || "";
     form.expireTime = props.tenant.expireTime || "";
     form.remark = props.tenant.remark || "";
     form.version = props.tenant.version ?? null;
 
     // 同步无限制开关状态
-    accountLimitUnlimited.value = form.accountLimit === -1;
+    effectiveTimeUnlimited.value = !form.effectiveTime;
     expireTimeUnlimited.value = !form.expireTime;
   }
 }
@@ -178,7 +165,7 @@ async function handleSave() {
     contactPhone: form.contactPhone || undefined,
     contactEmail: form.contactEmail || undefined,
     domainName: form.domainName || undefined,
-    accountLimit: form.accountLimit,
+    effectiveTime: effectiveTimeUnlimited.value ? null : (form.effectiveTime || null),
     expireTime: expireTimeUnlimited.value ? null : (form.expireTime || null),
     remark: form.remark || undefined
   };
@@ -341,35 +328,39 @@ async function handleSave() {
         </div>
       </div>
 
-      <!-- ── 限额配置 ── -->
+      <!-- ── 有效期配置 ── -->
       <div class="limit-section q-mt-md">
         <div class="limit-section-header row items-center no-wrap q-mb-sm">
-          <q-icon name="sym_r_tune" size="20px" class="q-mr-xs" color="grey-8" />
-          <span class="limit-section-title">{{ t('tenantMgmt.limitConfig') }}</span>
+          <q-icon name="sym_r_event" size="20px" class="q-mr-xs" color="grey-8" />
+          <span class="limit-section-title">{{ t('tenantMgmt.validityConfig') }}</span>
         </div>
         <div class="row q-col-gutter-md">
-          <!-- 账号数量限制 -->
+          <!-- 生效时间 -->
           <div class="col-12 col-md-6">
+            <DateTimePicker
+              v-if="!effectiveTimeUnlimited"
+              v-model="form.effectiveTime"
+              :label="t('tenantMgmt.effectiveTime')"
+              :disable="drawerReadonly"
+              :readonly="drawerReadonly"
+              clearable
+            />
             <q-input
-              v-model.number="form.accountLimit"
-              :label="t('tenantMgmt.accountLimit')"
+              v-else
+              :model-value="t('tenantMgmt.immediateEffect')"
+              :label="t('tenantMgmt.effectiveTime')"
               filled
               square
-              type="number"
-              :disable="drawerReadonly"
-              :readonly="drawerReadonly || accountLimitUnlimited"
-              :rules="formRules.accountLimit"
+              readonly
               hide-bottom-space
-            >
-              <template #append>
-                <q-checkbox
-                  :model-value="accountLimitUnlimited"
-                  @update:model-value="onAccountLimitToggle"
-                  :label="t('tenantMgmt.unlimited')"
-                  :disable="drawerReadonly"
-                />
-              </template>
-            </q-input>
+            />
+            <q-checkbox
+              :model-value="effectiveTimeUnlimited"
+              @update:model-value="onEffectiveTimeToggle"
+              :label="t('tenantMgmt.immediateEffect')"
+              :disable="drawerReadonly"
+              class="q-mt-xs"
+            />
           </div>
           <!-- 过期时间 -->
           <div class="col-12 col-md-6">

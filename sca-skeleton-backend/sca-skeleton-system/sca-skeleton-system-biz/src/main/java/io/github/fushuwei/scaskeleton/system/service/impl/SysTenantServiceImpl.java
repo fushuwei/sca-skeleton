@@ -68,7 +68,7 @@ public class SysTenantServiceImpl implements SysTenantService {
                 case "name" -> wrapper.orderBy(true, isAsc, SysTenant::getName);
                 case "code" -> wrapper.orderBy(true, isAsc, SysTenant::getCode);
                 case "status" -> wrapper.orderBy(true, isAsc, SysTenant::getStatus);
-                case "account_limit" -> wrapper.orderBy(true, isAsc, SysTenant::getAccountLimit);
+                case "effective_time" -> wrapper.orderBy(true, isAsc, SysTenant::getEffectiveTime);
                 case "expire_time" -> wrapper.orderBy(true, isAsc, SysTenant::getExpireTime);
                 case "create_time" -> wrapper.orderBy(true, isAsc, SysTenant::getCreateTime);
             }
@@ -120,7 +120,7 @@ public class SysTenantServiceImpl implements SysTenantService {
         tenant.setContactPhone(req.getContactPhone());
         tenant.setContactEmail(req.getContactEmail());
         tenant.setDomainName(req.getDomainName());
-        tenant.setAccountLimit(req.getAccountLimit() != null ? req.getAccountLimit() : -1);
+        tenant.setEffectiveTime(req.getEffectiveTime());
         tenant.setExpireTime(req.getExpireTime());
         tenant.setStatus(req.getStatus());
         tenant.setRemark(req.getRemark());
@@ -156,7 +156,7 @@ public class SysTenantServiceImpl implements SysTenantService {
         existing.setContactPhone(req.getContactPhone());
         existing.setContactEmail(req.getContactEmail());
         existing.setDomainName(req.getDomainName());
-        existing.setAccountLimit(req.getAccountLimit() != null ? req.getAccountLimit() : -1);
+        existing.setEffectiveTime(req.getEffectiveTime());
         existing.setExpireTime(req.getExpireTime());
         existing.setStatus(req.getStatus());
         existing.setRemark(req.getRemark());

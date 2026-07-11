@@ -325,8 +325,8 @@ export interface SysTenant {
   contactPhone: string;
   contactEmail: string;
   domainName: string;
-  /** 账号数量限制，-1 表示不限 */
-  accountLimit: number;
+  /** 生效时间（NULL表示立即生效） */
+  effectiveTime: string | null;
   /** 过期时间（NULL表示永不过期） */
   expireTime: string | null;
   /** 租户状态：normal / disabled / expired / cancelled */

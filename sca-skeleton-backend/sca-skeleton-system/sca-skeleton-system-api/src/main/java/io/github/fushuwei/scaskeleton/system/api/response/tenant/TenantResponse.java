@@ -22,8 +22,8 @@ public class TenantResponse {
     private String contactPhone;
     private String contactEmail;
     private String domainName;
-    /** 账号数量限制，-1 表示不限 */
-    private Integer accountLimit;
+    /** 生效时间（NULL表示立即生效） */
+    private LocalDateTime effectiveTime;
     /** 过期时间（NULL表示永不过期） */
     private LocalDateTime expireTime;
     /** 租户状态（normal 正常，disabled 禁用，expired 过期，cancelled 注销） */

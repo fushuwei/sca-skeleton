@@ -376,11 +376,11 @@
     "contactPhone": "Contact Phone",
     "contactEmail": "Contact Email",
     "domainName": "Domain",
-    "accountLimit": "Account Limit",
+    "effectiveTime": "Effective Time",
     "expireTime": "Expire Time",
-    "unlimited": "Unlimited",
+    "immediateEffect": "Immediate",
     "neverExpires": "Never Expires",
-    "limitConfig": "Limit Configuration",
+    "validityConfig": "Validity Configuration",
     "remark": "Remark",
     "createTime": "Created At",
     "keywordPlaceholder": "Search by tenant name / code",
@@ -394,8 +394,6 @@
     "cannotDeleteBuiltin": "Built-in system tenants cannot be deleted",
     "cannotDeleteBuiltinBatch": "Cannot delete built-in tenants: {names}",
     "saveSuccess": "Saved successfully",
-    "saveFail": "Failed to save",
-    "limitRequired": "Please input limit value",
-    "limitPositiveInteger": "Must be a positive integer greater than 0"
+    "saveFail": "Failed to save"
   }
 }
