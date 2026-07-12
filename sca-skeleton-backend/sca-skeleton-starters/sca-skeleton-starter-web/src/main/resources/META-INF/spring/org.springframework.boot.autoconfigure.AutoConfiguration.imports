@@ -1,2 +1,3 @@
 io.github.fushuwei.scaskeleton.web.config.WebStarterAutoConfiguration
 io.github.fushuwei.scaskeleton.web.config.WebRateLimitAutoConfiguration
+io.github.fushuwei.scaskeleton.web.config.DateTimeFormatterAutoConfiguration
