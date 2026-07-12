@@ -18,7 +18,6 @@ target/
 *.tmp
 
 # Log file
-log/
 logs/
 *.log
 
