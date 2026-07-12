@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * 更新用户请求对象。
  * <p>
- * 用户名（username）和密码（password）不通过此接口修改，故不包含在此对象中。
+ * 用户名（username）不可修改；密码（password）留空表示不修改，填值则更新。
  *
  * @author Fu Wei
  */
@@ -21,6 +21,9 @@ public class UserUpdateRequest {
     /** 用户ID */
     @NotBlank(message = "用户ID不能为空")
     private String id;
+
+    /** 新密码（留空表示不修改密码，填值则加密更新） */
+    private String password;
 
     private String nickname;
     private String realName;

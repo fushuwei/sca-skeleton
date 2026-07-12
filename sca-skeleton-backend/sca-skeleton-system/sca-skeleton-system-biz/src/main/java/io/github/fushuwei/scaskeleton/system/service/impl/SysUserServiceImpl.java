@@ -147,7 +147,7 @@ public class SysUserServiceImpl implements SysUserService {
         // 校验用户存在并加载当前快照
         SysUser existing = loadUserEntity(req.getId());
 
-        // 更新可编辑字段（用户名和密码不通过此接口修改）
+        // 更新可编辑字段（用户名不可修改）
         existing.setNickname(req.getNickname());
         existing.setRealName(req.getRealName());
         existing.setGender(req.getGender());
@@ -158,6 +158,12 @@ public class SysUserServiceImpl implements SysUserService {
         existing.setEffectiveStartTime(req.getEffectiveStartTime());
         existing.setEffectiveEndTime(req.getEffectiveEndTime());
         existing.setRemark(req.getRemark());
+
+        // 密码非空时加密更新，并记录密码变更时间
+        if (StringUtils.hasText(req.getPassword())) {
+            existing.setPassword(passwordEncoder.encode(req.getPassword()));
+            existing.setPasswordUpdateTime(LocalDateTime.now());
+        }
 
         userMapper.updateById(existing);
 
