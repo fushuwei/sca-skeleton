@@ -1,5 +1,7 @@
 package io.github.fushuwei.scaskeleton.logging.config;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -18,6 +20,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * @author Fu Wei
  */
+@Getter
 @ConfigurationProperties(prefix = "sca.operation-log")
 public class OperationLogProperties {
 
@@ -26,10 +29,8 @@ public class OperationLogProperties {
      */
     private final Executor executor = new Executor();
 
-    public Executor getExecutor() {
-        return executor;
-    }
-
+    @Setter
+    @Getter
     public static class Executor {
 
         /**
@@ -52,36 +53,5 @@ public class OperationLogProperties {
          */
         private int awaitTerminationSeconds = 30;
 
-        public int getCorePoolSize() {
-            return corePoolSize;
-        }
-
-        public void setCorePoolSize(int corePoolSize) {
-            this.corePoolSize = corePoolSize;
-        }
-
-        public int getMaxPoolSize() {
-            return maxPoolSize;
-        }
-
-        public void setMaxPoolSize(int maxPoolSize) {
-            this.maxPoolSize = maxPoolSize;
-        }
-
-        public int getQueueCapacity() {
-            return queueCapacity;
-        }
-
-        public void setQueueCapacity(int queueCapacity) {
-            this.queueCapacity = queueCapacity;
-        }
-
-        public int getAwaitTerminationSeconds() {
-            return awaitTerminationSeconds;
-        }
-
-        public void setAwaitTerminationSeconds(int awaitTerminationSeconds) {
-            this.awaitTerminationSeconds = awaitTerminationSeconds;
-        }
     }
 }

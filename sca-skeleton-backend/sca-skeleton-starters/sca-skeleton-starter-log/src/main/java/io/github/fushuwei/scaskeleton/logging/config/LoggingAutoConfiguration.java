@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.logging.config;
 
+import org.jspecify.annotations.NullMarked;
 import tools.jackson.databind.json.JsonMapper;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.logging.aspect.OperationLogAspect;
@@ -90,7 +91,7 @@ public class LoggingAutoConfiguration {
      */
     static class MdcTaskDecorator implements TaskDecorator {
         @Override
-        public Runnable decorate(Runnable runnable) {
+        public @NullMarked Runnable decorate(Runnable runnable) {
             Map<String, String> contextMap = MDC.getCopyOfContextMap();
             return () -> {
                 if (contextMap != null) {
