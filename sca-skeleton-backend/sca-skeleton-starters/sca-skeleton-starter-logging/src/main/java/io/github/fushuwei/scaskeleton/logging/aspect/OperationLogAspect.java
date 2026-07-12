@@ -35,11 +35,11 @@ public class OperationLogAspect {
     // JSON 序列化器，用于将方法参数与返回值序列化为 JSON 字符串
     private final JsonMapper jsonMapper;
 
-    // 当前用户信息提供者，未提供时操作人字段留空
-    private final CurrentUserProvider currentUserProvider;
-
     // 事件发布器，用于发布领域事件供监听器异步处理
     private final ApplicationEventPublisher eventPublisher;
+
+    // 当前用户信息提供者，未提供时操作人字段留空
+    private final CurrentUserProvider currentUserProvider;
 
     /**
      * 环绕通知：拦截所有标注 @OperationLog 的方法，采集完整操作上下文
