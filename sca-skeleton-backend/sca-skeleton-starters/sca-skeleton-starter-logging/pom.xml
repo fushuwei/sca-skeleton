@@ -36,7 +36,7 @@
         <!-- Spring Web：切面中获取 HttpServletRequest（IP、路径等） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
         <!-- 配置元数据处理器（为自定义配置类提供 IDE 自动补全与元数据生成功能） -->
         <dependency>
