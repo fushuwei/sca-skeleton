@@ -487,6 +487,7 @@ onMounted(() => {
               <SearchDateTimePicker
                 v-model="searchForm.startTime"
                 :placeholder="t('operationLog.startTime')"
+                :max="searchForm.endTime"
                 clearable
               />
             </div>
@@ -494,6 +495,7 @@ onMounted(() => {
               <SearchDateTimePicker
                 v-model="searchForm.endTime"
                 :placeholder="t('operationLog.endTime')"
+                :min="searchForm.startTime"
                 clearable
               />
             </div>

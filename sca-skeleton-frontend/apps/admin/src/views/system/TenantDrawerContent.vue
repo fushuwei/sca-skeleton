@@ -318,6 +318,7 @@ async function handleSave() {
               :label="t('tenantMgmt.effectiveTime')"
               :disable="drawerReadonly"
               :readonly="drawerReadonly"
+              :max="form.expireTime"
               clearable
             />
             <div class="validity-hint q-mt-xs">{{ t('tenantMgmt.effectiveTimeHint') }}</div>
@@ -329,6 +330,7 @@ async function handleSave() {
               :label="t('tenantMgmt.expireTime')"
               :disable="drawerReadonly"
               :readonly="drawerReadonly"
+              :min="form.effectiveTime"
               clearable
             />
             <div class="validity-hint q-mt-xs">{{ t('tenantMgmt.expireTimeHint') }}</div>
