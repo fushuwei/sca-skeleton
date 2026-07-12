@@ -52,7 +52,7 @@ public class SysDeptController {
     // 在当前租户下创建部门，需 sys:dept:add
     @PostMapping
     @RequiresPermission("sys:dept:add")
-    @OperationLog(module = "部门管理", action = "添加部门", logArgs = false)
+    @OperationLog(module = "部门管理", action = "添加部门")
     public Result<Void> create(@Validated @RequestBody DeptCreateRequest request) {
         deptService.createDept(SecurityUtils.getTenantId(), request);
         return Result.ok();
@@ -61,7 +61,7 @@ public class SysDeptController {
     // 更新当前租户下部门信息，需 sys:dept:edit
     @PutMapping
     @RequiresPermission("sys:dept:edit")
-    @OperationLog(module = "部门管理", action = "编辑部门", logArgs = false)
+    @OperationLog(module = "部门管理", action = "编辑部门")
     public Result<Void> update(@Validated @RequestBody DeptUpdateRequest request) {
         deptService.updateDept(SecurityUtils.getTenantId(), request);
         return Result.ok();

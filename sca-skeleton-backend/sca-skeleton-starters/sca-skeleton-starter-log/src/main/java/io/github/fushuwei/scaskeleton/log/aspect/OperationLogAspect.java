@@ -18,6 +18,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
+import java.util.regex.Pattern;
 
 /**
  * 操作日志切面
@@ -30,6 +31,16 @@ import java.time.LocalDateTime;
 @Aspect
 @RequiredArgsConstructor
 public class OperationLogAspect {
+
+    /**
+     * 敏感字段脱敏正则：匹配 "password"、"oldPassword"、"newPassword" 等 JSON 键的值，替换为 "******"
+     * <p>
+     * 支持 password、oldPassword、newPassword、confirmPassword、rawPassword、secret、token 等字段名，
+     * 匹配 "key":"value" 或 "key": value 格式，值被替换为 "******"
+     */
+    private static final Pattern SENSITIVE_FIELD_PATTERN = Pattern.compile(
+        "(\"(?:password|oldPassword|newPassword|confirmPassword|rawPassword|secret|token|apiKey)\"\\s*:\\s*)\"[^\"]*\"",
+        Pattern.CASE_INSENSITIVE);
 
     // JSON 序列化器，用于将方法参数与返回值序列化为 JSON 字符串
     private final JsonMapper jsonMapper;
@@ -75,10 +86,10 @@ public class OperationLogAspect {
         // 从 Spring Web 请求上下文中提取 HTTP 信息
         fillHttpContext(record);
 
-        // 如果注解配置了记录请求参数，将方法入参序列化为 JSON
+        // 如果注解配置了记录请求参数，将方法入参序列化为 JSON（敏感字段自动脱敏）
         if (annotation.logArgs()) {
             try {
-                record.setRequestArgs(jsonMapper.writeValueAsString(joinPoint.getArgs()));
+                record.setRequestArgs(maskSensitiveFields(jsonMapper.writeValueAsString(joinPoint.getArgs())));
             } catch (Exception e) {
                 record.setRequestArgs("[请求参数序列化失败，详情：{" + e.getMessage() + "}]");
             }
@@ -150,5 +161,18 @@ public class OperationLogAspect {
         }
         // 无反向代理时直接返回 TCP 连接的远端地址
         return request.getRemoteAddr();
+    }
+
+    /**
+     * 对 JSON 字符串中的敏感字段值进行脱敏，替换为 "******"
+     *
+     * @param json 原始 JSON 字符串
+     * @return 脱敏后的 JSON 字符串
+     */
+    private String maskSensitiveFields(String json) {
+        if (json == null || json.isEmpty()) {
+            return json;
+        }
+        return SENSITIVE_FIELD_PATTERN.matcher(json).replaceAll("$1\"******\"");
     }
 }

@@ -59,7 +59,7 @@ public class SysRoleController {
     // 在当前租户下创建角色，需 sys:role:add
     @PostMapping
     @RequiresPermission("sys:role:add")
-    @OperationLog(module = "角色管理", action = "添加角色", logArgs = false)
+    @OperationLog(module = "角色管理", action = "添加角色")
     public Result<Void> create(
             @Validated @RequestBody RoleCreateRequest request) {
         roleService.createRole(SecurityUtils.getTenantId(), request);
@@ -69,7 +69,7 @@ public class SysRoleController {
     // 更新当前租户下角色信息，需 sys:role:edit
     @PutMapping
     @RequiresPermission("sys:role:edit")
-    @OperationLog(module = "角色管理", action = "编辑角色", logArgs = false)
+    @OperationLog(module = "角色管理", action = "编辑角色")
     public Result<Void> update(
             @Validated @RequestBody RoleUpdateRequest request) {
         roleService.updateRole(SecurityUtils.getTenantId(), request);
@@ -97,7 +97,7 @@ public class SysRoleController {
     // 为角色分配权限，需 sys:role:assign-permission；按当前租户隔离
     @PutMapping("/{id}/permissions")
     @RequiresPermission("sys:role:assign-permission")
-    @OperationLog(module = "角色管理", action = "分配权限", logArgs = false)
+    @OperationLog(module = "角色管理", action = "分配权限")
     public Result<Void> assignPermissions(@PathVariable("id") String id,
                                               @RequestBody List<String> permissionIds) {
         roleService.assignPermissions(SecurityUtils.getTenantId(), id, permissionIds);

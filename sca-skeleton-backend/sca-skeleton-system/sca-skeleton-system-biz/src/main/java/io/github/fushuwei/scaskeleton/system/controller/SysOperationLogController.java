@@ -44,7 +44,7 @@ public class SysOperationLogController {
     // 批量删除操作日志，仅超级管理员可操作
     @DeleteMapping("/batch")
     @RequiresPermission("sys:operation-log:delete")
-    @OperationLog(module = "操作日志", action = "批量删除日志", logArgs = false)
+    @OperationLog(module = "操作日志", action = "批量删除日志")
     public Result<Void> batchDelete(@RequestBody List<String> ids) {
         if (!SecurityUtils.isSuperAdmin()) {
             throw new ForbiddenException("仅超级管理员可批量删除操作日志");

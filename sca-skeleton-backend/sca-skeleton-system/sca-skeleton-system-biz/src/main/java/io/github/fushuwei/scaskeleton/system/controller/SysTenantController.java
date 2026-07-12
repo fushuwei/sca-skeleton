@@ -51,7 +51,7 @@ public class SysTenantController {
     // 创建租户，需 sys:tenant:add
     @PostMapping
     @RequiresPermission("sys:tenant:add")
-    @OperationLog(module = "租户管理", action = "添加租户", logArgs = false)
+    @OperationLog(module = "租户管理", action = "添加租户")
     public Result<Void> create(@Validated @RequestBody TenantCreateRequest request) {
         tenantService.createTenant(request);
         return Result.ok();
@@ -60,7 +60,7 @@ public class SysTenantController {
     // 更新租户信息，需 sys:tenant:edit
     @PutMapping
     @RequiresPermission("sys:tenant:edit")
-    @OperationLog(module = "租户管理", action = "编辑租户", logArgs = false)
+    @OperationLog(module = "租户管理", action = "编辑租户")
     public Result<Void> update(@Validated @RequestBody TenantUpdateRequest request) {
         tenantService.updateTenant(request);
         return Result.ok();

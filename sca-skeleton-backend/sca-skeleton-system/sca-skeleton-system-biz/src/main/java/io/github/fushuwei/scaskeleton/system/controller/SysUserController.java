@@ -57,7 +57,7 @@ public class SysUserController {
     // 在当前租户下创建用户，需 sys:user:add
     @PostMapping
     @RequiresPermission("sys:user:add")
-    @OperationLog(module = "用户管理", action = "新增用户", logArgs = false)
+    @OperationLog(module = "用户管理", action = "新增用户")
     public Result<Void> create(
             @Validated @RequestBody UserCreateRequest request) {
         userService.createUser(SecurityUtils.getTenantId(), request);
@@ -67,7 +67,7 @@ public class SysUserController {
     // 更新当前租户下用户信息，需 sys:user:edit
     @PutMapping
     @RequiresPermission("sys:user:edit")
-    @OperationLog(module = "用户管理", action = "编辑用户", logArgs = false)
+    @OperationLog(module = "用户管理", action = "编辑用户")
     public Result<Void> update(
             @Validated @RequestBody UserUpdateRequest request) {
         userService.updateUser(SecurityUtils.getTenantId(), request);
@@ -95,7 +95,7 @@ public class SysUserController {
     // 重置用户登录密码
     @PutMapping("/{id}/password/reset")
     @RequiresPermission("sys:user:reset-password")
-    @OperationLog(module = "用户管理", action = "重置密码", logArgs = false)
+    @OperationLog(module = "用户管理", action = "重置密码")
     public Result<Void> resetPassword(@PathVariable("id") String id,
                                           @Validated @RequestBody UserPasswordResetRequest request) {
         userService.resetPassword(id, request.getNewPassword());

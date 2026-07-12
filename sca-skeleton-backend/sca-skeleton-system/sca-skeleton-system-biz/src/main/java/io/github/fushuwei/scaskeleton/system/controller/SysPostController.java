@@ -52,7 +52,7 @@ public class SysPostController {
     // 在当前租户下创建岗位，需 sys:post:add
     @PostMapping
     @RequiresPermission("sys:post:add")
-    @OperationLog(module = "岗位管理", action = "添加岗位", logArgs = false)
+    @OperationLog(module = "岗位管理", action = "添加岗位")
     public Result<Void> create(
             @Validated @RequestBody PostCreateRequest request) {
         postService.createPost(SecurityUtils.getTenantId(), request);
@@ -62,7 +62,7 @@ public class SysPostController {
     // 更新当前租户下岗位信息，需 sys:post:edit
     @PutMapping
     @RequiresPermission("sys:post:edit")
-    @OperationLog(module = "岗位管理", action = "编辑岗位", logArgs = false)
+    @OperationLog(module = "岗位管理", action = "编辑岗位")
     public Result<Void> update(
             @Validated @RequestBody PostUpdateRequest request) {
         postService.updatePost(SecurityUtils.getTenantId(), request);
