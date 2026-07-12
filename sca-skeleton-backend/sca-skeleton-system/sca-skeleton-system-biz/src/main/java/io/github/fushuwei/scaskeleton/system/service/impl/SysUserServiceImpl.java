@@ -118,9 +118,9 @@ public class SysUserServiceImpl implements SysUserService {
         SysUser user = new SysUser();
         user.setTenantId(tenantId);
         user.setUsername(req.getUsername());
-        // 密码加密（使用 DelegatingPasswordEncoder 格式：{bcrypt}...）
+        // 密码加密（DelegatingPasswordEncoder 自动添加 {bcrypt} 前缀）
         String rawPwd = StringUtils.hasText(req.getPassword()) ? req.getPassword() : "Aa@123456";
-        user.setPassword("{bcrypt}" + passwordEncoder.encode(rawPwd));
+        user.setPassword(passwordEncoder.encode(rawPwd));
         user.setNickname(req.getNickname());
         user.setRealName(req.getRealName());
         user.setGender(req.getGender());
@@ -200,7 +200,7 @@ public class SysUserServiceImpl implements SysUserService {
         userMapper.update(null, new LambdaUpdateWrapper<SysUser>()
                 .eq(SysUser::getId, id)
                 .set(SysUser::getPassword,
-                        "{bcrypt}" + passwordEncoder.encode(newPassword))
+                        passwordEncoder.encode(newPassword))
                 .set(SysUser::getMustChangePassword, 0)
                 .set(SysUser::getPasswordUpdateTime, LocalDateTime.now())
         );
