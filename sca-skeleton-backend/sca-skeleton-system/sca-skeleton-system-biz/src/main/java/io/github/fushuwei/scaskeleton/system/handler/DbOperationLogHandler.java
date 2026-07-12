@@ -28,7 +28,6 @@ public class DbOperationLogHandler implements OperationLogHandler {
             SysOperationLog entity = new SysOperationLog();
             entity.setTraceId(record.getTraceId());
             entity.setUserId(record.getUserId());
-            entity.setUsername(record.getUsername());
             entity.setModule(record.getModule());
             entity.setAction(record.getAction());
             entity.setHttpMethod(record.getHttpMethod());

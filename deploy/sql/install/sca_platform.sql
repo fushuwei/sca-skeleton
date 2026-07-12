@@ -587,8 +587,7 @@ CREATE TABLE IF NOT EXISTS `sys_login_log` (
 CREATE TABLE IF NOT EXISTS `sys_operation_log` (
     `id`              VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
     `trace_id`        VARCHAR(64)     DEFAULT NULL                COMMENT '链路追踪ID',
-    `user_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '操作人ID',
-    `username`        VARCHAR(100)    DEFAULT NULL                COMMENT '操作人用户名',
+    `user_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '操作人ID（关联sys_user.id）',
     `module`          VARCHAR(100)    DEFAULT NULL                COMMENT '操作模块',
     `action`          VARCHAR(100)    DEFAULT NULL                COMMENT '操作动作',
     `http_method`     VARCHAR(10)     DEFAULT NULL                COMMENT '请求方法（GET/POST等）',

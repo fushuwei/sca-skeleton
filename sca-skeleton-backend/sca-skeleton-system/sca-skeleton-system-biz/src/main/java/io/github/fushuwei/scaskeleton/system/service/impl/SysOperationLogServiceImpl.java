@@ -38,8 +38,8 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
         Page<SysOperationLog> page = new Page<>(req.getPageNum(), req.getPageSize());
 
         LambdaQueryWrapper<SysOperationLog> wrapper = new LambdaQueryWrapper<SysOperationLog>()
-                .eq(StringUtils.hasText(req.getModule()), SysOperationLog::getModule, req.getModule())
-                .eq(StringUtils.hasText(req.getAction()), SysOperationLog::getAction, req.getAction())
+                .like(StringUtils.hasText(req.getModule()), SysOperationLog::getModule, req.getModule())
+                .like(StringUtils.hasText(req.getAction()), SysOperationLog::getAction, req.getAction())
                 .like(StringUtils.hasText(req.getUsername()), SysOperationLog::getUsername, req.getUsername())
                 .eq(req.getSuccess() != null, SysOperationLog::getSuccess, req.getSuccess())
                 .ge(req.getStartTime() != null, SysOperationLog::getOperationTime, req.getStartTime())
@@ -64,13 +64,13 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
             wrapper.orderByDesc(SysOperationLog::getOperationTime);
         }
 
-        IPage<SysOperationLog> entityPage = operationLogMapper.selectPage(page, wrapper);
+        IPage<SysOperationLog> entityPage = operationLogMapper.selectLogPage(page, wrapper);
         return entityPage.convert(operationLogConverter::toOperationLogResponse);
     }
 
     @Override
     public OperationLogResponse getLogById(String id) {
-        SysOperationLog logEntity = operationLogMapper.selectById(id);
+        SysOperationLog logEntity = operationLogMapper.selectLogById(id);
         if (logEntity == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "日志不存在");
         }

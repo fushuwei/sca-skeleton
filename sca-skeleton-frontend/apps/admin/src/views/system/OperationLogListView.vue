@@ -574,10 +574,12 @@ onMounted(() => {
         :class="['operation-log-table', { 'operation-log-table--empty': !tableRows.length }]"
         @request="loadTableData"
       >
-        <!-- 操作人列 -->
+        <!-- 操作人列：展示 真实姓名(登录用户名) -->
         <template #body-cell-username="props">
           <q-td :props="props">
-            <span v-if="props.value">{{ props.value }}</span>
+            <span v-if="props.row.realName || props.row.username">
+              {{ props.row.realName || "-" }}<span v-if="props.row.username" class="text-grey-7"> ({{ props.row.username }})</span>
+            </span>
             <span v-else class="text-grey-5">-</span>
           </q-td>
         </template>
@@ -773,7 +775,9 @@ onMounted(() => {
                     </div>
                     <div class="detail-field">
                       <div class="detail-field-label">{{ t("operationLog.username") }}</div>
-                      <div class="detail-field-value">{{ detailData.username || "-" }}</div>
+                      <div class="detail-field-value">
+                        {{ detailData.realName || "-" }}<span v-if="detailData.username" class="text-grey-7"> ({{ detailData.username }})</span>
+                      </div>
                     </div>
                     <div class="detail-field">
                       <div class="detail-field-label">{{ t("operationLog.operationTime") }}</div>

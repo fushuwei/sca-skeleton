@@ -1,6 +1,8 @@
 package io.github.fushuwei.scaskeleton.system.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -13,6 +15,8 @@ import java.time.LocalDateTime;
  * 操作日志实体。
  * <p>
  * 操作日志为只增不改的审计记录，不继承 BaseEntity（无 createBy/updateBy/isDeleted/version 等字段）。
+ * <p>
+ * 操作人用户名和真实姓名不在此表中冗余存储，通过 user_id 关联 sys_user 表查询获取。
  *
  * @author Fu Wei
  */
@@ -30,11 +34,18 @@ public class SysOperationLog implements Serializable {
     /** 链路追踪 ID */
     private String traceId;
 
-    /** 操作人 ID */
+    /** 操作人 ID（关联 sys_user.id） */
     private String userId;
 
-    /** 操作人用户名 */
+    /** 操作人用户名（非表字段，通过 JOIN sys_user 获取） */
+    @TableField(value = "username", insertStrategy = FieldStrategy.NEVER,
+                updateStrategy = FieldStrategy.NEVER, select = false)
     private String username;
+
+    /** 操作人真实姓名（非表字段，通过 JOIN sys_user 获取） */
+    @TableField(value = "real_name", insertStrategy = FieldStrategy.NEVER,
+                updateStrategy = FieldStrategy.NEVER, select = false)
+    private String realName;
 
     /** 操作模块 */
     private String module;

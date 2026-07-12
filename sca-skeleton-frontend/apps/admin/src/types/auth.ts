@@ -354,12 +354,13 @@ export interface TenantPageRequest {
 
 // ── 操作日志相关类型 ──
 
-/** 操作日志实体（对应后端 SysOperationLog） */
+/** 操作日志实体（对应后端 OperationLogResponse） */
 export interface SysOperationLog {
   id: string;
   traceId: string;
   userId: string;
   username: string;
+  realName: string;
   module: string;
   action: string;
   httpMethod: string;
