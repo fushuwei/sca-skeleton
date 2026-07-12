@@ -12,10 +12,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 操作日志实体，映射 {@code sys_operation_log} 表。
- * <p>
- * 只增不改的审计记录，不继承 BaseEntity（无 createBy/updateBy/isDeleted/version 等字段）。
- * 操作人展示名称（operator）为非表字段，仅在 JOIN sys_user 查询时由 SQL 拼接填充。
+ * 操作日志实体表
  *
  * @author Fu Wei
  */
@@ -27,7 +24,7 @@ public class SysOperationLog implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 主键：32 位小写无连字符 UUID v7，INSERT 时由自定义 IdentifierGenerator 自动生成
+     * 主键 ID
      */
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
@@ -38,12 +35,12 @@ public class SysOperationLog implements Serializable {
     private String traceId;
 
     /**
-     * 操作人 ID（关联 sys_user.id）
+     * 操作人 ID
      */
     private String userId;
 
     /**
-     * 操作人展示名称（非表字段，JOIN 时 SQL 拼接："real_name (username)"）
+     * 操作人展示名称
      */
     @TableField(value = "operator",
         insertStrategy = FieldStrategy.NEVER,
@@ -92,7 +89,7 @@ public class SysOperationLog implements Serializable {
     private String responseResult;
 
     /**
-     * 是否成功：true-成功，false-异常
+     * 是否成功
      */
     private Boolean success;
 
