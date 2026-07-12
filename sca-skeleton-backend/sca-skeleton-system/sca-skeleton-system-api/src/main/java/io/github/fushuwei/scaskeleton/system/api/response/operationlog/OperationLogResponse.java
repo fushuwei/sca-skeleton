@@ -27,7 +27,7 @@ public class OperationLogResponse {
     private String methodName;
     private String requestArgs;
     private String responseResult;
-    private Boolean success;
+    private Integer isSuccess;
     private String errorMessage;
     private Long costMs;
     private String clientIp;

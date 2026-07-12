@@ -31,7 +31,7 @@ const searchForm = reactive<OperationLogPageRequest>({
   module: "",
   action: "",
   operator: "",
-  success: undefined,
+  isSuccess: undefined,
   startTime: "",
   endTime: ""
 });
@@ -40,14 +40,14 @@ const searchExpanded = ref(true);
 
 // ── 状态选项 ──
 const statusOptions = [
-  { label: "operationLog.success", value: true },
-  { label: "operationLog.failed", value: false }
+  { label: "operationLog.success", value: 1 },
+  { label: "operationLog.failed", value: 0 }
 ];
 
-const statusLabelOf = (s: boolean): string =>
+const statusLabelOf = (s: number): string =>
   s ? t("operationLog.success") : t("operationLog.failed");
 
-const statusColorOf = (s: boolean): string =>
+const statusColorOf = (s: number): string =>
   s ? "green-7" : "red-7";
 
 // ── HTTP 方法颜色 ──
@@ -166,8 +166,8 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
     sortable: true
   },
   {
-    name: "success",
-    field: "success",
+    name: "isSuccess",
+    field: "isSuccess",
     label: t("operationLog.status"),
     align: "center",
     sortable: true
@@ -191,7 +191,7 @@ const SORT_FIELD_MAP: Record<string, string> = {
   requestUri: "request_uri",
   clientIp: "client_ip",
   costMs: "cost_ms",
-  success: "success"
+  isSuccess: "is_success"
 };
 
 const visibleColumns = ref(columns.value.map((c) => c.name));
@@ -238,7 +238,7 @@ async function loadTableData(
     module: searchForm.module || undefined,
     action: searchForm.action || undefined,
     operator: searchForm.operator || undefined,
-    success: searchForm.success,
+    isSuccess: searchForm.isSuccess,
     startTime: searchForm.startTime || undefined,
     endTime: searchForm.endTime || undefined,
     orderBy,
@@ -299,7 +299,7 @@ function handleReset() {
   searchForm.module = "";
   searchForm.action = "";
   searchForm.operator = "";
-  searchForm.success = undefined;
+  searchForm.isSuccess = undefined;
   searchForm.startTime = "";
   searchForm.endTime = "";
   tablePagination.value.page = 1;
@@ -462,7 +462,7 @@ onMounted(() => {
             </div>
             <div class="col-auto">
               <q-select
-                v-model="searchForm.success"
+                v-model="searchForm.isSuccess"
                 filled
                 square
                 dense
@@ -478,7 +478,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="searchForm.success === undefined" v-slot:selected>
+                <template v-if="searchForm.isSuccess === undefined" v-slot:selected>
                   <span class="status-placeholder">{{ t('operationLog.status') }}</span>
                 </template>
               </q-select>
@@ -639,7 +639,7 @@ onMounted(() => {
         </template>
 
         <!-- 状态列 -->
-        <template #body-cell-success="props">
+        <template #body-cell-isSuccess="props">
           <q-td :props="props">
             <q-badge
               :color="statusColorOf(props.value)"
@@ -797,8 +797,8 @@ onMounted(() => {
                       <div class="detail-field-label">{{ t("operationLog.status") }}</div>
                       <div class="detail-field-value">
                         <q-badge
-                          :color="statusColorOf(detailData.success)"
-                          :label="statusLabelOf(detailData.success)"
+                          :color="statusColorOf(detailData.isSuccess)"
+                          :label="statusLabelOf(detailData.isSuccess)"
                           rounded
                           class="log-type-badge"
                         />

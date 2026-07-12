@@ -73,12 +73,12 @@ public class OperationLogRecord {
     private String responseResult;
 
     /**
-     * 是否成功：true-成功，false-异常
+     * 是否成功：0-失败，1-成功
      */
-    private boolean isSuccess;
+    private Integer isSuccess;
 
     /**
-     * 异常信息（success=false 时填充）
+     * 异常信息（isSuccess=0 时填充）
      */
     private String errorMessage;
 

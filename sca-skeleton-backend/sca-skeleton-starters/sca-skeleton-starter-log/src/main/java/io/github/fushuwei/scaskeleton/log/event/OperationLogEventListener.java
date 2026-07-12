@@ -42,6 +42,6 @@ public class OperationLogEventListener {
     private void logToSlf4j(OperationLogRecord record) {
         log.info("[操作日志] traceId={} module={} action={} user={} uri={} costMs={} success={}",
             record.getTraceId(), record.getModule(), record.getAction(), record.getUsername(),
-            record.getRequestUri(), record.getCostMs(), record.isSuccess());
+            record.getRequestUri(), record.getCostMs(), record.getIsSuccess());
     }
 }

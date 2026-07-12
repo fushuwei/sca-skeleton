@@ -87,7 +87,7 @@ public class OperationLogAspect {
         try {
             // 执行原方法，捕获返回值
             Object result = joinPoint.proceed();
-            record.setSuccess(true);
+            record.setIsSuccess(1);
             // 如果注解配置了记录响应结果，将返回值序列化为 JSON
             if (annotation.logResult() && result != null) {
                 try {
@@ -99,7 +99,7 @@ public class OperationLogAspect {
             return result;
         } catch (Throwable throwable) {
             // 标记操作失败并记录异常描述
-            record.setSuccess(false);
+            record.setIsSuccess(0);
             record.setErrorMessage(throwable.getMessage());
             // 异常继续向上抛出，不吞掉业务异常
             throw throwable;

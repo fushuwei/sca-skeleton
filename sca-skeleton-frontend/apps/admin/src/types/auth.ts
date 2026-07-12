@@ -369,7 +369,7 @@ export interface SysOperationLog {
   methodName: string;
   requestArgs: string;
   responseResult: string;
-  success: boolean;
+  isSuccess: number;
   errorMessage: string;
   costMs: number;
   clientIp: string;
@@ -383,7 +383,7 @@ export interface OperationLogPageRequest {
   module?: string;
   action?: string;
   operator?: string;
-  success?: boolean;
+  isSuccess?: number;
   startTime?: string;
   endTime?: string;
   orderBy?: string;

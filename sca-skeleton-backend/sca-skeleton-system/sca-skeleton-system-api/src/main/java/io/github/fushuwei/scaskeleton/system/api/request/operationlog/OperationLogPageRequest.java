@@ -39,8 +39,8 @@ public class OperationLogPageRequest {
     /** 操作人筛选（匹配拼接后的展示名称："real_name (username)"） */
     private String operator;
 
-    /** 操作状态筛选：true-成功，false-失败 */
-    private Boolean success;
+    /** 操作状态筛选：0-失败，1-成功 */
+    private Integer isSuccess;
 
     /** 查询开始时间 */
     private LocalDateTime startTime;

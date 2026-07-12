@@ -89,9 +89,9 @@ public class SysOperationLog implements Serializable {
     private String responseResult;
 
     /**
-     * 是否成功
+     * 是否成功：0-失败，1-成功
      */
-    private Boolean success;
+    private Integer isSuccess;
 
     /**
      * 异常信息

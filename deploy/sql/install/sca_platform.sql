@@ -596,7 +596,7 @@ CREATE TABLE IF NOT EXISTS `sys_operation_log` (
     `method_name`     VARCHAR(100)    DEFAULT NULL                COMMENT '目标方法名',
     `request_args`    TEXT            DEFAULT NULL                COMMENT '请求参数（JSON）',
     `response_result` TEXT            DEFAULT NULL                COMMENT '响应结果（JSON）',
-    `success`         TINYINT(1)      NOT NULL DEFAULT 1          COMMENT '是否成功（0失败 1成功）',
+    `is_success`      TINYINT(1)      NOT NULL DEFAULT 1          COMMENT '是否成功（0失败 1成功）',
     `error_message`   TEXT            DEFAULT NULL                COMMENT '异常信息',
     `cost_ms`         BIGINT          DEFAULT NULL                COMMENT '操作耗时（毫秒）',
     `client_ip`       VARCHAR(128)    DEFAULT NULL                COMMENT '客户端IP',

@@ -28,7 +28,7 @@ public class DefaultOperationLogHandler implements OperationLogHandler {
         operationLog.setMethodName(record.getMethodName());
         operationLog.setRequestArgs(record.getRequestArgs());
         operationLog.setResponseResult(record.getResponseResult());
-        operationLog.setSuccess(record.isSuccess());
+        operationLog.setIsSuccess(record.getIsSuccess());
         operationLog.setErrorMessage(record.getErrorMessage());
         operationLog.setCostMs(record.getCostMs());
         operationLog.setClientIp(record.getClientIp());

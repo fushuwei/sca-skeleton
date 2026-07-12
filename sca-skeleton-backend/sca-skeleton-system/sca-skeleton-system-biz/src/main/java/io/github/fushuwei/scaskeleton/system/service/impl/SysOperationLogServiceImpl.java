@@ -43,7 +43,7 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
             .apply(StringUtils.hasText(req.getOperator()),
                    "CONCAT_WS(' ', u.real_name, CONCAT('(', u.username, ')')) LIKE CONCAT('%', {0}, '%')",
                    req.getOperator())
-            .eq(req.getSuccess() != null, SysOperationLog::getSuccess, req.getSuccess())
+            .eq(req.getIsSuccess() != null, SysOperationLog::getIsSuccess, req.getIsSuccess())
             .ge(req.getStartTime() != null, SysOperationLog::getOperationTime, req.getStartTime())
             .le(req.getEndTime() != null, SysOperationLog::getOperationTime, req.getEndTime());
 
@@ -60,7 +60,7 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
                 case "request_uri" -> wrapper.orderBy(true, isAsc, SysOperationLog::getRequestUri);
                 case "client_ip" -> wrapper.orderBy(true, isAsc, SysOperationLog::getClientIp);
                 case "cost_ms" -> wrapper.orderBy(true, isAsc, SysOperationLog::getCostMs);
-                case "success" -> wrapper.orderBy(true, isAsc, SysOperationLog::getSuccess);
+                case "is_success" -> wrapper.orderBy(true, isAsc, SysOperationLog::getIsSuccess);
             }
         } else {
             wrapper.orderByDesc(SysOperationLog::getOperationTime);
