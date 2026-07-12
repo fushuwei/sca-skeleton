@@ -32,7 +32,7 @@ sca-skeleton/
 │   ├── sca-skeleton-starters/     # 可复用 Starter 模块
 │   │   ├── sca-skeleton-starter-core        # 核心基础（异常体系、工具类、TraceId）
 │   │   ├── sca-skeleton-starter-web         # Web 通用（统一响应体、限流注解）
-│   │   ├── sca-skeleton-starter-logging     # 日志增强（操作日志 AOP）
+│   │   ├── sca-skeleton-starter-log         # 日志增强（操作日志 AOP）
 │   │   ├── sca-skeleton-starter-mybatis-plus # MyBatis-Plus 增强
 │   │   ├── sca-skeleton-starter-feign       # OpenFeign 增强
 │   │   ├── sca-skeleton-starter-captcha      # 验证码生成与校验

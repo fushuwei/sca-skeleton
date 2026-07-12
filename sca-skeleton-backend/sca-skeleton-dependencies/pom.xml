@@ -172,7 +172,7 @@
             <!-- 项目日志 Starter（操作日志注解 + 异步持久化） -->
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
-                <artifactId>sca-skeleton-starter-logging</artifactId>
+                <artifactId>sca-skeleton-starter-log</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

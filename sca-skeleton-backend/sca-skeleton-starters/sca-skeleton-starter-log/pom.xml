@@ -11,10 +11,10 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>sca-skeleton-starter-logging</artifactId>
+    <artifactId>sca-skeleton-starter-log</artifactId>
     <packaging>jar</packaging>
 
-    <name>SCA Skeleton Backend :: Starter :: Logging</name>
+    <name>SCA Skeleton Backend :: Starter :: Log</name>
     <description>操作日志注解 + 异步持久化——引入即用，所有微服务共享 sys_operation_log 表</description>
 
     <dependencies>

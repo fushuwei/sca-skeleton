@@ -11,5 +11,5 @@
 - `sca-skeleton-starters`：可复用 starter 聚合模块。
   - `sca-skeleton-starter-core`
   - `sca-skeleton-starter-web`
-  - `sca-skeleton-starter-logging`
+  - `sca-skeleton-starter-log`
   - `sca-skeleton-starter-captcha`

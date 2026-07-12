@@ -25,7 +25,7 @@
         <!-- Web 通用：统一响应体、全局异常处理、TraceId 过滤器、@RateLimit 限流 -->
         <module>sca-skeleton-starter-web</module>
         <!-- 日志增强：操作日志注解 + 异步持久化，所有微服务引入即用 -->
-        <module>sca-skeleton-starter-logging</module>
+        <module>sca-skeleton-starter-log</module>
         <!-- MyBatis-Plus 增强：基础实体、审计字段自动填充、分页插件配置 -->
         <module>sca-skeleton-starter-mybatis-plus</module>
         <!-- 远程调用增强：RestClient + HTTP Interface（请求头传递、统一响应解码、错误处理） -->
