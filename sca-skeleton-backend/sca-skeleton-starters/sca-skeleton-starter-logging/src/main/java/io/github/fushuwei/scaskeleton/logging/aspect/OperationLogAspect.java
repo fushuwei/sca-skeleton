@@ -4,7 +4,7 @@ import tools.jackson.databind.json.JsonMapper;
 import io.github.fushuwei.scaskeleton.core.trace.TraceContext;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.logging.annotation.OperationLog;
-import io.github.fushuwei.scaskeleton.logging.handler.OperationLogHandler;
+import io.github.fushuwei.scaskeleton.logging.event.OperationLogEvent;
 import io.github.fushuwei.scaskeleton.logging.model.OperationLogRecord;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +14,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.Nullable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -22,9 +23,8 @@ import java.time.LocalDateTime;
 /**
  * 操作日志切面。
  * <p>
- * 拦截所有标注了 {@link OperationLog} 的方法，采集操作上下文（用户、IP、请求路径、耗时、结果），
- * 填充 {@link OperationLogRecord} 后交由 {@link OperationLogHandler} 处理。
- * 若无自定义 Handler Bean，默认将日志内容以 JSON 格式打印到 SLF4J。
+ * 拦截标注了 {@link OperationLog} 的方法，采集操作上下文后发布 {@link OperationLogEvent}。
+ * 由监听器消费事件完成异步持久化。切面不直接操作数据库，不阻塞请求线程。
  *
  * @author Fu Wei
  */
@@ -35,14 +35,11 @@ public class OperationLogAspect {
 
     // 注入 Jackson，用于将方法参数与返回值序列化为 JSON 字符串
     private final JsonMapper jsonMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 可选注入：当前用户信息提供者，未提供时操作人字段留空
     @Nullable
     private final CurrentUserProvider currentUserProvider;
-
-    // 可选注入：业务服务提供的日志处理实现，未提供时回退到 SLF4J 打印
-    @Nullable
-    private final OperationLogHandler operationLogHandler;
 
     /**
      * 环绕通知：拦截所有标注 @OperationLog 的方法，采集完整操作上下文。
@@ -89,10 +86,9 @@ public class OperationLogAspect {
             }
         }
 
-        Object result = null;
         try {
             // 执行原方法，捕获返回值
-            result = joinPoint.proceed();
+            Object result = joinPoint.proceed();
             record.setSuccess(true);
             // 如果注解配置了记录响应结果，将返回值序列化为 JSON
             if (annotation.logResult() && result != null) {
@@ -112,7 +108,7 @@ public class OperationLogAspect {
         } finally {
             // 无论成功或失败，均计算耗时并触发日志处理
             record.setCostMs(System.currentTimeMillis() - startTime);
-            handleLog(record);
+            eventPublisher.publishEvent(new OperationLogEvent(record));
         }
     }
 
@@ -156,43 +152,5 @@ public class OperationLogAspect {
         }
         // 无反向代理时直接返回 TCP 连接的远端地址
         return request.getRemoteAddr();
-    }
-
-    /**
-     * 将操作日志分发给 Handler 或回退到 SLF4J 打印。
-     *
-     * @param record 完整的操作日志记录
-     */
-    private void handleLog(OperationLogRecord record) {
-        if (operationLogHandler != null) {
-            // 委托给业务服务提供的自定义处理实现（如写库、发 MQ）
-            try {
-                operationLogHandler.handle(record);
-            } catch (Exception e) {
-                // Handler 执行失败不影响业务，降级为日志打印
-                log.warn("[OperationLog] handler failed, fallback to log. traceId={}", record.getTraceId(), e);
-                logToSlf4j(record);
-            }
-        } else {
-            // 未注册 Handler 时，默认打印到 SLF4J INFO 级别
-            logToSlf4j(record);
-        }
-    }
-
-    /**
-     * 将操作日志以结构化文本形式打印到 SLF4J。
-     *
-     * @param record 操作日志记录
-     */
-    private void logToSlf4j(OperationLogRecord record) {
-        log.info("[OperationLog] traceId={} module={} action={} user={} uri={} costMs={} success={}",
-                record.getTraceId(), record.getModule(), record.getAction(),
-                record.getUsername(), record.getRequestUri(),
-                record.getCostMs(), record.isSuccess());
-    }
-
-    // Optional 注入支持，允许 currentUserProvider 和 operationLogHandler 不存在
-    public OperationLogAspect(JsonMapper jsonMapper) {
-        this(jsonMapper, null, null);
     }
 }

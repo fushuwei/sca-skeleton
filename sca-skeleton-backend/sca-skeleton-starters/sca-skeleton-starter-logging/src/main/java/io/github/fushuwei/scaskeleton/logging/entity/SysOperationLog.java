@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.system.entity;
+package io.github.fushuwei.scaskeleton.logging.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -12,11 +12,10 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 操作日志实体。
+ * 操作日志实体，映射 {@code sys_operation_log} 表。
  * <p>
- * 操作日志为只增不改的审计记录，不继承 BaseEntity（无 createBy/updateBy/isDeleted/version 等字段）。
- * <p>
- * 操作人用户名和真实姓名不在此表中冗余存储，通过 user_id 关联 sys_user 表查询获取。
+ * 只增不改的审计记录，不继承 BaseEntity（无 createBy/updateBy/isDeleted/version 等字段）。
+ * 操作人展示名称（operator）为非表字段，仅在 JOIN sys_user 查询时由 SQL 拼接填充。
  *
  * @author Fu Wei
  */
@@ -37,7 +36,7 @@ public class SysOperationLog implements Serializable {
     /** 操作人 ID（关联 sys_user.id） */
     private String userId;
 
-    /** 操作人展示名称（非表字段，通过 JOIN sys_user 拼接生成，格式："real_name (username)"） */
+    /** 操作人展示名称（非表字段，JOIN 时 SQL 拼接："real_name (username)"） */
     @TableField(value = "operator", insertStrategy = FieldStrategy.NEVER,
                 updateStrategy = FieldStrategy.NEVER, select = false)
     private String operator;

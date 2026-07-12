@@ -42,7 +42,7 @@
             <artifactId>sca-skeleton-starter-security</artifactId>
         </dependency>
 
-        <!-- 日志增强 Starter：@OperationLog 操作日志记录 -->
+        <!-- 日志增强 Starter：@OperationLog 操作日志注解 + 异步持久化 -->
         <dependency>
             <groupId>io.github.fushuwei</groupId>
             <artifactId>sca-skeleton-starter-logging</artifactId>

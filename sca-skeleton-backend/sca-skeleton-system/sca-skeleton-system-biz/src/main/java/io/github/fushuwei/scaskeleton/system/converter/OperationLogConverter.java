@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.system.converter;
 
+import io.github.fushuwei.scaskeleton.logging.entity.SysOperationLog;
 import io.github.fushuwei.scaskeleton.system.api.response.operationlog.OperationLogResponse;
-import io.github.fushuwei.scaskeleton.system.entity.SysOperationLog;
 import org.mapstruct.Mapper;
 
 /**
@@ -12,6 +12,8 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface OperationLogConverter {
 
-    /** SysOperationLog → OperationLogResponse */
+    /**
+     * SysOperationLog → OperationLogResponse
+     */
     OperationLogResponse toOperationLogResponse(SysOperationLog log);
 }
