@@ -4,7 +4,7 @@ import tools.jackson.databind.json.JsonMapper;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.logging.aspect.OperationLogAspect;
 import io.github.fushuwei.scaskeleton.logging.event.OperationLogEventListener;
-import io.github.fushuwei.scaskeleton.logging.handler.DbOperationLogHandler;
+import io.github.fushuwei.scaskeleton.logging.handler.DefaultOperationLogHandler;
 import io.github.fushuwei.scaskeleton.logging.handler.OperationLogHandler;
 import io.github.fushuwei.scaskeleton.logging.mapper.SysOperationLogMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -26,12 +26,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * 操作日志自动配置。
- * <p>
- * 装配切面、异步线程池、事件监听器、DB 持久化 Handler。引入本 starter 后，
- * 标注 {@code @OperationLog} 即可自动异步入库，无需额外配置。
- * <p>
- * 将来升级 MQ：替换本模块的 Listener 为 MQ Producer，切面代码零改动。
+ * 操作日志自动配置类
  *
  * @author Fu Wei
  */
@@ -42,9 +37,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 @MapperScan(basePackageClasses = SysOperationLogMapper.class)
 public class LoggingAutoConfiguration {
 
-    // ── 线程池 ──
-
-    /** 操作日志专用线程池，独立于 Spring 默认 taskExecutor */
+    /**
+     * 操作日志专用线程池，独立于 Spring 默认 taskExecutor
+     */
     @Bean("operationLogExecutor")
     @ConditionalOnMissingBean(name = "operationLogExecutor")
     public Executor operationLogExecutor(OperationLogProperties properties) {
@@ -54,45 +49,44 @@ public class LoggingAutoConfiguration {
         executor.setMaxPoolSize(props.getMaxPoolSize());
         executor.setQueueCapacity(props.getQueueCapacity());
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        executor.setThreadNamePrefix("op-log-");
+        executor.setThreadNamePrefix("operation-log-");
         executor.setTaskDecorator(new MdcTaskDecorator());
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(props.getAwaitTerminationSeconds());
         return executor;
     }
 
-    // ── 切面 ──
-
+    /**
+     * 操作日志切面
+     */
     @Bean
     @ConditionalOnMissingBean
-    public OperationLogAspect operationLogAspect(
-            JsonMapper jsonMapper,
-            ApplicationEventPublisher eventPublisher,
-            @Autowired(required = false) @Nullable CurrentUserProvider currentUserProvider) {
+    public OperationLogAspect operationLogAspect(JsonMapper jsonMapper, ApplicationEventPublisher eventPublisher,
+                                                 @Autowired(required = false) @Nullable CurrentUserProvider currentUserProvider) {
         return new OperationLogAspect(jsonMapper, eventPublisher, currentUserProvider);
     }
 
-    // ── Handler ──
-
+    /**
+     * 操作日志处理器
+     */
     @Bean
     @ConditionalOnMissingBean
-    public OperationLogHandler operationLogHandler(SysOperationLogMapper mapper) {
-        return new DbOperationLogHandler(mapper);
+    public OperationLogHandler operationLogHandler(SysOperationLogMapper operationLogMapper) {
+        return new DefaultOperationLogHandler(operationLogMapper);
     }
 
-    // ── 异步监听器 ──
-
+    /**
+     * 操作日志异步持久化监听器
+     */
     @Bean
     @ConditionalOnMissingBean
     public OperationLogEventListener operationLogEventListener(
-            @Autowired(required = false) @Nullable OperationLogHandler operationLogHandler) {
+        @Autowired(required = false) @Nullable OperationLogHandler operationLogHandler) {
         return new OperationLogEventListener(operationLogHandler);
     }
 
-    // ── MDC 透传 ──
-
     /**
-     * 将主线程的 MDC（含 traceId）拷贝到异步线程，确保异步线程中的日志也能关联链路追踪 ID。
+     * 将主线程的 MDC（含 traceId）拷贝到异步线程，确保异步线程中的日志也能关联链路追踪 ID
      */
     static class MdcTaskDecorator implements TaskDecorator {
         @Override

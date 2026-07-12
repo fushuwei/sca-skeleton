@@ -3,7 +3,7 @@ package io.github.fushuwei.scaskeleton.logging.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * 操作日志配置属性。
+ * 操作日志配置属性类
  * <p>
  * 通过 {@code application.yml} 调整异步线程池参数：
  * <pre>
@@ -21,7 +21,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "sca.operation-log")
 public class OperationLogProperties {
 
-    /** 线程池配置 */
+    /**
+     * 线程池配置
+     */
     private final Executor executor = new Executor();
 
     public Executor getExecutor() {
@@ -30,16 +32,24 @@ public class OperationLogProperties {
 
     public static class Executor {
 
-        /** 核心线程数 */
+        /**
+         * 核心线程数
+         */
         private int corePoolSize = 2;
 
-        /** 最大线程数 */
+        /**
+         * 最大线程数
+         */
         private int maxPoolSize = 4;
 
-        /** 队列容量 */
+        /**
+         * 队列容量
+         */
         private int queueCapacity = 5000;
 
-        /** 优雅关闭等待时间（秒），确保队列中剩余日志处理完毕 */
+        /**
+         * 优雅关闭等待时间（秒），确保队列中剩余日志处理完毕
+         */
         private int awaitTerminationSeconds = 30;
 
         public int getCorePoolSize() {
