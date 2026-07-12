@@ -38,12 +38,12 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
         Page<SysOperationLog> page = new Page<>(req.getPageNum(), req.getPageSize());
 
         LambdaQueryWrapper<SysOperationLog> wrapper = new LambdaQueryWrapper<SysOperationLog>()
-                .like(StringUtils.hasText(req.getModule()), SysOperationLog::getModule, req.getModule())
-                .like(StringUtils.hasText(req.getAction()), SysOperationLog::getAction, req.getAction())
-                .like(StringUtils.hasText(req.getUsername()), SysOperationLog::getUsername, req.getUsername())
-                .eq(req.getSuccess() != null, SysOperationLog::getSuccess, req.getSuccess())
-                .ge(req.getStartTime() != null, SysOperationLog::getOperationTime, req.getStartTime())
-                .le(req.getEndTime() != null, SysOperationLog::getOperationTime, req.getEndTime());
+            .like(StringUtils.hasText(req.getModule()), SysOperationLog::getModule, req.getModule())
+            .like(StringUtils.hasText(req.getAction()), SysOperationLog::getAction, req.getAction())
+            .apply(StringUtils.hasText(req.getUsername()), "u.username LIKE CONCAT('%', {0}, '%') OR u.real_name LIKE CONCAT('%', {0}, '%')", req.getUsername())
+            .eq(req.getSuccess() != null, SysOperationLog::getSuccess, req.getSuccess())
+            .ge(req.getStartTime() != null, SysOperationLog::getOperationTime, req.getStartTime())
+            .le(req.getEndTime() != null, SysOperationLog::getOperationTime, req.getEndTime());
 
         // 动态排序
         String orderBy = req.safeOrderBy();
