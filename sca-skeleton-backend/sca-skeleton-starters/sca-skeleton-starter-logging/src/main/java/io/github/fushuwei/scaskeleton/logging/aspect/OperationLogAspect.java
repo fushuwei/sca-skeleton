@@ -13,7 +13,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.jspecify.annotations.Nullable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -21,10 +20,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.time.LocalDateTime;
 
 /**
- * 操作日志切面。
+ * 操作日志切面
  * <p>
- * 拦截标注了 {@link OperationLog} 的方法，采集操作上下文后发布 {@link OperationLogEvent}。
- * 由监听器消费事件完成异步持久化。切面不直接操作数据库，不阻塞请求线程。
+ * 拦截标注了 {@link OperationLog} 的方法，采集操作上下文后发布 {@link OperationLogEvent}
+ * 由监听器消费事件完成异步持久化切面不直接操作数据库，不阻塞请求线程
  *
  * @author Fu Wei
  */
@@ -33,16 +32,17 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class OperationLogAspect {
 
-    // 注入 Jackson，用于将方法参数与返回值序列化为 JSON 字符串
+    // JSON 序列化器，用于将方法参数与返回值序列化为 JSON 字符串
     private final JsonMapper jsonMapper;
-    private final ApplicationEventPublisher eventPublisher;
 
-    // 可选注入：当前用户信息提供者，未提供时操作人字段留空
-    @Nullable
+    // 当前用户信息提供者，未提供时操作人字段留空
     private final CurrentUserProvider currentUserProvider;
 
+    // 事件发布器，用于发布领域事件供监听器异步处理
+    private final ApplicationEventPublisher eventPublisher;
+
     /**
-     * 环绕通知：拦截所有标注 @OperationLog 的方法，采集完整操作上下文。
+     * 环绕通知：拦截所有标注 @OperationLog 的方法，采集完整操作上下文
      *
      * @param joinPoint  切入点，用于获取方法签名和参数
      * @param annotation 方法上的 @OperationLog 注解，包含 module、action 等元数据
@@ -113,14 +113,14 @@ public class OperationLogAspect {
     }
 
     /**
-     * 从 Spring Web 请求上下文中提取 HTTP 方法、请求路径和客户端 IP。
-     * 非 Web 场景（如单元测试）下 RequestContextHolder 为 null，跳过填充。
+     * 从 Spring Web 请求上下文中提取 HTTP 方法、请求路径和客户端 IP
+     * 非 Web 场景（如单元测试）下 RequestContextHolder 为 null，跳过填充
      *
      * @param record 待填充的操作日志记录
      */
     private void fillHttpContext(OperationLogRecord record) {
         ServletRequestAttributes attributes =
-                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         // 非 Web 请求（异步任务、定时任务）时跳过 HTTP 信息填充
         if (attributes == null) {
             return;
@@ -133,7 +133,7 @@ public class OperationLogAspect {
     }
 
     /**
-     * 解析客户端真实 IP，依次尝试常见反向代理请求头，最终回退到 RemoteAddr。
+     * 解析客户端真实 IP，依次尝试常见反向代理请求头，最终回退到 RemoteAddr
      *
      * @param request HTTP 请求
      * @return 客户端 IP 字符串
@@ -141,7 +141,7 @@ public class OperationLogAspect {
     private String resolveClientIp(HttpServletRequest request) {
         // 依次尝试各反向代理透传的真实 IP 请求头
         String[] headerNames = {
-                "X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP"
+            "X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP"
         };
         for (String header : headerNames) {
             String ip = request.getHeader(header);
