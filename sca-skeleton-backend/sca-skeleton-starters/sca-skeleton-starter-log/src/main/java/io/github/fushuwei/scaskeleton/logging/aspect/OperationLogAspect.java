@@ -22,8 +22,7 @@ import java.time.LocalDateTime;
 /**
  * 操作日志切面
  * <p>
- * 拦截标注了 {@link OperationLog} 的方法，采集操作上下文后发布 {@link OperationLogEvent}
- * 由监听器消费事件完成异步持久化切面不直接操作数据库，不阻塞请求线程
+ * 拦截所有标注了 {@link OperationLog} 注解的方法，发布 {@link OperationLogEvent} 事件，由监听器消费事件并完成日志数据持久化
  *
  * @author Fu Wei
  */
@@ -42,10 +41,10 @@ public class OperationLogAspect {
     private final CurrentUserProvider currentUserProvider;
 
     /**
-     * 环绕通知：拦截所有标注 @OperationLog 的方法，采集完整操作上下文
+     * 环绕通知：拦截所有标注 @OperationLog 注解的方法，采集完整操作上下文
      *
      * @param joinPoint  切入点，用于获取方法签名和参数
-     * @param annotation 方法上的 @OperationLog 注解，包含 module、action 等元数据
+     * @param annotation 方法上的 @OperationLog 注解对象
      * @return 原方法的返回值，异常时向上透传
      */
     @Around("@annotation(annotation)")
@@ -81,8 +80,7 @@ public class OperationLogAspect {
             try {
                 record.setRequestArgs(jsonMapper.writeValueAsString(joinPoint.getArgs()));
             } catch (Exception e) {
-                // 序列化失败不影响业务，仅记录序列化错误标识
-                record.setRequestArgs("[serialize error]");
+                record.setRequestArgs("[请求参数序列化失败，详情：{" + e.getMessage() + "}]");
             }
         }
 
@@ -95,7 +93,7 @@ public class OperationLogAspect {
                 try {
                     record.setResponseResult(jsonMapper.writeValueAsString(result));
                 } catch (Exception e) {
-                    record.setResponseResult("[serialize error]");
+                    record.setResponseResult("[响应结果序列化失败，详情：{" + e.getMessage() + "}]");
                 }
             }
             return result;

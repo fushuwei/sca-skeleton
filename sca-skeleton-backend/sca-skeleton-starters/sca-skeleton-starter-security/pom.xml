@@ -36,7 +36,7 @@
             <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
         </dependency>
 
-        <!-- Spring AOP（CGLIB 动态代理）+ AspectJ 切点语法解析 -->
+        <!-- Spring AOP（CGLIB 动态代理）+ AspectJ 切面语法解析 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aspectj</artifactId>

@@ -15,29 +15,33 @@
     <packaging>jar</packaging>
 
     <name>SCA Skeleton Backend :: Starter :: Log</name>
-    <description>操作日志注解 + 异步持久化——引入即用，所有微服务共享 sys_operation_log 表</description>
+    <description>SCA Skeleton Backend :: 操作日志注解 + 异步持久化 Starter</description>
 
     <dependencies>
-        <!-- 核心基础：TraceContext、CurrentUserProvider、JsonMapper 等 -->
+        <!-- 项目核心 Starter（自定义基础组件封装） -->
         <dependency>
             <groupId>io.github.fushuwei</groupId>
             <artifactId>sca-skeleton-starter-core</artifactId>
         </dependency>
-        <!-- MyBatis-Plus：操作日志实体与 Mapper，异步入库 -->
+
+        <!-- 项目 MyBatis-Plus Starter（自定义持久层组件封装） -->
         <dependency>
             <groupId>io.github.fushuwei</groupId>
             <artifactId>sca-skeleton-starter-mybatis-plus</artifactId>
         </dependency>
-        <!-- Spring AOP：@OperationLog 注解的切面支持 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aspectj</artifactId>
-        </dependency>
-        <!-- Spring Web：切面中获取 HttpServletRequest（IP、路径等） -->
+
+        <!-- Spring Boot Web MVC 核心启动器 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
+
+        <!-- Spring AOP（CGLIB 动态代理）+ AspectJ 切面语法解析 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
+        </dependency>
+
         <!-- 配置元数据处理器（为自定义配置类提供 IDE 自动补全与元数据生成功能） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
