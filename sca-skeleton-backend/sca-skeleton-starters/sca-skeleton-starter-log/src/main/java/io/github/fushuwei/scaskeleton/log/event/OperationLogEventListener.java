@@ -1,7 +1,7 @@
-package io.github.fushuwei.scaskeleton.logging.event;
+package io.github.fushuwei.scaskeleton.log.event;
 
-import io.github.fushuwei.scaskeleton.logging.handler.OperationLogHandler;
-import io.github.fushuwei.scaskeleton.logging.model.OperationLogRecord;
+import io.github.fushuwei.scaskeleton.log.handler.OperationLogHandler;
+import io.github.fushuwei.scaskeleton.log.model.OperationLogRecord;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

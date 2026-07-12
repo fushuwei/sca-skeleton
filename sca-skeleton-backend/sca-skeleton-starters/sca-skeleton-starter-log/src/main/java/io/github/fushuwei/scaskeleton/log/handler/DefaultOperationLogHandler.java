@@ -1,8 +1,8 @@
-package io.github.fushuwei.scaskeleton.logging.handler;
+package io.github.fushuwei.scaskeleton.log.handler;
 
-import io.github.fushuwei.scaskeleton.logging.entity.SysOperationLog;
-import io.github.fushuwei.scaskeleton.logging.mapper.SysOperationLogMapper;
-import io.github.fushuwei.scaskeleton.logging.model.OperationLogRecord;
+import io.github.fushuwei.scaskeleton.log.entity.SysOperationLog;
+import io.github.fushuwei.scaskeleton.log.mapper.SysOperationLogMapper;
+import io.github.fushuwei.scaskeleton.log.model.OperationLogRecord;
 import lombok.RequiredArgsConstructor;
 
 /**

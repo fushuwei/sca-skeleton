@@ -1,11 +1,11 @@
-package io.github.fushuwei.scaskeleton.logging.aspect;
+package io.github.fushuwei.scaskeleton.log.aspect;
 
 import tools.jackson.databind.json.JsonMapper;
 import io.github.fushuwei.scaskeleton.core.trace.TraceContext;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
-import io.github.fushuwei.scaskeleton.logging.annotation.OperationLog;
-import io.github.fushuwei.scaskeleton.logging.event.OperationLogEvent;
-import io.github.fushuwei.scaskeleton.logging.model.OperationLogRecord;
+import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
+import io.github.fushuwei.scaskeleton.log.event.OperationLogEvent;
+import io.github.fushuwei.scaskeleton.log.model.OperationLogRecord;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.logging.entity;
+package io.github.fushuwei.scaskeleton.log.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;

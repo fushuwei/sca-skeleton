@@ -1,13 +1,13 @@
-package io.github.fushuwei.scaskeleton.logging.config;
+package io.github.fushuwei.scaskeleton.log.config;
 
 import org.jspecify.annotations.NullMarked;
 import tools.jackson.databind.json.JsonMapper;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
-import io.github.fushuwei.scaskeleton.logging.aspect.OperationLogAspect;
-import io.github.fushuwei.scaskeleton.logging.event.OperationLogEventListener;
-import io.github.fushuwei.scaskeleton.logging.handler.DefaultOperationLogHandler;
-import io.github.fushuwei.scaskeleton.logging.handler.OperationLogHandler;
-import io.github.fushuwei.scaskeleton.logging.mapper.SysOperationLogMapper;
+import io.github.fushuwei.scaskeleton.log.aspect.OperationLogAspect;
+import io.github.fushuwei.scaskeleton.log.event.OperationLogEventListener;
+import io.github.fushuwei.scaskeleton.log.handler.DefaultOperationLogHandler;
+import io.github.fushuwei.scaskeleton.log.handler.OperationLogHandler;
+import io.github.fushuwei.scaskeleton.log.mapper.SysOperationLogMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.mybatis.spring.annotation.MapperScan;

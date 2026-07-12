@@ -1,6 +1,6 @@
-package io.github.fushuwei.scaskeleton.logging.handler;
+package io.github.fushuwei.scaskeleton.log.handler;
 
-import io.github.fushuwei.scaskeleton.logging.model.OperationLogRecord;
+import io.github.fushuwei.scaskeleton.log.model.OperationLogRecord;
 
 /**
  * 操作日志处理器

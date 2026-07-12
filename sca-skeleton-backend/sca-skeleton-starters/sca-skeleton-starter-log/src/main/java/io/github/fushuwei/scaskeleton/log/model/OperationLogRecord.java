@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.logging.model;
+package io.github.fushuwei.scaskeleton.log.model;
 
 import lombok.Data;
 

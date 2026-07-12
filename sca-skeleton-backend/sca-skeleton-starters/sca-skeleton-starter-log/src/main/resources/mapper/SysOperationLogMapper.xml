@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="io.github.fushuwei.scaskeleton.logging.mapper.SysOperationLogMapper">
+<mapper namespace="io.github.fushuwei.scaskeleton.log.mapper.SysOperationLogMapper">
 
     <!-- 分页查询操作日志  -->
-    <select id="selectLogPage" resultType="io.github.fushuwei.scaskeleton.logging.entity.SysOperationLog">
+    <select id="selectLogPage" resultType="io.github.fushuwei.scaskeleton.log.entity.SysOperationLog">
         SELECT l.*,
                CASE WHEN u.real_name IS NOT NULL
                    THEN CONCAT(u.real_name, ' (', u.username, ')')
@@ -16,7 +16,7 @@
     </select>
 
     <!-- 按 ID 查询操作日志详情 -->
-    <select id="selectLogById" resultType="io.github.fushuwei.scaskeleton.logging.entity.SysOperationLog">
+    <select id="selectLogById" resultType="io.github.fushuwei.scaskeleton.log.entity.SysOperationLog">
         SELECT l.*,
                CASE WHEN u.real_name IS NOT NULL
                    THEN CONCAT(u.real_name, ' (', u.username, ')')

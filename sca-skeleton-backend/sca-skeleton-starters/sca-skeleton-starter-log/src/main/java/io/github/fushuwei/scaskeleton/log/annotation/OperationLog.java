@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.logging.annotation;
+package io.github.fushuwei.scaskeleton.log.annotation;
 
 import java.lang.annotation.*;
 

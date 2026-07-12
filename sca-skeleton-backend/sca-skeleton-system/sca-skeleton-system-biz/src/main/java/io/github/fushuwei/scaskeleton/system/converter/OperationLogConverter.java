@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.system.converter;
 
-import io.github.fushuwei.scaskeleton.logging.entity.SysOperationLog;
+import io.github.fushuwei.scaskeleton.log.entity.SysOperationLog;
 import io.github.fushuwei.scaskeleton.system.api.response.operationlog.OperationLogResponse;
 import org.mapstruct.Mapper;
 

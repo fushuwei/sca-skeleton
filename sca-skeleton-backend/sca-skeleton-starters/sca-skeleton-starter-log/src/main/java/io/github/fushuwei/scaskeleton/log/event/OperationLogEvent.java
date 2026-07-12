@@ -1,6 +1,6 @@
-package io.github.fushuwei.scaskeleton.logging.event;
+package io.github.fushuwei.scaskeleton.log.event;
 
-import io.github.fushuwei.scaskeleton.logging.model.OperationLogRecord;
+import io.github.fushuwei.scaskeleton.log.model.OperationLogRecord;
 import org.springframework.context.ApplicationEvent;
 
 import java.io.Serial;

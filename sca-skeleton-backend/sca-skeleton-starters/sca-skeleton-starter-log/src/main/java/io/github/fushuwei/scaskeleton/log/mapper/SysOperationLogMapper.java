@@ -1,10 +1,10 @@
-package io.github.fushuwei.scaskeleton.logging.mapper;
+package io.github.fushuwei.scaskeleton.log.mapper;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Constants;
-import io.github.fushuwei.scaskeleton.logging.entity.SysOperationLog;
+import io.github.fushuwei.scaskeleton.log.entity.SysOperationLog;
 import org.apache.ibatis.annotations.Param;
 
 /**
