@@ -40,7 +40,9 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
         LambdaQueryWrapper<SysOperationLog> wrapper = new LambdaQueryWrapper<SysOperationLog>()
             .like(StringUtils.hasText(req.getModule()), SysOperationLog::getModule, req.getModule())
             .like(StringUtils.hasText(req.getAction()), SysOperationLog::getAction, req.getAction())
-            .apply(StringUtils.hasText(req.getUsername()), "u.username LIKE CONCAT('%', {0}, '%') OR u.real_name LIKE CONCAT('%', {0}, '%')", req.getUsername())
+            .apply(StringUtils.hasText(req.getOperator()),
+                   "CONCAT_WS(' ', u.real_name, CONCAT('(', u.username, ')')) LIKE CONCAT('%', {0}, '%')",
+                   req.getOperator())
             .eq(req.getSuccess() != null, SysOperationLog::getSuccess, req.getSuccess())
             .ge(req.getStartTime() != null, SysOperationLog::getOperationTime, req.getStartTime())
             .le(req.getEndTime() != null, SysOperationLog::getOperationTime, req.getEndTime());
@@ -51,7 +53,7 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
         if (orderBy != null) {
             switch (orderBy) {
                 case "operation_time" -> wrapper.orderBy(true, isAsc, SysOperationLog::getOperationTime);
-                case "username" -> wrapper.orderBy(true, isAsc, SysOperationLog::getUsername);
+                case "operator" -> wrapper.orderBy(true, isAsc, SysOperationLog::getOperator);
                 case "module" -> wrapper.orderBy(true, isAsc, SysOperationLog::getModule);
                 case "action" -> wrapper.orderBy(true, isAsc, SysOperationLog::getAction);
                 case "http_method" -> wrapper.orderBy(true, isAsc, SysOperationLog::getHttpMethod);

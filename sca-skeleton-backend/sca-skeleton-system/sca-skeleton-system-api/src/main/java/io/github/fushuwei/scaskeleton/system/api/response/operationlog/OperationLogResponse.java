@@ -17,10 +17,8 @@ public class OperationLogResponse {
     private String id;
     private String traceId;
     private String userId;
-    /** 操作人用户名（关联 sys_user.username） */
-    private String username;
-    /** 操作人真实姓名（关联 sys_user.real_name） */
-    private String realName;
+    /** 操作人展示名称（格式："real_name (username)"，由 SQL JOIN 拼接生成） */
+    private String operator;
     private String module;
     private String action;
     private String httpMethod;

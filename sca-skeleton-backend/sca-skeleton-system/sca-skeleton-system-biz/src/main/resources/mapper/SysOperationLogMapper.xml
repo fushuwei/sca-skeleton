@@ -3,18 +3,26 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.fushuwei.scaskeleton.system.mapper.SysOperationLogMapper">
 
-    <!-- 分页查询操作日志（LEFT JOIN sys_user 获取用户名和真实姓名）。
+    <!-- 分页查询操作日志（LEFT JOIN sys_user 获取操作人展示名称）。
          ${ew.customSqlSegment} 由 LambdaQueryWrapper 生成 WHERE 和 ORDER BY。 -->
     <select id="selectLogPage" resultType="io.github.fushuwei.scaskeleton.system.entity.SysOperationLog">
-        SELECT l.*, u.username, u.real_name
+        SELECT l.*,
+               CASE WHEN u.real_name IS NOT NULL
+                   THEN CONCAT(u.real_name, ' (', u.username, ')')
+                   ELSE u.username
+                   END AS operator
         FROM sys_operation_log l
         LEFT JOIN sys_user u ON u.id = l.user_id AND u.is_deleted = 0
         ${ew.customSqlSegment}
     </select>
 
-    <!-- 按 ID 查询操作日志详情（LEFT JOIN sys_user 获取用户名和真实姓名） -->
+    <!-- 按 ID 查询操作日志详情（LEFT JOIN sys_user 获取操作人展示名称） -->
     <select id="selectLogById" resultType="io.github.fushuwei.scaskeleton.system.entity.SysOperationLog">
-        SELECT l.*, u.username, u.real_name
+        SELECT l.*,
+               CASE WHEN u.real_name IS NOT NULL
+                   THEN CONCAT(u.real_name, ' (', u.username, ')')
+                   ELSE u.username
+                   END AS operator
         FROM sys_operation_log l
         LEFT JOIN sys_user u ON u.id = l.user_id AND u.is_deleted = 0
         WHERE l.id = #{id}

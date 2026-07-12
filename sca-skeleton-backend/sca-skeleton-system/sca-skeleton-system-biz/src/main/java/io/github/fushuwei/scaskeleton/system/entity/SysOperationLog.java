@@ -37,15 +37,10 @@ public class SysOperationLog implements Serializable {
     /** 操作人 ID（关联 sys_user.id） */
     private String userId;
 
-    /** 操作人用户名（非表字段，通过 JOIN sys_user 获取） */
-    @TableField(value = "username", insertStrategy = FieldStrategy.NEVER,
+    /** 操作人展示名称（非表字段，通过 JOIN sys_user 拼接生成，格式："real_name (username)"） */
+    @TableField(value = "operator", insertStrategy = FieldStrategy.NEVER,
                 updateStrategy = FieldStrategy.NEVER, select = false)
-    private String username;
-
-    /** 操作人真实姓名（非表字段，通过 JOIN sys_user 获取） */
-    @TableField(value = "real_name", insertStrategy = FieldStrategy.NEVER,
-                updateStrategy = FieldStrategy.NEVER, select = false)
-    private String realName;
+    private String operator;
 
     /** 操作模块 */
     private String module;

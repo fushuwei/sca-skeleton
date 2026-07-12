@@ -17,7 +17,7 @@ public class OperationLogPageRequest {
 
     /** 允许排序的字段白名单，防止 SQL 注入 */
     private static final Set<String> ALLOWED_ORDER_FIELDS = Set.of(
-            "operation_time", "username", "module", "action",
+            "operation_time", "operator", "module", "action",
             "http_method", "request_uri", "client_ip", "cost_ms", "success"
     );
 
@@ -36,8 +36,8 @@ public class OperationLogPageRequest {
     /** 操作动作筛选 */
     private String action;
 
-    /** 操作人用户名筛选 */
-    private String username;
+    /** 操作人筛选（匹配拼接后的展示名称："real_name (username)"） */
+    private String operator;
 
     /** 操作状态筛选：true-成功，false-失败 */
     private Boolean success;

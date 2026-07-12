@@ -359,8 +359,8 @@ export interface SysOperationLog {
   id: string;
   traceId: string;
   userId: string;
-  username: string;
-  realName: string;
+  /** 操作人展示名称（格式："real_name (username)"） */
+  operator: string;
   module: string;
   action: string;
   httpMethod: string;
@@ -382,7 +382,7 @@ export interface OperationLogPageRequest {
   pageSize?: number;
   module?: string;
   action?: string;
-  username?: string;
+  operator?: string;
   success?: boolean;
   startTime?: string;
   endTime?: string;

@@ -30,7 +30,7 @@ const searchForm = reactive<OperationLogPageRequest>({
   pageSize: 10,
   module: "",
   action: "",
-  username: "",
+  operator: "",
   success: undefined,
   startTime: "",
   endTime: ""
@@ -117,8 +117,8 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
     format: (val: string) => formatDateTime(val)
   },
   {
-    name: "username",
-    field: "username",
+    name: "operator",
+    field: "operator",
     label: t("operationLog.username"),
     align: "left",
     sortable: true
@@ -184,7 +184,7 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
 // ── 前端列名 → 后端排序列名映射 ──
 const SORT_FIELD_MAP: Record<string, string> = {
   operationTime: "operation_time",
-  username: "username",
+  operator: "operator",
   module: "module",
   action: "action",
   httpMethod: "http_method",
@@ -237,7 +237,7 @@ async function loadTableData(
     pageSize,
     module: searchForm.module || undefined,
     action: searchForm.action || undefined,
-    username: searchForm.username || undefined,
+    operator: searchForm.operator || undefined,
     success: searchForm.success,
     startTime: searchForm.startTime || undefined,
     endTime: searchForm.endTime || undefined,
@@ -298,7 +298,7 @@ function handleJumpToPage() {
 function handleReset() {
   searchForm.module = "";
   searchForm.action = "";
-  searchForm.username = "";
+  searchForm.operator = "";
   searchForm.success = undefined;
   searchForm.startTime = "";
   searchForm.endTime = "";
@@ -450,7 +450,7 @@ onMounted(() => {
             </div>
             <div class="col">
               <q-input
-                v-model="searchForm.username"
+                v-model="searchForm.operator"
                 filled
                 square
                 dense
@@ -574,12 +574,10 @@ onMounted(() => {
         :class="['operation-log-table', { 'operation-log-table--empty': !tableRows.length }]"
         @request="loadTableData"
       >
-        <!-- 操作人列：展示 真实姓名(登录用户名) -->
-        <template #body-cell-username="props">
+        <!-- 操作人列：展示 真实姓名(登录用户名)，由后端 SQL 拼接 -->
+        <template #body-cell-operator="props">
           <q-td :props="props">
-            <span v-if="props.row.realName || props.row.username">
-              {{ props.row.realName || "-" }}<span v-if="props.row.username" class="text-grey-7"> ({{ props.row.username }})</span>
-            </span>
+            <span v-if="props.value">{{ props.value }}</span>
             <span v-else class="text-grey-5">-</span>
           </q-td>
         </template>
@@ -775,9 +773,7 @@ onMounted(() => {
                     </div>
                     <div class="detail-field">
                       <div class="detail-field-label">{{ t("operationLog.username") }}</div>
-                      <div class="detail-field-value">
-                        {{ detailData.realName || "-" }}<span v-if="detailData.username" class="text-grey-7"> ({{ detailData.username }})</span>
-                      </div>
+                      <div class="detail-field-value">{{ detailData.operator || "-" }}</div>
                     </div>
                     <div class="detail-field">
                       <div class="detail-field-label">{{ t("operationLog.operationTime") }}</div>
