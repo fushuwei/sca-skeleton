@@ -1,2 +1,2 @@
-io.github.fushuwei.scaskeleton.log.config.LoggingAutoConfiguration
+io.github.fushuwei.scaskeleton.log.config.OperationLogAutoConfiguration
 io.github.fushuwei.scaskeleton.log.config.LoginLogAutoConfiguration

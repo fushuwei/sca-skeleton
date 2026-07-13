@@ -36,7 +36,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 @EnableAsync
 @EnableConfigurationProperties(OperationLogProperties.class)
 @MapperScan(basePackageClasses = SysOperationLogMapper.class)
-public class LoggingAutoConfiguration {
+public class OperationLogAutoConfiguration {
 
     /**
      * 操作日志专用线程池，独立于 Spring 默认 taskExecutor
