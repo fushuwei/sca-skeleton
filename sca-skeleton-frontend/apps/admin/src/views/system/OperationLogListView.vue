@@ -385,6 +385,24 @@ function formatJson(str: string | null | undefined): string {
   }
 }
 
+// 复制按钮图标状态：idle（复制图标）/ success（成功）/ fail（失败）
+type CopyState = "idle" | "success" | "fail";
+const copyState = reactive<{ requestArgs: CopyState; responseResult: CopyState }>({
+  requestArgs: "idle",
+  responseResult: "idle"
+});
+
+async function copyText(text: string | null | undefined, key: "requestArgs" | "responseResult"): Promise<void> {
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    copyState[key] = "success";
+  } catch {
+    copyState[key] = "fail";
+  }
+  setTimeout(() => { copyState[key] = "idle"; }, 2000);
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 生命周期
 // ═══════════════════════════════════════════════════════════════
@@ -853,6 +871,17 @@ onMounted(() => {
                   <div class="detail-section-header row items-center no-wrap q-mb-sm">
                     <q-icon name="sym_r_code" size="20px" class="q-mr-xs" color="grey-8" />
                     <span class="detail-section-title">{{ t('operationLog.requestArgs') }}</span>
+                    <q-space />
+                    <q-btn
+                      v-if="detailData.requestArgs"
+                      flat
+                      dense
+                      round
+                      size="sm"
+                      :icon="copyState.requestArgs === 'idle' ? 'sym_r_content_copy' : copyState.requestArgs === 'success' ? 'sym_r_check' : 'sym_r_close'"
+                      :color="copyState.requestArgs === 'success' ? 'positive' : copyState.requestArgs === 'fail' ? 'negative' : 'grey-7'"
+                      @click="copyText(detailData.requestArgs, 'requestArgs')"
+                    />
                   </div>
                   <pre class="json-block">{{ formatJson(detailData.requestArgs) }}</pre>
                 </div>
@@ -862,6 +891,17 @@ onMounted(() => {
                   <div class="detail-section-header row items-center no-wrap q-mb-sm">
                     <q-icon name="sym_r_data_object" size="20px" class="q-mr-xs" color="grey-8" />
                     <span class="detail-section-title">{{ t('operationLog.responseResult') }}</span>
+                    <q-space />
+                    <q-btn
+                      v-if="detailData.responseResult"
+                      flat
+                      dense
+                      round
+                      size="sm"
+                      :icon="copyState.responseResult === 'idle' ? 'sym_r_content_copy' : copyState.responseResult === 'success' ? 'sym_r_check' : 'sym_r_close'"
+                      :color="copyState.responseResult === 'success' ? 'positive' : copyState.responseResult === 'fail' ? 'negative' : 'grey-7'"
+                      @click="copyText(detailData.responseResult, 'responseResult')"
+                    />
                   </div>
                   <pre class="json-block">{{ formatJson(detailData.responseResult) }}</pre>
                 </div>
