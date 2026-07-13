@@ -35,6 +35,15 @@ public class SysLoginLog implements Serializable {
     private String tenantId;
 
     /**
+     * 租户名称
+     */
+    @TableField(value = "tenant_name",
+        insertStrategy = FieldStrategy.NEVER,
+        updateStrategy = FieldStrategy.NEVER,
+        select = false)
+    private String tenantName;
+
+    /**
      * 用户 ID
      */
     private String userId;

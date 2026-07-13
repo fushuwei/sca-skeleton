@@ -63,7 +63,7 @@ const methodColorOf = (m: string): string =>
 // ── 耗时颜色 ──
 const costColorOf = (ms: number): string => {
   if (ms > 3000) return "text-red-7";
-  if (ms > 1000) return "text-orange-7";
+  if (ms > 500) return "text-orange-7";
   return "text-green-7";
 };
 

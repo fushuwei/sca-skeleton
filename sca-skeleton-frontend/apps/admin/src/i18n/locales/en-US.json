@@ -431,6 +431,7 @@
   },
   "loginLog": {
     "title": "Login Logs",
+    "tenantName": "Tenant",
     "username": "Username",
     "realName": "Real Name",
     "status": "Status",

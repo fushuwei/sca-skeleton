@@ -396,6 +396,8 @@ export interface OperationLogPageRequest {
 export interface SysLoginLog {
   id: string;
   tenantId: string;
+  /** 租户名称（通过 tenant_id 关联 sys_tenant 查询，租户不存在时为空） */
+  tenantName: string;
   userId: string;
   /** 登录时输入的用户名（原始输入，无论用户是否存在都记录） */
   username: string;

@@ -49,6 +49,13 @@ const statusLabelOf = (isSuccess: number): string =>
 const statusColorOf = (isSuccess: number): string =>
   isSuccess === 1 ? "green-7" : "red-7";
 
+// ── 耗时颜色 ──
+const costColorOf = (ms: number): string => {
+  if (ms > 3000) return "text-red-7";
+  if (ms > 500) return "text-orange-7";
+  return "text-green-7";
+};
+
 // ═══════════════════════════════════════════════════════════════
 // 详情抽屉
 // ═══════════════════════════════════════════════════════════════
@@ -113,6 +120,13 @@ const columns = computed<QTableColumn<SysLoginLog>[]>(() => [
     sortable: false
   },
   {
+    name: "tenantName",
+    field: "tenantName",
+    label: t("loginLog.tenantName"),
+    align: "left",
+    sortable: false
+  },
+  {
     name: "clientIp",
     field: "clientIp",
     label: t("loginLog.clientIp"),
@@ -148,19 +162,18 @@ const columns = computed<QTableColumn<SysLoginLog>[]>(() => [
     sortable: true
   },
   {
+    name: "costMs",
+    field: "costMs",
+    label: t("loginLog.costMs"),
+    align: "center",
+    sortable: true
+  },
+  {
     name: "isSuccess",
     field: "isSuccess",
     label: t("loginLog.status"),
     align: "center",
     sortable: true
-  },
-  {
-    name: "costMs",
-    field: "costMs",
-    label: t("loginLog.costMs"),
-    align: "center",
-    sortable: true,
-    format: (val: number) => (val != null ? `${val} ms` : "-")
   },
   {
     name: "actions",
@@ -558,6 +571,14 @@ onMounted(() => {
           </q-td>
         </template>
 
+        <!-- 租户名称列 -->
+        <template #body-cell-tenantName="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
         <!-- 客户端 IP 列 -->
         <template #body-cell-clientIp="props">
           <q-td :props="props">
@@ -600,6 +621,16 @@ onMounted(() => {
         <template #body-cell-os="props">
           <q-td :props="props">
             <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 耗时列 -->
+        <template #body-cell-costMs="props">
+          <q-td :props="props">
+            <span v-if="props.value !== null && props.value !== undefined" :class="costColorOf(props.value)">
+              {{ props.value }}ms
+            </span>
             <span v-else class="text-grey-5">-</span>
           </q-td>
         </template>
@@ -729,6 +760,10 @@ onMounted(() => {
                     <span class="detail-section-title">{{ t('loginLog.overviewInfo') }}</span>
                   </div>
                   <div class="detail-grid">
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("loginLog.tenantName") }}</div>
+                      <div class="detail-field-value">{{ detailData.tenantName || "-" }}</div>
+                    </div>
                     <div class="detail-field">
                       <div class="detail-field-label">{{ t("loginLog.username") }}</div>
                       <div class="detail-field-value">{{ detailData.username || "-" }}</div>
@@ -1167,24 +1202,69 @@ onMounted(() => {
   color: rgba(255, 255, 255, 0.4);
 }
 
+/* 搜索区输入框暗色适配 */
+.body--dark .search-area :deep(.q-field--filled .q-field__control) {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.body--dark .search-area :deep(.q-field--filled .q-field__control::before) {
+  border-bottom-color: rgba(255, 255, 255, 0.28);
+}
+
+.body--dark .search-area :deep(.q-field--filled .q-field__native),
+.body--dark .search-area :deep(.q-field--filled .q-field__prefix),
+.body--dark .search-area :deep(.q-field--filled .q-field__suffix) {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .search-area :deep(.q-field--filled .q-field__native::placeholder) {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* 工具栏按钮暗色适配（color="white" 在暗色下改为透明背景） */
+.body--dark .toolbar-btn.text-white {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .toolbar-btn.q-btn--outline .q-btn__wrapper::before {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
 .body--dark .login-log-table {
   background: #1e1e1e;
   border-color: rgba(255, 255, 255, 0.08);
 }
 
 .body--dark .login-log-table :deep(thead tr th) {
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: rgba(255, 255, 255, 0.87) !important;
   background: #252525 !important;
   border-bottom-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 .body--dark .login-log-table :deep(tbody td) {
+  color: rgba(255, 255, 255, 0.87);
   border-bottom-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 .body--dark .login-log-table :deep(.q-table__bottom) {
   background: #1e1e1e;
   border-top-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* 空数据状态暗色适配 */
+.body--dark .login-log-table :deep(.empty-state-content) {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.body--dark .login-log-table :deep(.empty-state-content .text-grey-6) {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* 分页栏灰色文字暗色适配 */
+.body--dark .table-bottom :deep(.text-grey-7),
+.body--dark .table-bottom .text-grey-7 {
+  color: rgba(255, 255, 255, 0.5) !important;
 }
 
 /* ═══ 详情抽屉卡片样式 ═══ */
