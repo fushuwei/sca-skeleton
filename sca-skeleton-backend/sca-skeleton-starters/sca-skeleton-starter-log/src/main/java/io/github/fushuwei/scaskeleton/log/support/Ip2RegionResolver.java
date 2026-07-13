@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.lionsoul.ip2region.service.Config;
 import org.lionsoul.ip2region.service.Ip2Region;
 
+import java.net.InetAddress;
+
 /**
  * 基于 ip2region 离线 xdb 库的 IP 地理位置解析器
  *
@@ -39,12 +41,33 @@ public class Ip2RegionResolver implements IpRegionResolver, AutoCloseable {
         if (ip == null || ip.isBlank()) {
             return null;
         }
+        // 内网/回环地址直接返回，避免 ip2region 返回无意义的 "Reserved" 段
+        if (isInternalIp(ip)) {
+            return "内网IP";
+        }
         try {
             String region = ip2Region.search(ip);
             return formatRegion(region);
         } catch (Exception e) {
             log.warn("[IP解析] 无法解析 IP: {} ({})", ip, e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * 判断是否为内网/回环/链路本地等非公网地址
+     * <p>
+     * 覆盖：127.0.0.0/8（回环）、10.0.0.0/8、172.16.0.0/12、192.168.0.0/16（站点本地）、169.254.0.0/16（链路本地）、0.0.0.0（任意本地）
+     */
+    private boolean isInternalIp(String ip) {
+        try {
+            InetAddress address = InetAddress.getByName(ip);
+            return address.isLoopbackAddress()
+                || address.isAnyLocalAddress()
+                || address.isSiteLocalAddress()
+                || address.isLinkLocalAddress();
+        } catch (Exception e) {
+            return false;
         }
     }
 
@@ -65,7 +88,8 @@ public class Ip2RegionResolver implements IpRegionResolver, AutoCloseable {
         String[] parts = region.split("\\|");
         StringBuilder sb = new StringBuilder();
         for (String part : parts) {
-            if (!"0".equals(part) && !part.isBlank()) {
+            // 过滤 {@code "0"}、空白、{@code "Reserved"}（ip2region 对保留/未分配 IP 段返回的无意义占位符）
+            if (!"0".equals(part) && !part.isBlank() && !"Reserved".equals(part)) {
                 if (!sb.isEmpty()) {
                     sb.append(" ");
                 }
