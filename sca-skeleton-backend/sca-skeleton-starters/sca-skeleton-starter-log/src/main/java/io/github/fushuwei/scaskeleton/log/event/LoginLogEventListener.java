@@ -32,8 +32,8 @@ public class LoginLogEventListener {
         try {
             loginLogHandler.handle(event);
         } catch (Exception e) {
-            log.warn("[登录日志] 异步持久化监听器执行失败，回退到 Slf4j 记录日志", e);
             logToSlf4j(event);
+            log.error("[登录日志] 异步持久化监听器执行失败，已回退到 Slf4j 记录日志", e);
         }
     }
 
