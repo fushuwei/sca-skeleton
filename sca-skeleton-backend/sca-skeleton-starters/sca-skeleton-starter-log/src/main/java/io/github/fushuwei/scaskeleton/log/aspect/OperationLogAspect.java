@@ -60,33 +60,28 @@ public class OperationLogAspect {
         // 记录方法开始执行时间，用于计算耗时
         long startTime = System.currentTimeMillis();
 
-        OperationLogEvent logEvent = new OperationLogEvent();
+        OperationLogEvent event = new OperationLogEvent();
         // 从 TraceContext 获取当前链路 ID
-        logEvent.setTraceId(TraceContext.get());
+        event.setTraceId(TraceContext.get());
         // 从注解中读取业务语义描述
-        logEvent.setModule(annotation.module());
-        logEvent.setAction(annotation.action());
+        event.setModule(annotation.module());
+        event.setAction(annotation.action());
         // 记录操作发生时间
-        logEvent.setOperationTime(LocalDateTime.now());
+        event.setOperationTime(LocalDateTime.now());
 
         // 从方法签名中提取目标类名与方法名
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        logEvent.setClassName(joinPoint.getTarget().getClass().getName());
-        logEvent.setMethodName(signature.getName());
+        event.setClassName(joinPoint.getTarget().getClass().getName());
+        event.setMethodName(signature.getName());
 
         // 填充当前用户信息（依赖 Security Starter 的 CurrentUserProvider 实现）
         if (currentUserProvider != null) {
-            logEvent.setUserId(currentUserProvider.getUserId());
-            logEvent.setUsername(currentUserProvider.getUsername());
+            event.setUserId(currentUserProvider.getUserId());
+            event.setUsername(currentUserProvider.getUsername());
         }
 
         // 从 Spring Web 请求上下文中提取 HTTP 信息
-        HttpContext httpContext = extractHttpContext();
-        if (httpContext != null) {
-            logEvent.setClientIp(httpContext.clientIp());
-            logEvent.setHttpMethod(httpContext.httpMethod());
-            logEvent.setRequestUri(httpContext.requestUri());
-        }
+        fillHttpContext(event);
 
         // 如果注解配置了记录请求参数，将方法入参序列化为 JSON（敏感字段自动脱敏）
         if (annotation.logArgs()) {
@@ -94,60 +89,61 @@ public class OperationLogAspect {
                 Object[] args = joinPoint.getArgs();
                 if (args.length == 1) {
                     // 单参数方法：直接序列化该参数本身，避免外层多套一层数组 []
-                    logEvent.setRequestArgs(maskSensitiveFields(jsonMapper.writeValueAsString(args[0])));
+                    event.setRequestArgs(maskSensitiveFields(jsonMapper.writeValueAsString(args[0])));
                 } else {
                     // 多参数方法：序列化为数组，键为参数名
-                    logEvent.setRequestArgs(maskSensitiveFields(jsonMapper.writeValueAsString(args)));
+                    event.setRequestArgs(maskSensitiveFields(jsonMapper.writeValueAsString(args)));
                 }
             } catch (Exception e) {
-                logEvent.setRequestArgs("[请求参数序列化失败，详情：{" + e.getMessage() + "}]");
+                event.setRequestArgs("[请求参数序列化失败，详情：{" + e.getMessage() + "}]");
             }
         }
 
         // 默认标记为失败，成功时覆盖
-        logEvent.setIsSuccess(0);
+        event.setIsSuccess(0);
         try {
             // 执行原方法，捕获返回值
             Object result = joinPoint.proceed();
-            logEvent.setIsSuccess(1);
+            event.setIsSuccess(1);
             // 如果注解配置了记录响应结果，将返回值序列化为 JSON
             if (annotation.logResult() && result != null) {
                 try {
-                    logEvent.setResponseResult(jsonMapper.writeValueAsString(result));
+                    event.setResponseResult(jsonMapper.writeValueAsString(result));
                 } catch (Exception e) {
-                    logEvent.setResponseResult("[响应结果序列化失败，详情：{" + e.getMessage() + "}]");
+                    event.setResponseResult("[响应结果序列化失败，详情：{" + e.getMessage() + "}]");
                 }
             }
             return result;
         } catch (Throwable throwable) {
             // 标记操作失败并记录异常描述
-            logEvent.setErrorMessage(throwable.getMessage());
+            event.setErrorMessage(throwable.getMessage());
             // 异常继续向上抛出，不吞掉业务异常
             throw throwable;
         } finally {
             // 无论成功或失败，均计算耗时并发布事件
-            logEvent.setCostMs(System.currentTimeMillis() - startTime);
-            eventPublisher.publishEvent(logEvent);
+            event.setCostMs(System.currentTimeMillis() - startTime);
+            eventPublisher.publishEvent(event);
         }
     }
 
     /**
      * 从 Spring Web 请求上下文中提取 HTTP 方法、请求路径和客户端 IP
-     * 非 Web 场景（如单元测试）下 RequestContextHolder 为 null，返回 null
+     * 非 Web 场景（如单元测试）下 RequestContextHolder 为 null，跳过填充
+     *
+     * @param event 待填充的操作日志记录
      */
-    private HttpContext extractHttpContext() {
+    private void fillHttpContext(OperationLogEvent event) {
         ServletRequestAttributes attributes =
             (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         // 非 Web 请求（异步任务、定时任务）时跳过 HTTP 信息填充
         if (attributes == null) {
-            return null;
+            return;
         }
         HttpServletRequest request = attributes.getRequest();
-        return new HttpContext(
-            request.getMethod(),
-            request.getRequestURI(),
-            resolveClientIp(request)
-        );
+        event.setHttpMethod(request.getMethod());
+        event.setRequestUri(request.getRequestURI());
+        // 优先从 X-Forwarded-For 获取真实客户端 IP（经过反向代理时有效）
+        event.setClientIp(resolveClientIp(request));
     }
 
     /**
@@ -174,11 +170,5 @@ public class OperationLogAspect {
             return json;
         }
         return SENSITIVE_FIELD_PATTERN.matcher(json).replaceAll("$1\"******\"");
-    }
-
-    /**
-     * HTTP 请求上下文数据载体
-     */
-    private record HttpContext(String httpMethod, String requestUri, String clientIp) {
     }
 }
