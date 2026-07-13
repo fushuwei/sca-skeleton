@@ -392,15 +392,28 @@ const copyState = reactive<{ requestArgs: CopyState; responseResult: CopyState }
   responseResult: "idle"
 });
 
+// 各字段对应的重置定时器句柄，避免连点时多个定时器互相重置状态
+const copyTimers: Record<"requestArgs" | "responseResult", ReturnType<typeof setTimeout> | null> = {
+  requestArgs: null,
+  responseResult: null
+};
+
 async function copyText(text: string | null | undefined, key: "requestArgs" | "responseResult"): Promise<void> {
   if (!text) return;
+  if (copyTimers[key] !== null) {
+    clearTimeout(copyTimers[key]!);
+    copyTimers[key] = null;
+  }
   try {
     await navigator.clipboard.writeText(text);
     copyState[key] = "success";
   } catch {
     copyState[key] = "fail";
   }
-  setTimeout(() => { copyState[key] = "idle"; }, 2000);
+  copyTimers[key] = setTimeout(() => {
+    copyState[key] = "idle";
+    copyTimers[key] = null;
+  }, 2000);
 }
 
 function copyTooltip(state: CopyState): string {
