@@ -1,10 +1,14 @@
 package io.github.fushuwei.scaskeleton.log.config;
 
 import io.github.fushuwei.scaskeleton.log.event.LoginLogEventListener;
+import io.github.fushuwei.scaskeleton.log.handler.DefaultLoginLogHandler;
+import io.github.fushuwei.scaskeleton.log.handler.LoginLogHandler;
 import io.github.fushuwei.scaskeleton.log.mapper.SysLoginLogMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -48,12 +52,22 @@ public class LoginLogAutoConfiguration {
     }
 
     /**
+     * 登录日志处理器
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public LoginLogHandler loginLogHandler(SysLoginLogMapper loginLogMapper) {
+        return new DefaultLoginLogHandler(loginLogMapper);
+    }
+
+    /**
      * 登录日志异步持久化监听器
      */
     @Bean
     @ConditionalOnMissingBean
-    public LoginLogEventListener loginLogEventListener(SysLoginLogMapper loginLogMapper) {
-        return new LoginLogEventListener(loginLogMapper);
+    public LoginLogEventListener loginLogEventListener(
+        @Autowired(required = false) @Nullable LoginLogHandler loginLogHandler) {
+        return new LoginLogEventListener(loginLogHandler);
     }
 
     /**
