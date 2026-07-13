@@ -19,10 +19,10 @@ export async function getOperationLogByIdApi(id: string): Promise<ApiEnvelope<Sy
 
 /** 批量删除操作日志 */
 export async function batchDeleteOperationLogApi(ids: string[]): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "DELETE", url: "/sys/operation-log/batch", data: ids });
+  return request<null>({ method: "POST", url: "/sys/operation-log/batch/delete", data: ids });
 }
 
 /** 清空全部操作日志 */
 export async function clearAllOperationLogApi(): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "DELETE", url: "/sys/operation-log/clear" });
+  return request<null>({ method: "POST", url: "/sys/operation-log/clear" });
 }

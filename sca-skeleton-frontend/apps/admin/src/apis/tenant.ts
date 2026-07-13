@@ -24,15 +24,15 @@ export async function getTenantByIdApi(id: string): Promise<ApiEnvelope<SysTenan
 
 /** 创建租户 */
 export async function createTenantApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: "/sys/tenant", data });
+  return request<null>({ method: "POST", url: "/sys/tenant/create", data });
 }
 
 /** 更新租户 */
 export async function updateTenantApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "PUT", url: "/sys/tenant", data });
+  return request<null>({ method: "POST", url: "/sys/tenant/update", data });
 }
 
 /** 删除租户 */
 export async function deleteTenantApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "DELETE", url: `/sys/tenant/${id}` });
+  return request<null>({ method: "POST", url: `/sys/tenant/${id}/delete` });
 }

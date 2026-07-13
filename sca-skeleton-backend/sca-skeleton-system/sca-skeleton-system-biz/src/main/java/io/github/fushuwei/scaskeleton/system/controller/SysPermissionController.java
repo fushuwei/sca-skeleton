@@ -62,7 +62,7 @@ public class SysPermissionController {
     }
 
     // 新增权限节点，需 sys:permission:add
-    @PostMapping
+    @PostMapping("/create")
     @RequiresPermission("sys:permission:add")
     @OperationLog(module = "菜单管理", action = "添加菜单")
     public Result<Void> create(@Validated @RequestBody PermissionCreateRequest request) {
@@ -71,7 +71,7 @@ public class SysPermissionController {
     }
 
     // 更新权限节点，需 sys:permission:edit
-    @PutMapping
+    @PostMapping("/update")
     @RequiresPermission("sys:permission:edit")
     @OperationLog(module = "菜单管理", action = "编辑菜单")
     public Result<Void> update(@Validated @RequestBody PermissionUpdateRequest request) {
@@ -80,7 +80,7 @@ public class SysPermissionController {
     }
 
     // 删除权限节点，需 sys:permission:delete
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}/delete")
     @RequiresPermission("sys:permission:delete")
     @OperationLog(module = "菜单管理", action = "删除菜单")
     public Result<Void> delete(@PathVariable("id") String id) {
@@ -89,7 +89,7 @@ public class SysPermissionController {
     }
 
     // 批量删除权限节点
-    @DeleteMapping("/batch")
+    @PostMapping("/batch/delete")
     @RequiresPermission("sys:permission:delete")
     @OperationLog(module = "菜单管理", action = "批量删除菜单")
     public Result<Void> batchDelete(@RequestBody List<String> ids) {

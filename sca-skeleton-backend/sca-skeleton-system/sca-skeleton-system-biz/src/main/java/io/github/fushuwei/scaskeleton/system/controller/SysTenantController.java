@@ -49,7 +49,7 @@ public class SysTenantController {
     }
 
     // 创建租户，需 sys:tenant:add
-    @PostMapping
+    @PostMapping("/create")
     @RequiresPermission("sys:tenant:add")
     @OperationLog(module = "租户管理", action = "添加租户")
     public Result<Void> create(@Validated @RequestBody TenantCreateRequest request) {
@@ -58,7 +58,7 @@ public class SysTenantController {
     }
 
     // 更新租户信息，需 sys:tenant:edit
-    @PutMapping
+    @PostMapping("/update")
     @RequiresPermission("sys:tenant:edit")
     @OperationLog(module = "租户管理", action = "编辑租户")
     public Result<Void> update(@Validated @RequestBody TenantUpdateRequest request) {
@@ -67,7 +67,7 @@ public class SysTenantController {
     }
 
     // 删除指定租户，需 sys:tenant:delete
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}/delete")
     @RequiresPermission("sys:tenant:delete")
     @OperationLog(module = "租户管理", action = "删除租户")
     public Result<Void> delete(@PathVariable("id") String id) {
@@ -76,7 +76,7 @@ public class SysTenantController {
     }
 
     // 批量删除租户
-    @DeleteMapping("/batch")
+    @PostMapping("/batch/delete")
     @RequiresPermission("sys:tenant:delete")
     @OperationLog(module = "租户管理", action = "批量删除租户")
     public Result<Void> batchDelete(@RequestBody List<String> ids) {

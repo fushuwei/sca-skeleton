@@ -50,7 +50,7 @@ public class SysDeptController {
     }
 
     // 在当前租户下创建部门，需 sys:dept:add
-    @PostMapping
+    @PostMapping("/create")
     @RequiresPermission("sys:dept:add")
     @OperationLog(module = "部门管理", action = "添加部门")
     public Result<Void> create(@Validated @RequestBody DeptCreateRequest request) {
@@ -59,7 +59,7 @@ public class SysDeptController {
     }
 
     // 更新当前租户下部门信息，需 sys:dept:edit
-    @PutMapping
+    @PostMapping("/update")
     @RequiresPermission("sys:dept:edit")
     @OperationLog(module = "部门管理", action = "编辑部门")
     public Result<Void> update(@Validated @RequestBody DeptUpdateRequest request) {
@@ -68,7 +68,7 @@ public class SysDeptController {
     }
 
     // 删除指定部门，需 sys:dept:delete
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}/delete")
     @RequiresPermission("sys:dept:delete")
     @OperationLog(module = "部门管理", action = "删除部门")
     public Result<Void> delete(@PathVariable("id") String id) {
@@ -77,7 +77,7 @@ public class SysDeptController {
     }
 
     // 批量删除部门
-    @DeleteMapping("/batch")
+    @PostMapping("/batch/delete")
     @RequiresPermission("sys:dept:delete")
     @OperationLog(module = "部门管理", action = "批量删除部门")
     public Result<Void> batchDelete(@RequestBody List<String> ids) {

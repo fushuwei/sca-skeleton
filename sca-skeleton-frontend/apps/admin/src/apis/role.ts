@@ -29,15 +29,15 @@ export async function getRolePermissionIdsApi(id: string): Promise<ApiEnvelope<s
 
 /** 创建角色 */
 export async function createRoleApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: "/sys/role", data });
+  return request<null>({ method: "POST", url: "/sys/role/create", data });
 }
 
 /** 更新角色 */
 export async function updateRoleApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "PUT", url: "/sys/role", data });
+  return request<null>({ method: "POST", url: "/sys/role/update", data });
 }
 
 /** 删除角色 */
 export async function deleteRoleApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "DELETE", url: `/sys/role/${id}` });
+  return request<null>({ method: "POST", url: `/sys/role/${id}/delete` });
 }

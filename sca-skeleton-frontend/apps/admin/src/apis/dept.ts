@@ -24,15 +24,15 @@ export async function getDeptByIdApi(id: string): Promise<ApiEnvelope<SysDept>> 
 
 /** 创建部门 */
 export async function createDeptApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: "/sys/dept", data });
+  return request<null>({ method: "POST", url: "/sys/dept/create", data });
 }
 
 /** 更新部门 */
 export async function updateDeptApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "PUT", url: "/sys/dept", data });
+  return request<null>({ method: "POST", url: "/sys/dept/update", data });
 }
 
 /** 删除部门 */
 export async function deleteDeptApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "DELETE", url: `/sys/dept/${id}` });
+  return request<null>({ method: "POST", url: `/sys/dept/${id}/delete` });
 }

@@ -42,7 +42,7 @@ public class SysOperationLogController {
     }
 
     // 批量删除操作日志，仅超级管理员可操作
-    @DeleteMapping("/batch")
+    @PostMapping("/batch/delete")
     @RequiresPermission("sys:operation-log:delete")
     @OperationLog(module = "操作日志", action = "批量删除日志")
     public Result<Void> batchDelete(@RequestBody List<String> ids) {
@@ -54,7 +54,7 @@ public class SysOperationLogController {
     }
 
     // 清空全部操作日志，仅超级管理员可操作
-    @DeleteMapping("/clear")
+    @PostMapping("/clear")
     @RequiresPermission("sys:operation-log:delete")
     @OperationLog(module = "操作日志", action = "清空日志")
     public Result<Void> clearAll() {

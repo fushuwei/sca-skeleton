@@ -57,7 +57,7 @@ public class SysRoleController {
     }
 
     // 在当前租户下创建角色，需 sys:role:add
-    @PostMapping
+    @PostMapping("/create")
     @RequiresPermission("sys:role:add")
     @OperationLog(module = "角色管理", action = "添加角色")
     public Result<Void> create(
@@ -67,7 +67,7 @@ public class SysRoleController {
     }
 
     // 更新当前租户下角色信息，需 sys:role:edit
-    @PutMapping
+    @PostMapping("/update")
     @RequiresPermission("sys:role:edit")
     @OperationLog(module = "角色管理", action = "编辑角色")
     public Result<Void> update(
@@ -77,7 +77,7 @@ public class SysRoleController {
     }
 
     // 删除指定角色，需 sys:role:delete
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}/delete")
     @RequiresPermission("sys:role:delete")
     @OperationLog(module = "角色管理", action = "删除角色")
     public Result<Void> delete(@PathVariable("id") String id) {
@@ -86,7 +86,7 @@ public class SysRoleController {
     }
 
     // 批量删除角色
-    @DeleteMapping("/batch")
+    @PostMapping("/batch/delete")
     @RequiresPermission("sys:role:delete")
     @OperationLog(module = "角色管理", action = "批量删除角色")
     public Result<Void> batchDelete(@RequestBody List<String> ids) {
@@ -95,7 +95,7 @@ public class SysRoleController {
     }
 
     // 为角色分配权限，需 sys:role:assign-permission；按当前租户隔离
-    @PutMapping("/{id}/permissions")
+    @PostMapping("/{id}/permissions")
     @RequiresPermission("sys:role:assign-permission")
     @OperationLog(module = "角色管理", action = "分配权限")
     public Result<Void> assignPermissions(@PathVariable("id") String id,

@@ -24,15 +24,15 @@ export async function getPostByIdApi(id: string): Promise<ApiEnvelope<SysPost>> 
 
 /** 创建岗位 */
 export async function createPostApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: "/sys/post", data });
+  return request<null>({ method: "POST", url: "/sys/post/create", data });
 }
 
 /** 更新岗位 */
 export async function updatePostApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "PUT", url: "/sys/post", data });
+  return request<null>({ method: "POST", url: "/sys/post/update", data });
 }
 
 /** 删除岗位 */
 export async function deletePostApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "DELETE", url: `/sys/post/${id}` });
+  return request<null>({ method: "POST", url: `/sys/post/${id}/delete` });
 }

@@ -55,7 +55,7 @@ public class SysUserController {
     }
 
     // 在当前租户下创建用户，需 sys:user:add
-    @PostMapping
+    @PostMapping("/create")
     @RequiresPermission("sys:user:add")
     @OperationLog(module = "用户管理", action = "新增用户")
     public Result<Void> create(
@@ -65,7 +65,7 @@ public class SysUserController {
     }
 
     // 更新当前租户下用户信息，需 sys:user:edit
-    @PutMapping
+    @PostMapping("/update")
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "编辑用户")
     public Result<Void> update(
@@ -75,7 +75,7 @@ public class SysUserController {
     }
 
     // 删除指定用户，需 sys:user:delete
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}/delete")
     @RequiresPermission("sys:user:delete")
     @OperationLog(module = "用户管理", action = "删除用户")
     public Result<Void> delete(@PathVariable("id") String id) {
@@ -84,7 +84,7 @@ public class SysUserController {
     }
 
     // 批量删除用户
-    @DeleteMapping("/batch")
+    @PostMapping("/batch/delete")
     @RequiresPermission("sys:user:delete")
     @OperationLog(module = "用户管理", action = "批量删除用户")
     public Result<Void> batchDelete(@RequestBody List<String> ids) {
@@ -93,7 +93,7 @@ public class SysUserController {
     }
 
     // 重置用户登录密码
-    @PutMapping("/{id}/password/reset")
+    @PostMapping("/{id}/password/reset")
     @RequiresPermission("sys:user:reset-password")
     @OperationLog(module = "用户管理", action = "重置密码")
     public Result<Void> resetPassword(@PathVariable("id") String id,
@@ -103,7 +103,7 @@ public class SysUserController {
     }
 
     // 变更用户状态（启用/禁用等）
-    @PutMapping("/{id}/status")
+    @PostMapping("/{id}/status")
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "变更用户状态")
     public Result<Void> changeStatus(@PathVariable("id") String id,
@@ -113,7 +113,7 @@ public class SysUserController {
     }
 
     // 批量变更用户状态
-    @PutMapping("/batch/status")
+    @PostMapping("/batch/status")
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "批量变更用户状态")
     public Result<Void> batchChangeStatus(@Validated @RequestBody UserBatchStatusRequest request) {

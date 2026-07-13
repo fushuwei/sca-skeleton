@@ -24,17 +24,17 @@ export async function getUserByIdApi(id: string): Promise<ApiEnvelope<SysUser>> 
 
 /** 创建用户 */
 export async function createUserApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: "/sys/user", data });
+  return request<null>({ method: "POST", url: "/sys/user/create", data });
 }
 
 /** 更新用户 */
 export async function updateUserApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "PUT", url: "/sys/user", data });
+  return request<null>({ method: "POST", url: "/sys/user/update", data });
 }
 
 /** 删除用户 */
 export async function deleteUserApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "DELETE", url: `/sys/user/${id}` });
+  return request<null>({ method: "POST", url: `/sys/user/${id}/delete` });
 }
 
 /** 重置用户密码 */
@@ -43,7 +43,7 @@ export async function resetUserPasswordApi(
   newPassword: string
 ): Promise<ApiEnvelope<null>> {
   return request<null>({
-    method: "PUT",
+    method: "POST",
     url: `/sys/user/${id}/password/reset`,
     data: { newPassword }
   });
@@ -56,7 +56,7 @@ export async function changeUserStatusApi(
   reason?: string
 ): Promise<ApiEnvelope<null>> {
   return request<null>({
-    method: "PUT",
+    method: "POST",
     url: `/sys/user/${id}/status`,
     data: { status, ...(reason ? { reason } : {}) }
   });

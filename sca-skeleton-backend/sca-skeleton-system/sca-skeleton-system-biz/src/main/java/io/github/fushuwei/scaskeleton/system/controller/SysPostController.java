@@ -50,7 +50,7 @@ public class SysPostController {
     }
 
     // 在当前租户下创建岗位，需 sys:post:add
-    @PostMapping
+    @PostMapping("/create")
     @RequiresPermission("sys:post:add")
     @OperationLog(module = "岗位管理", action = "添加岗位")
     public Result<Void> create(
@@ -60,7 +60,7 @@ public class SysPostController {
     }
 
     // 更新当前租户下岗位信息，需 sys:post:edit
-    @PutMapping
+    @PostMapping("/update")
     @RequiresPermission("sys:post:edit")
     @OperationLog(module = "岗位管理", action = "编辑岗位")
     public Result<Void> update(
@@ -70,7 +70,7 @@ public class SysPostController {
     }
 
     // 删除指定岗位，需 sys:post:delete
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}/delete")
     @RequiresPermission("sys:post:delete")
     @OperationLog(module = "岗位管理", action = "删除岗位")
     public Result<Void> delete(@PathVariable("id") String id) {
@@ -79,7 +79,7 @@ public class SysPostController {
     }
 
     // 批量删除岗位
-    @DeleteMapping("/batch")
+    @PostMapping("/batch/delete")
     @RequiresPermission("sys:post:delete")
     @OperationLog(module = "岗位管理", action = "批量删除岗位")
     public Result<Void> batchDelete(@RequestBody List<String> ids) {

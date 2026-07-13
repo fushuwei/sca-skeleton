@@ -29,15 +29,15 @@ export async function getTenantPackagePermissionIdsApi(id: string): Promise<ApiE
 
 /** 创建套餐 */
 export async function createTenantPackageApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: "/sys/tenant-package", data });
+  return request<null>({ method: "POST", url: "/sys/tenant-package/create", data });
 }
 
 /** 更新套餐 */
 export async function updateTenantPackageApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "PUT", url: "/sys/tenant-package", data });
+  return request<null>({ method: "POST", url: "/sys/tenant-package/update", data });
 }
 
 /** 删除套餐 */
 export async function deleteTenantPackageApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "DELETE", url: `/sys/tenant-package/${id}` });
+  return request<null>({ method: "POST", url: `/sys/tenant-package/${id}/delete` });
 }

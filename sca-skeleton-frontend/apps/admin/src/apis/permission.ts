@@ -39,15 +39,15 @@ export async function getPermissionByIdApi(id: string): Promise<ApiEnvelope<SysP
 
 /** 创建权限 */
 export async function createPermissionApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: "/sys/permission", data });
+  return request<null>({ method: "POST", url: "/sys/permission/create", data });
 }
 
 /** 更新权限 */
 export async function updatePermissionApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "PUT", url: "/sys/permission", data });
+  return request<null>({ method: "POST", url: "/sys/permission/update", data });
 }
 
 /** 删除权限 */
 export async function deletePermissionApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "DELETE", url: `/sys/permission/${id}` });
+  return request<null>({ method: "POST", url: `/sys/permission/${id}/delete` });
 }

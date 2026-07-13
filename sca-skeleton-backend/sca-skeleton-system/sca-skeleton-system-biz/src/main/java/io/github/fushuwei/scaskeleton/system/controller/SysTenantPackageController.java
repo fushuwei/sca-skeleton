@@ -56,7 +56,7 @@ public class SysTenantPackageController {
     }
 
     // 创建套餐，需 sys:tenant-package:add
-    @PostMapping
+    @PostMapping("/create")
     @RequiresPermission("sys:tenant-package:add")
     @OperationLog(module = "套餐管理", action = "添加套餐")
     public Result<Void> create(
@@ -66,7 +66,7 @@ public class SysTenantPackageController {
     }
 
     // 更新套餐信息，需 sys:tenant-package:edit
-    @PutMapping
+    @PostMapping("/update")
     @RequiresPermission("sys:tenant-package:edit")
     @OperationLog(module = "套餐管理", action = "编辑套餐")
     public Result<Void> update(
@@ -76,7 +76,7 @@ public class SysTenantPackageController {
     }
 
     // 删除指定套餐，需 sys:tenant-package:delete
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}/delete")
     @RequiresPermission("sys:tenant-package:delete")
     @OperationLog(module = "套餐管理", action = "删除套餐")
     public Result<Void> delete(@PathVariable("id") String id) {
@@ -85,7 +85,7 @@ public class SysTenantPackageController {
     }
 
     // 批量删除套餐
-    @DeleteMapping("/batch")
+    @PostMapping("/batch/delete")
     @RequiresPermission("sys:tenant-package:delete")
     @OperationLog(module = "套餐管理", action = "批量删除套餐")
     public Result<Void> batchDelete(@RequestBody List<String> ids) {
@@ -94,7 +94,7 @@ public class SysTenantPackageController {
     }
 
     // 为套餐分配权限，需 sys:tenant-package:assign-permission
-    @PutMapping("/{id}/permissions")
+    @PostMapping("/{id}/permissions")
     @RequiresPermission("sys:tenant-package:assign-permission")
     @OperationLog(module = "套餐管理", action = "分配权限")
     public Result<Void> assignPermissions(@PathVariable("id") String id,
