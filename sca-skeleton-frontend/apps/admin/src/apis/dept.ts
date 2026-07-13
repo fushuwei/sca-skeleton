@@ -36,3 +36,8 @@ export async function updateDeptApi(data: Record<string, unknown>): Promise<ApiE
 export async function deleteDeptApi(id: string): Promise<ApiEnvelope<null>> {
   return request<null>({ method: "POST", url: `/sys/dept/${id}/delete` });
 }
+
+/** 批量删除部门 */
+export async function batchDeleteDeptApi(ids: string[]): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "POST", url: "/sys/dept/batch/delete", data: ids });
+}

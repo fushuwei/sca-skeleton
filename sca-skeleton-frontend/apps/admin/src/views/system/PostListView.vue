@@ -7,7 +7,8 @@ import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysPost, PostPageRequest } from "../../types/auth";
 import {
   getPostPageApi,
-  deletePostApi
+  deletePostApi,
+  batchDeletePostApi
 } from "../../apis/post";
 import { useConfirmDialog } from "@repo/ui";
 import PostDrawerContent from "./PostDrawerContent.vue";
@@ -250,35 +251,26 @@ async function handleBatchDelete() {
     return;
   }
 
-try {
-await confirmDialog(t("postMgmt.batchDeleteConfirm", { count: selectedRows.value.length }));
-} catch {
-return;
-}
-
-  let successCount = 0;
-  let failCount = 0;
-
-  for (const post of selectedRows.value) {
-    try {
-      const result = await deletePostApi(post.id);
-      if (result.code === 10_000) {
-        successCount++;
-      } else {
-        failCount++;
-      }
-    } catch {
-      failCount++;
-    }
+  try {
+    await confirmDialog(t("postMgmt.batchDeleteConfirm", { count: selectedRows.value.length }));
+  } catch {
+    return;
   }
 
-  showToast(
-    t("postMgmt.batchDeleteResult", { success: successCount, fail: failCount }),
-    successCount > 0 ? "positive" : "negative"
-  );
-
-  selectedRows.value = [];
-  loadTableData();
+  try {
+    const result = await batchDeletePostApi(selectedRows.value.map((r) => r.id));
+    if (result.code === 10_000) {
+      showToast(t("common.deleteSuccess"), "positive");
+      selectedRows.value = [];
+      loadTableData();
+    } else {
+      showToast(result.message || t("common.deleteFail"), "negative");
+    }
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("common.deleteFail"), "negative");
+    }
+  }
 }
 
 // 查看

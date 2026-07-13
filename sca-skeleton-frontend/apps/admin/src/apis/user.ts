@@ -37,6 +37,11 @@ export async function deleteUserApi(id: string): Promise<ApiEnvelope<null>> {
   return request<null>({ method: "POST", url: `/sys/user/${id}/delete` });
 }
 
+/** 批量删除用户 */
+export async function batchDeleteUserApi(ids: string[]): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "POST", url: "/sys/user/batch/delete", data: ids });
+}
+
 /** 重置用户密码 */
 export async function resetUserPasswordApi(
   id: string,

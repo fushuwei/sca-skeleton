@@ -9,6 +9,7 @@ import {
   getUserPageApi,
   getUserByIdApi,
   deleteUserApi,
+  batchDeleteUserApi,
   changeUserStatusApi,
   resetUserPasswordApi
 } from "../../apis/user";
@@ -613,29 +614,20 @@ async function handleBatchDelete() {
     return;
   }
 
-  let successCount = 0;
-  let failCount = 0;
-
-  for (const user of selectedRows.value) {
-    try {
-      const result = await deleteUserApi(user.id);
-      if (result.code === 10_000) {
-        successCount++;
-      } else {
-        failCount++;
-      }
-    } catch {
-      failCount++;
+  try {
+    const result = await batchDeleteUserApi(selectedRows.value.map((r) => r.id));
+    if (result.code === 10_000) {
+      showToast(t("common.deleteSuccess"), "positive");
+      selectedRows.value = [];
+      loadTableData();
+    } else {
+      showToast(result.message || t("common.deleteFail"), "negative");
+    }
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("common.deleteFail"), "negative");
     }
   }
-
-  showToast(
-    t("user.batchDeleteResult", { success: successCount, fail: failCount }),
-    successCount > 0 ? "positive" : "negative"
-  );
-
-  selectedRows.value = [];
-  loadTableData();
 }
 
 // 查看

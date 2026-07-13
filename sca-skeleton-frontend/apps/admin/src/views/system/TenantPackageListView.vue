@@ -7,7 +7,8 @@ import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysTenantPackage, TenantPackagePageRequest } from "../../types/auth";
 import {
   getTenantPackagePageApi,
-  deleteTenantPackageApi
+  deleteTenantPackageApi,
+  batchDeleteTenantPackageApi
 } from "../../apis/tenant-package";
 import { useConfirmDialog } from "@repo/ui";
 import TenantPackageDrawerContent from "./TenantPackageDrawerContent.vue";
@@ -343,29 +344,20 @@ async function handleBatchDelete() {
     return;
   }
 
-  let successCount = 0;
-  let failCount = 0;
-
-  for (const pkg of selectedRows.value) {
-    try {
-      const result = await deleteTenantPackageApi(pkg.id);
-      if (result.code === 10_000) {
-        successCount++;
-      } else {
-        failCount++;
-      }
-    } catch {
-      failCount++;
+  try {
+    const result = await batchDeleteTenantPackageApi(selectedRows.value.map((r) => r.id));
+    if (result.code === 10_000) {
+      showToast(t("common.deleteSuccess"), "positive");
+      selectedRows.value = [];
+      loadTableData();
+    } else {
+      showToast(result.message || t("common.deleteFail"), "negative");
+    }
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("common.deleteFail"), "negative");
     }
   }
-
-  showToast(
-    t("tenantPackageMgmt.batchDeleteResult", { success: successCount, fail: failCount }),
-    successCount > 0 ? "positive" : "negative"
-  );
-
-  selectedRows.value = [];
-  loadTableData();
 }
 
 // 查看

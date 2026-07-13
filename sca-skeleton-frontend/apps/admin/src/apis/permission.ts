@@ -51,3 +51,8 @@ export async function updatePermissionApi(data: Record<string, unknown>): Promis
 export async function deletePermissionApi(id: string): Promise<ApiEnvelope<null>> {
   return request<null>({ method: "POST", url: `/sys/permission/${id}/delete` });
 }
+
+/** 批量删除权限 */
+export async function batchDeletePermissionApi(ids: string[]): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "POST", url: "/sys/permission/batch/delete", data: ids });
+}

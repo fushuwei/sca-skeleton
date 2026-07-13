@@ -7,7 +7,8 @@ import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysRole, RolePageRequest } from "../../types/auth";
 import {
   getRolePageApi,
-  deleteRoleApi
+  deleteRoleApi,
+  batchDeleteRoleApi
 } from "../../apis/role";
 import { useConfirmDialog } from "@repo/ui";
 import RoleDrawerContent from "./RoleDrawerContent.vue";
@@ -323,29 +324,20 @@ async function handleBatchDelete() {
     return;
   }
 
-  let successCount = 0;
-  let failCount = 0;
-
-  for (const role of selectedRows.value) {
-    try {
-      const result = await deleteRoleApi(role.id);
-      if (result.code === 10_000) {
-        successCount++;
-      } else {
-        failCount++;
-      }
-    } catch {
-      failCount++;
+  try {
+    const result = await batchDeleteRoleApi(selectedRows.value.map((r) => r.id));
+    if (result.code === 10_000) {
+      showToast(t("common.deleteSuccess"), "positive");
+      selectedRows.value = [];
+      loadTableData();
+    } else {
+      showToast(result.message || t("common.deleteFail"), "negative");
+    }
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("common.deleteFail"), "negative");
     }
   }
-
-  showToast(
-    t("roleMgmt.batchDeleteResult", { success: successCount, fail: failCount }),
-    successCount > 0 ? "positive" : "negative"
-  );
-
-  selectedRows.value = [];
-  loadTableData();
 }
 
 // 查看

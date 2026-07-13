@@ -41,3 +41,8 @@ export async function updateRoleApi(data: Record<string, unknown>): Promise<ApiE
 export async function deleteRoleApi(id: string): Promise<ApiEnvelope<null>> {
   return request<null>({ method: "POST", url: `/sys/role/${id}/delete` });
 }
+
+/** 批量删除角色 */
+export async function batchDeleteRoleApi(ids: string[]): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "POST", url: "/sys/role/batch/delete", data: ids });
+}

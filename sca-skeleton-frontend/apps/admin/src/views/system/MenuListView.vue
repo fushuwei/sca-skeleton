@@ -7,7 +7,8 @@ import type { SysPermission, PermissionTreeNode, PermissionPageRequest } from ".
 import {
   getPermissionListApi,
   getPermissionPageApi,
-  deletePermissionApi
+  deletePermissionApi,
+  batchDeletePermissionApi
 } from "../../apis/permission";
 import { useConfirmDialog } from "@repo/ui";
 import MenuDrawerContent from "./MenuDrawerContent.vue";
@@ -601,30 +602,21 @@ async function handleBatchDelete() {
     return;
   }
 
-  let successCount = 0;
-  let failCount = 0;
-
-  for (const perm of selectedRows.value) {
-    try {
-      const result = await deletePermissionApi(perm.id);
-      if (result.code === 10_000) {
-        successCount++;
-      } else {
-        failCount++;
-      }
-    } catch {
-      failCount++;
+  try {
+    const result = await batchDeletePermissionApi(selectedRows.value.map((r) => r.id));
+    if (result.code === 10_000) {
+      showToast(t("common.deleteSuccess"), "positive");
+      selectedRows.value = [];
+      loadTableData();
+      loadMenuTree();
+    } else {
+      showToast(result.message || t("common.deleteFail"), "negative");
+    }
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("common.deleteFail"), "negative");
     }
   }
-
-  showToast(
-    t("menuMgmt.batchDeleteResult", { success: successCount, fail: failCount }),
-    successCount > 0 ? "positive" : "negative"
-  );
-
-  selectedRows.value = [];
-  loadTableData();
-  loadMenuTree();
 }
 
 // ═══════════════════════════════════════════════════════════════
