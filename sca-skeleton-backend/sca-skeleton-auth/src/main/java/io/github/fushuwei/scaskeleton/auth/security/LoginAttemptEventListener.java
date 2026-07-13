@@ -3,6 +3,7 @@ package io.github.fushuwei.scaskeleton.auth.security;
 import io.github.fushuwei.scaskeleton.security.user.ScaUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
@@ -40,8 +41,14 @@ public class LoginAttemptEventListener {
      */
     @EventListener
     public void onAuthenticationFailure(AbstractAuthenticationFailureEvent event) {
+        Authentication authentication = event.getAuthentication();
+        // 仅处理表单登录失败事件，过滤 OAuth2 客户端认证、refresh_token 续期等非用户登录场景
+        // （这些事件的 authentication 是 OAuth2ClientAuthenticationToken / OAuth2RefreshTokenAuthenticationToken，其 getName() 返回 client_id，不应记入登录日志）
+        if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
+            return;
+        }
         // 从失败认证对象读取用户名
-        String username = event.getAuthentication().getName();
+        String username = authentication.getName();
         LoginChannel channel = LoginChannelContext.get();
         loginAttemptService.onLoginFailure(username, channel);
     }

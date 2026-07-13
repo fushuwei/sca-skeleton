@@ -16,6 +16,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -97,6 +98,11 @@ public class LoginLogPublisher {
     @EventListener
     public void onAuthenticationFailure(AbstractAuthenticationFailureEvent event) {
         Authentication authentication = event.getAuthentication();
+        // 仅处理表单登录失败事件，过滤 OAuth2 客户端认证、refresh_token 续期等非用户登录场景
+        // （这些事件的 authentication 是 OAuth2ClientAuthenticationToken / OAuth2RefreshTokenAuthenticationToken，其 getName() 返回 client_id，不应记入登录日志）
+        if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
+            return;
+        }
         String username = authentication.getName();
 
         RequestMeta meta = collectRequestMeta();
