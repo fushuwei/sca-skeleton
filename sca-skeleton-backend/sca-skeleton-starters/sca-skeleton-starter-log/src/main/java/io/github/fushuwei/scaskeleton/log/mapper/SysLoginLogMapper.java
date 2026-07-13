@@ -15,14 +15,14 @@ import org.apache.ibatis.annotations.Param;
 public interface SysLoginLogMapper extends BaseMapper<SysLoginLog> {
 
     /**
-     * 分页查询登录日志（关联 sys_user 拼接操作人展示名称）
+     * 分页查询登录日志
      *
      * @param page         分页对象
      * @param queryWrapper 查询条件（由 LambdaQueryWrapper 构建）
      * @return 分页结果
      */
     IPage<SysLoginLog> selectLogPage(IPage<SysLoginLog> page,
-                                      @Param(Constants.WRAPPER) Wrapper<SysLoginLog> queryWrapper);
+                                     @Param(Constants.WRAPPER) Wrapper<SysLoginLog> queryWrapper);
 
     /**
      * 按 ID 查询登录日志详情

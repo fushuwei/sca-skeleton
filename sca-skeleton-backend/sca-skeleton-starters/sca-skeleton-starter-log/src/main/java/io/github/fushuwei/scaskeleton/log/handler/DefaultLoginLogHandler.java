@@ -6,7 +6,7 @@ import io.github.fushuwei.scaskeleton.log.mapper.SysLoginLogMapper;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 默认登录日志处理器：将事件数据写入 sys_login_log 表
+ * 默认登录日志处理器
  *
  * @author Fu Wei
  */
