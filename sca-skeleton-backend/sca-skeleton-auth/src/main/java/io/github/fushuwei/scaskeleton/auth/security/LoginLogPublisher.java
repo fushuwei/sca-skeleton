@@ -74,20 +74,17 @@ public class LoginLogPublisher {
 
         RequestMeta meta = collectRequestMeta();
 
-        LoginLogEvent loginLogEvent = new LoginLogEvent(
-            details.getTenantId(),
-            details.getUserId(),
-            details.getUsername(),
-            meta.clientIp(),
-            meta.location(),
-            meta.device(),
-            meta.browser(),
-            meta.os(),
-            1,
-            null,
-            meta.costMs(),
-            LocalDateTime.now()
-        );
+        LoginLogEvent loginLogEvent = new LoginLogEvent();
+        loginLogEvent.setTenantId(details.getTenantId());
+        loginLogEvent.setUserId(details.getUserId());
+        loginLogEvent.setUsername(details.getUsername());
+        loginLogEvent.setClientIp(meta.clientIp());
+        loginLogEvent.setDevice(meta.device());
+        loginLogEvent.setBrowser(meta.browser());
+        loginLogEvent.setOs(meta.os());
+        loginLogEvent.setIsSuccess(1);
+        loginLogEvent.setCostMs(meta.costMs());
+        loginLogEvent.setLoginTime(LocalDateTime.now());
         eventPublisher.publishEvent(loginLogEvent);
     }
 
@@ -107,20 +104,18 @@ public class LoginLogPublisher {
         // SecurityContext 未建立，需反查 sys_user 填充 tenantId/userId
         SysUser user = findUser(username);
 
-        LoginLogEvent loginLogEvent = new LoginLogEvent(
-            user != null ? user.getTenantId() : null,
-            user != null ? user.getId() : null,
-            username,
-            meta.clientIp(),
-            meta.location(),
-            meta.device(),
-            meta.browser(),
-            meta.os(),
-            0,
-            buildFailureMessage(username, event.getException()),
-            meta.costMs(),
-            LocalDateTime.now()
-        );
+        LoginLogEvent loginLogEvent = new LoginLogEvent();
+        loginLogEvent.setTenantId(user != null ? user.getTenantId() : null);
+        loginLogEvent.setUserId(user != null ? user.getId() : null);
+        loginLogEvent.setUsername(username);
+        loginLogEvent.setClientIp(meta.clientIp());
+        loginLogEvent.setDevice(meta.device());
+        loginLogEvent.setBrowser(meta.browser());
+        loginLogEvent.setOs(meta.os());
+        loginLogEvent.setIsSuccess(0);
+        loginLogEvent.setErrorMessage(buildFailureMessage(username, event.getException()));
+        loginLogEvent.setCostMs(meta.costMs());
+        loginLogEvent.setLoginTime(LocalDateTime.now());
         eventPublisher.publishEvent(loginLogEvent);
     }
 
@@ -130,12 +125,12 @@ public class LoginLogPublisher {
     private RequestMeta collectRequestMeta() {
         HttpServletRequest request = currentRequest();
         if (request == null) {
-            return new RequestMeta(null, null, null, null, null, null);
+            return new RequestMeta(null, null, null, null, null);
         }
         String clientIp = resolveClientIp(request);
         String[] deviceInfo = UserAgentParser.parse(request.getHeader("User-Agent"));
         Long costMs = calculateCostMs(request);
-        return new RequestMeta(clientIp, null, deviceInfo[0], deviceInfo[1], deviceInfo[2], costMs);
+        return new RequestMeta(clientIp, deviceInfo[0], deviceInfo[1], deviceInfo[2], costMs);
     }
 
     /**
@@ -230,7 +225,6 @@ public class LoginLogPublisher {
      */
     private record RequestMeta(
         String clientIp,
-        String location,
         String device,
         String browser,
         String os,

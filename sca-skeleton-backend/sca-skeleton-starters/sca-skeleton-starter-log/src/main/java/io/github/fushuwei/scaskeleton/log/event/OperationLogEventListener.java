@@ -42,11 +42,11 @@ public class OperationLogEventListener {
                 "httpMethod={} requestUri={} className={} methodName={} " +
                 "isSuccess={} costMs={} operationTime={} " +
                 "requestArgs={} responseResult={} errorMessage={}",
-            event.traceId(), event.module(), event.action(),
-            event.userId(), event.username(), event.clientIp(),
-            event.httpMethod(), event.requestUri(),
-            event.className(), event.methodName(),
-            event.isSuccess(), event.costMs(), event.operationTime(),
-            event.requestArgs(), event.responseResult(), event.errorMessage());
+            event.getTraceId(), event.getModule(), event.getAction(),
+            event.getUserId(), event.getUsername(), event.getClientIp(),
+            event.getHttpMethod(), event.getRequestUri(),
+            event.getClassName(), event.getMethodName(),
+            event.getIsSuccess(), event.getCostMs(), event.getOperationTime(),
+            event.getRequestArgs(), event.getResponseResult(), event.getErrorMessage());
     }
 }

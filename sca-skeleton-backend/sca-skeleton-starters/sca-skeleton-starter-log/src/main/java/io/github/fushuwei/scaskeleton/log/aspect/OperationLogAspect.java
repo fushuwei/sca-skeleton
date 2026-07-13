@@ -125,24 +125,24 @@ public class OperationLogAspect {
         } finally {
             // 无论成功或失败，均计算耗时并发布事件
             long costMs = System.currentTimeMillis() - startTime;
-            eventPublisher.publishEvent(new OperationLogEvent(
-                traceId,
-                module,
-                action,
-                userId,
-                username,
-                httpContext != null ? httpContext.clientIp() : null,
-                httpContext != null ? httpContext.httpMethod() : null,
-                httpContext != null ? httpContext.requestUri() : null,
-                className,
-                methodName,
-                requestArgs,
-                responseResult,
-                isSuccess,
-                errorMessage,
-                costMs,
-                operationTime
-            ));
+            OperationLogEvent logEvent = new OperationLogEvent();
+            logEvent.setTraceId(traceId);
+            logEvent.setModule(module);
+            logEvent.setAction(action);
+            logEvent.setUserId(userId);
+            logEvent.setUsername(username);
+            logEvent.setClientIp(httpContext != null ? httpContext.clientIp() : null);
+            logEvent.setHttpMethod(httpContext != null ? httpContext.httpMethod() : null);
+            logEvent.setRequestUri(httpContext != null ? httpContext.requestUri() : null);
+            logEvent.setClassName(className);
+            logEvent.setMethodName(methodName);
+            logEvent.setRequestArgs(requestArgs);
+            logEvent.setResponseResult(responseResult);
+            logEvent.setIsSuccess(isSuccess);
+            logEvent.setErrorMessage(errorMessage);
+            logEvent.setCostMs(costMs);
+            logEvent.setOperationTime(operationTime);
+            eventPublisher.publishEvent(logEvent);
         }
     }
 

@@ -1,12 +1,14 @@
 package io.github.fushuwei.scaskeleton.log.event;
 
 import io.github.fushuwei.scaskeleton.log.handler.LoginLogHandler;
+import io.github.fushuwei.scaskeleton.log.support.IpRegionResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * 登录日志异步持久化监听器
@@ -21,10 +23,17 @@ public class LoginLogEventListener {
 
     private final LoginLogHandler loginLogHandler;
 
+    private final IpRegionResolver ipRegionResolver;
+
     @Async("loginLogExecutor")
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onLoginLogEvent(LoginLogEvent event) {
+        // 在异步线程内解析 IP 地理位置（不阻塞请求线程）
+        if (StringUtils.hasText(event.getClientIp())) {
+            event.setLocation(ipRegionResolver.resolve(event.getClientIp()));
+        }
+
         if (loginLogHandler == null) {
             logToSlf4j(event);
             return;
@@ -40,8 +49,8 @@ public class LoginLogEventListener {
     private void logToSlf4j(LoginLogEvent event) {
         log.info("[登录日志] isSuccess={} tenantId={} userId={} username={} clientIp={} location={} " +
                 "device={} browser={} os={} costMs={} loginTime={} errorMessage={}",
-            event.isSuccess(), event.tenantId(), event.userId(), event.username(),
-            event.clientIp(), event.location(), event.device(), event.browser(), event.os(),
-            event.costMs(), event.loginTime(), event.errorMessage());
+            event.getIsSuccess(), event.getTenantId(), event.getUserId(), event.getUsername(),
+            event.getClientIp(), event.getLocation(), event.getDevice(), event.getBrowser(), event.getOs(),
+            event.getCostMs(), event.getLoginTime(), event.getErrorMessage());
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * 登录日志配置属性类
  * <p>
- * 通过 {@code application.yml} 调整异步线程池参数：
+ * 通过 {@code application.yml} 调整异步线程池参数与 IP 地理位置解析：
  * <pre>
  * sca:
  *   login-log:
@@ -16,6 +16,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *       max-pool-size: 4
  *       queue-capacity: 5000
  *       await-termination-seconds: 30
+ *     ip-region:
+ *       db-path: ./ip2region/ip2region_v4.xdb
  * </pre>
  *
  * @author Fu Wei
@@ -28,6 +30,11 @@ public class LoginLogProperties {
      * 线程池配置
      */
     private final Executor executor = new Executor();
+
+    /**
+     * IP 地理位置解析配置
+     */
+    private final IpRegion ipRegion = new IpRegion();
 
     @Setter
     @Getter
@@ -52,6 +59,23 @@ public class LoginLogProperties {
          * 优雅关闭等待时间（秒），确保队列中剩余日志处理完毕
          */
         private int awaitTerminationSeconds = 30;
+
+    }
+
+    @Setter
+    @Getter
+    public static class IpRegion {
+
+        /**
+         * ip2region xdb 数据库文件路径
+         * <p>
+         * 开发环境默认: {@code ./ip2region/ip2region.xdb}（项目根目录下）<br>
+         * 生产环境: 通过 Docker volume / K8s ConfigMap 挂载，配置绝对路径
+         * <p>
+         * 文件不存在时优雅降级，location 字段保持 null，不影响登录主流程
+         * xdb 文件下载地址: <a href="https://github.com/lionsoul2014/ip2region/blob/master/data/ip2region_v4.xdb">ip2region_v4.xdb</a>
+         */
+        private String dbPath = "./ip2region/ip2region_v4.xdb";
 
     }
 }

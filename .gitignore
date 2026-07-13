@@ -72,3 +72,6 @@ package-lock.json
 
 # playwright mcp
 .playwright-mcp/
+
+# ip2region 离线 IP 数据库（体积约 11MB，不纳入版本控制，开发时手动下载）
+ip2region/

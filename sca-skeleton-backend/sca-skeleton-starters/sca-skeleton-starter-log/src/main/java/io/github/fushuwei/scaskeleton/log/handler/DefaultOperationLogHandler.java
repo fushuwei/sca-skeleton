@@ -18,21 +18,21 @@ public class DefaultOperationLogHandler implements OperationLogHandler {
     @Override
     public void handle(OperationLogEvent event) {
         SysOperationLog operationLog = new SysOperationLog();
-        operationLog.setTraceId(event.traceId());
-        operationLog.setUserId(event.userId());
-        operationLog.setModule(event.module());
-        operationLog.setAction(event.action());
-        operationLog.setHttpMethod(event.httpMethod());
-        operationLog.setRequestUri(event.requestUri());
-        operationLog.setClassName(event.className());
-        operationLog.setMethodName(event.methodName());
-        operationLog.setRequestArgs(event.requestArgs());
-        operationLog.setResponseResult(event.responseResult());
-        operationLog.setIsSuccess(event.isSuccess());
-        operationLog.setErrorMessage(event.errorMessage());
-        operationLog.setCostMs(event.costMs());
-        operationLog.setClientIp(event.clientIp());
-        operationLog.setOperationTime(event.operationTime());
+        operationLog.setTraceId(event.getTraceId());
+        operationLog.setUserId(event.getUserId());
+        operationLog.setModule(event.getModule());
+        operationLog.setAction(event.getAction());
+        operationLog.setHttpMethod(event.getHttpMethod());
+        operationLog.setRequestUri(event.getRequestUri());
+        operationLog.setClassName(event.getClassName());
+        operationLog.setMethodName(event.getMethodName());
+        operationLog.setRequestArgs(event.getRequestArgs());
+        operationLog.setResponseResult(event.getResponseResult());
+        operationLog.setIsSuccess(event.getIsSuccess());
+        operationLog.setErrorMessage(event.getErrorMessage());
+        operationLog.setCostMs(event.getCostMs());
+        operationLog.setClientIp(event.getClientIp());
+        operationLog.setOperationTime(event.getOperationTime());
         operationLogMapper.insert(operationLog);
     }
 }

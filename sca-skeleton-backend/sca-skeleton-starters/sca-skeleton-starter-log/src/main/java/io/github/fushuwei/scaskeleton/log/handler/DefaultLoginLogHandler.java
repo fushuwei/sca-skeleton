@@ -18,18 +18,18 @@ public class DefaultLoginLogHandler implements LoginLogHandler {
     @Override
     public void handle(LoginLogEvent event) {
         SysLoginLog loginLog = new SysLoginLog();
-        loginLog.setTenantId(event.tenantId());
-        loginLog.setUserId(event.userId());
-        loginLog.setUsername(event.username());
-        loginLog.setClientIp(event.clientIp());
-        loginLog.setLocation(event.location());
-        loginLog.setDevice(event.device());
-        loginLog.setBrowser(event.browser());
-        loginLog.setOs(event.os());
-        loginLog.setIsSuccess(event.isSuccess());
-        loginLog.setErrorMessage(event.errorMessage());
-        loginLog.setCostMs(event.costMs());
-        loginLog.setLoginTime(event.loginTime());
+        loginLog.setTenantId(event.getTenantId());
+        loginLog.setUserId(event.getUserId());
+        loginLog.setUsername(event.getUsername());
+        loginLog.setClientIp(event.getClientIp());
+        loginLog.setLocation(event.getLocation());
+        loginLog.setDevice(event.getDevice());
+        loginLog.setBrowser(event.getBrowser());
+        loginLog.setOs(event.getOs());
+        loginLog.setIsSuccess(event.getIsSuccess());
+        loginLog.setErrorMessage(event.getErrorMessage());
+        loginLog.setCostMs(event.getCostMs());
+        loginLog.setLoginTime(event.getLoginTime());
         loginLogMapper.insert(loginLog);
     }
 }

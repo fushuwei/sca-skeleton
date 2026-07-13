@@ -26,6 +26,7 @@
         <hutool.version>5.8.44</hutool.version>
         <springdoc.version>3.0.3</springdoc.version>
         <captcha.version>1.6.2</captcha.version>
+        <ip2region.version>3.3.7</ip2region.version>
     </properties>
 
     <dependencyManagement>
@@ -122,6 +123,12 @@
                 <version>${mapstruct.version}</version>
             </dependency>
 
+            <!-- ip2region 离线 IP 地址定位库 -->
+            <dependency>
+                <groupId>org.lionsoul</groupId>
+                <artifactId>ip2region</artifactId>
+                <version>${ip2region.version}</version>
+            </dependency>
 
             <!-- ======================================================================== -->
             <!-- 内部 Starter 统一管理 -->
