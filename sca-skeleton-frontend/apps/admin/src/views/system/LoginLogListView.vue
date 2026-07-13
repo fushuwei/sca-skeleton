@@ -766,10 +766,6 @@ onMounted(() => {
                       <div class="detail-field-label">{{ t("loginLog.location") }}</div>
                       <div class="detail-field-value">{{ detailData.location || "-" }}</div>
                     </div>
-                    <div class="detail-field detail-field--full">
-                      <div class="detail-field-label">{{ t("loginLog.errorMessage") }}</div>
-                      <div class="detail-field-value">{{ detailData.errorMessage || "-" }}</div>
-                    </div>
                   </div>
                 </div>
 
@@ -802,6 +798,15 @@ onMounted(() => {
                       <div class="detail-field-value">{{ detailData.os || "-" }}</div>
                     </div>
                   </div>
+                </div>
+
+                <!-- ── 异常信息卡片（仅有错误时显示） ── -->
+                <div v-if="detailData.errorMessage" class="detail-section detail-section--error q-mt-md">
+                  <div class="detail-section-header row items-center no-wrap q-mb-sm">
+                    <q-icon name="sym_r_error" size="20px" class="q-mr-xs" color="negative" />
+                    <span class="detail-section-title detail-section-title--error">{{ t('loginLog.errorMessage') }}</span>
+                  </div>
+                  <pre class="json-block json-block--error">{{ detailData.errorMessage }}</pre>
                 </div>
               </template>
             </div>
@@ -1131,11 +1136,67 @@ onMounted(() => {
   font-size: 32px;
 }
 
+/* ═══ 列表区域暗色模式 ═══ */
+.body--dark .search-area {
+  background: #1e1e1e;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.body--dark .search-area-header {
+  background: #252525;
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.body--dark .search-area-title {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .search-collapse-btn {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .search-collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.body--dark .status-select :deep(.q-field__native) {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.body--dark .status-placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.body--dark .login-log-table {
+  background: #1e1e1e;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.body--dark .login-log-table :deep(thead tr th) {
+  color: rgba(255, 255, 255, 0.8) !important;
+  background: #252525 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .login-log-table :deep(tbody td) {
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .login-log-table :deep(.q-table__bottom) {
+  background: #1e1e1e;
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
 /* ═══ 详情抽屉卡片样式 ═══ */
 .detail-section {
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 4px;
   padding: 12px;
+}
+
+.detail-section--error {
+  border-color: rgba(255, 0, 0, 0.2);
+  background: rgba(255, 0, 0, 0.02);
 }
 
 .detail-section-header {
@@ -1148,10 +1209,14 @@ onMounted(() => {
   color: rgba(0, 0, 0, 0.87);
 }
 
+.detail-section-title--error {
+  color: var(--q-negative);
+}
+
 /* 字段网格布局 */
 .detail-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 12px 16px;
 }
 
@@ -1184,9 +1249,34 @@ onMounted(() => {
   font-size: 12px;
 }
 
+/* JSON / 长文本展示块 */
+.json-block {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.json-block--error {
+  background: rgba(255, 0, 0, 0.04);
+  color: var(--q-negative);
+  border: 1px solid rgba(255, 0, 0, 0.12);
+}
+
 /* 详情卡片暗色模式 */
 .body--dark .detail-section {
   border-color: rgba(255, 255, 255, 0.08);
+}
+
+.body--dark .detail-section--error {
+  border-color: rgba(255, 0, 0, 0.25);
+  background: rgba(255, 0, 0, 0.06);
 }
 
 .body--dark .detail-section-title {
@@ -1203,6 +1293,15 @@ onMounted(() => {
 
 .body--dark .detail-field-value {
   color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .json-block {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.body--dark .json-block--error {
+  background: rgba(255, 0, 0, 0.08);
+  border-color: rgba(255, 0, 0, 0.2);
 }
 
 /* ═══ 本地右侧抽屉 ═══ */
