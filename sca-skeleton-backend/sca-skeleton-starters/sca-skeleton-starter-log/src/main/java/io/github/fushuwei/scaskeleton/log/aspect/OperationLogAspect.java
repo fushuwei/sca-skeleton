@@ -89,7 +89,14 @@ public class OperationLogAspect {
         // 如果注解配置了记录请求参数，将方法入参序列化为 JSON（敏感字段自动脱敏）
         if (annotation.logArgs()) {
             try {
-                record.setRequestArgs(maskSensitiveFields(jsonMapper.writeValueAsString(joinPoint.getArgs())));
+                Object[] args = joinPoint.getArgs();
+                if (args.length == 1) {
+                    // 单参数方法：直接序列化该参数本身，避免外层多套一层数组 []
+                    record.setRequestArgs(maskSensitiveFields(jsonMapper.writeValueAsString(args[0])));
+                } else {
+                    // 多参数方法：序列化为数组，键为参数名
+                    record.setRequestArgs(maskSensitiveFields(jsonMapper.writeValueAsString(args)));
+                }
             } catch (Exception e) {
                 record.setRequestArgs("[请求参数序列化失败，详情：{" + e.getMessage() + "}]");
             }
