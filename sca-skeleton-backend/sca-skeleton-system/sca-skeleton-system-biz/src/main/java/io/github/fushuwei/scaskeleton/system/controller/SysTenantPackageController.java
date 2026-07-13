@@ -6,6 +6,7 @@ import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysTenantPackageService;
@@ -94,12 +95,11 @@ public class SysTenantPackageController {
     }
 
     // 为套餐分配权限，需 sys:tenant-package:assign-permission
-    @PostMapping("/{id}/permissions")
+    @PostMapping("/assign-permission")
     @RequiresPermission("sys:tenant-package:assign-permission")
     @OperationLog(module = "套餐管理", action = "分配权限")
-    public Result<Void> assignPermissions(@PathVariable("id") String id,
-                                              @RequestBody List<String> permissionIds) {
-        packageService.assignPermissions(id, permissionIds);
+    public Result<Void> assignPermissions(@Validated @RequestBody TenantPackagePermissionAssignRequest request) {
+        packageService.assignPermissions(request.getId(), request.getPermissionIds());
         return Result.ok();
     }
 }

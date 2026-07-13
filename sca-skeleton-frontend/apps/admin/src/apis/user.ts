@@ -49,7 +49,7 @@ export async function resetUserPasswordApi(
 ): Promise<ApiEnvelope<null>> {
   return request<null>({
     method: "POST",
-    url: "/sys/user/password/reset",
+    url: "/sys/user/reset-password",
     data: { id, newPassword }
   });
 }
@@ -62,7 +62,7 @@ export async function changeUserStatusApi(
 ): Promise<ApiEnvelope<null>> {
   return request<null>({
     method: "POST",
-    url: "/sys/user/status",
+    url: "/sys/user/change-status",
     data: { id, status, ...(reason ? { reason } : {}) }
   });
 }

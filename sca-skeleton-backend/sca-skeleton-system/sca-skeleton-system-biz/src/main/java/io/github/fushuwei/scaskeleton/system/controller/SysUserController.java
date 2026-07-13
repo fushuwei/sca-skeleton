@@ -93,7 +93,7 @@ public class SysUserController {
     }
 
     // 重置用户登录密码
-    @PostMapping("/password/reset")
+    @PostMapping("/reset-password")
     @RequiresPermission("sys:user:reset-password")
     @OperationLog(module = "用户管理", action = "重置密码")
     public Result<Void> resetPassword(@Validated @RequestBody UserPasswordResetRequest request) {
@@ -102,7 +102,7 @@ public class SysUserController {
     }
 
     // 变更用户状态（启用/禁用等）
-    @PostMapping("/status")
+    @PostMapping("/change-status")
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "变更用户状态")
     public Result<Void> changeStatus(@Validated @RequestBody UserStatusChangeRequest request) {
@@ -111,7 +111,7 @@ public class SysUserController {
     }
 
     // 批量变更用户状态
-    @PostMapping("/batch/status")
+    @PostMapping("/batch/change-status")
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "批量变更用户状态")
     public Result<Void> batchChangeStatus(@Validated @RequestBody UserBatchStatusRequest request) {

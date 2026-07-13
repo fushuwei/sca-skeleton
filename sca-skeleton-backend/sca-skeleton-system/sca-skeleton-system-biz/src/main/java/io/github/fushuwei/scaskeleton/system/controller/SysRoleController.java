@@ -7,6 +7,7 @@ import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.role.RolePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysRoleService;
@@ -95,12 +96,11 @@ public class SysRoleController {
     }
 
     // 为角色分配权限，需 sys:role:assign-permission；按当前租户隔离
-    @PostMapping("/{id}/permissions")
+    @PostMapping("/assign-permission")
     @RequiresPermission("sys:role:assign-permission")
     @OperationLog(module = "角色管理", action = "分配权限")
-    public Result<Void> assignPermissions(@PathVariable("id") String id,
-                                              @RequestBody List<String> permissionIds) {
-        roleService.assignPermissions(SecurityUtils.getTenantId(), id, permissionIds);
+    public Result<Void> assignPermissions(@Validated @RequestBody RolePermissionAssignRequest request) {
+        roleService.assignPermissions(SecurityUtils.getTenantId(), request.getId(), request.getPermissionIds());
         return Result.ok();
     }
 }
