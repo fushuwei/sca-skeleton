@@ -60,88 +60,73 @@ public class OperationLogAspect {
         // 记录方法开始执行时间，用于计算耗时
         long startTime = System.currentTimeMillis();
 
-        // 从注解中读取业务语义描述
-        String module = annotation.module();
-        String action = annotation.action();
+        OperationLogEvent logEvent = new OperationLogEvent();
         // 从 TraceContext 获取当前链路 ID
-        String traceId = TraceContext.get();
+        logEvent.setTraceId(TraceContext.get());
+        // 从注解中读取业务语义描述
+        logEvent.setModule(annotation.module());
+        logEvent.setAction(annotation.action());
         // 记录操作发生时间
-        LocalDateTime operationTime = LocalDateTime.now();
+        logEvent.setOperationTime(LocalDateTime.now());
 
         // 从方法签名中提取目标类名与方法名
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        String className = joinPoint.getTarget().getClass().getName();
-        String methodName = signature.getName();
+        logEvent.setClassName(joinPoint.getTarget().getClass().getName());
+        logEvent.setMethodName(signature.getName());
 
         // 填充当前用户信息（依赖 Security Starter 的 CurrentUserProvider 实现）
-        String userId = null;
-        String username = null;
         if (currentUserProvider != null) {
-            userId = currentUserProvider.getUserId();
-            username = currentUserProvider.getUsername();
+            logEvent.setUserId(currentUserProvider.getUserId());
+            logEvent.setUsername(currentUserProvider.getUsername());
         }
 
         // 从 Spring Web 请求上下文中提取 HTTP 信息
         HttpContext httpContext = extractHttpContext();
+        if (httpContext != null) {
+            logEvent.setClientIp(httpContext.clientIp());
+            logEvent.setHttpMethod(httpContext.httpMethod());
+            logEvent.setRequestUri(httpContext.requestUri());
+        }
 
         // 如果注解配置了记录请求参数，将方法入参序列化为 JSON（敏感字段自动脱敏）
-        String requestArgs = null;
         if (annotation.logArgs()) {
             try {
                 Object[] args = joinPoint.getArgs();
                 if (args.length == 1) {
                     // 单参数方法：直接序列化该参数本身，避免外层多套一层数组 []
-                    requestArgs = maskSensitiveFields(jsonMapper.writeValueAsString(args[0]));
+                    logEvent.setRequestArgs(maskSensitiveFields(jsonMapper.writeValueAsString(args[0])));
                 } else {
                     // 多参数方法：序列化为数组，键为参数名
-                    requestArgs = maskSensitiveFields(jsonMapper.writeValueAsString(args));
+                    logEvent.setRequestArgs(maskSensitiveFields(jsonMapper.writeValueAsString(args)));
                 }
             } catch (Exception e) {
-                requestArgs = "[请求参数序列化失败，详情：{" + e.getMessage() + "}]";
+                logEvent.setRequestArgs("[请求参数序列化失败，详情：{" + e.getMessage() + "}]");
             }
         }
 
-        Integer isSuccess = 0;
-        String errorMessage = null;
-        String responseResult = null;
+        // 默认标记为失败，成功时覆盖
+        logEvent.setIsSuccess(0);
         try {
             // 执行原方法，捕获返回值
             Object result = joinPoint.proceed();
-            isSuccess = 1;
+            logEvent.setIsSuccess(1);
             // 如果注解配置了记录响应结果，将返回值序列化为 JSON
             if (annotation.logResult() && result != null) {
                 try {
-                    responseResult = jsonMapper.writeValueAsString(result);
+                    logEvent.setResponseResult(jsonMapper.writeValueAsString(result));
                 } catch (Exception e) {
-                    responseResult = "[响应结果序列化失败，详情：{" + e.getMessage() + "}]";
+                    logEvent.setResponseResult("[响应结果序列化失败，详情：{" + e.getMessage() + "}]");
                 }
             }
             return result;
         } catch (Throwable throwable) {
             // 标记操作失败并记录异常描述
-            errorMessage = throwable.getMessage();
+            logEvent.setErrorMessage(throwable.getMessage());
             // 异常继续向上抛出，不吞掉业务异常
             throw throwable;
         } finally {
             // 无论成功或失败，均计算耗时并发布事件
-            long costMs = System.currentTimeMillis() - startTime;
-            OperationLogEvent logEvent = new OperationLogEvent();
-            logEvent.setTraceId(traceId);
-            logEvent.setModule(module);
-            logEvent.setAction(action);
-            logEvent.setUserId(userId);
-            logEvent.setUsername(username);
-            logEvent.setClientIp(httpContext != null ? httpContext.clientIp() : null);
-            logEvent.setHttpMethod(httpContext != null ? httpContext.httpMethod() : null);
-            logEvent.setRequestUri(httpContext != null ? httpContext.requestUri() : null);
-            logEvent.setClassName(className);
-            logEvent.setMethodName(methodName);
-            logEvent.setRequestArgs(requestArgs);
-            logEvent.setResponseResult(responseResult);
-            logEvent.setIsSuccess(isSuccess);
-            logEvent.setErrorMessage(errorMessage);
-            logEvent.setCostMs(costMs);
-            logEvent.setOperationTime(operationTime);
+            logEvent.setCostMs(System.currentTimeMillis() - startTime);
             eventPublisher.publishEvent(logEvent);
         }
     }
