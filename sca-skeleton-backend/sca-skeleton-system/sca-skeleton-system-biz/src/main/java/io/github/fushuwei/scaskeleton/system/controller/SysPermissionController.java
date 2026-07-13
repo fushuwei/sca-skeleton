@@ -80,10 +80,10 @@ public class SysPermissionController {
     }
 
     // 删除权限节点，需 sys:permission:delete
-    @PostMapping("/{id}/delete")
+    @PostMapping("/delete")
     @RequiresPermission("sys:permission:delete")
     @OperationLog(module = "菜单管理", action = "删除菜单")
-    public Result<Void> delete(@PathVariable("id") String id) {
+    public Result<Void> delete(@RequestBody String id) {
         permissionService.deletePermission(id);
         return Result.ok();
     }

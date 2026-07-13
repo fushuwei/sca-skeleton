@@ -68,10 +68,10 @@ public class SysDeptController {
     }
 
     // 删除指定部门，需 sys:dept:delete
-    @PostMapping("/{id}/delete")
+    @PostMapping("/delete")
     @RequiresPermission("sys:dept:delete")
     @OperationLog(module = "部门管理", action = "删除部门")
-    public Result<Void> delete(@PathVariable("id") String id) {
+    public Result<Void> delete(@RequestBody String id) {
         deptService.deleteDept(id);
         return Result.ok();
     }

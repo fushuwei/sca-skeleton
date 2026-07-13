@@ -11,6 +11,10 @@ import lombok.Data;
 @Data
 public class UserStatusChangeRequest {
 
+    /** 用户 ID */
+    @NotBlank(message = "用户 ID 不能为空")
+    private String id;
+
     /** 状态：active / inactive / locked / frozen / expired / disabled / cancelled */
     @NotBlank(message = "状态不能为空")
     private String status;

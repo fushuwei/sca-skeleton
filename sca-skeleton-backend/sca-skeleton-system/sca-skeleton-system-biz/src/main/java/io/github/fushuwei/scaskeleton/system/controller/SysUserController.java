@@ -75,10 +75,10 @@ public class SysUserController {
     }
 
     // 删除指定用户，需 sys:user:delete
-    @PostMapping("/{id}/delete")
+    @PostMapping("/delete")
     @RequiresPermission("sys:user:delete")
     @OperationLog(module = "用户管理", action = "删除用户")
-    public Result<Void> delete(@PathVariable("id") String id) {
+    public Result<Void> delete(@RequestBody String id) {
         userService.deleteUser(id);
         return Result.ok();
     }
@@ -93,22 +93,20 @@ public class SysUserController {
     }
 
     // 重置用户登录密码
-    @PostMapping("/{id}/password/reset")
+    @PostMapping("/password/reset")
     @RequiresPermission("sys:user:reset-password")
     @OperationLog(module = "用户管理", action = "重置密码")
-    public Result<Void> resetPassword(@PathVariable("id") String id,
-                                          @Validated @RequestBody UserPasswordResetRequest request) {
-        userService.resetPassword(id, request.getNewPassword());
+    public Result<Void> resetPassword(@Validated @RequestBody UserPasswordResetRequest request) {
+        userService.resetPassword(request.getId(), request.getNewPassword());
         return Result.ok();
     }
 
     // 变更用户状态（启用/禁用等）
-    @PostMapping("/{id}/status")
+    @PostMapping("/status")
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "变更用户状态")
-    public Result<Void> changeStatus(@PathVariable("id") String id,
-                                         @Validated @RequestBody UserStatusChangeRequest request) {
-        userService.changeStatus(id, request.getStatus(), request.getReason());
+    public Result<Void> changeStatus(@Validated @RequestBody UserStatusChangeRequest request) {
+        userService.changeStatus(request.getId(), request.getStatus(), request.getReason());
         return Result.ok();
     }
 

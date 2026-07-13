@@ -70,10 +70,10 @@ public class SysPostController {
     }
 
     // 删除指定岗位，需 sys:post:delete
-    @PostMapping("/{id}/delete")
+    @PostMapping("/delete")
     @RequiresPermission("sys:post:delete")
     @OperationLog(module = "岗位管理", action = "删除岗位")
-    public Result<Void> delete(@PathVariable("id") String id) {
+    public Result<Void> delete(@RequestBody String id) {
         postService.deletePost(id);
         return Result.ok();
     }

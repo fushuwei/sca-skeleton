@@ -49,7 +49,7 @@ export async function updatePermissionApi(data: Record<string, unknown>): Promis
 
 /** 删除权限 */
 export async function deletePermissionApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: `/sys/permission/${id}/delete` });
+  return request<null>({ method: "POST", url: "/sys/permission/delete", data: id });
 }
 
 /** 批量删除权限 */

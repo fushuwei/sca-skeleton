@@ -76,10 +76,10 @@ public class SysTenantPackageController {
     }
 
     // 删除指定套餐，需 sys:tenant-package:delete
-    @PostMapping("/{id}/delete")
+    @PostMapping("/delete")
     @RequiresPermission("sys:tenant-package:delete")
     @OperationLog(module = "套餐管理", action = "删除套餐")
-    public Result<Void> delete(@PathVariable("id") String id) {
+    public Result<Void> delete(@RequestBody String id) {
         packageService.deletePackage(id);
         return Result.ok();
     }

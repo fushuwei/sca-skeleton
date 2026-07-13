@@ -67,10 +67,10 @@ public class SysTenantController {
     }
 
     // 删除指定租户，需 sys:tenant:delete
-    @PostMapping("/{id}/delete")
+    @PostMapping("/delete")
     @RequiresPermission("sys:tenant:delete")
     @OperationLog(module = "租户管理", action = "删除租户")
-    public Result<Void> delete(@PathVariable("id") String id) {
+    public Result<Void> delete(@RequestBody String id) {
         tenantService.deleteTenant(id);
         return Result.ok();
     }

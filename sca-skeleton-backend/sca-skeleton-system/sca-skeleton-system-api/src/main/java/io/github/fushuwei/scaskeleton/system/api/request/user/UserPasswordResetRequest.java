@@ -11,6 +11,10 @@ import lombok.Data;
 @Data
 public class UserPasswordResetRequest {
 
+    /** 用户 ID */
+    @NotBlank(message = "用户 ID 不能为空")
+    private String id;
+
     /** 新密码 */
     @NotBlank(message = "新密码不能为空")
     private String newPassword;

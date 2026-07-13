@@ -34,7 +34,7 @@ export async function updateTenantApi(data: Record<string, unknown>): Promise<Ap
 
 /** 删除租户 */
 export async function deleteTenantApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: `/sys/tenant/${id}/delete` });
+  return request<null>({ method: "POST", url: "/sys/tenant/delete", data: id });
 }
 
 /** 批量删除租户 */

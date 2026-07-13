@@ -77,10 +77,10 @@ public class SysRoleController {
     }
 
     // 删除指定角色，需 sys:role:delete
-    @PostMapping("/{id}/delete")
+    @PostMapping("/delete")
     @RequiresPermission("sys:role:delete")
     @OperationLog(module = "角色管理", action = "删除角色")
-    public Result<Void> delete(@PathVariable("id") String id) {
+    public Result<Void> delete(@RequestBody String id) {
         roleService.deleteRole(id);
         return Result.ok();
     }

@@ -34,7 +34,7 @@ export async function updateUserApi(data: Record<string, unknown>): Promise<ApiE
 
 /** 删除用户 */
 export async function deleteUserApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: `/sys/user/${id}/delete` });
+  return request<null>({ method: "POST", url: "/sys/user/delete", data: id });
 }
 
 /** 批量删除用户 */
@@ -49,8 +49,8 @@ export async function resetUserPasswordApi(
 ): Promise<ApiEnvelope<null>> {
   return request<null>({
     method: "POST",
-    url: `/sys/user/${id}/password/reset`,
-    data: { newPassword }
+    url: "/sys/user/password/reset",
+    data: { id, newPassword }
   });
 }
 
@@ -62,7 +62,7 @@ export async function changeUserStatusApi(
 ): Promise<ApiEnvelope<null>> {
   return request<null>({
     method: "POST",
-    url: `/sys/user/${id}/status`,
-    data: { status, ...(reason ? { reason } : {}) }
+    url: "/sys/user/status",
+    data: { id, status, ...(reason ? { reason } : {}) }
   });
 }
