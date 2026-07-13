@@ -1,7 +1,6 @@
 package io.github.fushuwei.scaskeleton.log.event;
 
 import io.github.fushuwei.scaskeleton.log.handler.OperationLogHandler;
-import io.github.fushuwei.scaskeleton.log.model.OperationLogRecord;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -26,22 +25,21 @@ public class OperationLogEventListener {
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onOperationLog(OperationLogEvent event) {
-        OperationLogRecord record = event.getSource();
         if (operationLogHandler == null) {
-            logToSlf4j(record);
+            logToSlf4j(event);
             return;
         }
         try {
-            operationLogHandler.handle(record);
+            operationLogHandler.handle(event);
         } catch (Exception e) {
-            log.warn("[操作日志] 异步持久化监听器执行失败，回退到 Slf4j 记录日志，日志追踪ID：{}", record.getTraceId(), e);
-            logToSlf4j(record);
+            log.warn("[操作日志] 异步持久化监听器执行失败，回退到 Slf4j 记录日志，日志追踪ID：{}", event.traceId(), e);
+            logToSlf4j(event);
         }
     }
 
-    private void logToSlf4j(OperationLogRecord record) {
+    private void logToSlf4j(OperationLogEvent event) {
         log.info("[操作日志] traceId={} module={} action={} user={} uri={} costMs={} success={}",
-            record.getTraceId(), record.getModule(), record.getAction(), record.getUsername(),
-            record.getRequestUri(), record.getCostMs(), record.getIsSuccess());
+            event.traceId(), event.module(), event.action(), event.username(),
+            event.requestUri(), event.costMs(), event.isSuccess());
     }
 }

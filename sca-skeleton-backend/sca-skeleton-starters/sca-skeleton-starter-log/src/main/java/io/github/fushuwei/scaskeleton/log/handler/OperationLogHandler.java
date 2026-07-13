@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.log.handler;
 
-import io.github.fushuwei.scaskeleton.log.model.OperationLogRecord;
+import io.github.fushuwei.scaskeleton.log.event.OperationLogEvent;
 
 /**
  * 操作日志处理器
@@ -12,7 +12,7 @@ public interface OperationLogHandler {
     /**
      * 处理操作日志记录
      *
-     * @param record 切面收集到的完整操作日志数据
+     * @param event 切面采集到的完整操作日志事件
      */
-    void handle(OperationLogRecord record);
+    void handle(OperationLogEvent event);
 }

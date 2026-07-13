@@ -5,7 +5,6 @@ import io.github.fushuwei.scaskeleton.core.trace.TraceContext;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.log.event.OperationLogEvent;
-import io.github.fushuwei.scaskeleton.log.model.OperationLogRecord;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,123 +62,140 @@ public class OperationLogAspect {
         // 记录方法开始执行时间，用于计算耗时
         long startTime = System.currentTimeMillis();
 
-        OperationLogRecord record = new OperationLogRecord();
         // 从注解中读取业务语义描述
-        record.setModule(annotation.module());
-        record.setAction(annotation.action());
+        String module = annotation.module();
+        String action = annotation.action();
         // 从 TraceContext 获取当前链路 ID
-        record.setTraceId(TraceContext.get());
+        String traceId = TraceContext.get();
         // 记录操作发生时间
-        record.setOperationTime(LocalDateTime.now());
+        LocalDateTime operationTime = LocalDateTime.now();
 
         // 从方法签名中提取目标类名与方法名
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        record.setClassName(joinPoint.getTarget().getClass().getName());
-        record.setMethodName(signature.getName());
+        String className = joinPoint.getTarget().getClass().getName();
+        String methodName = signature.getName();
 
         // 填充当前用户信息（依赖 Security Starter 的 CurrentUserProvider 实现）
+        String userId = null;
+        String username = null;
         if (currentUserProvider != null) {
-            record.setUserId(currentUserProvider.getUserId());
-            record.setUsername(currentUserProvider.getUsername());
+            userId = currentUserProvider.getUserId();
+            username = currentUserProvider.getUsername();
         }
 
         // 从 Spring Web 请求上下文中提取 HTTP 信息
-        fillHttpContext(record);
+        HttpContext httpContext = extractHttpContext();
 
         // 如果注解配置了记录请求参数，将方法入参序列化为 JSON（敏感字段自动脱敏）
+        String requestArgs = null;
         if (annotation.logArgs()) {
             try {
                 Object[] args = joinPoint.getArgs();
                 if (args.length == 1) {
                     // 单参数方法：直接序列化该参数本身，避免外层多套一层数组 []
-                    record.setRequestArgs(maskSensitiveFields(jsonMapper.writeValueAsString(args[0])));
+                    requestArgs = maskSensitiveFields(jsonMapper.writeValueAsString(args[0]));
                 } else {
                     // 多参数方法：序列化为数组，键为参数名
-                    record.setRequestArgs(maskSensitiveFields(jsonMapper.writeValueAsString(args)));
+                    requestArgs = maskSensitiveFields(jsonMapper.writeValueAsString(args));
                 }
             } catch (Exception e) {
-                record.setRequestArgs("[请求参数序列化失败，详情：{" + e.getMessage() + "}]");
+                requestArgs = "[请求参数序列化失败，详情：{" + e.getMessage() + "}]";
             }
         }
 
+        Integer isSuccess = 0;
+        String errorMessage = null;
+        String responseResult = null;
         try {
             // 执行原方法，捕获返回值
             Object result = joinPoint.proceed();
-            record.setIsSuccess(1);
+            isSuccess = 1;
             // 如果注解配置了记录响应结果，将返回值序列化为 JSON
             if (annotation.logResult() && result != null) {
                 try {
-                    record.setResponseResult(jsonMapper.writeValueAsString(result));
+                    responseResult = jsonMapper.writeValueAsString(result);
                 } catch (Exception e) {
-                    record.setResponseResult("[响应结果序列化失败，详情：{" + e.getMessage() + "}]");
+                    responseResult = "[响应结果序列化失败，详情：{" + e.getMessage() + "}]";
                 }
             }
             return result;
         } catch (Throwable throwable) {
             // 标记操作失败并记录异常描述
-            record.setIsSuccess(0);
-            record.setErrorMessage(throwable.getMessage());
+            errorMessage = throwable.getMessage();
             // 异常继续向上抛出，不吞掉业务异常
             throw throwable;
         } finally {
-            // 无论成功或失败，均计算耗时并触发日志处理
-            record.setCostMs(System.currentTimeMillis() - startTime);
-            eventPublisher.publishEvent(new OperationLogEvent(record));
+            // 无论成功或失败，均计算耗时并发布事件
+            long costMs = System.currentTimeMillis() - startTime;
+            eventPublisher.publishEvent(new OperationLogEvent(
+                traceId,
+                module,
+                action,
+                userId,
+                username,
+                httpContext != null ? httpContext.clientIp() : null,
+                httpContext != null ? httpContext.httpMethod() : null,
+                httpContext != null ? httpContext.requestUri() : null,
+                className,
+                methodName,
+                requestArgs,
+                responseResult,
+                isSuccess,
+                errorMessage,
+                costMs,
+                operationTime
+            ));
         }
     }
 
     /**
      * 从 Spring Web 请求上下文中提取 HTTP 方法、请求路径和客户端 IP
-     * 非 Web 场景（如单元测试）下 RequestContextHolder 为 null，跳过填充
-     *
-     * @param record 待填充的操作日志记录
+     * 非 Web 场景（如单元测试）下 RequestContextHolder 为 null，返回 null
      */
-    private void fillHttpContext(OperationLogRecord record) {
+    private HttpContext extractHttpContext() {
         ServletRequestAttributes attributes =
             (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         // 非 Web 请求（异步任务、定时任务）时跳过 HTTP 信息填充
         if (attributes == null) {
-            return;
+            return null;
         }
         HttpServletRequest request = attributes.getRequest();
-        record.setHttpMethod(request.getMethod());
-        record.setRequestUri(request.getRequestURI());
-        // 优先从 X-Forwarded-For 获取真实客户端 IP（经过反向代理时有效）
-        record.setClientIp(resolveClientIp(request));
+        return new HttpContext(
+            request.getMethod(),
+            request.getRequestURI(),
+            resolveClientIp(request)
+        );
     }
 
     /**
      * 解析客户端真实 IP，依次尝试常见反向代理请求头，最终回退到 RemoteAddr
-     *
-     * @param request HTTP 请求
-     * @return 客户端 IP 字符串
      */
     private String resolveClientIp(HttpServletRequest request) {
-        // 依次尝试各反向代理透传的真实 IP 请求头
         String[] headerNames = {
             "X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP"
         };
         for (String header : headerNames) {
             String ip = request.getHeader(header);
             if (ip != null && !ip.isBlank() && !"unknown".equalsIgnoreCase(ip)) {
-                // X-Forwarded-For 可能包含多个 IP，取第一个（最近的真实客户端）
                 return ip.split(",")[0].trim();
             }
         }
-        // 无反向代理时直接返回 TCP 连接的远端地址
         return request.getRemoteAddr();
     }
 
     /**
      * 对 JSON 字符串中的敏感字段值进行脱敏，替换为 "******"
-     *
-     * @param json 原始 JSON 字符串
-     * @return 脱敏后的 JSON 字符串
      */
     private String maskSensitiveFields(String json) {
         if (json == null || json.isEmpty()) {
             return json;
         }
         return SENSITIVE_FIELD_PATTERN.matcher(json).replaceAll("$1\"******\"");
+    }
+
+    /**
+     * HTTP 请求上下文数据载体
+     */
+    private record HttpContext(String httpMethod, String requestUri, String clientIp) {
     }
 }

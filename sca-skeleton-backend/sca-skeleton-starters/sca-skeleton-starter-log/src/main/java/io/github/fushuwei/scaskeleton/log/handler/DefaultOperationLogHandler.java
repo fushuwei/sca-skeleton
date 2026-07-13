@@ -1,8 +1,8 @@
 package io.github.fushuwei.scaskeleton.log.handler;
 
 import io.github.fushuwei.scaskeleton.log.entity.SysOperationLog;
+import io.github.fushuwei.scaskeleton.log.event.OperationLogEvent;
 import io.github.fushuwei.scaskeleton.log.mapper.SysOperationLogMapper;
-import io.github.fushuwei.scaskeleton.log.model.OperationLogRecord;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -16,23 +16,23 @@ public class DefaultOperationLogHandler implements OperationLogHandler {
     private final SysOperationLogMapper operationLogMapper;
 
     @Override
-    public void handle(OperationLogRecord record) {
+    public void handle(OperationLogEvent event) {
         SysOperationLog operationLog = new SysOperationLog();
-        operationLog.setTraceId(record.getTraceId());
-        operationLog.setUserId(record.getUserId());
-        operationLog.setModule(record.getModule());
-        operationLog.setAction(record.getAction());
-        operationLog.setHttpMethod(record.getHttpMethod());
-        operationLog.setRequestUri(record.getRequestUri());
-        operationLog.setClassName(record.getClassName());
-        operationLog.setMethodName(record.getMethodName());
-        operationLog.setRequestArgs(record.getRequestArgs());
-        operationLog.setResponseResult(record.getResponseResult());
-        operationLog.setIsSuccess(record.getIsSuccess());
-        operationLog.setErrorMessage(record.getErrorMessage());
-        operationLog.setCostMs(record.getCostMs());
-        operationLog.setClientIp(record.getClientIp());
-        operationLog.setOperationTime(record.getOperationTime());
+        operationLog.setTraceId(event.traceId());
+        operationLog.setUserId(event.userId());
+        operationLog.setModule(event.module());
+        operationLog.setAction(event.action());
+        operationLog.setHttpMethod(event.httpMethod());
+        operationLog.setRequestUri(event.requestUri());
+        operationLog.setClassName(event.className());
+        operationLog.setMethodName(event.methodName());
+        operationLog.setRequestArgs(event.requestArgs());
+        operationLog.setResponseResult(event.responseResult());
+        operationLog.setIsSuccess(event.isSuccess());
+        operationLog.setErrorMessage(event.errorMessage());
+        operationLog.setCostMs(event.costMs());
+        operationLog.setClientIp(event.clientIp());
+        operationLog.setOperationTime(event.operationTime());
         operationLogMapper.insert(operationLog);
     }
 }
