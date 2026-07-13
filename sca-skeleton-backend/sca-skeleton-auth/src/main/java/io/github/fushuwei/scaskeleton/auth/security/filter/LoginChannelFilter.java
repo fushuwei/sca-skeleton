@@ -29,6 +29,9 @@ public class LoginChannelFilter extends OncePerRequestFilter {
     /** 表单字段名：标识 admin 或 portal 登录页来源 */
     private static final String PARAM_LOGIN_CHANNEL = "loginChannel";
 
+    /** 请求属性名：登录开始时间（毫秒），供 LoginLogPublisher 计算耗时 */
+    public static final String ATTR_LOGIN_START_TIME = "loginStartTime";
+
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
@@ -38,6 +41,8 @@ public class LoginChannelFilter extends OncePerRequestFilter {
             // 从表单读取渠道并绑定到当前线程
             String rawChannel = request.getParameter(PARAM_LOGIN_CHANNEL);
             LoginChannelContext.set(LoginChannel.fromValue(rawChannel));
+            // 记录登录开始时间，供 LoginLogPublisher 计算认证耗时
+            request.setAttribute(ATTR_LOGIN_START_TIME, System.currentTimeMillis());
         }
         try {
             // 继续后续 Security 过滤器链（含 UsernamePasswordAuthenticationFilter）

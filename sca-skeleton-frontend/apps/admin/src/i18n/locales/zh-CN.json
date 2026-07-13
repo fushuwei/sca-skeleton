@@ -428,5 +428,31 @@
     "copy": "复制",
     "copied": "已复制到剪贴板",
     "copyFailed": "复制失败"
+  },
+  "loginLog": {
+    "title": "登录日志",
+    "username": "登录用户",
+    "realName": "真实姓名",
+    "status": "状态",
+    "success": "成功",
+    "failed": "失败",
+    "clientIp": "客户端IP",
+    "location": "登录位置",
+    "device": "设备类型",
+    "browser": "浏览器",
+    "os": "操作系统",
+    "errorMessage": "异常信息",
+    "costMs": "耗时",
+    "loginTime": "登录时间",
+    "startTime": "开始时间",
+    "endTime": "结束时间",
+    "detailTitle": "日志详情",
+    "overviewInfo": "概览信息",
+    "deviceInfo": "设备信息",
+    "batchDelete": "批量删除",
+    "clearAll": "清空全部",
+    "clearAllConfirm": "确定要清空全部登录日志吗？此操作不可恢复！",
+    "clearAllSuccess": "清空成功",
+    "batchDeleteConfirm": "确定要删除选中的 {count} 条登录日志吗？"
   }
 }

@@ -428,5 +428,31 @@
     "copy": "Copy",
     "copied": "Copied to clipboard",
     "copyFailed": "Copy failed"
+  },
+  "loginLog": {
+    "title": "Login Logs",
+    "username": "Username",
+    "realName": "Real Name",
+    "status": "Status",
+    "success": "Success",
+    "failed": "Failed",
+    "clientIp": "Client IP",
+    "location": "Location",
+    "device": "Device",
+    "browser": "Browser",
+    "os": "OS",
+    "errorMessage": "Error Message",
+    "costMs": "Cost",
+    "loginTime": "Login Time",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "detailTitle": "Log Detail",
+    "overviewInfo": "Overview",
+    "deviceInfo": "Device Info",
+    "batchDelete": "Batch Delete",
+    "clearAll": "Clear All",
+    "clearAllConfirm": "Are you sure you want to clear ALL login logs? This action cannot be undone!",
+    "clearAllSuccess": "Cleared successfully",
+    "batchDeleteConfirm": "Are you sure you want to delete the selected {count} login log(s)?"
   }
 }

@@ -13,6 +13,7 @@ const MENU_COMPONENT_MAP: Record<MenuComponent, () => Promise<unknown>> = { // �
   TenantPackageListView: () => import("../views/system/TenantPackageListView.vue"), // 将 TenantPackageList 菜单映射到套餐管理页面。
   TenantListView: () => import("../views/system/TenantListView.vue"), // 将 TenantList 菜单映射到租户管理页面。
   OperationLogListView: () => import("../views/system/OperationLogListView.vue"), // 将 OperationLogList 菜单映射到操作日志页面。
+  LoginLogListView: () => import("../views/system/LoginLogListView.vue"), // 将 LoginLogList 菜单映射到登录日志页面。
   PlaceholderView: () => import("../views/common/PlaceholderView.vue") // 通用占位页。
 }; // 结束菜单组件映射表定义。
 

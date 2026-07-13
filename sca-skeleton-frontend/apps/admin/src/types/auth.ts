@@ -6,7 +6,7 @@ export interface CaptchaData {
 }
 
 /** 菜单挂载的页面组件标识（仅叶子节点需要） */
-export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView" | "RoleListView" | "PostListView" | "DeptListView" | "TenantPackageListView" | "TenantListView" | "OperationLogListView";
+export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "MenuListView" | "RoleListView" | "PostListView" | "DeptListView" | "TenantPackageListView" | "TenantListView" | "OperationLogListView" | "LoginLogListView";
 
 export interface MenuItem {
   /** 主键ID（对应 SQL id 字段），唯一标识 */
@@ -384,6 +384,45 @@ export interface OperationLogPageRequest {
   action?: string;
   operator?: string;
   isSuccess?: number;
+  startTime?: string;
+  endTime?: string;
+  orderBy?: string;
+  orderDirection?: string;
+}
+
+// ── 登录日志相关类型 ──
+
+/** 登录日志实体（对应后端 LoginLogResponse） */
+export interface SysLoginLog {
+  id: string;
+  tenantId: string;
+  userId: string;
+  /** 登录时输入的用户名（原始输入，无论用户是否存在都记录） */
+  username: string;
+  /** 真实姓名（通过 user_id 关联 sys_user 查询，user 不存在时为空） */
+  realName: string;
+  clientIp: string;
+  location: string;
+  device: string;
+  browser: string;
+  os: string;
+  /** 是否成功：0-失败，1-成功 */
+  isSuccess: number;
+  errorMessage: string;
+  /** 操作耗时（毫秒） */
+  costMs: number;
+  loginTime: string;
+}
+
+/** 登录日志分页查询请求参数 */
+export interface LoginLogPageRequest {
+  pageNum?: number;
+  pageSize?: number;
+  /** 用户名筛选（模糊匹配登录时输入的原始用户名） */
+  username?: string;
+  /** 是否成功：1-成功，0-失败 */
+  isSuccess?: number;
+  clientIp?: string;
   startTime?: string;
   endTime?: string;
   orderBy?: string;

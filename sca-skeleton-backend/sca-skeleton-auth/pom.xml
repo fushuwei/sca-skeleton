@@ -42,6 +42,12 @@
             <artifactId>sca-skeleton-starter-captcha</artifactId>
         </dependency>
 
+        <!-- 日志增强 Starter：登录日志实体与 Mapper 共享 -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-log</artifactId>
+        </dependency>
+
         <!-- OAuth 2.1 授权服务器（授权码 + PKCE 认证授权中心） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

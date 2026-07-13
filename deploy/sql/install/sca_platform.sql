@@ -451,7 +451,7 @@ SELECT t.* FROM (
     SELECT '9953', '9999', '操作日志', 'Operation Logs', 'menu', NULL, '/system/log/operation', 'OperationLogListView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9953', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     -- 二级菜单：登录日志 (sort = 9918, 一级菜单99 + 二级序号18)
-    SELECT '9954', '9999', '登录日志', 'Login Logs', 'menu', NULL, '/system/log/login', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9918, 1, 0, 'enabled', '0,9999,9954', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9954', '9999', '登录日志', 'Login Logs', 'menu', NULL, '/system/log/login', 'LoginLogListView', 'sym_r_nest_eco_leaf', 9918, 1, 0, 'enabled', '0,9999,9954', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
 WHERE NOT EXISTS (
     SELECT 1 FROM `sys_permission` WHERE `id` = '9999' AND `is_deleted` = 0
@@ -568,16 +568,21 @@ CREATE TABLE IF NOT EXISTS `sys_config` (
 CREATE TABLE IF NOT EXISTS `sys_login_log` (
     `id`              VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
     `tenant_id`       VARCHAR(64)     DEFAULT NULL                COMMENT '租户ID',
-    `user_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '用户ID',
-    `ip`              VARCHAR(128)    DEFAULT NULL                COMMENT '登录IP',
+    `user_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '用户ID（关联sys_user.id，用户不存在时为空）',
+    `username`        VARCHAR(64)     NOT NULL                    COMMENT '登录时输入的用户名（原始输入，无论用户是否存在都记录）',
+    `client_ip`       VARCHAR(128)    DEFAULT NULL                COMMENT '客户端IP',
     `location`        VARCHAR(255)    DEFAULT NULL                COMMENT '登录位置',
     `device`          VARCHAR(100)    DEFAULT NULL                COMMENT '设备类型',
     `browser`         VARCHAR(100)    DEFAULT NULL                COMMENT '浏览器',
     `os`              VARCHAR(100)    DEFAULT NULL                COMMENT '操作系统',
-    `status`          VARCHAR(20)     NOT NULL                    COMMENT '登录状态',
-    `msg`             VARCHAR(255)    DEFAULT NULL                COMMENT '提示消息',
+    `is_success`      TINYINT(1)      NOT NULL DEFAULT 1          COMMENT '是否成功（0失败 1成功）',
+    `error_message`   TEXT            DEFAULT NULL                COMMENT '异常信息',
+    `cost_ms`         BIGINT          DEFAULT NULL                COMMENT '操作耗时（毫秒）',
     `login_time`      DATETIME        NOT NULL                    COMMENT '登录时间',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    KEY `idx_login_time` (`login_time`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='登录日志表';
 
 
