@@ -424,6 +424,9 @@
     "clearAllConfirm": "Are you sure you want to clear ALL operation logs? This action cannot be undone!",
     "clearAllSuccess": "Cleared successfully",
     "deleteConfirm": "Are you sure you want to delete this operation log?",
-    "batchDeleteConfirm": "Are you sure you want to delete the selected {count} operation log(s)?"
+    "batchDeleteConfirm": "Are you sure you want to delete the selected {count} operation log(s)?",
+    "copy": "Copy",
+    "copied": "Copied to clipboard",
+    "copyFailed": "Copy failed"
   }
 }

@@ -403,6 +403,12 @@ async function copyText(text: string | null | undefined, key: "requestArgs" | "r
   setTimeout(() => { copyState[key] = "idle"; }, 2000);
 }
 
+function copyTooltip(state: CopyState): string {
+  if (state === "success") return t("operationLog.copied");
+  if (state === "fail") return t("operationLog.copyFailed");
+  return t("operationLog.copy");
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 生命周期
 // ═══════════════════════════════════════════════════════════════
@@ -877,11 +883,13 @@ onMounted(() => {
                       flat
                       dense
                       round
-                      size="sm"
+                      class="log-detail-copy-btn"
                       :icon="copyState.requestArgs === 'idle' ? 'sym_r_content_copy' : copyState.requestArgs === 'success' ? 'sym_r_check' : 'sym_r_close'"
                       :color="copyState.requestArgs === 'success' ? 'positive' : copyState.requestArgs === 'fail' ? 'negative' : 'grey-7'"
                       @click="copyText(detailData.requestArgs, 'requestArgs')"
-                    />
+                    >
+                      <q-tooltip>{{ copyTooltip(copyState.requestArgs) }}</q-tooltip>
+                    </q-btn>
                   </div>
                   <pre class="json-block">{{ formatJson(detailData.requestArgs) }}</pre>
                 </div>
@@ -897,11 +905,13 @@ onMounted(() => {
                       flat
                       dense
                       round
-                      size="sm"
+                      class="log-detail-copy-btn"
                       :icon="copyState.responseResult === 'idle' ? 'sym_r_content_copy' : copyState.responseResult === 'success' ? 'sym_r_check' : 'sym_r_close'"
                       :color="copyState.responseResult === 'success' ? 'positive' : copyState.responseResult === 'fail' ? 'negative' : 'grey-7'"
                       @click="copyText(detailData.responseResult, 'responseResult')"
-                    />
+                    >
+                      <q-tooltip>{{ copyTooltip(copyState.responseResult) }}</q-tooltip>
+                    </q-btn>
                   </div>
                   <pre class="json-block">{{ formatJson(detailData.responseResult) }}</pre>
                 </div>
@@ -1330,6 +1340,26 @@ onMounted(() => {
   background: rgba(255, 0, 0, 0.04);
   color: var(--q-negative);
   border: 1px solid rgba(255, 0, 0, 0.12);
+}
+
+/* 详情卡片复制按钮（与关闭按钮图标尺寸一致：20px） */
+.log-detail-copy-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.log-detail-copy-btn :deep(.q-btn__wrapper) {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+}
+
+.log-detail-copy-btn :deep(.q-icon) {
+  font-size: 20px;
 }
 
 .body--dark .json-block--error {

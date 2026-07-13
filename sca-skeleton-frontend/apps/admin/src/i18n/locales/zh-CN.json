@@ -424,6 +424,9 @@
     "clearAllConfirm": "确定要清空全部操作日志吗？此操作不可恢复！",
     "clearAllSuccess": "清空成功",
     "deleteConfirm": "确定要删除该操作日志吗？",
-    "batchDeleteConfirm": "确定要删除选中的 {count} 条操作日志吗？"
+    "batchDeleteConfirm": "确定要删除选中的 {count} 条操作日志吗？",
+    "copy": "复制",
+    "copied": "已复制到剪贴板",
+    "copyFailed": "复制失败"
   }
 }
