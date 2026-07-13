@@ -32,14 +32,13 @@ public class LoginLogEventListener {
         try {
             loginLogHandler.handle(event);
         } catch (Exception e) {
-            log.warn("[登录日志] 异步持久化监听器执行失败，回退到 Slf4j 记录日志，isSuccess={} userId={}",
-                event.isSuccess(), event.userId(), e);
+            log.warn("[登录日志] 异步持久化监听器执行失败，回退到 Slf4j 记录日志", e);
             logToSlf4j(event);
         }
     }
 
     private void logToSlf4j(LoginLogEvent event) {
-        log.info("[登录日志] isSuccess={} username={} userId={} ip={} costMs={} loginTime={} msg={}",
+        log.info("[登录日志] isSuccess={} username={} userId={} clientIp={} costMs={} loginTime={} msg={}",
             event.isSuccess(), event.username(), event.userId(),
             event.clientIp(), event.costMs(), event.loginTime(), event.errorMessage());
     }

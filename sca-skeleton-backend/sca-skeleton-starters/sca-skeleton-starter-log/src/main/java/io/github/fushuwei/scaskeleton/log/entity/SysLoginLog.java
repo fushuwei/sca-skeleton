@@ -45,6 +45,15 @@ public class SysLoginLog implements Serializable {
     private String username;
 
     /**
+     * 真实姓名
+     */
+    @TableField(value = "real_name",
+        insertStrategy = FieldStrategy.NEVER,
+        updateStrategy = FieldStrategy.NEVER,
+        select = false)
+    private String realName;
+
+    /**
      * 客户端 IP
      */
     private String clientIp;
@@ -88,13 +97,4 @@ public class SysLoginLog implements Serializable {
      * 登录时间
      */
     private LocalDateTime loginTime;
-
-    /**
-     * 真实姓名（由 SQL JOIN sys_user.real_name 生成，user 不存在时为 null）
-     */
-    @TableField(value = "real_name",
-        insertStrategy = FieldStrategy.NEVER,
-        updateStrategy = FieldStrategy.NEVER,
-        select = false)
-    private String realName;
 }
