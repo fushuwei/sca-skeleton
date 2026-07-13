@@ -38,8 +38,10 @@ public class LoginLogEventListener {
     }
 
     private void logToSlf4j(LoginLogEvent event) {
-        log.info("[登录日志] isSuccess={} username={} userId={} clientIp={} costMs={} loginTime={} msg={}",
-            event.isSuccess(), event.username(), event.userId(),
-            event.clientIp(), event.costMs(), event.loginTime(), event.errorMessage());
+        log.info("[登录日志] isSuccess={} tenantId={} userId={} username={} clientIp={} location={} " +
+                "device={} browser={} os={} costMs={} loginTime={} errorMessage={}",
+            event.isSuccess(), event.tenantId(), event.userId(), event.username(),
+            event.clientIp(), event.location(), event.device(), event.browser(), event.os(),
+            event.costMs(), event.loginTime(), event.errorMessage());
     }
 }

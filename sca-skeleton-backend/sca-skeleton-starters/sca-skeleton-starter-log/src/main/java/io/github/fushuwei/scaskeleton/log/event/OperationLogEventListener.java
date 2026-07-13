@@ -38,8 +38,15 @@ public class OperationLogEventListener {
     }
 
     private void logToSlf4j(OperationLogEvent event) {
-        log.info("[操作日志] traceId={} module={} action={} user={} uri={} costMs={} success={}",
-            event.traceId(), event.module(), event.action(), event.username(),
-            event.requestUri(), event.costMs(), event.isSuccess());
+        log.info("[操作日志] traceId={} module={} action={} userId={} username={} clientIp={} " +
+                "httpMethod={} requestUri={} className={} methodName={} " +
+                "isSuccess={} costMs={} operationTime={} " +
+                "requestArgs={} responseResult={} errorMessage={}",
+            event.traceId(), event.module(), event.action(),
+            event.userId(), event.username(), event.clientIp(),
+            event.httpMethod(), event.requestUri(),
+            event.className(), event.methodName(),
+            event.isSuccess(), event.costMs(), event.operationTime(),
+            event.requestArgs(), event.responseResult(), event.errorMessage());
     }
 }
