@@ -69,10 +69,6 @@ public class LoginLogProperties {
         /**
          * ip2region xdb 数据库文件路径
          * <p>
-         * 开发环境默认: {@code ./ip2region/ip2region.xdb}（项目根目录下）<br>
-         * 生产环境: 通过 Docker volume / K8s ConfigMap 挂载，配置绝对路径
-         * <p>
-         * 文件不存在时优雅降级，location 字段保持 null，不影响登录主流程
          * xdb 文件下载地址: <a href="https://github.com/lionsoul2014/ip2region/blob/master/data/ip2region_v4.xdb">ip2region_v4.xdb</a>
          */
         private String dbPath = "./ip2region/ip2region_v4.xdb";

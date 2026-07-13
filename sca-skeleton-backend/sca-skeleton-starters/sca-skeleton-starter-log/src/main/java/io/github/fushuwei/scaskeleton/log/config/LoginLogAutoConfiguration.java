@@ -96,8 +96,7 @@ public class LoginLogAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public LoginLogEventListener loginLogEventListener(
-        @Autowired(required = false) @Nullable LoginLogHandler loginLogHandler,
-        IpRegionResolver ipRegionResolver) {
+        @Autowired(required = false) @Nullable LoginLogHandler loginLogHandler, IpRegionResolver ipRegionResolver) {
         return new LoginLogEventListener(loginLogHandler, ipRegionResolver);
     }
 
