@@ -15,7 +15,7 @@
     <packaging>jar</packaging>
 
     <name>SCA Skeleton Backend :: Starter :: Log</name>
-    <description>SCA Skeleton Backend :: 操作日志注解 + 异步持久化 Starter</description>
+    <description>SCA Skeleton Backend :: 操作日志 + 登录日志 + 异步持久化 Starter</description>
 
     <dependencies>
         <!-- 项目核心 Starter（自定义基础组件封装） -->

@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 import java.util.regex.Pattern;
 
 /**
- * 操作日志切面
+ * 操作日志切面类
  * <p>
  * 拦截所有标注了 {@link OperationLog} 注解的方法，发布 {@link OperationLogEvent} 事件，由监听器消费事件并完成日志数据持久化
  *
@@ -33,8 +33,6 @@ public class OperationLogAspect {
 
     /**
      * 敏感字段脱敏正则：匹配 "password"、"oldPassword"、"newPassword" 等 JSON 键的值，替换为 "******"
-     * <p>
-     * 支持 password、oldPassword、newPassword、confirmPassword、rawPassword、secret、token 等字段名，
      * 匹配 "key":"value" 或 "key": value 格式，值被替换为 "******"
      */
     private static final Pattern SENSITIVE_FIELD_PATTERN = Pattern.compile(

@@ -3,6 +3,7 @@ package io.github.fushuwei.scaskeleton.log.config;
 import io.github.fushuwei.scaskeleton.log.event.LoginLogEventListener;
 import io.github.fushuwei.scaskeleton.log.mapper.SysLoginLogMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.MDC;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -17,11 +18,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * 登录日志自动配置：线程池 + 异步监听器。
- * <p>
- * 通过 {@code @EnableAsync} 启用异步支持，注册专用线程池 {@code loginLogExecutor}
- * 与 {@link LoginLogEventListener} Bean。业务层只需发布 {@link io.github.fushuwei.scaskeleton.log.event.LoginLogEvent}
- * 即可触发异步落库，无需感知底层实现。
+ * 登录日志自动配置类
  *
  * @author Fu Wei
  */
@@ -32,7 +29,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class LoginLogAutoConfiguration {
 
     /**
-     * 登录日志专用线程池，独立于操作日志线程池与 Spring 默认 taskExecutor
+     * 登录日志专用线程池，独立于 Spring 默认 taskExecutor
      */
     @Bean("loginLogExecutor")
     @ConditionalOnMissingBean(name = "loginLogExecutor")
@@ -64,7 +61,7 @@ public class LoginLogAutoConfiguration {
      */
     static class MdcTaskDecorator implements TaskDecorator {
         @Override
-        public Runnable decorate(Runnable runnable) {
+        public @NullMarked Runnable decorate(Runnable runnable) {
             Map<String, String> contextMap = MDC.getCopyOfContextMap();
             return () -> {
                 if (contextMap != null) {
