@@ -33,6 +33,20 @@ import org.springframework.security.web.SecurityFilterChain;
 public class OAuth2ResourceServerAutoConfiguration {
 
     /**
+     * API 文档标准路径白名单，始终免认证放行。
+     * <p>
+     * 包含 SpringDoc OpenAPI、Swagger UI、Scalar UI 及 WebJars 静态资源路径。
+     * 这些路径不承载业务逻辑，放行不影响资源安全性，同时确保文档 UI 可直接访问。
+     */
+    private static final String[] DOC_PERMIT_PATHS = {
+        "/v3/api-docs/**",
+        "/swagger-ui/**",
+        "/swagger-ui.html",
+        "/scalar/**",
+        "/webjars/**"
+    };
+
+    /**
      * 资源服务器安全过滤器链
      *
      * @param http                           HttpSecurity
@@ -53,10 +67,12 @@ public class OAuth2ResourceServerAutoConfiguration {
         // 无状态会话管理：不创建 Session，每次请求携带 Bearer 令牌校验
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        // 请求授权规则：白名单路径免认证，其余路径需要在请求头中携带有效的 Bearer 令牌
+        // 请求授权规则：API 文档路径 + 业务白名单路径免认证，其余路径需要 Bearer 令牌
         http.authorizeHttpRequests(auth -> {
+            // API 文档标准路径始终免认证
+            auth.requestMatchers(DOC_PERMIT_PATHS).permitAll();
+            // 业务白名单路径免认证
             String[] permitPaths = oauth2ResourceServerProperties.getPermitPaths().toArray(String[]::new);
-            // 白名单路径免认证，直接放行
             if (permitPaths.length > 0) {
                 auth.requestMatchers(permitPaths).permitAll();
             }

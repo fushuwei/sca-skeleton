@@ -15,6 +15,9 @@ import io.github.fushuwei.scaskeleton.system.api.response.user.UserPageResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserProfileResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysUserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +29,7 @@ import java.util.List;
  *
  * @author Fu Wei
  */
+@Tag(name = "用户管理", description = "用户的增删改查、密码重置、状态变更等管理操作")
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
@@ -33,15 +37,13 @@ public class SysUserController {
 
     private final SysUserService userService;
 
-    /**
-     * 获取当前登录用户资料
-     */
+    @Operation(summary = "获取当前登录用户资料", description = "根据当前 Bearer Token 返回登录用户的基本信息")
     @GetMapping("/profile")
     public Result<UserProfileResponse> profile() {
         return Result.ok(userService.getCurrentProfile());
     }
 
-    // 分页查询当前租户下用户列表（含部门名称、角色名称，排除密码）
+    @Operation(summary = "分页查询用户列表", description = "分页查询当前租户下的用户列表，支持关键词搜索、状态筛选、部门筛选与排序")
     @GetMapping("/page")
     @RequiresPermission("sys:user:list")
     public Result<IPage<UserPageResponse>> page(@Validated UserPageRequest request) {
@@ -49,14 +51,15 @@ public class SysUserController {
         return Result.ok(userService.pageUsers(tenantId, request));
     }
 
-    // 按 ID 查询用户详情，需 sys:user:query
+    @Operation(summary = "查询用户详情", description = "按 ID 查询用户完整信息（排除密码等敏感字段）")
+    @Parameter(name = "id", description = "用户 ID", required = true)
     @GetMapping("/{id}")
     @RequiresPermission("sys:user:query")
     public Result<UserResponse> getById(@PathVariable("id") String id) {
         return Result.ok(userService.getUserById(id));
     }
 
-    // 在当前租户下创建用户，需 sys:user:add
+    @Operation(summary = "创建用户", description = "在当前租户下创建新用户，可同时分配部门、岗位与角色")
     @PostMapping("/create")
     @RequiresPermission("sys:user:add")
     @OperationLog(module = "用户管理", action = "新增用户")
@@ -66,7 +69,7 @@ public class SysUserController {
         return Result.ok();
     }
 
-    // 更新当前租户下用户信息，需 sys:user:edit
+    @Operation(summary = "编辑用户", description = "更新用户信息，用户名不可修改；密码留空表示不修改")
     @PostMapping("/update")
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "编辑用户")
@@ -76,7 +79,7 @@ public class SysUserController {
         return Result.ok();
     }
 
-    // 删除指定用户，需 sys:user:delete
+    @Operation(summary = "删除用户", description = "根据用户 ID 删除指定用户")
     @PostMapping("/delete")
     @RequiresPermission("sys:user:delete")
     @OperationLog(module = "用户管理", action = "删除用户")
@@ -85,7 +88,7 @@ public class SysUserController {
         return Result.ok();
     }
 
-    // 批量删除用户
+    @Operation(summary = "批量删除用户", description = "根据用户 ID 列表批量删除用户")
     @PostMapping("/batch/delete")
     @RequiresPermission("sys:user:delete")
     @OperationLog(module = "用户管理", action = "批量删除用户")
@@ -94,7 +97,7 @@ public class SysUserController {
         return Result.ok();
     }
 
-    // 重置用户登录密码
+    @Operation(summary = "重置用户密码", description = "管理员重置指定用户的登录密码")
     @PostMapping("/reset-password")
     @RequiresPermission("sys:user:reset-password")
     @OperationLog(module = "用户管理", action = "重置密码")
@@ -103,7 +106,7 @@ public class SysUserController {
         return Result.ok();
     }
 
-    // 变更用户状态（启用/禁用等）
+    @Operation(summary = "变更用户状态", description = "启用、禁用、锁定、冻结等用户状态变更，需记录变更原因")
     @PostMapping("/change-status")
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "变更用户状态")
@@ -112,7 +115,7 @@ public class SysUserController {
         return Result.ok();
     }
 
-    // 批量变更用户状态
+    @Operation(summary = "批量变更用户状态", description = "批量启用、禁用、锁定、冻结等用户状态变更")
     @PostMapping("/batch/change-status")
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "批量变更用户状态")

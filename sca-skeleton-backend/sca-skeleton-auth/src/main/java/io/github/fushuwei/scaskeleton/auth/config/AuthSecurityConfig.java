@@ -92,6 +92,9 @@ public class AuthSecurityConfig {
                 .requestMatchers("/captcha/**", "/auth/captcha/**").permitAll()
                 // 静态资源放行（同时兼容网关 StripPrefix 后的路径和直连路径）
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                // API 文档放行（SpringDoc OpenAPI、Scalar UI 及 WebJars 静态资源）
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+                        "/scalar/**", "/webjars/**").permitAll()
                 // 其余请求需 Session 认证（authorize 链路登录成功后持有 Session）
                 .anyRequest().authenticated()
             )
