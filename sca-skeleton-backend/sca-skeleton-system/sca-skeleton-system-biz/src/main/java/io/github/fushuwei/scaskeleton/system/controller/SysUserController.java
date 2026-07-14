@@ -37,7 +37,7 @@ public class SysUserController {
 
     private final SysUserService userService;
 
-    @Operation(summary = "获取当前登录用户资料", description = "根据当前 Bearer Token 返回登录用户的基本信息")
+    @Operation(summary = "获取当前登录用户基本信息", description = "根据 Bearer Token 自省结果查询登录用户的基本信息")
     @GetMapping("/profile")
     public Result<UserProfileResponse> profile() {
         return Result.ok(userService.getCurrentProfile());

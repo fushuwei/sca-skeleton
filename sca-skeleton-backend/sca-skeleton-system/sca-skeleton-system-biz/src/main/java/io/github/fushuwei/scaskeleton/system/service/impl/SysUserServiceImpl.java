@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
-import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
@@ -45,18 +44,67 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SysUserServiceImpl implements SysUserService {
 
-    /** 用户主表 Mapper */
+    /**
+     * 用户主表 Mapper
+     */
     private final SysUserMapper userMapper;
-    /** 用户-角色关联 Mapper */
+
+    /**
+     * 用户-角色关联 Mapper
+     */
     private final SysUserRoleMapper userRoleMapper;
-    /** 用户-部门关联 Mapper */
+
+    /**
+     * 用户-部门关联 Mapper
+     */
     private final SysUserDeptMapper userDeptMapper;
-    /** 用户-岗位关联 Mapper */
+
+    /**
+     * 用户-岗位关联 Mapper
+     */
     private final SysUserPostMapper userPostMapper;
-    /** Spring Security 密码加密器 */
+
+    /**
+     * Spring Security 密码加密器
+     */
     private final PasswordEncoder passwordEncoder;
-    /** Entity ↔ Response 转换器（MapStruct 生成） */
+
+    /**
+     * Entity ↔ Response 转换器（MapStruct 生成）
+     */
     private final UserConverter userConverter;
+
+    /**
+     * 获取当前登录用户基本信息
+     *
+     * @return {@link UserProfileResponse}
+     */
+    @Override
+    public UserProfileResponse getCurrentProfile() {
+        // 获取不透明令牌自省后的用户 ID
+        String userId = SecurityUtils.getUserId();
+        if (!StringUtils.hasText(userId)) {
+            throw new BusinessException(ResultCode.UNAUTHORIZED, "未登录或令牌无效");
+        }
+        // 通过 ID 查询用户信息
+        SysUser user = userMapper.selectById(userId);
+        if (user != null) {
+            return userConverter.toUserProfileResponse(user);
+        }
+
+        // 用户 ID 不存在时，从自省结果属性中获取当前登录用户信息
+        String username = SecurityUtils.getUsername();
+        String nickname = SecurityUtils.getNickname();
+        if (!StringUtils.hasText(username)) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在");
+        }
+        return UserProfileResponse.builder()
+            .id(userId)
+            .username(username)
+            .nickname(StringUtils.hasText(nickname) ? nickname : username)
+            .isSuperadmin(SecurityUtils.isSuperAdmin() ? 1 : 0)
+            .build();
+    }
 
     @Override
     public IPage<UserPageResponse> pageUsers(String tenantId, UserPageRequest req) {
@@ -73,27 +121,27 @@ public class SysUserServiceImpl implements SysUserService {
 
         // 查询关联的部门ID列表
         List<SysUserDept> userDepts = userDeptMapper.selectList(new LambdaQueryWrapper<SysUserDept>()
-                .eq(SysUserDept::getTenantId, user.getTenantId())
-                .eq(SysUserDept::getUserId, user.getId()));
+            .eq(SysUserDept::getTenantId, user.getTenantId())
+            .eq(SysUserDept::getUserId, user.getId()));
         response.setDeptIds(userDepts.stream()
-                .map(SysUserDept::getDeptId)
-                .toList());
+            .map(SysUserDept::getDeptId)
+            .toList());
 
         // 查询关联的角色ID列表
         List<SysUserRole> userRoles = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>()
-                .eq(SysUserRole::getTenantId, user.getTenantId())
-                .eq(SysUserRole::getUserId, user.getId()));
+            .eq(SysUserRole::getTenantId, user.getTenantId())
+            .eq(SysUserRole::getUserId, user.getId()));
         response.setRoleIds(userRoles.stream()
-                .map(SysUserRole::getRoleId)
-                .toList());
+            .map(SysUserRole::getRoleId)
+            .toList());
 
         // 查询关联的岗位ID列表
         List<SysUserPost> userPosts = userPostMapper.selectList(new LambdaQueryWrapper<SysUserPost>()
-                .eq(SysUserPost::getTenantId, user.getTenantId())
-                .eq(SysUserPost::getUserId, user.getId()));
+            .eq(SysUserPost::getTenantId, user.getTenantId())
+            .eq(SysUserPost::getUserId, user.getId()));
         response.setPostIds(userPosts.stream()
-                .map(SysUserPost::getPostId)
-                .toList());
+            .map(SysUserPost::getPostId)
+            .toList());
 
         return response;
     }
@@ -103,9 +151,9 @@ public class SysUserServiceImpl implements SysUserService {
     public void createUser(String tenantId, UserCreateRequest req) {
         // 用户名在同租户内唯一（仅后台用户类别）
         long count = userMapper.selectCount(new LambdaQueryWrapper<SysUser>()
-                .eq(SysUser::getTenantId, tenantId)
-                .eq(SysUser::getUsername, req.getUsername())
-                .eq(SysUser::getUserType, "backend"));
+            .eq(SysUser::getTenantId, tenantId)
+            .eq(SysUser::getUsername, req.getUsername())
+            .eq(SysUser::getUserType, "backend"));
         if (count > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "用户名已存在");
         }
@@ -200,11 +248,11 @@ public class SysUserServiceImpl implements SysUserService {
         loadUserEntity(id);
         // 更新密码并清除强制改密标记
         userMapper.update(null, new LambdaUpdateWrapper<SysUser>()
-                .eq(SysUser::getId, id)
-                .set(SysUser::getPassword,
-                        passwordEncoder.encode(newPassword))
-                .set(SysUser::getMustChangePassword, 0)
-                .set(SysUser::getPasswordUpdateTime, LocalDateTime.now())
+            .eq(SysUser::getId, id)
+            .set(SysUser::getPassword,
+                passwordEncoder.encode(newPassword))
+            .set(SysUser::getMustChangePassword, 0)
+            .set(SysUser::getPasswordUpdateTime, LocalDateTime.now())
         );
     }
 
@@ -217,10 +265,10 @@ public class SysUserServiceImpl implements SysUserService {
         }
         // 更新状态及变更时间与原因
         userMapper.update(null, new LambdaUpdateWrapper<SysUser>()
-                .eq(SysUser::getId, id)
-                .set(SysUser::getStatus, status)
-                .set(SysUser::getStatusTime, LocalDateTime.now())
-                .set(SysUser::getStatusReason, reason)
+            .eq(SysUser::getId, id)
+            .set(SysUser::getStatus, status)
+            .set(SysUser::getStatusTime, LocalDateTime.now())
+            .set(SysUser::getStatusReason, reason)
         );
     }
 
@@ -235,7 +283,9 @@ public class SysUserServiceImpl implements SysUserService {
         }
     }
 
-    /** 保存用户-角色、用户-部门、用户-岗位关联。 */
+    /**
+     * 保存用户-角色、用户-部门、用户-岗位关联。
+     */
     private void saveUserRelations(String tenantId, String userId, List<String> roleIds,
                                    List<String> deptIds, List<String> postIds) {
         // 批量插入用户-角色关联
@@ -271,7 +321,9 @@ public class SysUserServiceImpl implements SysUserService {
         }
     }
 
-    /** 物理删除用户的所有角色、部门和岗位关联（关联表为纯关系数据，无需逻辑删除）。 */
+    /**
+     * 物理删除用户的所有角色、部门和岗位关联（关联表为纯关系数据，无需逻辑删除）。
+     */
     private void deleteUserRelations(String tenantId, String userId) {
         userRoleMapper.physicalDeleteByUser(tenantId, userId);
         userDeptMapper.physicalDeleteByUser(tenantId, userId);
@@ -291,33 +343,5 @@ public class SysUserServiceImpl implements SysUserService {
             throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在");
         }
         return user;
-    }
-
-    @Override
-    public UserProfileResponse getCurrentProfile() {
-        // 从 opaque token 自省后的 SecurityContext 读取用户 ID
-        String userId = SecurityUtils.getUserId();
-        if (!StringUtils.hasText(userId)) {
-            throw new BusinessException(ResultCode.UNAUTHORIZED, "未登录或令牌无效");
-        }
-        // 按主键查询用户实体
-        SysUser user = userMapper.selectById(userId);
-        if (user != null) {
-            // 命中数据库时返回持久化资料，确保后台管理能力使用最新主数据
-            return userConverter.toUserProfileResponse(user);
-        }
-
-        // 未命中数据库时回退 token claims，兼容 portal 等仅在认证域存在的用户
-        String username = SecurityUtils.getUsername();
-        String nickname = SecurityUtils.getClaim(OAuth2AccessTokenClaimNames.NICKNAME);
-        if (!StringUtils.hasText(username)) {
-            throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在");
-        }
-        return UserProfileResponse.builder()
-                .id(userId)
-                .username(username)
-                .nickname(StringUtils.hasText(nickname) ? nickname : username)
-                .isSuperadmin(SecurityUtils.isSuperAdmin() ? 1 : 0)
-                .build();
     }
 }

@@ -75,9 +75,18 @@ public class SecurityUtils {
     }
 
     /**
+     * 从 token 自省属性中获取用户昵称
+     *
+     * @return 用户名，未认证时返回 null
+     */
+    public static String getNickname() {
+        return getClaim(OAuth2AccessTokenClaimNames.NICKNAME);
+    }
+
+    /**
      * 判断当前认证用户是否为平台超级管理员
      * <p>
-     * 从不透明令牌自省属性中读取 {@code is_superadmin} claim，值为 {@code "1"} 时返回 true。
+     * 从不透明令牌自省属性中读取 {@code is_superadmin} claim，值为 {@code "1"} 时返回 true
      *
      * @return true 表示当前用户为平台超级管理员，未认证或非超管时返回 false
      */
