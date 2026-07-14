@@ -5,32 +5,61 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 登录日志响应对象。
- * <p>
- * operator 通过 user_id 关联 sys_user 表查询获取。
+ * 登录日志响应对象
  *
  * @author Fu Wei
  */
 @Data
 public class LoginLogResponse {
 
+    // ==================== 基本信息 ====================
+
+    /** 日志 ID */
     private String id;
+
+    /** 租户 ID */
     private String tenantId;
-    /** 租户名称（通过 tenant_id 关联 sys_tenant 查询，租户不存在时为 null） */
+
+    /** 租户名称 */
     private String tenantName;
+
+    /** 用户 ID */
     private String userId;
-    /** 登录时输入的用户名（原始输入，无论用户是否存在都记录） */
+
+    /** 登录时输入的用户名 */
     private String username;
-    /** 真实姓名（通过 user_id 关联 sys_user 查询，user 不存在时为 null） */
+
+    /** 真实姓名 */
     private String realName;
+
+    // ==================== 客户端信息 ====================
+
+    /** 客户端 IP */
     private String clientIp;
+
+    /** 登录位置 */
     private String location;
+
+    /** 设备类型 */
     private String device;
+
+    /** 浏览器 */
     private String browser;
+
+    /** 操作系统 */
     private String os;
-    /** 是否成功：0-失败，1-成功 */
+
+    // ==================== 结果信息 ====================
+
+    /** 是否成功 */
     private Integer isSuccess;
+
+    /** 异常信息 */
     private String errorMessage;
+
+    /** 操作耗时 */
     private Long costMs;
+
+    /** 登录时间 */
     private LocalDateTime loginTime;
 }

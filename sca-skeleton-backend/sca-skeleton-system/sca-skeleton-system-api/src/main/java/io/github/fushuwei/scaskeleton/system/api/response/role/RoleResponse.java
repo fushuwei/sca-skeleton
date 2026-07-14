@@ -5,32 +5,60 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 角色管理响应对象。
+ * 角色响应对象
  *
  * @author Fu Wei
  */
 @Data
 public class RoleResponse {
 
+    // ==================== 基本信息 ====================
+
+    /** 角色 ID */
     private String id;
+
+    /** 租户 ID */
     private String tenantId;
+
+    /** 角色名称 */
     private String name;
+
+    /** 角色编码 */
     private String code;
-    /**
-     * 数据权限范围：
-     * all-全部，tenant-租户，dept_and_sub-本部门及下级，dept-仅本部门，
-     * personal-仅本人，custom-自定义
-     */
+
+    // ==================== 属性信息 ====================
+
+    /** 数据权限范围 */
     private String dataScope;
-    /** 是否系统内置：0-否，1-是，内置角色不允许删除 */
+
+    /** 是否系统内置 */
     private Integer isBuiltin;
+
+    /** 排序号 */
     private Integer sort;
+
+    /** 备注 */
     private String remark;
+
+    /** 乐观锁版本号 */
     private Integer version;
-    private LocalDateTime createTime;
-    private LocalDateTime updateTime;
-    /** 关联的权限数量 */
+
+    // ==================== 关联信息 ====================
+
+    /** 关联权限数量 */
     private Integer permissionCount;
+
+    // ==================== 审计字段 ====================
+
+    /** 创建人 ID */
     private String createBy;
+
+    /** 创建时间 */
+    private LocalDateTime createTime;
+
+    /** 最后更新人 ID */
     private String updateBy;
+
+    /** 最后更新时间 */
+    private LocalDateTime updateTime;
 }

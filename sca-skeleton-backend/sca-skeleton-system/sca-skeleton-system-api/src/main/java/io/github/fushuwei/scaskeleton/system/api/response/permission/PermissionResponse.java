@@ -5,41 +5,78 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 权限管理响应对象（菜单/目录/按钮三级权限树）。
+ * 权限响应对象
  *
  * @author Fu Wei
  */
 @Data
 public class PermissionResponse {
 
+    // ==================== 基本信息 ====================
+
+    /** 权限 ID */
     private String id;
-    /** 父权限 ID，顶级为 "0" */
+
+    /** 上级权限 ID（顶级为 "0"） */
     private String parentId;
+
+    /** 权限名称 */
     private String name;
-    /** 英文菜单名称，用于国际化 */
+
+    /** 英文名称 */
     private String nameEn;
-    /** 类型：module-模块，folder-目录，menu-菜单，button-按钮 */
+
+    /** 类型 */
     private String type;
-    /** 权限标识，如 sys:user:list */
+
+    /** 权限标识 */
     private String code;
+
+    // ==================== 前端配置 ====================
+
     /** 前端路由地址 */
     private String path;
+
     /** 前端组件路径 */
     private String component;
+
+    /** 图标 */
     private String icon;
-    private Integer sort;
-    /** 是否可见：0-否，1-是 */
+
+    // ==================== 属性信息 ====================
+
+    /** 是否可见 */
     private Integer isVisible;
-    /** 是否外链：0-否，1-是 */
+
+    /** 是否外链 */
     private Integer isExternal;
-    /** 状态：enabled / disabled */
+
+    /** 状态 */
     private String status;
-    /** ID 层级路径，逗号分隔 */
+
+    /** 层级路径 */
     private String treePath;
+
+    /** 排序号 */
+    private Integer sort;
+
+    /** 备注 */
     private String remark;
+
+    /** 乐观锁版本号 */
     private Integer version;
-    private LocalDateTime createTime;
-    private LocalDateTime updateTime;
+
+    // ==================== 审计字段 ====================
+
+    /** 创建人 ID */
     private String createBy;
+
+    /** 创建时间 */
+    private LocalDateTime createTime;
+
+    /** 最后更新人 ID */
     private String updateBy;
+
+    /** 最后更新时间 */
+    private LocalDateTime updateTime;
 }
