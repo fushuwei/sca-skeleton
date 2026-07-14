@@ -157,8 +157,30 @@ gateway:
       - /auth/css/**
       - /auth/js/**
       - /auth/images/**
+      # Spring Doc 文档路径
+      - /v3/api-docs/**
+      - /swagger-ui/**
+      - /webjars/**
+      - /auth/v3/api-docs/**
+      - /sys/v3/api-docs/**
+      # Actuator 监控管控配置
       - /actuator/health
       - /actuator/info
+
+# Spring Doc 文档聚合配置（网关作为统一入口，汇总各微服务文档）
+springdoc:
+  api-docs:
+    # 是否暴露 /v3/api-docs JSON 端点，生产环境建议关闭
+    enabled: true
+  swagger-ui:
+    # 是否暴露 /swagger-ui/** 可视化页面，生产环境建议关闭
+    enabled: true
+    # 聚合页面入口，生产环境通过此处配置访问所有微服务文档
+    urls:
+      - name: 认证授权服务
+        url: /auth/v3/api-docs
+      - name: 系统管理服务
+        url: /sys/v3/api-docs
 
 # Actuator 监控管控配置
 management:
