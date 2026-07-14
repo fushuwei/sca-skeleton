@@ -16,7 +16,7 @@ sca:
   # API 文档配置（SpringDoc OpenAPI 3 + Swagger UI）
   doc:
     # 是否启用 API 文档，生产环境设为 false 关闭
-    enabled: true
+    enabled: false
     # 文档标题
     title: SCA Skeleton API
     # 文档描述
@@ -32,3 +32,10 @@ sca:
     license:
       name: Apache 2.0
       url: https://www.apache.org/licenses/LICENSE-2.0
+
+# SpringDoc 原生配置（控制 API 文档端点与 Swagger UI 的开关）
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
