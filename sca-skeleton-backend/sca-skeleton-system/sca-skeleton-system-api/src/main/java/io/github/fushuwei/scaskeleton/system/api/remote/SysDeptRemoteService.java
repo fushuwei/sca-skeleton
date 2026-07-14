@@ -30,5 +30,5 @@ public interface SysDeptRemoteService {
      * @return 部门信息
      */
     @GetExchange("/{id}")
-    DeptResponse getById(@PathVariable("id") String id);
+    DeptResponse getById(@PathVariable String id);
 }

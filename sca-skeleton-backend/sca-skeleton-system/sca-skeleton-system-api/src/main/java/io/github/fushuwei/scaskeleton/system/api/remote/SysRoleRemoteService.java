@@ -30,5 +30,5 @@ public interface SysRoleRemoteService {
      * @return 角色信息
      */
     @GetExchange("/{id}")
-    RoleResponse getById(@PathVariable("id") String id);
+    RoleResponse getById(@PathVariable String id);
 }

@@ -46,14 +46,14 @@ public class SysRoleController {
     // 按 ID 查询角色详情，需 sys:role:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:role:query")
-    public Result<RoleResponse> getById(@PathVariable("id") String id) {
+    public Result<RoleResponse> getById(@PathVariable String id) {
         return Result.ok(roleService.getRoleById(id));
     }
 
     // 查询角色已分配的权限 ID 列表，需 sys:role:query
     @GetMapping("/{id}/permissions")
     @RequiresPermission("sys:role:query")
-    public Result<List<String>> getPermissionIds(@PathVariable("id") String id) {
+    public Result<List<String>> getPermissionIds(@PathVariable String id) {
         return Result.ok(roleService.getRolePermissionIds(id));
     }
 

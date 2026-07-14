@@ -54,7 +54,7 @@ public class SysUserController {
     @Parameter(name = "id", description = "用户 ID", required = true)
     @GetMapping("/{id}")
     @RequiresPermission("sys:user:query")
-    public Result<UserResponse> getById(@PathVariable("id") String id) {
+    public Result<UserResponse> getById(@PathVariable String id) {
         return Result.ok(userService.getUserById(id));
     }
 

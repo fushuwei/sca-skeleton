@@ -45,14 +45,14 @@ public class SysTenantPackageController {
     // 按 ID 查询套餐详情，需 sys:tenant-package:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:tenant-package:query")
-    public Result<TenantPackageResponse> getById(@PathVariable("id") String id) {
+    public Result<TenantPackageResponse> getById(@PathVariable String id) {
         return Result.ok(packageService.getPackageById(id));
     }
 
     // 查询套餐已分配的权限 ID 列表，需 sys:tenant-package:query
     @GetMapping("/{id}/permissions")
     @RequiresPermission("sys:tenant-package:query")
-    public Result<List<String>> getPermissionIds(@PathVariable("id") String id) {
+    public Result<List<String>> getPermissionIds(@PathVariable String id) {
         return Result.ok(packageService.getPackagePermissionIds(id));
     }
 

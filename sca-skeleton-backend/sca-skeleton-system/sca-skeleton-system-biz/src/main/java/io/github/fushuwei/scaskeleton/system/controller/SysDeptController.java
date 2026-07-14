@@ -45,7 +45,7 @@ public class SysDeptController {
     // 按 ID 查询部门详情，需 sys:dept:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:dept:query")
-    public Result<DeptResponse> getById(@PathVariable("id") String id) {
+    public Result<DeptResponse> getById(@PathVariable String id) {
         return Result.ok(deptService.getDeptById(id));
     }
 

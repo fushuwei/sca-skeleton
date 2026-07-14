@@ -45,7 +45,7 @@ public class SysPostController {
     // 按 ID 查询岗位详情，需 sys:post:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:post:query")
-    public Result<PostResponse> getById(@PathVariable("id") String id) {
+    public Result<PostResponse> getById(@PathVariable String id) {
         return Result.ok(postService.getPostById(id));
     }
 

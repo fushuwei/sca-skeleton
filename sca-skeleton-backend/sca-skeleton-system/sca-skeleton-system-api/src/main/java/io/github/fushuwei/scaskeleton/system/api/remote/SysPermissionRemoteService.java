@@ -30,5 +30,5 @@ public interface SysPermissionRemoteService {
      * @return 权限信息
      */
     @GetExchange("/{id}")
-    PermissionResponse getById(@PathVariable("id") String id);
+    PermissionResponse getById(@PathVariable String id);
 }

@@ -29,5 +29,5 @@ public interface SysUserRemoteService {
      * @return 用户信息
      */
     @GetExchange("/{id}")
-    UserResponse getById(@PathVariable("id") String id);
+    UserResponse getById(@PathVariable String id);
 }

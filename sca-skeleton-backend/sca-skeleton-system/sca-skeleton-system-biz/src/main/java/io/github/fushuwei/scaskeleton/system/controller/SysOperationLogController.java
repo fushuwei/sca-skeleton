@@ -37,7 +37,7 @@ public class SysOperationLogController {
     // 按 ID 查询操作日志详情，需 sys:operation-log:query
     @GetMapping("/{id}")
     @RequiresPermission("sys:operation-log:query")
-    public Result<OperationLogResponse> getById(@PathVariable("id") String id) {
+    public Result<OperationLogResponse> getById(@PathVariable String id) {
         return Result.ok(operationLogService.getLogById(id));
     }
 
