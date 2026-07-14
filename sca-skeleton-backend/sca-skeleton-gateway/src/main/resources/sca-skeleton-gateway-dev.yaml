@@ -167,7 +167,7 @@ gateway:
       - /actuator/health
       - /actuator/info
 
-# Spring Doc 文档聚合配置（网关作为统一入口，汇总各微服务文档）
+# Spring Doc 文档配置（SpringDoc OpenAPI 3 + Swagger UI）
 springdoc:
   api-docs:
     # 是否暴露 /v3/api-docs JSON 端点，生产环境建议关闭
