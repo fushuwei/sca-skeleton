@@ -28,9 +28,8 @@ const isSuperAdmin = computed(() => authStore.profile?.isSuperadmin === 1);
 const searchForm = reactive<LoginLogPageRequest>({
   pageNum: 1,
   pageSize: 10,
-  username: "",
+  keyword: "",
   isSuccess: undefined,
-  clientIp: "",
   startTime: "",
   endTime: ""
 });
@@ -106,6 +105,13 @@ const columns = computed<QTableColumn<SysLoginLog>[]>(() => [
     format: (val: string) => formatDateTime(val)
   },
   {
+    name: "tenantName",
+    field: "tenantName",
+    label: t("loginLog.tenantName"),
+    align: "left",
+    sortable: false
+  },
+  {
     name: "username",
     field: "username",
     label: t("loginLog.username"),
@@ -116,13 +122,6 @@ const columns = computed<QTableColumn<SysLoginLog>[]>(() => [
     name: "realName",
     field: "realName",
     label: t("loginLog.realName"),
-    align: "left",
-    sortable: false
-  },
-  {
-    name: "tenantName",
-    field: "tenantName",
-    label: t("loginLog.tenantName"),
     align: "left",
     sortable: false
   },
@@ -237,9 +236,8 @@ async function loadTableData(
   const params: LoginLogPageRequest = {
     pageNum,
     pageSize,
-    username: searchForm.username || undefined,
+    keyword: searchForm.keyword || undefined,
     isSuccess: searchForm.isSuccess,
-    clientIp: searchForm.clientIp || undefined,
     startTime: searchForm.startTime || undefined,
     endTime: searchForm.endTime || undefined,
     orderBy,
@@ -297,9 +295,8 @@ function handleJumpToPage() {
 }
 
 function handleReset() {
-  searchForm.username = "";
+  searchForm.keyword = "";
   searchForm.isSuccess = undefined;
-  searchForm.clientIp = "";
   searchForm.startTime = "";
   searchForm.endTime = "";
   tablePagination.value.page = 1;
@@ -417,11 +414,11 @@ onMounted(() => {
           <div class="row q-col-gutter-sm items-end">
             <div class="col">
               <q-input
-                v-model="searchForm.username"
+                v-model="searchForm.keyword"
                 filled
                 square
                 dense
-                :placeholder="t('loginLog.username')"
+                :placeholder="t('loginLog.keywordPlaceholder')"
                 hide-bottom-space
                 clearable
                 @keyup.enter="handleSearch"
@@ -445,22 +442,10 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="searchForm.isSuccess === undefined" v-slot:selected>
+                <template v-if="searchForm.isSuccess == null" v-slot:selected>
                   <span class="status-placeholder">{{ t('loginLog.status') }}</span>
                 </template>
               </q-select>
-            </div>
-            <div class="col">
-              <q-input
-                v-model="searchForm.clientIp"
-                filled
-                square
-                dense
-                :placeholder="t('loginLog.clientIp')"
-                hide-bottom-space
-                clearable
-                @keyup.enter="handleSearch"
-              />
             </div>
             <div class="col-auto datetime-picker-col">
               <SearchDateTimePicker

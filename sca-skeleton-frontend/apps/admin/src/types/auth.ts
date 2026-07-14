@@ -420,11 +420,10 @@ export interface SysLoginLog {
 export interface LoginLogPageRequest {
   pageNum?: number;
   pageSize?: number;
-  /** 用户名筛选（模糊匹配登录时输入的原始用户名） */
-  username?: string;
+  /** 搜索关键字（模糊匹配租户名称、登录用户、真实姓名、客户端 IP） */
+  keyword?: string;
   /** 是否成功：1-成功，0-失败 */
   isSuccess?: number;
-  clientIp?: string;
   startTime?: string;
   endTime?: string;
   orderBy?: string;

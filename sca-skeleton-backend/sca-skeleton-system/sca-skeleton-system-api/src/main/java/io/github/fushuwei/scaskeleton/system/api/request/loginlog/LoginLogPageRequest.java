@@ -29,14 +29,11 @@ public class LoginLogPageRequest {
     @Max(value = 100, message = "每页条数不能超过 100")
     private Integer pageSize = 20;
 
-    /** 用户名筛选（模糊匹配登录时输入的原始用户名） */
-    private String username;
+    /** 搜索关键字（模糊匹配租户名称、登录用户、真实姓名、客户端 IP） */
+    private String keyword;
 
     /** 是否成功筛选：1-成功，0-失败 */
     private Integer isSuccess;
-
-    /** 客户端 IP 筛选 */
-    private String clientIp;
 
     /** 查询开始时间 */
     private LocalDateTime startTime;

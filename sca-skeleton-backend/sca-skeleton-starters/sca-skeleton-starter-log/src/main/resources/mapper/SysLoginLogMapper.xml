@@ -9,8 +9,8 @@
                t.name AS tenant_name,
                u.real_name AS real_name
         FROM sys_login_log l
-        LEFT JOIN sys_tenant t ON t.id = l.tenant_id AND t.is_deleted = 0
-        LEFT JOIN sys_user u ON u.id = l.user_id AND u.is_deleted = 0
+        LEFT JOIN sys_tenant t ON t.id = l.tenant_id
+        LEFT JOIN sys_user u ON u.id = l.user_id
         ${ew.customSqlSegment}
     </select>
 
@@ -20,8 +20,8 @@
                t.name AS tenant_name,
                u.real_name AS real_name
         FROM sys_login_log l
-        LEFT JOIN sys_tenant t ON t.id = l.tenant_id AND t.is_deleted = 0
-        LEFT JOIN sys_user u ON u.id = l.user_id AND u.is_deleted = 0
+        LEFT JOIN sys_tenant t ON t.id = l.tenant_id
+        LEFT JOIN sys_user u ON u.id = l.user_id
         WHERE l.id = #{id}
     </select>
 

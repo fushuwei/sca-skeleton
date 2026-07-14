@@ -11,7 +11,7 @@
                    ELSE u.username
                    END AS operator
         FROM sys_operation_log l
-        LEFT JOIN sys_user u ON u.id = l.user_id AND u.is_deleted = 0
+        LEFT JOIN sys_user u ON u.id = l.user_id
         ${ew.customSqlSegment}
     </select>
 
@@ -23,7 +23,7 @@
                    ELSE u.username
                    END AS operator
         FROM sys_operation_log l
-        LEFT JOIN sys_user u ON u.id = l.user_id AND u.is_deleted = 0
+        LEFT JOIN sys_user u ON u.id = l.user_id
         WHERE l.id = #{id}
     </select>
 

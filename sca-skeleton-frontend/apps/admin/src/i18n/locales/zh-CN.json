@@ -431,6 +431,7 @@
   },
   "loginLog": {
     "title": "登录日志",
+    "keywordPlaceholder": "搜索租户名称、登录用户、真实姓名、IP",
     "tenantName": "租户名称",
     "username": "登录用户",
     "realName": "真实姓名",

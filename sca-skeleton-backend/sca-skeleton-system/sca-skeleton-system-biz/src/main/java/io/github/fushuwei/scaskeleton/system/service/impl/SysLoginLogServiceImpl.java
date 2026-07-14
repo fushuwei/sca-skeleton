@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.system.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
@@ -37,29 +37,28 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
     public IPage<LoginLogResponse> pageLogs(LoginLogPageRequest req) {
         Page<SysLoginLog> page = new Page<>(req.getPageNum(), req.getPageSize());
 
-        LambdaQueryWrapper<SysLoginLog> wrapper = new LambdaQueryWrapper<SysLoginLog>()
-            .like(StringUtils.hasText(req.getUsername()), SysLoginLog::getUsername, req.getUsername())
-            .eq(req.getIsSuccess() != null, SysLoginLog::getIsSuccess, req.getIsSuccess())
-            .like(StringUtils.hasText(req.getClientIp()), SysLoginLog::getClientIp, req.getClientIp())
-            .ge(req.getStartTime() != null, SysLoginLog::getLoginTime, req.getStartTime())
-            .le(req.getEndTime() != null, SysLoginLog::getLoginTime, req.getEndTime());
+        // 使用 QueryWrapper 并加表别名前缀，避免 LEFT JOIN 后 username 等共享列名歧义
+        QueryWrapper<SysLoginLog> wrapper = new QueryWrapper<>();
+        wrapper.eq(req.getIsSuccess() != null, "l.is_success", req.getIsSuccess())
+            .ge(req.getStartTime() != null, "l.login_time", req.getStartTime())
+            .le(req.getEndTime() != null, "l.login_time", req.getEndTime());
 
-        // 动态排序
+        // 关键字模糊搜索：租户名称、登录用户、真实姓名、客户端 IP（OR 分组）
+        if (StringUtils.hasText(req.getKeyword())) {
+            String kw = req.getKeyword();
+            wrapper.and(w -> w.like("l.username", kw)
+                .or().like("l.client_ip", kw)
+                .or().like("u.real_name", kw)
+                .or().like("t.name", kw));
+        }
+
+        // 动态排序（列名加 l. 前缀避免歧义）
         String orderBy = req.safeOrderBy();
         boolean isAsc = "ASC".equalsIgnoreCase(req.safeOrderDirection());
         if (orderBy != null) {
-            switch (orderBy) {
-                case "login_time" -> wrapper.orderBy(true, isAsc, SysLoginLog::getLoginTime);
-                case "username" -> wrapper.orderBy(true, isAsc, SysLoginLog::getUsername);
-                case "client_ip" -> wrapper.orderBy(true, isAsc, SysLoginLog::getClientIp);
-                case "is_success" -> wrapper.orderBy(true, isAsc, SysLoginLog::getIsSuccess);
-                case "device" -> wrapper.orderBy(true, isAsc, SysLoginLog::getDevice);
-                case "browser" -> wrapper.orderBy(true, isAsc, SysLoginLog::getBrowser);
-                case "os" -> wrapper.orderBy(true, isAsc, SysLoginLog::getOs);
-                case "cost_ms" -> wrapper.orderBy(true, isAsc, SysLoginLog::getCostMs);
-            }
+            wrapper.orderBy(true, isAsc, "l." + orderBy);
         } else {
-            wrapper.orderByDesc(SysLoginLog::getLoginTime);
+            wrapper.orderByDesc("l.login_time");
         }
 
         IPage<SysLoginLog> entityPage = loginLogMapper.selectLogPage(page, wrapper);
@@ -87,6 +86,6 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void clearAllLogs() {
-        loginLogMapper.delete(new LambdaQueryWrapper<>());
+        loginLogMapper.delete(new QueryWrapper<>());
     }
 }
