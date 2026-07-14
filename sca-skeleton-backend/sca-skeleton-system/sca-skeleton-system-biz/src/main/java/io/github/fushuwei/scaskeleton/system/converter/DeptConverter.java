@@ -12,6 +12,11 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface DeptConverter {
 
-    /** SysDept → DeptResponse */
+    /**
+     * 部门实体 → 部门响应
+     *
+     * @param dept 部门实体
+     * @return 部门响应对象
+     */
     DeptResponse toDeptResponse(SysDept dept);
 }

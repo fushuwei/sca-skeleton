@@ -12,6 +12,11 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface TenantConverter {
 
-    /** SysTenant → TenantResponse */
+    /**
+     * 租户实体 → 租户响应
+     *
+     * @param tenant 租户实体
+     * @return 租户响应对象
+     */
     TenantResponse toTenantResponse(SysTenant tenant);
 }

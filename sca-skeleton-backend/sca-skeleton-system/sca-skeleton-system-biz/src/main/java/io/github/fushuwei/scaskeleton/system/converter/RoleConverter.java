@@ -12,6 +12,11 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface RoleConverter {
 
-    /** SysRole → RoleResponse */
+    /**
+     * 角色实体 → 角色响应
+     *
+     * @param role 角色实体
+     * @return 角色响应对象
+     */
     RoleResponse toRoleResponse(SysRole role);
 }

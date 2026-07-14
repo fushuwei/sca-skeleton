@@ -12,6 +12,11 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface PermissionConverter {
 
-    /** SysPermission → PermissionResponse */
+    /**
+     * 权限实体 → 权限响应
+     *
+     * @param permission 权限实体
+     * @return 权限响应对象
+     */
     PermissionResponse toPermissionResponse(SysPermission permission);
 }

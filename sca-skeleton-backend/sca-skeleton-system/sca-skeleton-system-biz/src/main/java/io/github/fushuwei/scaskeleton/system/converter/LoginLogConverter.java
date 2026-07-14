@@ -13,7 +13,10 @@ import org.mapstruct.Mapper;
 public interface LoginLogConverter {
 
     /**
-     * SysLoginLog → LoginLogResponse
+     * 登录日志实体 → 登录日志响应
+     *
+     * @param log 登录日志实体
+     * @return 登录日志响应对象
      */
     LoginLogResponse toLoginLogResponse(SysLoginLog log);
 }

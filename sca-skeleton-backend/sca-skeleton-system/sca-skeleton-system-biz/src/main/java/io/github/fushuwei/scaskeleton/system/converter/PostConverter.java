@@ -12,6 +12,11 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface PostConverter {
 
-    /** SysPost → PostResponse */
+    /**
+     * 岗位实体 → 岗位响应
+     *
+     * @param post 岗位实体
+     * @return 岗位响应对象
+     */
     PostResponse toPostResponse(SysPost post);
 }

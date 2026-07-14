@@ -13,7 +13,10 @@ import org.mapstruct.Mapper;
 public interface OperationLogConverter {
 
     /**
-     * SysOperationLog → OperationLogResponse
+     * 操作日志实体 → 操作日志响应
+     *
+     * @param log 操作日志实体
+     * @return 操作日志响应对象
      */
     OperationLogResponse toOperationLogResponse(SysOperationLog log);
 }
