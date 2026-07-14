@@ -1,6 +1,6 @@
 
 sca:
-  # SCA 安全配置（OAuth2 资源服务器）
+  # 安全配置（OAuth2 资源服务器）
   security:
     # 资源服务器开关，默认开启（认证服务在自身配置中覆盖为 false）
     resource-server:
@@ -17,23 +17,23 @@ sca:
 springdoc:
   api-docs:
     # 是否暴露 /v3/api-docs JSON 端点，生产环境建议关闭
-    enabled: false
+    enabled: true
     info:
       # 文档标题
-      title: SCA Skeleton API
+      title: AI 数据中台
       # 文档描述
-      description: SCA Skeleton 项目接口文档
+      description: AI 数据中台项目接口文档
       # API 版本号
       version: 1.0.0
       # 联系人信息
       contact:
-        name: SCA Skeleton
-        email: dev@example.com
-        url: https://github.com/fushuwei/sca-skeleton
+        name:  Fu Wei
+        email: fushuwei90@gmail.com
+        url: https://github.com/fushuwei
       # 许可证信息
       license:
-        name: Apache 2.0
-        url: https://www.apache.org/licenses/LICENSE-2.0
+        name: 未经授权，禁止传播
+        url: https://github.com/fushuwei
   swagger-ui:
     # 是否暴露 /swagger-ui/** 可视化页面，生产环境建议关闭
-    enabled: false
+    enabled: true
