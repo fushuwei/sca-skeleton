@@ -18,6 +18,4 @@ public class SysUserDept extends BaseEntity {
     private String tenantId;
     private String userId;
     private String deptId;
-    /** 是否主部门：0-否，1-是 */
-    private Integer isPrimary;
 }

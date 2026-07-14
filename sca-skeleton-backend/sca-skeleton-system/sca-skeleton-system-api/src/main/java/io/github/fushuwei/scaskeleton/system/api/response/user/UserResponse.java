@@ -126,4 +126,10 @@ public class UserResponse {
 
     /** 角色 ID 列表 */
     private List<String> roleIds;
+
+    /** 部门名称列表（列表展示用，逗号分隔） */
+    private String deptNames;
+
+    /** 角色名称列表（列表展示用，逗号分隔） */
+    private String roleNames;
 }

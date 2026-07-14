@@ -214,20 +214,7 @@ WHERE NOT EXISTS (
 -- ---------------------------------------------------
 -- 用户部门关联表
 -- ---------------------------------------------------
-CREATE TABLE IF NOT EXISTS `sys_user_dept` (
-    `id`              VARCHAR(64)     NOT NULL                    COMMENT '主键ID',
-    `tenant_id`       VARCHAR(64)     NOT NULL                    COMMENT '租户ID',
-    `user_id`         VARCHAR(64)     NOT NULL                    COMMENT '用户ID',
-    `dept_id`         VARCHAR(64)     NOT NULL                    COMMENT '部门ID',
-    `is_primary`      TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否主部门（0否 1是）',
-    `create_by`       VARCHAR(64)     DEFAULT NULL                COMMENT '创建人',
-    `create_time`     DATETIME        DEFAULT NULL                COMMENT '创建时间',
-    `update_by`       VARCHAR(64)     DEFAULT NULL                COMMENT '更新人',
-    `update_time`     DATETIME        DEFAULT NULL                COMMENT '更新时间',
-    `is_deleted`      TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否删除（0否 1是）',
-    PRIMARY KEY (`id`),
-    UNIQUE INDEX `uk_user_dept` (`user_id`, `dept_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户部门关联表';
+sy
 
 
 -- ---------------------------------------------------

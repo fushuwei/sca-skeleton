@@ -3,7 +3,7 @@ package io.github.fushuwei.scaskeleton.system.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
-import io.github.fushuwei.scaskeleton.system.api.response.user.UserPageResponse;
+import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
 import io.github.fushuwei.scaskeleton.system.entity.SysUser;
 import org.apache.ibatis.annotations.Param;
 
@@ -20,7 +20,7 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      * @param page     分页参数
      * @param tenantId 租户ID
      * @param req      分页查询请求参数
-     * @return 分页用户列表（UserPageResponse）
+     * @return 分页用户列表
      */
-    IPage<UserPageResponse> selectUserPage(IPage<UserPageResponse> page, @Param("tenantId") String tenantId, @Param("req") UserPageRequest req);
+    IPage<UserResponse> selectUserPage(IPage<UserResponse> page, @Param("tenantId") String tenantId, @Param("req") UserPageRequest req);
 }

@@ -11,7 +11,6 @@ import io.github.fushuwei.scaskeleton.system.api.request.user.UserPasswordResetR
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserStatusChangeRequest;
-import io.github.fushuwei.scaskeleton.system.api.response.user.UserPageResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserProfileResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysUserService;
@@ -46,7 +45,7 @@ public class SysUserController {
     @Operation(summary = "分页查询用户列表", description = "分页查询当前租户下的用户列表，支持关键词搜索、状态筛选、部门筛选与排序")
     @GetMapping("/page")
     @RequiresPermission("sys:user:list")
-    public Result<IPage<UserPageResponse>> page(@Validated UserPageRequest request) {
+    public Result<IPage<UserResponse>> page(@Validated UserPageRequest request) {
         String tenantId = SecurityUtils.getTenantId();
         return Result.ok(userService.pageUsers(tenantId, request));
     }

@@ -10,7 +10,6 @@ import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserUpdateRequest;
-import io.github.fushuwei.scaskeleton.system.api.response.user.UserPageResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserProfileResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
 import io.github.fushuwei.scaskeleton.system.converter.UserConverter;
@@ -107,9 +106,9 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public IPage<UserPageResponse> pageUsers(String tenantId, UserPageRequest req) {
-        // 按请求参数构造分页对象，返回 UserPageResponse（含部门名称、角色名称，排除密码）
-        Page<UserPageResponse> page = new Page<>(req.getPageNum(), req.getPageSize());
+    public IPage<UserResponse> pageUsers(String tenantId, UserPageRequest req) {
+        // 按请求参数构造分页对象，返回 UserResponse（含部门名称、角色名称，排除密码）
+        Page<UserResponse> page = new Page<>(req.getPageNum(), req.getPageSize());
         return userMapper.selectUserPage(page, tenantId, req);
     }
 
@@ -298,14 +297,13 @@ public class SysUserServiceImpl implements SysUserService {
                 userRoleMapper.insert(ur);
             });
         }
-        // 批量插入用户-部门关联（首个部门标记为主部门）
+        // 批量插入用户-部门关联
         if (!CollectionUtils.isEmpty(deptIds)) {
-            for (int i = 0; i < deptIds.size(); i++) {
+            for (String deptId : deptIds) {
                 SysUserDept ud = new SysUserDept();
                 ud.setTenantId(tenantId);
                 ud.setUserId(userId);
-                ud.setDeptId(deptIds.get(i));
-                ud.setIsPrimary(i == 0 ? 1 : 0);
+                ud.setDeptId(deptId);
                 userDeptMapper.insert(ud);
             }
         }

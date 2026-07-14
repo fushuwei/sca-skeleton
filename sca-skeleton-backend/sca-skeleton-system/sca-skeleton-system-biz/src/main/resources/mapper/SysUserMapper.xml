@@ -3,8 +3,8 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.fushuwei.scaskeleton.system.mapper.SysUserMapper">
 
-    <!-- 分页查询用户（含主部门名称 + 角色名称，排除密码） -->
-    <select id="selectUserPage" resultType="io.github.fushuwei.scaskeleton.system.api.response.user.UserPageResponse">
+    <!-- 分页查询用户（含部门名称、角色名称，排除密码） -->
+    <select id="selectUserPage" resultType="io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse">
         SELECT
             u.id, u.tenant_id, u.username, u.nickname, u.real_name,
             u.gender, u.avatar, u.phone, u.email,
@@ -15,17 +15,17 @@
             u.last_login_ip, u.last_login_time,
             u.is_builtin, u.source_type, u.remark, u.version,
             u.create_time, u.update_time, u.create_by, u.update_by,
-            d.name AS dept_name,
+            d.dept_names,
             r.role_names
         FROM sys_user u
-        <!-- 左关联主部门 -->
-        LEFT JOIN sys_user_dept ud
-            ON ud.user_id = u.id
-            AND ud.is_deleted = 0
-            AND ud.is_primary = 1
-        LEFT JOIN sys_dept d
-            ON d.id = ud.dept_id
-            AND d.is_deleted = 0
+        <!-- 左关联部门（聚合为逗号分隔字符串） -->
+        LEFT JOIN (
+            SELECT ud.user_id, GROUP_CONCAT(d.name ORDER BY d.sort SEPARATOR ', ') AS dept_names
+            FROM sys_user_dept ud
+            INNER JOIN sys_dept d ON d.id = ud.dept_id AND d.is_deleted = 0
+            WHERE ud.is_deleted = 0
+            GROUP BY ud.user_id
+        ) d ON d.user_id = u.id
         <!-- 左关联角色（聚合为逗号分隔字符串） -->
         LEFT JOIN (
             SELECT ur.user_id, GROUP_CONCAT(r.name ORDER BY r.sort SEPARATOR ', ') AS role_names
@@ -41,7 +41,12 @@
             AND u.user_type = #{req.userType}
         </if>
         <if test="req.deptId != null and req.deptId != ''">
-            AND ud.dept_id = #{req.deptId}
+            AND EXISTS (
+                SELECT 1 FROM sys_user_dept ud2
+                WHERE ud2.user_id = u.id
+                  AND ud2.dept_id = #{req.deptId}
+                  AND ud2.is_deleted = 0
+            )
         </if>
         <if test="req.keyword != null and req.keyword != ''">
             AND (u.username LIKE CONCAT('%', #{req.keyword}, '%')
@@ -59,12 +64,11 @@
         <if test="req.status != null and req.status != ''">
             AND u.status = #{req.status}
         </if>
-        GROUP BY u.id, d.name
         <choose>
             <when test="req.safeOrderBy() != null and req.safeOrderBy() != ''">
                 <choose>
                     <when test="req.safeOrderBy() == 'dept_name'">
-                        ORDER BY d.name ${req.safeOrderDirection()}
+                        ORDER BY d.dept_names ${req.safeOrderDirection()}
                     </when>
                     <otherwise>
                         ORDER BY u.${req.safeOrderBy()} ${req.safeOrderDirection()}

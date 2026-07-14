@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserUpdateRequest;
-import io.github.fushuwei.scaskeleton.system.api.response.user.UserPageResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserProfileResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
 
@@ -25,7 +24,7 @@ public interface SysUserService {
     /**
      * 分页查询用户（含部门名称、角色名称，排除密码）
      */
-    IPage<UserPageResponse> pageUsers(String tenantId, UserPageRequest request);
+    IPage<UserResponse> pageUsers(String tenantId, UserPageRequest request);
 
     /**
      * 根据ID查询用户详情
