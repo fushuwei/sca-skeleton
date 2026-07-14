@@ -20,9 +20,9 @@ import org.springframework.web.service.annotation.HttpExchange;
 public interface SysUserRemoteService {
 
     /**
-     * 获取当前登录用户资料。
+     * 获取当前登录用户基本信息。
      *
-     * @return 用户资料
+     * @return 用户基本信息
      */
     @GetExchange("/profile")
     UserProfileResponse getProfile();

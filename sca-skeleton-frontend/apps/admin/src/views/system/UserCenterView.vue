@@ -3,7 +3,7 @@ import { computed } from "vue"; // 导入计算属性函数。
 import { useAuthStore } from "../../stores/auth"; // 导入鉴权仓库。
 
 const authStore = useAuthStore(); // 获取鉴权仓库实例。
-const profile = computed(() => authStore.profile); // 计算当前用户资料对象。
+const profile = computed(() => authStore.profile); // 计算当前用户基本信息对象。
 </script>
 
 <template>

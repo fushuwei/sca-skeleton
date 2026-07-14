@@ -1,7 +1,7 @@
 import { request } from "./http";
 import type { ApiEnvelope, UserProfile, SysUser, UserPageRequest, IPage } from "../types/auth";
 
-/** 获取当前登录用户资料 */
+/** 获取当前登录用户基本信息 */
 export async function getUserProfileApi(): Promise<ApiEnvelope<UserProfile>> {
   return request<UserProfile>({ method: "GET", url: "/sys/user/profile" });
 }

@@ -22,7 +22,7 @@ public interface UserConverter {
     UserResponse toUserResponse(SysUser user);
 
     /**
-     * 用户实体 → 当前登录用户资料响应（仅 id、username、nickname）
+     * 用户实体 → 当前登录用户基本信息响应（仅 id、username、nickname）
      *
      * @param user 用户实体
      * @return 当前登录用户基本信息响应对象

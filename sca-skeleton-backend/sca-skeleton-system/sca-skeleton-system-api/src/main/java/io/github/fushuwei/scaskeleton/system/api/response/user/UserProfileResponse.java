@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
- * 当前登录用户资料响应对象
+ * 当前登录用户基本信息响应对象
  *
  * @author Fu Wei
  */
