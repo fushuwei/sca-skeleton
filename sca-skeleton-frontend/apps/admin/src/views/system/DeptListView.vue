@@ -410,7 +410,7 @@ async function loadTableData(
   }
 
   const sortBy = sortState.value.sortBy || undefined;
-  const orderBy = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : (!searchForm.parentId ? "sort" : undefined);
+  const sortField = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : (!searchForm.parentId ? "sort" : undefined);
 
   const params: DeptPageRequest = {
     pageNum,
@@ -418,8 +418,8 @@ async function loadTableData(
     parentId: searchForm.parentId || undefined,
     keyword: searchForm.keyword || undefined,
     status: searchForm.status || undefined,
-    orderBy,
-    orderDirection: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
+    sortField,
+    sortOrder: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
   };
 
   try {

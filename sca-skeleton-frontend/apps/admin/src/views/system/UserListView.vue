@@ -488,7 +488,7 @@ async function loadTableData(
 
   // 前端列名 → 后端真实字段名映射（驼峰 → 下划线）
   const sortBy = sortState.value.sortBy || undefined;
-  const orderBy = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : undefined;
+  const sortField = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : undefined;
 
   const params: UserPageRequest = {
     pageNum,
@@ -500,8 +500,8 @@ async function loadTableData(
     userType: searchForm.userType || undefined,
     status: searchForm.status || undefined,
     deptId: searchForm.deptId || undefined,
-    orderBy,
-    orderDirection: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
+    sortField,
+    sortOrder: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
   };
 
   try {

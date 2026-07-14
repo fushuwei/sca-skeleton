@@ -467,7 +467,7 @@ async function loadTableData(
   }
 
   const sortBy = sortState.value.sortBy || undefined;
-  const orderBy = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : (!searchForm.parentId ? "sort" : undefined);
+  const sortField = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : (!searchForm.parentId ? "sort" : undefined);
 
   const params: PermissionPageRequest = {
     pageNum,
@@ -476,8 +476,8 @@ async function loadTableData(
     keyword: searchForm.keyword || undefined,
     type: searchForm.type || undefined,
     status: searchForm.status || undefined,
-    orderBy,
-    orderDirection: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
+    sortField,
+    sortOrder: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
   };
 
   try {

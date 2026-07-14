@@ -104,8 +104,8 @@ export interface UserPageRequest {
   userType?: string;
   status?: string;
   deptId?: string;
-  orderBy?: string;
-  orderDirection?: "asc" | "desc";
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 /** MyBatis-Plus 分页响应 */
@@ -155,8 +155,8 @@ export interface DeptPageRequest {
   parentId?: string;
   keyword?: string;
   status?: string;
-  orderBy?: string;
-  orderDirection?: "asc" | "desc";
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 // ── 岗位管理相关类型 ──
@@ -181,8 +181,8 @@ export interface PostPageRequest {
   pageNum?: number;
   pageSize?: number;
   keyword?: string;
-  orderBy?: string;
-  orderDirection?: "asc" | "desc";
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 // ── 角色管理相关类型 ──
@@ -212,8 +212,8 @@ export interface RolePageRequest {
   pageSize?: number;
   keyword?: string;
   dataScope?: string;
-  orderBy?: string;
-  orderDirection?: "asc" | "desc";
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 // ── 权限（菜单）管理相关类型 ──
@@ -260,8 +260,8 @@ export interface PermissionPageRequest {
   keyword?: string;
   type?: string;
   status?: string;
-  orderBy?: string;
-  orderDirection?: "asc" | "desc";
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 /** 权限树节点（用于 q-tree，排除 button 类型） */
@@ -309,8 +309,8 @@ export interface TenantPackagePageRequest {
   pageSize?: number;
   keyword?: string;
   status?: string;
-  orderBy?: string;
-  orderDirection?: "asc" | "desc";
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 // ── 租户管理相关类型 ──
@@ -348,8 +348,8 @@ export interface TenantPageRequest {
   keyword?: string;
   status?: string;
   packageId?: string;
-  orderBy?: string;
-  orderDirection?: "asc" | "desc";
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 // ── 操作日志相关类型 ──
@@ -386,8 +386,8 @@ export interface OperationLogPageRequest {
   isSuccess?: number;
   startTime?: string;
   endTime?: string;
-  orderBy?: string;
-  orderDirection?: string;
+  sortField?: string;
+  sortOrder?: string;
 }
 
 // ── 登录日志相关类型 ──
@@ -426,6 +426,6 @@ export interface LoginLogPageRequest {
   isSuccess?: number;
   startTime?: string;
   endTime?: string;
-  orderBy?: string;
-  orderDirection?: string;
+  sortField?: string;
+  sortOrder?: string;
 }

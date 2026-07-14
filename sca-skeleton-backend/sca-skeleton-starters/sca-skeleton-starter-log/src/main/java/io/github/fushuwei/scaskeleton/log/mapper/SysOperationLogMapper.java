@@ -24,8 +24,8 @@ public interface SysOperationLogMapper extends BaseMapper<SysOperationLog> {
      * @param isSuccess      操作状态（可选）
      * @param startTime      查询开始时间（可选）
      * @param endTime        查询结束时间（可选）
-     * @param orderBy        排序字段（可选，白名单校验）
-     * @param orderDirection 排序方向 ASC/DESC（可选）
+     * @param sortField      排序字段（可选，白名单校验）
+     * @param sortOrder      排序方向 ASC/DESC（可选）
      * @return 分页结果
      */
     IPage<SysOperationLog> selectLogPage(IPage<SysOperationLog> page,
@@ -35,8 +35,8 @@ public interface SysOperationLogMapper extends BaseMapper<SysOperationLog> {
                                          @Param("isSuccess") Integer isSuccess,
                                          @Param("startTime") LocalDateTime startTime,
                                          @Param("endTime") LocalDateTime endTime,
-                                         @Param("orderBy") String orderBy,
-                                         @Param("orderDirection") String orderDirection);
+                                         @Param("sortField") String sortField,
+                                         @Param("sortOrder") String sortOrder);
 
     /**
      * 按 ID 查询操作日志详情

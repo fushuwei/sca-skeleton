@@ -51,10 +51,10 @@ public class SysPostServiceImpl implements SysPostService {
                                 .or().like(SysPost::getCode, req.getKeyword()));
 
         // 安全排序：白名单校验通过后按指定字段排序，否则按 sort 升序
-        String orderBy = req.safeOrderBy();
-        boolean isAsc = "ASC".equalsIgnoreCase(req.safeOrderDirection());
-        if (orderBy != null) {
-            switch (orderBy) {
+        String sortField = req.safeSortField();
+        boolean isAsc = "ASC".equalsIgnoreCase(req.safeSortOrder());
+        if (sortField != null) {
+            switch (sortField) {
                 case "name" -> wrapper.orderBy(true, isAsc, SysPost::getName);
                 case "code" -> wrapper.orderBy(true, isAsc, SysPost::getCode);
                 case "sort" -> wrapper.orderBy(true, isAsc, SysPost::getSort);

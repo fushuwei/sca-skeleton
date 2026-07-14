@@ -35,11 +35,11 @@
             AND l.operation_time &lt;= #{endTime}
         </if>
         <choose>
-            <when test="orderBy == 'operator'">
-                ORDER BY operator ${orderDirection}
+            <when test="sortField == 'operator'">
+                ORDER BY operator ${sortOrder}
             </when>
-            <when test="orderBy != null">
-                ORDER BY l.${orderBy} ${orderDirection}
+            <when test="sortField != null">
+                ORDER BY l.${sortField} ${sortOrder}
             </when>
             <otherwise>
                 ORDER BY l.operation_time DESC

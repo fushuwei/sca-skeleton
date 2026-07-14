@@ -15,7 +15,7 @@ import java.util.Set;
 public class RolePageRequest {
 
     /** 允许排序的字段白名单 */
-    private static final Set<String> ALLOWED_ORDER_FIELDS = Set.of(
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
         "name", "code", "data_scope", "sort", "create_time", "permission_count"
     );
 
@@ -41,22 +41,22 @@ public class RolePageRequest {
     // ==================== 排序参数 ====================
 
     /** 排序字段 */
-    private String orderBy;
+    private String sortField;
 
     /** 排序方向 */
-    private String orderDirection;
+    private String sortOrder;
 
     /** 返回安全的排序字段（不在白名单则返回 null） */
-    public String safeOrderBy() {
-        if (orderBy != null && ALLOWED_ORDER_FIELDS.contains(orderBy)) {
-            return orderBy;
+    public String safeSortField() {
+        if (sortField != null && ALLOWED_SORT_FIELDS.contains(sortField)) {
+            return sortField;
         }
         return null;
     }
 
     /** 返回安全的排序方向（默认 asc） */
-    public String safeOrderDirection() {
-        if ("desc".equalsIgnoreCase(orderDirection)) {
+    public String safeSortOrder() {
+        if ("desc".equalsIgnoreCase(sortOrder)) {
             return "DESC";
         }
         return "ASC";

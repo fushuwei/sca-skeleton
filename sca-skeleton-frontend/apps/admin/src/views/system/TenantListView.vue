@@ -271,7 +271,7 @@ async function loadTableData(
   }
 
   const sortBy = sortState.value.sortBy || undefined;
-  const orderBy = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : undefined;
+  const sortField = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : undefined;
 
   const params: TenantPageRequest = {
     pageNum,
@@ -279,8 +279,8 @@ async function loadTableData(
     keyword: searchForm.keyword || undefined,
     status: searchForm.status || undefined,
     packageId: searchForm.packageId || undefined,
-    orderBy,
-    orderDirection: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
+    sortField,
+    sortOrder: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
   };
 
   try {

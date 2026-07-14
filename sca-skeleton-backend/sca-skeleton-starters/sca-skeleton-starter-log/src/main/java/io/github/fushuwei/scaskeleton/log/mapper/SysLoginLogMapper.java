@@ -22,8 +22,8 @@ public interface SysLoginLogMapper extends BaseMapper<SysLoginLog> {
      * @param isSuccess      是否成功筛选：1-成功，0-失败
      * @param startTime      查询开始时间
      * @param endTime        查询结束时间
-     * @param orderBy        排序字段（白名单校验）
-     * @param orderDirection 排序方向 ASC/DESC
+     * @param sortField      排序字段（白名单校验）
+     * @param sortOrder      排序方向 ASC/DESC
      * @return 分页结果
      */
     IPage<SysLoginLog> selectLogPage(IPage<SysLoginLog> page,
@@ -31,8 +31,8 @@ public interface SysLoginLogMapper extends BaseMapper<SysLoginLog> {
                                      @Param("isSuccess") Integer isSuccess,
                                      @Param("startTime") LocalDateTime startTime,
                                      @Param("endTime") LocalDateTime endTime,
-                                     @Param("orderBy") String orderBy,
-                                     @Param("orderDirection") String orderDirection);
+                                     @Param("sortField") String sortField,
+                                     @Param("sortOrder") String sortOrder);
 
     /**
      * 按 ID 查询登录日志详情

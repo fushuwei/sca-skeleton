@@ -21,8 +21,8 @@
             AND t.package_id = #{req.packageId}
         </if>
         <choose>
-            <when test="req.safeOrderBy() != null and req.safeOrderBy() != ''">
-                ORDER BY t.${req.safeOrderBy()} ${req.safeOrderDirection()}
+            <when test="req.safeSortField() != null and req.safeSortField() != ''">
+                ORDER BY t.${req.safeSortField()} ${req.safeSortOrder()}
             </when>
             <otherwise>
                 ORDER BY t.create_time DESC

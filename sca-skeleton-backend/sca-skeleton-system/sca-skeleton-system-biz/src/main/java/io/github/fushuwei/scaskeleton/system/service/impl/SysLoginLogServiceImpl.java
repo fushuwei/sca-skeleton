@@ -39,8 +39,8 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
                 req.getIsSuccess(),
                 req.getStartTime(),
                 req.getEndTime(),
-                req.safeOrderBy(),
-                req.safeOrderDirection());
+                req.safeSortField(),
+                req.safeSortOrder());
         return entityPage.convert(loginLogConverter::toLoginLogResponse);
     }
 

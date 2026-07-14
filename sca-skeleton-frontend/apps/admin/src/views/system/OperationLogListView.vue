@@ -230,7 +230,7 @@ async function loadTableData(
   }
 
   const sortBy = sortState.value.sortBy || undefined;
-  const orderBy = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : undefined;
+  const sortField = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : undefined;
 
   const params: OperationLogPageRequest = {
     pageNum,
@@ -241,8 +241,8 @@ async function loadTableData(
     isSuccess: searchForm.isSuccess,
     startTime: searchForm.startTime || undefined,
     endTime: searchForm.endTime || undefined,
-    orderBy,
-    orderDirection: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
+    sortField,
+    sortOrder: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
   };
 
   try {

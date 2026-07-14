@@ -26,11 +26,11 @@
             AND r.data_scope = #{req.dataScope}
         </if>
         <choose>
-            <when test="req.safeOrderBy() == 'permission_count'">
-                ORDER BY permission_count ${req.safeOrderDirection()}
+            <when test="req.safeSortField() == 'permission_count'">
+                ORDER BY permission_count ${req.safeSortOrder()}
             </when>
-            <when test="req.safeOrderBy() != null and req.safeOrderBy() != ''">
-                ORDER BY r.${req.safeOrderBy()} ${req.safeOrderDirection()}
+            <when test="req.safeSortField() != null and req.safeSortField() != ''">
+                ORDER BY r.${req.safeSortField()} ${req.safeSortOrder()}
             </when>
             <otherwise>
                 ORDER BY r.sort ASC

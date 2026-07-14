@@ -41,8 +41,8 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
                 req.getIsSuccess(),
                 req.getStartTime(),
                 req.getEndTime(),
-                req.safeOrderBy(),
-                req.safeOrderDirection());
+                req.safeSortField(),
+                req.safeSortOrder());
         return entityPage.convert(operationLogConverter::toOperationLogResponse);
     }
 

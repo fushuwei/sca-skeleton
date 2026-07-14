@@ -34,13 +34,13 @@
             AND p.status = #{req.status}
         </if>
         <choose>
-            <when test="req.safeOrderBy() != null and req.safeOrderBy() != ''">
+            <when test="req.safeSortField() != null and req.safeSortField() != ''">
                 <choose>
-                    <when test="req.safeOrderBy() == 'permission_count'">
-                        ORDER BY permission_count ${req.safeOrderDirection()}
+                    <when test="req.safeSortField() == 'permission_count'">
+                        ORDER BY permission_count ${req.safeSortOrder()}
                     </when>
                     <otherwise>
-                        ORDER BY p.${req.safeOrderBy()} ${req.safeOrderDirection()}
+                        ORDER BY p.${req.safeSortField()} ${req.safeSortOrder()}
                     </otherwise>
                 </choose>
             </when>

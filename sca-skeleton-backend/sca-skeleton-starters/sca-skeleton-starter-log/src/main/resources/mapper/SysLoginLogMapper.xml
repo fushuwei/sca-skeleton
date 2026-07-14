@@ -28,8 +28,8 @@
             AND l.login_time &lt;= #{endTime}
         </if>
         <choose>
-            <when test="orderBy != null and orderBy != ''">
-                ORDER BY l.${orderBy} ${orderDirection}
+            <when test="sortField != null and sortField != ''">
+                ORDER BY l.${sortField} ${sortOrder}
             </when>
             <otherwise>
                 ORDER BY l.login_time DESC

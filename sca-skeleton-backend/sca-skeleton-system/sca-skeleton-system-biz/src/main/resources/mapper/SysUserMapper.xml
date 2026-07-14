@@ -65,13 +65,13 @@
             AND u.status = #{req.status}
         </if>
         <choose>
-            <when test="req.safeOrderBy() != null and req.safeOrderBy() != ''">
+            <when test="req.safeSortField() != null and req.safeSortField() != ''">
                 <choose>
-                    <when test="req.safeOrderBy() == 'dept_name'">
-                        ORDER BY d.dept_names ${req.safeOrderDirection()}
+                    <when test="req.safeSortField() == 'dept_name'">
+                        ORDER BY d.dept_names ${req.safeSortOrder()}
                     </when>
                     <otherwise>
-                        ORDER BY u.${req.safeOrderBy()} ${req.safeOrderDirection()}
+                        ORDER BY u.${req.safeSortField()} ${req.safeSortOrder()}
                     </otherwise>
                 </choose>
             </when>

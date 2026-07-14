@@ -125,10 +125,10 @@ public class SysPermissionServiceImpl implements SysPermissionService {
                 .eq(StringUtils.hasText(req.getStatus()), SysPermission::getStatus, req.getStatus());
 
         // 安全排序：白名单校验通过后按指定字段排序，否则按 sort 升序
-        String orderBy = req.safeOrderBy();
-        boolean isAsc = "ASC".equalsIgnoreCase(req.safeOrderDirection());
-        if (orderBy != null) {
-            switch (orderBy) {
+        String sortField = req.safeSortField();
+        boolean isAsc = "ASC".equalsIgnoreCase(req.safeSortOrder());
+        if (sortField != null) {
+            switch (sortField) {
                 case "name" -> wrapper.orderBy(true, isAsc, SysPermission::getName);
                 case "name_en" -> wrapper.orderBy(true, isAsc, SysPermission::getNameEn);
                 case "code" -> wrapper.orderBy(true, isAsc, SysPermission::getCode);
