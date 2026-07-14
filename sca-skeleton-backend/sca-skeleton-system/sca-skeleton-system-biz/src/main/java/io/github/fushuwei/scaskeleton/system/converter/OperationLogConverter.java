@@ -5,7 +5,7 @@ import io.github.fushuwei.scaskeleton.system.api.response.operationlog.Operation
 import org.mapstruct.Mapper;
 
 /**
- * 操作日志 Entity → Response 转换器。
+ * 操作日志对象转换器（MapStruct）
  *
  * @author Fu Wei
  */

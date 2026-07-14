@@ -45,34 +45,34 @@ import java.util.List;
 public class SysUserServiceImpl implements SysUserService {
 
     /**
-     * 用户主表 Mapper
+     * 用户表 Mapper
      */
     private final SysUserMapper userMapper;
 
     /**
-     * 用户-角色关联 Mapper
+     * 用户角色关联表 Mapper
      */
     private final SysUserRoleMapper userRoleMapper;
 
     /**
-     * 用户-部门关联 Mapper
+     * 用户部门关联表 Mapper
      */
     private final SysUserDeptMapper userDeptMapper;
 
     /**
-     * 用户-岗位关联 Mapper
+     * 用户岗位关联表 Mapper
      */
     private final SysUserPostMapper userPostMapper;
+
+    /**
+     * 用户映射结构转换器
+     */
+    private final UserConverter userConverter;
 
     /**
      * Spring Security 密码加密器
      */
     private final PasswordEncoder passwordEncoder;
-
-    /**
-     * Entity ↔ Response 转换器（MapStruct 生成）
-     */
-    private final UserConverter userConverter;
 
     /**
      * 获取当前登录用户基本信息

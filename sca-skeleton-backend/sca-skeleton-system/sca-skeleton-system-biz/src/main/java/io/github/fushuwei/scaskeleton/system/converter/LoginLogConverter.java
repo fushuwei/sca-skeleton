@@ -5,7 +5,7 @@ import io.github.fushuwei.scaskeleton.system.api.response.loginlog.LoginLogRespo
 import org.mapstruct.Mapper;
 
 /**
- * 登录日志 Entity → Response 转换器。
+ * 登录日志对象转换器（MapStruct）
  *
  * @author Fu Wei
  */

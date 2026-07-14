@@ -5,7 +5,7 @@ import io.github.fushuwei.scaskeleton.system.entity.SysDept;
 import org.mapstruct.Mapper;
 
 /**
- * 部门 Entity → Response 转换器。
+ * 部门对象转换器（MapStruct）
  *
  * @author Fu Wei
  */

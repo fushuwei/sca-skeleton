@@ -5,7 +5,7 @@ import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
 import org.mapstruct.Mapper;
 
 /**
- * 权限 Entity → Response 转换器。
+ * 权限对象转换器（MapStruct）
  *
  * @author Fu Wei
  */

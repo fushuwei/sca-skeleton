@@ -5,7 +5,7 @@ import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import org.mapstruct.Mapper;
 
 /**
- * 租户 Entity → Response 转换器。
+ * 租户对象转换器（MapStruct）
  *
  * @author Fu Wei
  */

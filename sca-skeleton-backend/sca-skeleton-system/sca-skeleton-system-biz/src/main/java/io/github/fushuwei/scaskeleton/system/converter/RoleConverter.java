@@ -5,7 +5,7 @@ import io.github.fushuwei.scaskeleton.system.entity.SysRole;
 import org.mapstruct.Mapper;
 
 /**
- * 角色 Entity → Response 转换器。
+ * 角色对象转换器（MapStruct）
  *
  * @author Fu Wei
  */
