@@ -6,58 +6,124 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 用户管理响应对象（排除密码等敏感字段）。
+ * 用户管理响应对象
  *
  * @author Fu Wei
  */
 @Data
 public class UserResponse {
 
+    // ==================== 基础信息 ====================
+
+    /** 用户 ID */
     private String id;
+
+    /** 租户 ID */
     private String tenantId;
+
+    /** 用户名 */
     private String username;
+
+    /** 昵称 */
     private String nickname;
+
+    /** 真实姓名 */
     private String realName;
+
+    /** 性别 */
     private String gender;
+
+    /** 头像 URL */
     private String avatar;
+
+    // ==================== 联系方式 ====================
+
+    /** 手机号 */
     private String phone;
+
+    /** 邮箱 */
     private String email;
+
+    // ==================== 类型与权限 ====================
+
+    /** 用户类型 */
     private String userType;
+
+    /** 是否平台超级管理员 */
     private Integer isSuperadmin;
+
+    // ==================== 状态信息 ====================
+
+    /** 用户状态 */
     private String status;
 
+    /** 状态变更时间 */
     private LocalDateTime statusTime;
 
+    /** 状态变更原因 */
     private String statusReason;
+
+    // ==================== 安全策略 ====================
+
+    /** 连续登录失败次数 */
     private Integer loginFailCount;
+
+    /** 是否必须修改密码 */
     private Integer mustChangePassword;
 
+    /** 密码最后更新时间 */
     private LocalDateTime passwordUpdateTime;
 
+    /** 账号生效起始时间（null 表示不限） */
     private LocalDateTime effectiveStartTime;
 
+    /** 账号生效截止时间（null 表示不限） */
     private LocalDateTime effectiveEndTime;
 
+    // ==================== 登录信息 ====================
+
+    /** 最近一次登录 IP */
     private String lastLoginIp;
 
+    /** 最近一次登录时间 */
     private LocalDateTime lastLoginTime;
 
+    // ==================== 系统属性 ====================
+
+    /** 是否系统内置 */
     private Integer isBuiltin;
+
+    /** 数据来源 */
     private String sourceType;
+
+    /** 备注 */
     private String remark;
+
+    /** 乐观锁版本号 */
     private Integer version;
 
+    // ==================== 审计字段 ====================
+
+    /** 创建时间 */
     private LocalDateTime createTime;
 
+    /** 最后更新时间 */
     private LocalDateTime updateTime;
 
+    /** 创建人 ID */
     private String createBy;
+
+    /** 最后更新人 ID */
     private String updateBy;
 
-    /** 部门ID列表（第一个为主部门） */
+    // ==================== 关联信息 ====================
+
+    /** 部门 ID 列表 */
     private List<String> deptIds;
-    /** 岗位ID列表 */
+
+    /** 岗位 ID 列表 */
     private List<String> postIds;
-    /** 角色ID列表 */
+
+    /** 角色 ID 列表 */
     private List<String> roleIds;
 }
