@@ -28,9 +28,9 @@ import org.springframework.context.annotation.Bean;
  * @author Fu Wei
  */
 @AutoConfiguration
-@EnableConfigurationProperties(DocProperties.class)
+@EnableConfigurationProperties(SpringDocProperties.class)
 @ConditionalOnProperty(prefix = "springdoc.api-docs", name = "enabled", havingValue = "true", matchIfMissing = true)
-public class DocAutoConfiguration {
+public class SpringDocAutoConfiguration {
 
     /** Bearer Token 安全方案名称，用于关联 SecurityRequirement 与 SecurityScheme */
     private static final String SECURITY_SCHEME_NAME = "Bearer Token";
@@ -46,9 +46,9 @@ public class DocAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(OpenAPI.class)
-    public OpenAPI openAPI(DocProperties properties) {
-        DocProperties.Contact contact = properties.getContact();
-        DocProperties.License license = properties.getLicense();
+    public OpenAPI openAPI(SpringDocProperties properties) {
+        SpringDocProperties.Contact contact = properties.getContact();
+        SpringDocProperties.License license = properties.getLicense();
 
         return new OpenAPI()
             .info(new Info()

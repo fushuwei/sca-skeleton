@@ -13,7 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(prefix = "sca.doc")
-public class DocProperties {
+public class SpringDocProperties {
 
     /**
      * API 文档标题
