@@ -7,12 +7,7 @@ import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 
 /**
- * System 服务的用户管理远程调用契约。
- * <p>
- * 该接口由 {@code sca-skeleton-system-api} 模块提供，其他微服务通过引入此模块依赖，
- * 配合 {@code RestClient} + {@code HttpServiceProxyFactory} 注入即可像调用本地方法一样调用 system 服务。
- * <p>
- * 响应体 {@code Result<T>} 由 {@code RemoteResponseInterceptor} 自动解包，调用方直接获得 {@code T}。
+ * 用户管理远程调用服务
  *
  * @author Fu Wei
  */
@@ -20,7 +15,7 @@ import org.springframework.web.service.annotation.HttpExchange;
 public interface SysUserRemoteService {
 
     /**
-     * 获取当前登录用户基本信息。
+     * 获取当前登录用户基本信息
      *
      * @return 用户基本信息
      */
@@ -28,10 +23,10 @@ public interface SysUserRemoteService {
     UserProfileResponse getProfile();
 
     /**
-     * 按 ID 查询用户详情。
+     * 通过 ID 查询用户信息
      *
      * @param id 用户 ID
-     * @return 用户详情
+     * @return 用户信息
      */
     @GetExchange("/{id}")
     UserResponse getById(@PathVariable("id") String id);
