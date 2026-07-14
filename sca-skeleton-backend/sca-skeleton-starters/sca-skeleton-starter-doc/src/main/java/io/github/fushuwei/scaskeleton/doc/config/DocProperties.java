@@ -16,13 +16,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class DocProperties {
 
     /**
-     * 是否启用 API 文档，默认开启
-     * <p>
-     * 生产环境可通过 {@code sca.doc.enabled=false} 关闭文档暴露
-     */
-    private boolean enabled = true;
-
-    /**
      * API 文档标题
      */
     private String title = "API Documentation";

@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Bean;
  */
 @AutoConfiguration
 @EnableConfigurationProperties(DocProperties.class)
-@ConditionalOnProperty(prefix = "sca.doc", name = "enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "springdoc.api-docs", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class DocAutoConfiguration {
 
     /** Bearer Token 安全方案名称，用于关联 SecurityRequirement 与 SecurityScheme */

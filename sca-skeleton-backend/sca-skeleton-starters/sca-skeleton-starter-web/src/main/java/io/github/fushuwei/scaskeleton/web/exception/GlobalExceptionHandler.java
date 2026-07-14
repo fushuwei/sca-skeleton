@@ -15,6 +15,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -83,6 +84,15 @@ public class GlobalExceptionHandler {
     public Result<Void> handleMessageNotReadable(HttpMessageNotReadableException e) {
         log.warn("[请求体解析异常] {}", e.getMessage());
         return Result.fail(ResultCode.VALIDATION_ERROR, "请求体格式错误或字段类型不正确");
+    }
+
+    /**
+     * 处理 404 异常（请求路径无匹配的静态资源或处理器）
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public Result<Void> handleNoResourceFoundException(NoResourceFoundException e) {
+        log.warn("[资源不存在] {} {}", e.getHttpMethod(), e.getResourcePath());
+        return Result.fail(ResultCode.NOT_FOUND);
     }
 
     /**

@@ -15,8 +15,6 @@ sca:
 
   # API 文档配置（SpringDoc OpenAPI 3 + Swagger UI）
   doc:
-    # 是否启用 API 文档，生产环境设为 false 关闭
-    enabled: false
     # 文档标题
     title: SCA Skeleton API
     # 文档描述
