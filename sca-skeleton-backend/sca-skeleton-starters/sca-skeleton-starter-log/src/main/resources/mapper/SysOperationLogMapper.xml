@@ -12,7 +12,39 @@
                    END AS operator
         FROM sys_operation_log l
         LEFT JOIN sys_user u ON u.id = l.user_id
-        ${ew.customSqlSegment}
+        WHERE 1=1
+        <if test="module != null and module != ''">
+            AND l.module LIKE CONCAT('%', #{module}, '%')
+        </if>
+        <if test="action != null and action != ''">
+            AND l.action LIKE CONCAT('%', #{action}, '%')
+        </if>
+        <if test="operator != null and operator != ''">
+            AND (CASE WHEN u.real_name IS NOT NULL
+                     THEN CONCAT(u.real_name, ' (', u.username, ')')
+                     ELSE u.username
+                 END) LIKE CONCAT('%', #{operator}, '%')
+        </if>
+        <if test="isSuccess != null">
+            AND l.is_success = #{isSuccess}
+        </if>
+        <if test="startTime != null">
+            AND l.operation_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND l.operation_time &lt;= #{endTime}
+        </if>
+        <choose>
+            <when test="orderBy == 'operator'">
+                ORDER BY operator ${orderDirection}
+            </when>
+            <when test="orderBy != null">
+                ORDER BY l.${orderBy} ${orderDirection}
+            </when>
+            <otherwise>
+                ORDER BY l.operation_time DESC
+            </otherwise>
+        </choose>
     </select>
 
     <!-- 按 ID 查询操作日志详情 -->

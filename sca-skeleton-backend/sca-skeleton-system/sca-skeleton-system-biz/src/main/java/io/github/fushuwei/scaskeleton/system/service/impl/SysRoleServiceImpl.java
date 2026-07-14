@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,37 +46,13 @@ public class SysRoleServiceImpl implements SysRoleService {
     public IPage<RoleResponse> pageRoles(String tenantId, RolePageRequest req) {
         // 构造分页对象
         Page<SysRole> page = new Page<>(req.getPageNum(), req.getPageSize());
-
-        LambdaQueryWrapper<SysRole> wrapper = new LambdaQueryWrapper<SysRole>()
-                // 逻辑删除过滤（自定义 SQL 不自动追加 @TableLogic 条件，需显式指定）
-                .eq(SysRole::getIsDeleted, 0)
-                // 按租户隔离
-                .eq(SysRole::getTenantId, tenantId)
-                // 关键词模糊匹配名称或编码
-                .and(StringUtils.hasText(req.getKeyword()),
-                        w -> w.like(SysRole::getName, req.getKeyword())
-                                .or().like(SysRole::getCode, req.getKeyword()))
-                // 数据权限范围筛选
-                .eq(StringUtils.hasText(req.getDataScope()), SysRole::getDataScope, req.getDataScope());
-
-        // 安全排序：白名单校验通过后按指定字段排序，否则按 sort 升序
-        String orderBy = req.safeOrderBy();
-        boolean isAsc = "ASC".equalsIgnoreCase(req.safeOrderDirection());
-        if (orderBy != null) {
-            switch (orderBy) {
-                case "name" -> wrapper.orderBy(true, isAsc, SysRole::getName);
-                case "code" -> wrapper.orderBy(true, isAsc, SysRole::getCode);
-                case "data_scope" -> wrapper.orderBy(true, isAsc, SysRole::getDataScope);
-                case "sort" -> wrapper.orderBy(true, isAsc, SysRole::getSort);
-                case "create_time" -> wrapper.orderBy(true, isAsc, SysRole::getCreateTime);
-                case "permission_count" -> wrapper.orderBy(true, isAsc, SysRole::getPermissionCount);
-            }
-        } else {
-            wrapper.orderByAsc(SysRole::getSort);
-        }
-
         // 查询实体分页并转换为响应对象分页
-        IPage<SysRole> entityPage = roleMapper.selectRolePage(page, wrapper);
+        IPage<SysRole> entityPage = roleMapper.selectRolePage(page,
+                tenantId,
+                req.getKeyword(),
+                req.getDataScope(),
+                req.safeOrderBy(),
+                req.safeOrderDirection());
         return entityPage.convert(roleConverter::toRoleResponse);
     }
 

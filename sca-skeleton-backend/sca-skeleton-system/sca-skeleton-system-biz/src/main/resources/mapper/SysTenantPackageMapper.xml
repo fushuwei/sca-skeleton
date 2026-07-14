@@ -26,7 +26,28 @@
                    )
                END AS permission_count
         FROM sys_tenant_package p
-        ${ew.customSqlSegment}
+        WHERE p.is_deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (p.name LIKE CONCAT('%', #{keyword}, '%') OR p.code LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="status != null and status != ''">
+            AND p.status = #{status}
+        </if>
+        <choose>
+            <when test="orderBy != null and orderBy != ''">
+                <choose>
+                    <when test="orderBy == 'permission_count'">
+                        ORDER BY permission_count ${orderDirection}
+                    </when>
+                    <otherwise>
+                        ORDER BY p.${orderBy} ${orderDirection}
+                    </otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                ORDER BY p.sort ASC
+            </otherwise>
+        </choose>
     </select>
 
 </mapper>

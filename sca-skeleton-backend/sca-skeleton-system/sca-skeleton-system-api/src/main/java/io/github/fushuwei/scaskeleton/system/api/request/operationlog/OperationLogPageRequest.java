@@ -18,7 +18,7 @@ public class OperationLogPageRequest {
     /** 允许排序的字段白名单，防止 SQL 注入 */
     private static final Set<String> ALLOWED_ORDER_FIELDS = Set.of(
             "operation_time", "operator", "module", "action",
-            "http_method", "request_uri", "client_ip", "cost_ms", "success"
+            "http_method", "request_uri", "client_ip", "cost_ms", "is_success"
     );
 
     /** 页码，从 1 开始 */

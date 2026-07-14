@@ -9,7 +9,25 @@
                (SELECT pk.name FROM sys_tenant_package pk
                 WHERE pk.id = t.package_id AND pk.is_deleted = 0) AS package_name
         FROM sys_tenant t
-        ${ew.customSqlSegment}
+        WHERE t.is_deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (t.name LIKE CONCAT('%', #{keyword}, '%')
+                 OR t.code LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="status != null and status != ''">
+            AND t.status = #{status}
+        </if>
+        <if test="packageId != null and packageId != ''">
+            AND t.package_id = #{packageId}
+        </if>
+        <choose>
+            <when test="orderBy != null and orderBy != ''">
+                ORDER BY t.${orderBy} ${orderDirection}
+            </when>
+            <otherwise>
+                ORDER BY t.create_time DESC
+            </otherwise>
+        </choose>
     </select>
 
 </mapper>

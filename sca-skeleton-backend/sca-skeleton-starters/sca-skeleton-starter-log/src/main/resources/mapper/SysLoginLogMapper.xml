@@ -11,7 +11,30 @@
         FROM sys_login_log l
         LEFT JOIN sys_tenant t ON t.id = l.tenant_id
         LEFT JOIN sys_user u ON u.id = l.user_id
-        ${ew.customSqlSegment}
+        WHERE 1=1
+        <if test="keyword != null and keyword != ''">
+            AND (l.username LIKE CONCAT('%', #{keyword}, '%')
+                 OR l.client_ip LIKE CONCAT('%', #{keyword}, '%')
+                 OR u.real_name LIKE CONCAT('%', #{keyword}, '%')
+                 OR t.name LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="isSuccess != null">
+            AND l.is_success = #{isSuccess}
+        </if>
+        <if test="startTime != null">
+            AND l.login_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND l.login_time &lt;= #{endTime}
+        </if>
+        <choose>
+            <when test="orderBy != null and orderBy != ''">
+                ORDER BY l.${orderBy} ${orderDirection}
+            </when>
+            <otherwise>
+                ORDER BY l.login_time DESC
+            </otherwise>
+        </choose>
     </select>
 
     <!-- 按 ID 查询登录日志详情 -->

@@ -16,7 +16,26 @@
                   AND rp.is_deleted = 0
                   AND perm.type IN ('menu', 'button')) AS permission_count
         FROM sys_role r
-        ${ew.customSqlSegment}
+        WHERE r.is_deleted = 0
+          AND r.tenant_id = #{tenantId}
+        <if test="keyword != null and keyword != ''">
+            AND (r.name LIKE CONCAT('%', #{keyword}, '%')
+                 OR r.code LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="dataScope != null and dataScope != ''">
+            AND r.data_scope = #{dataScope}
+        </if>
+        <choose>
+            <when test="orderBy == 'permission_count'">
+                ORDER BY permission_count ${orderDirection}
+            </when>
+            <when test="orderBy != null and orderBy != ''">
+                ORDER BY r.${orderBy} ${orderDirection}
+            </when>
+            <otherwise>
+                ORDER BY r.sort ASC
+            </otherwise>
+        </choose>
     </select>
 
     <select id="selectRolesByUserId" resultType="io.github.fushuwei.scaskeleton.system.entity.SysRole">

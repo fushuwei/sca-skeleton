@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -47,36 +46,12 @@ public class SysTenantServiceImpl implements SysTenantService {
     @Override
     public IPage<TenantResponse> pageTenants(TenantPageRequest req) {
         Page<SysTenant> page = new Page<>(req.getPageNum(), req.getPageSize());
-
-        LambdaQueryWrapper<SysTenant> wrapper = new LambdaQueryWrapper<SysTenant>()
-                // 逻辑删除过滤（自定义 SQL 不自动追加 @TableLogic 条件，需显式指定）
-                .eq(SysTenant::getIsDeleted, 0)
-                // 关键词模糊匹配名称或编码
-                .and(StringUtils.hasText(req.getKeyword()),
-                        w -> w.like(SysTenant::getName, req.getKeyword())
-                                .or().like(SysTenant::getCode, req.getKeyword()))
-                // 状态筛选
-                .eq(StringUtils.hasText(req.getStatus()), SysTenant::getStatus, req.getStatus())
-                // 套餐筛选
-                .eq(StringUtils.hasText(req.getPackageId()), SysTenant::getPackageId, req.getPackageId());
-
-        // 安全排序：白名单校验通过后按指定字段排序，否则按创建时间降序
-        String orderBy = req.safeOrderBy();
-        boolean isAsc = "ASC".equalsIgnoreCase(req.safeOrderDirection());
-        if (orderBy != null) {
-            switch (orderBy) {
-                case "name" -> wrapper.orderBy(true, isAsc, SysTenant::getName);
-                case "code" -> wrapper.orderBy(true, isAsc, SysTenant::getCode);
-                case "status" -> wrapper.orderBy(true, isAsc, SysTenant::getStatus);
-                case "effective_time" -> wrapper.orderBy(true, isAsc, SysTenant::getEffectiveTime);
-                case "expire_time" -> wrapper.orderBy(true, isAsc, SysTenant::getExpireTime);
-                case "create_time" -> wrapper.orderBy(true, isAsc, SysTenant::getCreateTime);
-            }
-        } else {
-            wrapper.orderByDesc(SysTenant::getCreateTime);
-        }
-
-        IPage<SysTenant> entityPage = tenantMapper.selectTenantPage(page, wrapper);
+        IPage<SysTenant> entityPage = tenantMapper.selectTenantPage(page,
+                req.getKeyword(),
+                req.getStatus(),
+                req.getPackageId(),
+                req.safeOrderBy(),
+                req.safeOrderDirection());
         return entityPage.convert(tenantConverter::toTenantResponse);
     }
 

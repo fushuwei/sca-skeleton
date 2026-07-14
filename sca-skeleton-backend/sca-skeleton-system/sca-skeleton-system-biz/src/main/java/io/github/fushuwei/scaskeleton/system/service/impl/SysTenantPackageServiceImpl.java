@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -54,35 +53,12 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     public IPage<TenantPackageResponse> pagePackages(TenantPackagePageRequest req) {
         // 构造分页对象
         Page<SysTenantPackage> page = new Page<>(req.getPageNum(), req.getPageSize());
-
-        LambdaQueryWrapper<SysTenantPackage> wrapper = new LambdaQueryWrapper<SysTenantPackage>()
-                // 逻辑删除过滤（自定义 SQL 不自动追加 @TableLogic 条件，需显式指定）
-                .eq(SysTenantPackage::getIsDeleted, 0)
-                // 关键词模糊匹配名称或编码
-                .and(StringUtils.hasText(req.getKeyword()),
-                        w -> w.like(SysTenantPackage::getName, req.getKeyword())
-                                .or().like(SysTenantPackage::getCode, req.getKeyword()))
-                // 状态筛选
-                .eq(StringUtils.hasText(req.getStatus()), SysTenantPackage::getStatus, req.getStatus());
-
-        // 安全排序：白名单校验通过后按指定字段排序，否则按 sort 升序
-        String orderBy = req.safeOrderBy();
-        boolean isAsc = "ASC".equalsIgnoreCase(req.safeOrderDirection());
-        if (orderBy != null) {
-            switch (orderBy) {
-                case "name" -> wrapper.orderBy(true, isAsc, SysTenantPackage::getName);
-                case "code" -> wrapper.orderBy(true, isAsc, SysTenantPackage::getCode);
-                case "status" -> wrapper.orderBy(true, isAsc, SysTenantPackage::getStatus);
-                case "sort" -> wrapper.orderBy(true, isAsc, SysTenantPackage::getSort);
-                case "create_time" -> wrapper.orderBy(true, isAsc, SysTenantPackage::getCreateTime);
-                case "permission_count" -> wrapper.orderBy(true, isAsc, SysTenantPackage::getPermissionCount);
-            }
-        } else {
-            wrapper.orderByAsc(SysTenantPackage::getSort);
-        }
-
         // 查询实体分页并转换为响应对象分页
-        IPage<SysTenantPackage> entityPage = packageMapper.selectPackagePage(page, wrapper);
+        IPage<SysTenantPackage> entityPage = packageMapper.selectPackagePage(page,
+                req.getKeyword(),
+                req.getStatus(),
+                req.safeOrderBy(),
+                req.safeOrderDirection());
         return entityPage.convert(packageConverter::toTenantPackageResponse);
     }
 
