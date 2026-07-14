@@ -17,8 +17,8 @@ import org.springframework.context.annotation.Bean;
  * API 文档自动配置类
  * <p>
  * 基于 SpringDoc OpenAPI 3 + Swagger UI，为微服务提供开箱即用的 API 文档能力
- * 各微服务只需引入本 Starter 依赖，即可通过 {@code sca.doc.*} 属性自定义文档元数据，
- * 并通过 SpringDoc 原生 {@code springdoc.*} 属性控制路径、扫描包等技术参数
+ * 各微服务只需引入本 Starter 依赖，即可通过 {@code springdoc.api-docs.*} 属性自定义文档元数据
+ * 与开关控制
  * <p>
  * 内置 OAuth2 Bearer Token 安全方案，在文档 UI 中点击「Authorize」输入 Access Token 后，
  * 后续请求自动携带 {@code Authorization: Bearer <token>} 请求头，便于直接调试受保护接口。

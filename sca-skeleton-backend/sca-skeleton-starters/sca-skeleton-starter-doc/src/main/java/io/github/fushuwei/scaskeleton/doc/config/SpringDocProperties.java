@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Fu Wei
  */
 @Data
-@ConfigurationProperties(prefix = "sca.doc")
+@ConfigurationProperties(prefix = "springdoc.api-docs.info")
 public class SpringDocProperties {
 
     /**

@@ -13,27 +13,27 @@ sca:
       - /actuator/health
       - /actuator/info
 
-  # API 文档配置（SpringDoc OpenAPI 3 + Swagger UI）
-  doc:
-    # 文档标题
-    title: SCA Skeleton API
-    # 文档描述
-    description: SCA Skeleton 项目接口文档
-    # API 版本号
-    version: 1.0.0
-    # 联系人信息
-    contact:
-      name: SCA Skeleton
-      email: dev@example.com
-      url: https://github.com/fushuwei/sca-skeleton
-    # 许可证信息
-    license:
-      name: Apache 2.0
-      url: https://www.apache.org/licenses/LICENSE-2.0
-
-# SpringDoc 原生配置（控制 API 文档端点与 Swagger UI 的开关）
+# API 文档配置（SpringDoc OpenAPI 3 + Swagger UI）
 springdoc:
   api-docs:
+    # 是否暴露 /v3/api-docs JSON 端点，生产环境建议关闭
     enabled: false
+    info:
+      # 文档标题
+      title: SCA Skeleton API
+      # 文档描述
+      description: SCA Skeleton 项目接口文档
+      # API 版本号
+      version: 1.0.0
+      # 联系人信息
+      contact:
+        name: SCA Skeleton
+        email: dev@example.com
+        url: https://github.com/fushuwei/sca-skeleton
+      # 许可证信息
+      license:
+        name: Apache 2.0
+        url: https://www.apache.org/licenses/LICENSE-2.0
   swagger-ui:
+    # 是否暴露 /swagger-ui/** 可视化页面，生产环境建议关闭
     enabled: false
