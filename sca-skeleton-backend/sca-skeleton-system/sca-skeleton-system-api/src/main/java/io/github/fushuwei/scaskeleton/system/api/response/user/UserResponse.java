@@ -6,14 +6,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 用户管理响应对象
+ * 用户响应对象
  *
  * @author Fu Wei
  */
 @Data
 public class UserResponse {
 
-    // ==================== 基础信息 ====================
+    // ==================== 基本信息 ====================
 
     /** 用户 ID */
     private String id;
@@ -104,17 +104,17 @@ public class UserResponse {
 
     // ==================== 审计字段 ====================
 
-    /** 创建时间 */
-    private LocalDateTime createTime;
-
-    /** 最后更新时间 */
-    private LocalDateTime updateTime;
-
     /** 创建人 ID */
     private String createBy;
 
+    /** 创建时间 */
+    private LocalDateTime createTime;
+
     /** 最后更新人 ID */
     private String updateBy;
+
+    /** 最后更新时间 */
+    private LocalDateTime updateTime;
 
     // ==================== 关联信息 ====================
 
