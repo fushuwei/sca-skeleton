@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 用户管理 Controller。
+ * 用户管理 Controller
  *
  * @author Fu Wei
  */
@@ -33,7 +33,9 @@ public class SysUserController {
 
     private final SysUserService userService;
 
-    // 获取当前登录用户资料，无需额外权限编码（OAuth2 登录后 SPA 拉取）
+    /**
+     * 获取当前登录用户资料
+     */
     @GetMapping("/profile")
     public Result<UserProfileResponse> profile() {
         return Result.ok(userService.getCurrentProfile());

@@ -18,19 +18,19 @@
         FROM sys_role r
         WHERE r.is_deleted = 0
           AND r.tenant_id = #{tenantId}
-        <if test="keyword != null and keyword != ''">
-            AND (r.name LIKE CONCAT('%', #{keyword}, '%')
-                 OR r.code LIKE CONCAT('%', #{keyword}, '%'))
+        <if test="req.keyword != null and req.keyword != ''">
+            AND (r.name LIKE CONCAT('%', #{req.keyword}, '%')
+                 OR r.code LIKE CONCAT('%', #{req.keyword}, '%'))
         </if>
-        <if test="dataScope != null and dataScope != ''">
-            AND r.data_scope = #{dataScope}
+        <if test="req.dataScope != null and req.dataScope != ''">
+            AND r.data_scope = #{req.dataScope}
         </if>
         <choose>
-            <when test="orderBy == 'permission_count'">
-                ORDER BY permission_count ${orderDirection}
+            <when test="req.safeOrderBy() == 'permission_count'">
+                ORDER BY permission_count ${req.safeOrderDirection()}
             </when>
-            <when test="orderBy != null and orderBy != ''">
-                ORDER BY r.${orderBy} ${orderDirection}
+            <when test="req.safeOrderBy() != null and req.safeOrderBy() != ''">
+                ORDER BY r.${req.safeOrderBy()} ${req.safeOrderDirection()}
             </when>
             <otherwise>
                 ORDER BY r.sort ASC

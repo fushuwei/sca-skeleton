@@ -46,12 +46,7 @@ public class SysTenantServiceImpl implements SysTenantService {
     @Override
     public IPage<TenantResponse> pageTenants(TenantPageRequest req) {
         Page<SysTenant> page = new Page<>(req.getPageNum(), req.getPageSize());
-        IPage<SysTenant> entityPage = tenantMapper.selectTenantPage(page,
-                req.getKeyword(),
-                req.getStatus(),
-                req.getPackageId(),
-                req.safeOrderBy(),
-                req.safeOrderDirection());
+        IPage<SysTenant> entityPage = tenantMapper.selectTenantPage(page, req);
         return entityPage.convert(tenantConverter::toTenantResponse);
     }
 

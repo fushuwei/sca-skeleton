@@ -37,37 +37,37 @@
         WHERE u.is_deleted = 0
           AND u.tenant_id = #{tenantId}
           AND u.user_type = 'backend'
-        <if test="userType != null and userType != ''">
-            AND u.user_type = #{userType}
+        <if test="req.userType != null and req.userType != ''">
+            AND u.user_type = #{req.userType}
         </if>
-        <if test="deptId != null and deptId != ''">
-            AND ud.dept_id = #{deptId}
+        <if test="req.deptId != null and req.deptId != ''">
+            AND ud.dept_id = #{req.deptId}
         </if>
-        <if test="keyword != null and keyword != ''">
-            AND (u.username LIKE CONCAT('%', #{keyword}, '%')
-                 OR u.nickname LIKE CONCAT('%', #{keyword}, '%')
-                 OR u.real_name LIKE CONCAT('%', #{keyword}, '%')
-                 OR u.phone LIKE CONCAT('%', #{keyword}, '%')
-                 OR u.email LIKE CONCAT('%', #{keyword}, '%'))
+        <if test="req.keyword != null and req.keyword != ''">
+            AND (u.username LIKE CONCAT('%', #{req.keyword}, '%')
+                 OR u.nickname LIKE CONCAT('%', #{req.keyword}, '%')
+                 OR u.real_name LIKE CONCAT('%', #{req.keyword}, '%')
+                 OR u.phone LIKE CONCAT('%', #{req.keyword}, '%')
+                 OR u.email LIKE CONCAT('%', #{req.keyword}, '%'))
         </if>
-        <if test="username != null and username != ''">
-            AND u.username LIKE CONCAT('%', #{username}, '%')
+        <if test="req.username != null and req.username != ''">
+            AND u.username LIKE CONCAT('%', #{req.username}, '%')
         </if>
-        <if test="nickname != null and nickname != ''">
-            AND u.nickname LIKE CONCAT('%', #{nickname}, '%')
+        <if test="req.nickname != null and req.nickname != ''">
+            AND u.nickname LIKE CONCAT('%', #{req.nickname}, '%')
         </if>
-        <if test="status != null and status != ''">
-            AND u.status = #{status}
+        <if test="req.status != null and req.status != ''">
+            AND u.status = #{req.status}
         </if>
         GROUP BY u.id, d.name
         <choose>
-            <when test="orderBy != null and orderBy != ''">
+            <when test="req.safeOrderBy() != null and req.safeOrderBy() != ''">
                 <choose>
-                    <when test="orderBy == 'dept_name'">
-                        ORDER BY d.name ${orderDirection}
+                    <when test="req.safeOrderBy() == 'dept_name'">
+                        ORDER BY d.name ${req.safeOrderDirection()}
                     </when>
                     <otherwise>
-                        ORDER BY u.${orderBy} ${orderDirection}
+                        ORDER BY u.${req.safeOrderBy()} ${req.safeOrderDirection()}
                     </otherwise>
                 </choose>
             </when>

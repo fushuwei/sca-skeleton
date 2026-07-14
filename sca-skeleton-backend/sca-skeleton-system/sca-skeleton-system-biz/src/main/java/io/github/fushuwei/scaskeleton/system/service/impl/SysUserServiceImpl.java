@@ -62,11 +62,7 @@ public class SysUserServiceImpl implements SysUserService {
     public IPage<UserPageResponse> pageUsers(String tenantId, UserPageRequest req) {
         // 按请求参数构造分页对象，返回 UserPageResponse（含部门名称、角色名称，排除密码）
         Page<UserPageResponse> page = new Page<>(req.getPageNum(), req.getPageSize());
-        return userMapper.selectUserPage(page, tenantId,
-                req.getKeyword(), req.getUsername(), req.getNickname(),
-                req.getUserType(),
-                req.getStatus(), req.getDeptId(),
-                req.safeOrderBy(), req.safeOrderDirection());
+        return userMapper.selectUserPage(page, tenantId, req);
     }
 
     @Override

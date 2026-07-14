@@ -54,11 +54,7 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
         // 构造分页对象
         Page<SysTenantPackage> page = new Page<>(req.getPageNum(), req.getPageSize());
         // 查询实体分页并转换为响应对象分页
-        IPage<SysTenantPackage> entityPage = packageMapper.selectPackagePage(page,
-                req.getKeyword(),
-                req.getStatus(),
-                req.safeOrderBy(),
-                req.safeOrderDirection());
+        IPage<SysTenantPackage> entityPage = packageMapper.selectPackagePage(page, req);
         return entityPage.convert(packageConverter::toTenantPackageResponse);
     }
 
