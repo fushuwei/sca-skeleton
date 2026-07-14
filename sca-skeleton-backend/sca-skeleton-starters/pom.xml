@@ -34,7 +34,7 @@
         <module>sca-skeleton-starter-captcha</module>
         <!-- Security 资源服务：OAuth2 Redis 授权存储、不透明令牌自省、资源服务器鉴权 -->
         <module>sca-skeleton-starter-security</module>
-        <!-- API 文档：SpringDoc OpenAPI 3 + Scalar UI，微服务引入即用 -->
+        <!-- API 文档：SpringDoc OpenAPI 3 + Swagger UI，微服务引入即用 -->
         <module>sca-skeleton-starter-doc</module>
     </modules>
 </project>

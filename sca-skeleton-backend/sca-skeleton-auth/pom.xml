@@ -42,7 +42,7 @@
             <artifactId>sca-skeleton-starter-captcha</artifactId>
         </dependency>
 
-        <!-- 项目 API 文档 Starter（SpringDoc OpenAPI 3 + Scalar UI） -->
+        <!-- 项目 API 文档 Starter（SpringDoc OpenAPI 3 + Swagger UI） -->
         <dependency>
             <groupId>io.github.fushuwei</groupId>
             <artifactId>sca-skeleton-starter-doc</artifactId>

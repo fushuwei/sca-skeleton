@@ -15,7 +15,7 @@
     <packaging>jar</packaging>
 
     <name>SCA Skeleton Backend :: Starter :: Doc</name>
-    <description>SCA Skeleton Backend :: API 文档 Starter（SpringDoc OpenAPI 3 + Scalar UI）</description>
+    <description>SCA Skeleton Backend :: API 文档 Starter（SpringDoc OpenAPI 3 + Swagger UI）</description>
 
     <dependencies>
         <!-- 项目核心 Starter（自定义基础组件封装） -->
@@ -24,10 +24,10 @@
             <artifactId>sca-skeleton-starter-core</artifactId>
         </dependency>
 
-        <!-- SpringDoc OpenAPI 文档（基于 WebMVC + Scalar UI） -->
+        <!-- SpringDoc OpenAPI 文档（基于 WebMVC + Swagger UI） -->
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-scalar</artifactId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         </dependency>
 
         <!-- 配置元数据处理器（为自定义配置类提供 IDE 自动补全与元数据生成功能） -->
