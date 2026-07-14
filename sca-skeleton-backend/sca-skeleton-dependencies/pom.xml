@@ -190,6 +190,13 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <!-- 项目 API 文档 Starter（SpringDoc OpenAPI 3 + Scalar UI） -->
+            <dependency>
+                <groupId>io.github.fushuwei</groupId>
+                <artifactId>sca-skeleton-starter-doc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <!-- ======================================================================== -->
             <!-- 业务模块 API 契约统一管理 -->
             <!-- ======================================================================== -->

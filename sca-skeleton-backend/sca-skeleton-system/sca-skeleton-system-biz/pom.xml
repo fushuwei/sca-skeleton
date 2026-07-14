@@ -48,6 +48,12 @@
             <artifactId>sca-skeleton-starter-log</artifactId>
         </dependency>
 
+        <!-- 项目 API 文档 Starter（SpringDoc OpenAPI 3 + Scalar UI） -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-doc</artifactId>
+        </dependency>
+
         <!-- Nacos 注册中心客户端（服务注册与发现） -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
