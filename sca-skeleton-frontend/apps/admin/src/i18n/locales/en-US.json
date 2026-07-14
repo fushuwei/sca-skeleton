@@ -431,7 +431,7 @@
   },
   "loginLog": {
     "title": "Login Logs",
-    "keywordPlaceholder": "Search tenant, username, real name, IP",
+    "keywordPlaceholder": "Search by tenant/username/real name/client ip",
     "tenantName": "Tenant",
     "username": "Username",
     "realName": "Real Name",
