@@ -1,0 +1,35 @@
+
+sca:
+  # SCA 安全配置（OAuth2 资源服务器）
+  security:
+    # 资源服务器开关，默认开启（认证服务在自身配置中覆盖为 false）
+    resource-server:
+      enabled: true
+    # 免认证路径白名单，Ant 风格匹配，命中后跳过 Bearer Token 校验
+    permit-paths:
+      - /v3/api-docs/**
+      - /swagger-ui/**
+      - /swagger-ui.html
+      - /webjars/**
+      - /actuator/health
+      - /actuator/info
+
+  # API 文档配置（SpringDoc OpenAPI 3 + Swagger UI）
+  doc:
+    # 是否启用 API 文档，生产环境设为 false 关闭
+    enabled: true
+    # 文档标题
+    title: SCA Skeleton API
+    # 文档描述
+    description: SCA Skeleton 项目接口文档
+    # API 版本号
+    version: 1.0.0
+    # 联系人信息
+    contact:
+      name: SCA Skeleton
+      email: dev@example.com
+      url: https://github.com/fushuwei/sca-skeleton
+    # 许可证信息
+    license:
+      name: Apache 2.0
+      url: https://www.apache.org/licenses/LICENSE-2.0

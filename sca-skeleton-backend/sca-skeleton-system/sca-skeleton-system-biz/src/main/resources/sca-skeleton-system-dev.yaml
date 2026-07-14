@@ -42,19 +42,6 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
-# SCA Security Starter 配置（不透明令牌经 Redis 本地自省，无需 introspection-uri）
-sca:
-  security:
-    resource-server:
-      enabled: true
-    permit-paths:
-      - /v3/api-docs/**
-      - /swagger-ui/**
-      - /swagger-ui.html
-      - /webjars/**
-      - /actuator/health
-      - /actuator/info
-
 management:
   endpoints:
     web:
