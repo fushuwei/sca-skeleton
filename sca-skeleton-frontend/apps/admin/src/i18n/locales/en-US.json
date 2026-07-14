@@ -114,7 +114,7 @@
     "collapseDeptTree": "Collapse departments",
     "allDepts": "All",
     "currentDept": "Current Dept",
-    "keywordPlaceholder": "Search by username/nickname/real name/phone/email",
+    "keywordPlaceholder": "Search by username / nickname / real name / phone / email",
     "usernamePlaceholder": "Search by username",
     "nicknamePlaceholder": "Search by nickname",
     "phonePlaceholder": "Search by phone number",
@@ -431,7 +431,7 @@
   },
   "loginLog": {
     "title": "Login Logs",
-    "keywordPlaceholder": "Search by tenant/username/real name/client ip",
+    "keywordPlaceholder": "Search by tenant / username / real name / client ip",
     "tenantName": "Tenant",
     "username": "Username",
     "realName": "Real Name",
