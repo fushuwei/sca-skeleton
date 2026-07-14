@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 套餐权限分配请求对象。
+ * 套餐权限分配请求对象
  *
  * @author Fu Wei
  */
@@ -18,7 +18,7 @@ public class TenantPackagePermissionAssignRequest {
     @NotBlank(message = "套餐 ID 不能为空")
     private String id;
 
-    /** 权限 ID 列表（全量替换） */
+    /** 权限 ID 列表 */
     @NotEmpty(message = "权限 ID 列表不能为空")
     private List<String> permissionIds;
 }

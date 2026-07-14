@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 用户密码重置请求对象。
+ * 用户密码重置请求对象
  *
  * @author Fu Wei
  */

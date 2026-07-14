@@ -7,46 +7,52 @@ import lombok.Data;
 import java.util.Set;
 
 /**
- * 权限（菜单）分页查询请求对象。
+ * 权限分页查询请求对象
  *
  * @author Fu Wei
  */
 @Data
 public class PermissionPageRequest {
 
-    /** 允许排序的字段白名单，防止 SQL 注入 */
+    /** 允许排序的字段白名单 */
     private static final Set<String> ALLOWED_ORDER_FIELDS = Set.of(
-            "name", "name_en", "code", "type", "sort", "status", "create_time", "tree_path"
+        "name", "name_en", "code", "type", "sort", "status", "create_time", "tree_path"
     );
 
-    /** 页码，从 1 开始 */
+    // ==================== 分页参数 ====================
+
+    /** 页码（从 1 开始） */
     @Min(value = 1, message = "页码不能小于 1")
     private Integer pageNum = 1;
 
-    /** 每页条数，上限 100 防止全表拉取 */
+    /** 每页条数 */
     @Min(value = 1, message = "每页条数不能小于 1")
     @Max(value = 100, message = "每页条数不能超过 100")
     private Integer pageSize = 20;
 
-    /** 父节点 ID，为空时不按父节点过滤（返回全部记录） */
+    // ==================== 查询条件 ====================
+
+    /** 上级权限 ID */
     private String parentId;
 
-    /** 综合搜索关键词（名称、权限标识模糊匹配） */
+    /** 综合搜索关键词 */
     private String keyword;
 
-    /** 权限类型筛选：module / folder / menu / button */
+    /** 类型 */
     private String type;
 
-    /** 状态筛选：enabled / disabled */
+    /** 状态 */
     private String status;
+
+    // ==================== 排序参数 ====================
 
     /** 排序字段 */
     private String orderBy;
 
-    /** 排序方向：asc / desc */
+    /** 排序方向 */
     private String orderDirection;
 
-    /** 校验并返回安全的排序字段名，不在白名单内则返回 null */
+    /** 返回安全的排序字段（不在白名单则返回 null） */
     public String safeOrderBy() {
         if (orderBy != null && ALLOWED_ORDER_FIELDS.contains(orderBy)) {
             return orderBy;
@@ -54,7 +60,7 @@ public class PermissionPageRequest {
         return null;
     }
 
-    /** 返回安全的排序方向，默认 asc（菜单按排序号升序更合理） */
+    /** 返回安全的排序方向（默认 asc） */
     public String safeOrderDirection() {
         if ("desc".equalsIgnoreCase(orderDirection)) {
             return "DESC";

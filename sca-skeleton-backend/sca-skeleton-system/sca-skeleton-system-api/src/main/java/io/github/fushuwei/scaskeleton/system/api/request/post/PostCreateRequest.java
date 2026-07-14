@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 创建岗位请求对象。
+ * 创建岗位请求对象
  *
  * @author Fu Wei
  */
@@ -19,8 +19,9 @@ public class PostCreateRequest {
     @NotBlank(message = "岗位编码不能为空")
     private String code;
 
-    /** 排序号，越小越靠前 */
+    /** 排序号 */
     private Integer sort;
+
     /** 备注 */
     private String remark;
 }

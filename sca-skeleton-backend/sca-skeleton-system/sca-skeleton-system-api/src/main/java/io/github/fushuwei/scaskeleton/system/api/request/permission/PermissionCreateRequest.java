@@ -4,44 +4,58 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 创建权限请求对象。
+ * 创建权限请求对象
  *
  * @author Fu Wei
  */
 @Data
 public class PermissionCreateRequest {
 
-    /** 父节点 ID，顶级为 "0" */
-    @NotBlank(message = "父节点ID不能为空")
+    // ==================== 基本信息 ====================
+
+    /** 上级权限 ID（顶级为 "0"） */
+    @NotBlank(message = "上级权限 ID 不能为空")
     private String parentId;
 
     /** 权限名称 */
     @NotBlank(message = "权限名称不能为空")
     private String name;
 
-    /** 英文菜单名称，用于国际化 */
+    /** 英文名称 */
     private String nameEn;
 
-    /** 类型：module-模块，folder-目录，menu-菜单，button-按钮 */
+    /** 类型 */
     @NotBlank(message = "权限类型不能为空")
     private String type;
 
-    /** 权限标识，如 sys:user:list */
+    // ==================== 前端配置 ====================
+
+    /** 权限标识 */
     private String code;
+
     /** 前端路由地址 */
     private String path;
+
     /** 前端组件路径 */
     private String component;
-    /** 菜单图标 */
+
+    /** 图标 */
     private String icon;
-    /** 排序号，越小越靠前 */
+
+    // ==================== 属性信息 ====================
+
+    /** 排序号 */
     private Integer sort;
-    /** 是否可见：0-否，1-是 */
+
+    /** 是否可见 */
     private Integer isVisible;
-    /** 是否外链：0-否，1-是 */
+
+    /** 是否外链 */
     private Integer isExternal;
-    /** 状态：enabled / disabled */
+
+    /** 状态 */
     private String status;
+
     /** 备注 */
     private String remark;
 }

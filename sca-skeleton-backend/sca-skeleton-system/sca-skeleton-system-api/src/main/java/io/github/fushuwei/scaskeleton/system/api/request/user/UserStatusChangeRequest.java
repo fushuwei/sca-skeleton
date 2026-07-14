@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 用户状态变更请求对象。
+ * 用户状态变更请求对象
  *
  * @author Fu Wei
  */
@@ -15,7 +15,7 @@ public class UserStatusChangeRequest {
     @NotBlank(message = "用户 ID 不能为空")
     private String id;
 
-    /** 状态：active / inactive / locked / frozen / expired / disabled / cancelled */
+    /** 用户状态 */
     @NotBlank(message = "状态不能为空")
     private String status;
 

@@ -6,15 +6,17 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 更新租户请求对象。
+ * 更新租户请求对象
  *
  * @author Fu Wei
  */
 @Data
 public class TenantUpdateRequest {
 
+    // ==================== 基本信息 ====================
+
     /** 租户 ID */
-    @NotBlank(message = "租户ID不能为空")
+    @NotBlank(message = "租户 ID 不能为空")
     private String id;
 
     /** 租户名称 */
@@ -25,29 +27,33 @@ public class TenantUpdateRequest {
     @NotBlank(message = "租户编码不能为空")
     private String code;
 
-    /** 套餐ID */
+    /** 套餐 ID */
     @NotBlank(message = "套餐不能为空")
     private String packageId;
 
-    /** 联系人姓名 */
+    // ==================== 联系信息 ====================
+
+    /** 联系人 */
     private String contactName;
 
-    /** 联系人电话 */
+    /** 联系电话 */
     private String contactPhone;
 
-    /** 联系人邮箱 */
+    /** 联系邮箱 */
     private String contactEmail;
 
-    /** 绑定独立域名 */
+    /** 域名 */
     private String domainName;
 
-    /** 生效时间（NULL表示立即生效） */
+    // ==================== 属性信息 ====================
+
+    /** 生效时间（null 表示立即生效） */
     private LocalDateTime effectiveTime;
 
-    /** 过期时间（NULL表示永不过期） */
+    /** 过期时间（null 表示永不过期） */
     private LocalDateTime expireTime;
 
-    /** 租户状态（normal 正常，disabled 禁用，expired 过期，cancelled 注销） */
+    /** 状态 */
     @NotBlank(message = "租户状态不能为空")
     private String status;
 

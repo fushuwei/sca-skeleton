@@ -8,31 +8,35 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 /**
- * 登录日志分页查询请求对象。
+ * 登录日志分页查询请求对象
  *
  * @author Fu Wei
  */
 @Data
 public class LoginLogPageRequest {
 
-    /** 允许排序的字段白名单，防止 SQL 注入 */
+    /** 允许排序的字段白名单 */
     private static final Set<String> ALLOWED_ORDER_FIELDS = Set.of(
-            "login_time", "username", "client_ip", "is_success", "device", "browser", "os", "cost_ms"
+        "login_time", "username", "client_ip", "is_success", "device", "browser", "os", "cost_ms"
     );
 
-    /** 页码，从 1 开始 */
+    // ==================== 分页参数 ====================
+
+    /** 页码（从 1 开始） */
     @Min(value = 1, message = "页码不能小于 1")
     private Integer pageNum = 1;
 
-    /** 每页条数，上限 100 防止全表拉取 */
+    /** 每页条数 */
     @Min(value = 1, message = "每页条数不能小于 1")
     @Max(value = 100, message = "每页条数不能超过 100")
     private Integer pageSize = 20;
 
-    /** 搜索关键字（模糊匹配租户名称、登录用户、真实姓名、客户端 IP） */
+    // ==================== 查询条件 ====================
+
+    /** 综合搜索关键词 */
     private String keyword;
 
-    /** 是否成功筛选：1-成功，0-失败 */
+    /** 是否成功 */
     private Integer isSuccess;
 
     /** 查询开始时间 */
@@ -41,13 +45,15 @@ public class LoginLogPageRequest {
     /** 查询结束时间 */
     private LocalDateTime endTime;
 
+    // ==================== 排序参数 ====================
+
     /** 排序字段 */
     private String orderBy;
 
-    /** 排序方向：asc / desc */
+    /** 排序方向 */
     private String orderDirection;
 
-    /** 校验并返回安全的排序字段名，不在白名单内则返回 null */
+    /** 返回安全的排序字段（不在白名单则返回 null） */
     public String safeOrderBy() {
         if (orderBy != null && ALLOWED_ORDER_FIELDS.contains(orderBy)) {
             return orderBy;
@@ -55,7 +61,7 @@ public class LoginLogPageRequest {
         return null;
     }
 
-    /** 返回安全的排序方向，默认 asc */
+    /** 返回安全的排序方向（默认 asc） */
     public String safeOrderDirection() {
         if ("desc".equalsIgnoreCase(orderDirection)) {
             return "DESC";

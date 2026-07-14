@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 角色权限分配请求对象。
+ * 角色权限分配请求对象
  *
  * @author Fu Wei
  */
@@ -18,7 +18,7 @@ public class RolePermissionAssignRequest {
     @NotBlank(message = "角色 ID 不能为空")
     private String id;
 
-    /** 权限 ID 列表（全量替换） */
+    /** 权限 ID 列表 */
     @NotEmpty(message = "权限 ID 列表不能为空")
     private List<String> permissionIds;
 }
