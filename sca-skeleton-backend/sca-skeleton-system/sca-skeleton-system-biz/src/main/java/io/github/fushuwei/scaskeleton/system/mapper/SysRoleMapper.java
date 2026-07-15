@@ -9,31 +9,28 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * 角色 Mapper。
+ * 角色管理 Mapper
  *
  * @author Fu Wei
  */
 public interface SysRoleMapper extends BaseMapper<SysRole> {
 
     /**
-     * 分页查询角色，关联子查询一次性查出权限数量。
+     * 分页查询角色列表
      *
-     * @param page     分页对象
-     * @param tenantId 租户ID（来自 SecurityContext，非 Request）
-     * @param req      分页查询请求对象
-     * @return 分页结果（每条记录含 permissionCount）
+     * @param page     分页对象（框架回填）
+     * @param tenantId 租户 ID
+     * @param req      查询条件
+     * @return 分页结果
      */
-    IPage<SysRole> selectRolePage(IPage<SysRole> page,
-                                  @Param("tenantId") String tenantId,
-                                  @Param("req") RolePageRequest req);
+    IPage<SysRole> selectRolePage(IPage<SysRole> page, @Param("tenantId") String tenantId, @Param("req") RolePageRequest req);
 
     /**
-     * 查询指定用户的角色列表。
+     * 查询指定用户关联的角色列表
      *
-     * @param userId   用户ID
-     * @param tenantId 租户ID
+     * @param userId   用户 ID
+     * @param tenantId 租户 ID
      * @return 角色列表
      */
-    List<SysRole> selectRolesByUserId(@Param("userId") String userId,
-                                      @Param("tenantId") String tenantId);
+    List<SysRole> selectRolesByUserId(@Param("userId") String userId, @Param("tenantId") String tenantId);
 }

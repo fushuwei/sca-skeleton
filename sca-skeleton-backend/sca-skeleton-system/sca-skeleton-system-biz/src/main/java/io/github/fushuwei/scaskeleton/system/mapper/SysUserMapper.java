@@ -8,19 +8,19 @@ import io.github.fushuwei.scaskeleton.system.entity.SysUser;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * 用户 Mapper。
+ * 用户管理 Mapper
  *
  * @author Fu Wei
  */
 public interface SysUserMapper extends BaseMapper<SysUser> {
 
     /**
-     * 分页查询用户列表（含部门名称、角色名称，排除密码字段）。
+     * 分页查询用户列表
      *
-     * @param page     分页参数
-     * @param tenantId 租户ID
-     * @param req      分页查询请求参数
-     * @return 分页用户列表
+     * @param page     分页对象（框架回填）
+     * @param tenantId 租户 ID
+     * @param req      查询条件
+     * @return 分页结果
      */
     IPage<UserResponse> selectUserPage(IPage<UserResponse> page, @Param("tenantId") String tenantId, @Param("req") UserPageRequest req);
 }
