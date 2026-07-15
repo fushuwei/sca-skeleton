@@ -45,8 +45,7 @@ public class SysUserController {
     @GetMapping("/page")
     @RequiresPermission("sys:user:list")
     public Result<IPage<UserResponse>> page(@Validated UserPageRequest request) {
-        String tenantId = SecurityUtils.getTenantId();
-        return Result.ok(userService.pageUsers(tenantId, request));
+        return Result.ok(userService.pageUsers(SecurityUtils.getTenantId(), request));
     }
 
     @Operation(summary = "查询用户详情")
