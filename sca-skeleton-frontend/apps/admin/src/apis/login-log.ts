@@ -12,7 +12,7 @@ export async function getLoginLogPageApi(
   });
 }
 
-/** 按 ID 查询登录日志详情 */
+/** 根据 ID 查询登录日志详情 */
 export async function getLoginLogByIdApi(id: string): Promise<ApiEnvelope<SysLoginLog>> {
   return request<SysLoginLog>({ method: "GET", url: `/sys/login-log/${id}` });
 }

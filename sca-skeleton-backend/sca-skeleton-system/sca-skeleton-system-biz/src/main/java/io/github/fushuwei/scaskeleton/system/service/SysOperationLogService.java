@@ -16,7 +16,7 @@ public interface SysOperationLogService {
     /** 分页查询操作日志 */
     IPage<OperationLogResponse> pageLogs(OperationLogPageRequest request);
 
-    /** 按 ID 查询操作日志详情 */
+    /** 根据 ID 查询操作日志详情 */
     OperationLogResponse getLogById(String id);
 
     /** 批量删除操作日志 */

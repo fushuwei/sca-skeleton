@@ -182,7 +182,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
     }
 
     /**
-     * 按主键 id 查询授权。
+     * 根据 ID 查询授权。
      *
      * @param id 授权主键，不可为空
      * @return 授权对象；不存在时返回 null

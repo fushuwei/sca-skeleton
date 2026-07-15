@@ -24,7 +24,7 @@ public interface SysRoleRemoteService {
     List<RoleResponse> list();
 
     /**
-     * 通过 ID 查询角色信息
+     * 根据 ID 查询角色信息
      *
      * @param id 角色 ID
      * @return 角色信息

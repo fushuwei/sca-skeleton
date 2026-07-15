@@ -16,7 +16,7 @@ public interface SysLoginLogService {
     /** 分页查询登录日志 */
     IPage<LoginLogResponse> pageLogs(LoginLogPageRequest request);
 
-    /** 按 ID 查询登录日志详情 */
+    /** 根据 ID 查询登录日志详情 */
     LoginLogResponse getLogById(String id);
 
     /** 批量删除登录日志 */

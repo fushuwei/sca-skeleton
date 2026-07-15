@@ -17,7 +17,7 @@ export async function getPostPageApi(
   });
 }
 
-/** 按 ID 查询岗位详情 */
+/** 根据 ID 查询岗位详情 */
 export async function getPostByIdApi(id: string): Promise<ApiEnvelope<SysPost>> {
   return request<SysPost>({ method: "GET", url: `/sys/post/${id}` });
 }

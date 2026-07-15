@@ -32,7 +32,7 @@ export async function getPermissionButtonsApi(
   });
 }
 
-/** 按 ID 查询权限详情 */
+/** 根据 ID 查询权限详情 */
 export async function getPermissionByIdApi(id: string): Promise<ApiEnvelope<SysPermission>> {
   return request<SysPermission>({ method: "GET", url: `/sys/permission/${id}` });
 }

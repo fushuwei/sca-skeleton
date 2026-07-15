@@ -84,7 +84,7 @@ public class RedisRegisteredClientRepository implements RegisteredClientReposito
     }
 
     /**
-     * 根据主键 ID 查询注册客户端
+     * 根据 ID 查询注册客户端
      *
      * @param id 主键 ID
      * @return 注册客户端

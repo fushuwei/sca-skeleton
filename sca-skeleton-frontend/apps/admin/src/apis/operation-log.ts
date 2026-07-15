@@ -12,7 +12,7 @@ export async function getOperationLogPageApi(
   });
 }
 
-/** 按 ID 查询操作日志详情 */
+/** 根据 ID 查询操作日志详情 */
 export async function getOperationLogByIdApi(id: string): Promise<ApiEnvelope<SysOperationLog>> {
   return request<SysOperationLog>({ method: "GET", url: `/sys/operation-log/${id}` });
 }

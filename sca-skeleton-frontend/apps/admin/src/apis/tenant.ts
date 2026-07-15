@@ -17,7 +17,7 @@ export async function getTenantListApi(): Promise<ApiEnvelope<SysTenant[]>> {
   return request<SysTenant[]>({ method: "GET", url: "/sys/tenant/list" });
 }
 
-/** 按 ID 查询租户详情 */
+/** 根据 ID 查询租户详情 */
 export async function getTenantByIdApi(id: string): Promise<ApiEnvelope<SysTenant>> {
   return request<SysTenant>({ method: "GET", url: `/sys/tenant/${id}` });
 }

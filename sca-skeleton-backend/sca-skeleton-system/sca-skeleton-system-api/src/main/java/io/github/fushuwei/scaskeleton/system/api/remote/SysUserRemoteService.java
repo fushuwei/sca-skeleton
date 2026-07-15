@@ -23,7 +23,7 @@ public interface SysUserRemoteService {
     UserProfileResponse getProfile();
 
     /**
-     * 通过 ID 查询用户信息
+     * 根据 ID 查询用户信息
      *
      * @param id 用户 ID
      * @return 用户信息

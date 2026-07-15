@@ -85,7 +85,7 @@ public class SysUserServiceImpl implements SysUserService {
         if (!StringUtils.hasText(userId)) {
             throw new BusinessException(ResultCode.UNAUTHORIZED, "未登录或令牌无效");
         }
-        // 通过 ID 查询用户信息
+        // 根据 ID 查询用户信息
         SysUser user = userMapper.selectById(userId);
         if (user != null) {
             return userConverter.toUserProfileResponse(user);

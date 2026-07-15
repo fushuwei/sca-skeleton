@@ -37,7 +37,7 @@
         </choose>
     </select>
 
-    <!-- 按 ID 查询登录日志详情 -->
+    <!-- 根据 ID 查询登录日志详情 -->
     <select id="selectLogById" resultType="io.github.fushuwei.scaskeleton.log.entity.SysLoginLog">
         SELECT l.*,
                t.name AS tenant_name,

@@ -17,7 +17,7 @@ export async function getRolePageApi(
   });
 }
 
-/** 按 ID 查询角色详情 */
+/** 根据 ID 查询角色详情 */
 export async function getRoleByIdApi(id: string): Promise<ApiEnvelope<SysRole>> {
   return request<SysRole>({ method: "GET", url: `/sys/role/${id}` });
 }

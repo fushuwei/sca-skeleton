@@ -24,7 +24,7 @@ public interface SysPermissionRemoteService {
     List<PermissionResponse> list();
 
     /**
-     * 通过 ID 查询权限信息
+     * 根据 ID 查询权限信息
      *
      * @param id 权限 ID
      * @return 权限信息

@@ -24,7 +24,7 @@ public interface SysDeptRemoteService {
     List<DeptResponse> list();
 
     /**
-     * 通过 ID 查询部门信息
+     * 根据 ID 查询部门信息
      *
      * @param id 部门 ID
      * @return 部门信息

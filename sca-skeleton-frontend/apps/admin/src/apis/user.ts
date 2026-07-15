@@ -17,7 +17,7 @@ export async function getUserPageApi(
   });
 }
 
-/** 按 ID 查询用户详情 */
+/** 根据 ID 查询用户详情 */
 export async function getUserByIdApi(id: string): Promise<ApiEnvelope<SysUser>> {
   return request<SysUser>({ method: "GET", url: `/sys/user/${id}` });
 }
