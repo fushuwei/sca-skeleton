@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerIntercept
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.mybatis.handler.MybatisPlusMetaObjectHandler;
 import io.github.fushuwei.scaskeleton.mybatis.incrementer.UuidV7IdentifierGenerator;
-import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -63,7 +62,7 @@ public class MybatisPlusAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public MybatisPlusMetaObjectHandler mybatisPlusMetaObjectHandler(@Autowired(required = false) @Nullable CurrentUserProvider currentUserProvider) {
+    public MybatisPlusMetaObjectHandler mybatisPlusMetaObjectHandler(@Autowired(required = false) CurrentUserProvider currentUserProvider) {
         return new MybatisPlusMetaObjectHandler(currentUserProvider);
     }
 }

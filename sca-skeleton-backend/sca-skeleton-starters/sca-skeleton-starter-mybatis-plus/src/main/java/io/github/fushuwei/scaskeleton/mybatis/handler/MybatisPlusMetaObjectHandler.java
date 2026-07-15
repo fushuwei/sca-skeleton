@@ -2,9 +2,9 @@ package io.github.fushuwei.scaskeleton.mybatis.handler;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.reflection.MetaObject;
-import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
 
@@ -14,14 +14,10 @@ import java.time.LocalDateTime;
  * @author Fu Wei
  */
 @Slf4j
+@RequiredArgsConstructor
 public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
-    @Nullable
     private final CurrentUserProvider currentUserProvider;
-
-    public MybatisPlusMetaObjectHandler(@Nullable CurrentUserProvider currentUserProvider) {
-        this.currentUserProvider = currentUserProvider;
-    }
 
     /**
      * INSERT 操作时填充逻辑（用于插入时对公共字段的填充）
