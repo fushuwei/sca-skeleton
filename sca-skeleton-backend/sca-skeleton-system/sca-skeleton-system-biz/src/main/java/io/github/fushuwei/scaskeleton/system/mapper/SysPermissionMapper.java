@@ -20,4 +20,12 @@ public interface SysPermissionMapper extends BaseMapper<SysPermission> {
      * @return 权限列表（去重）
      */
     List<SysPermission> selectPermissionsByRoleIds(@Param("roleIds") List<String> roleIds);
+
+    /**
+     * 批量更新所有子孙节点的 tree_path 字段值
+     *
+     * @param oldTreePath 变更前的 treePath
+     * @param newTreePath 变更后的 treePath
+     */
+    void updateDescendantsTreePath(@Param("oldTreePath") String oldTreePath, @Param("newTreePath") String newTreePath);
 }

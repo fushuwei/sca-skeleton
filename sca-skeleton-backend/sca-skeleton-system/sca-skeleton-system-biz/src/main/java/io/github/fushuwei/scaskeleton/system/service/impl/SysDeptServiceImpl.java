@@ -153,6 +153,9 @@ public class SysDeptServiceImpl implements SysDeptService {
         // 加载部门实体
         SysDept dept = loadDeptEntity(request.getId());
 
+        // 保存旧 treePath（用于批量更新子孙节点）
+        String oldTreePath = dept.getTreePath();
+
         // 处理上级部门变更
         boolean parentChanged = false;
         if (StringUtils.hasText(request.getParentId()) && !request.getParentId().equals(dept.getParentId())) {
@@ -203,9 +206,9 @@ public class SysDeptServiceImpl implements SysDeptService {
         // 更新部门
         deptMapper.updateById(dept);
 
-        // 上级部门变更后，递归更新所有子孙部门的 treePath
+        // 上级部门变更后，批量更新所有子孙节点的 tree_path 字段值
         if (parentChanged) {
-            updateDescendantsTreePath(dept);
+            deptMapper.updateDescendantsTreePath(dept.getTenantId(), oldTreePath, dept.getTreePath());
         }
     }
 

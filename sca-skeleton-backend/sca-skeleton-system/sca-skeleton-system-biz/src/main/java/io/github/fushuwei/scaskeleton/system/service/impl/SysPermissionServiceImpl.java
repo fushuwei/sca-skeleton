@@ -232,6 +232,9 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         // 加载权限实体
         SysPermission permission = loadPermissionEntity(request.getId());
 
+        // 保存旧 treePath（用于批量更新子孙节点）
+        String oldTreePath = permission.getTreePath();
+
         // 处理上级权限变更
         boolean parentChanged = false;
         if (StringUtils.hasText(request.getParentId()) && !request.getParentId().equals(permission.getParentId())) {
@@ -275,9 +278,9 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         // 更新权限
         permissionMapper.updateById(permission);
 
-        // 上级权限变更后，递归更新所有子孙权限的 treePath
+        // 上级权限变更后，批量更新所有子孙节点的 tree_path 字段值
         if (parentChanged) {
-            updateDescendantsTreePath(permission);
+            permissionMapper.updateDescendantsTreePath(oldTreePath, permission.getTreePath());
         }
     }
 
