@@ -8,22 +8,22 @@ import org.apache.ibatis.annotations.Param;
 import java.time.LocalDateTime;
 
 /**
- * 登录日志 Mapper
+ * 登录日志管理 Mapper
  *
  * @author Fu Wei
  */
 public interface SysLoginLogMapper extends BaseMapper<SysLoginLog> {
 
     /**
-     * 分页查询登录日志
+     * 分页查询登录日志列表
      *
-     * @param page           分页对象
-     * @param keyword        搜索关键字（模糊匹配租户名称、登录用户、真实姓名、客户端 IP）
-     * @param isSuccess      是否成功筛选：1-成功，0-失败
-     * @param startTime      查询开始时间
-     * @param endTime        查询结束时间
-     * @param sortField      排序字段（白名单校验）
-     * @param sortOrder      排序方向 ASC/DESC
+     * @param page      分页对象（框架回填）
+     * @param keyword   搜索关键字
+     * @param isSuccess 是否成功
+     * @param startTime 开始时间
+     * @param endTime   结束时间
+     * @param sortField 排序字段
+     * @param sortOrder 排序方向
      * @return 分页结果
      */
     IPage<SysLoginLog> selectLogPage(IPage<SysLoginLog> page,
@@ -35,7 +35,7 @@ public interface SysLoginLogMapper extends BaseMapper<SysLoginLog> {
                                      @Param("sortOrder") String sortOrder);
 
     /**
-     * 按 ID 查询登录日志详情
+     * 根据 ID 查询登录日志详情
      *
      * @param id 登录日志 ID
      * @return 登录日志对象
