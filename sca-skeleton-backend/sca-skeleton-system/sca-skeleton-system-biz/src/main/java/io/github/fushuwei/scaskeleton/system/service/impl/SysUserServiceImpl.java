@@ -9,6 +9,7 @@ import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserPasswordResetRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserProfileResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
@@ -34,7 +35,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 用户管理服务实现。
+ * 用户管理 Service 实现类
  *
  * @author Fu Wei
  */
@@ -43,55 +44,36 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SysUserServiceImpl implements SysUserService {
 
-    /**
-     * 用户表 Mapper
-     */
     private final SysUserMapper userMapper;
 
-    /**
-     * 用户角色关联表 Mapper
-     */
     private final SysUserRoleMapper userRoleMapper;
 
-    /**
-     * 用户部门关联表 Mapper
-     */
     private final SysUserDeptMapper userDeptMapper;
 
-    /**
-     * 用户岗位关联表 Mapper
-     */
     private final SysUserPostMapper userPostMapper;
 
-    /**
-     * 用户映射结构转换器
-     */
     private final UserConverter userConverter;
 
-    /**
-     * Spring Security 密码加密器
-     */
     private final PasswordEncoder passwordEncoder;
 
     /**
      * 获取当前登录用户基本信息
-     *
-     * @return {@link UserProfileResponse}
      */
     @Override
-    public UserProfileResponse getCurrentProfile() {
-        // 获取不透明令牌自省后的用户 ID
+    public UserProfileResponse getUserProfile() {
+        // 获取当前用户 ID
         String userId = SecurityUtils.getUserId();
         if (!StringUtils.hasText(userId)) {
             throw new BusinessException(ResultCode.UNAUTHORIZED, "未登录或令牌无效");
         }
+
         // 根据 ID 查询用户信息
         SysUser user = userMapper.selectById(userId);
         if (user != null) {
             return userConverter.toUserProfileResponse(user);
         }
 
-        // 用户 ID 不存在时，从自省结果属性中获取当前登录用户信息
+        // 用户不存在时，从自省结果属性中获取当前登录用户信息
         String username = SecurityUtils.getUsername();
         String nickname = SecurityUtils.getNickname();
         if (!StringUtils.hasText(username)) {
@@ -105,50 +87,60 @@ public class SysUserServiceImpl implements SysUserService {
             .build();
     }
 
+    /**
+     * 分页查询用户列表
+     */
     @Override
-    public IPage<UserResponse> pageUsers(String tenantId, UserPageRequest req) {
-        // 按请求参数构造分页对象，返回 UserResponse（含部门名称、角色名称，排除密码）
+    public IPage<UserResponse> pageUsers(UserPageRequest req) {
         Page<UserResponse> page = new Page<>(req.getPageNum(), req.getPageSize());
-        return userMapper.selectUserPage(page, tenantId, req);
+        return userMapper.selectUserPage(page, SecurityUtils.getTenantId(), req);
     }
 
+    /**
+     * 根据 ID 查询用户详情
+     */
     @Override
     public UserResponse getUserById(String id) {
-        // 按主键查询用户并转换为响应对象
+        // 查询用户实体
         SysUser user = loadUserEntity(id);
+        if (!user.getTenantId().equals(SecurityUtils.getTenantId())) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
+        }
+
+        // 将用户实体转换为响应对象
         UserResponse response = userConverter.toUserResponse(user);
 
-        // 查询关联的部门ID列表
+        // 查询关联的部门
         List<SysUserDept> userDepts = userDeptMapper.selectList(new LambdaQueryWrapper<SysUserDept>()
             .eq(SysUserDept::getTenantId, user.getTenantId())
             .eq(SysUserDept::getUserId, user.getId()));
-        response.setDeptIds(userDepts.stream()
-            .map(SysUserDept::getDeptId)
-            .toList());
+        response.setDeptIds(userDepts.stream().map(SysUserDept::getDeptId).toList());
 
-        // 查询关联的角色ID列表
+        // 查询关联的角色
         List<SysUserRole> userRoles = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>()
             .eq(SysUserRole::getTenantId, user.getTenantId())
             .eq(SysUserRole::getUserId, user.getId()));
-        response.setRoleIds(userRoles.stream()
-            .map(SysUserRole::getRoleId)
-            .toList());
+        response.setRoleIds(userRoles.stream().map(SysUserRole::getRoleId).toList());
 
-        // 查询关联的岗位ID列表
+        // 查询关联的岗位
         List<SysUserPost> userPosts = userPostMapper.selectList(new LambdaQueryWrapper<SysUserPost>()
             .eq(SysUserPost::getTenantId, user.getTenantId())
             .eq(SysUserPost::getUserId, user.getId()));
-        response.setPostIds(userPosts.stream()
-            .map(SysUserPost::getPostId)
-            .toList());
+        response.setPostIds(userPosts.stream().map(SysUserPost::getPostId).toList());
 
         return response;
     }
 
+    /**
+     * 新增用户
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createUser(String tenantId, UserCreateRequest req) {
-        // 用户名在同租户内唯一（仅后台用户类别）
+    public void createUser(UserCreateRequest req) {
+        // 获取租户 ID
+        String tenantId = SecurityUtils.getTenantId();
+
+        // 用户名在同一个租户内唯一
         long count = userMapper.selectCount(new LambdaQueryWrapper<SysUser>()
             .eq(SysUser::getTenantId, tenantId)
             .eq(SysUser::getUsername, req.getUsername())
@@ -157,13 +149,11 @@ public class SysUserServiceImpl implements SysUserService {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "用户名已存在");
         }
 
-        // 组装用户实体
+        // 封装用户实体
         SysUser user = new SysUser();
         user.setTenantId(tenantId);
         user.setUsername(req.getUsername());
-        // 密码加密（DelegatingPasswordEncoder 自动添加 {bcrypt} 前缀）
-        String rawPwd = StringUtils.hasText(req.getPassword()) ? req.getPassword() : "Aa@123456";
-        user.setPassword(passwordEncoder.encode(rawPwd));
+        user.setPassword(passwordEncoder.encode(StringUtils.hasText(req.getPassword()) ? req.getPassword() : "Aa@123456"));
         user.setNickname(req.getNickname());
         user.setRealName(req.getRealName());
         user.setGender(req.getGender());
@@ -178,57 +168,79 @@ public class SysUserServiceImpl implements SysUserService {
         user.setEffectiveEndTime(req.getEffectiveEndTime());
         user.setRemark(req.getRemark());
 
-        // 持久化用户主表
+        // 保存用户
         userMapper.insert(user);
-        // 同事务内建立角色、部门、岗位关联
-        saveUserRelations(tenantId, user.getId(), req.getRoleIds(), req.getDeptIds(), req.getPostIds());
+
+        // 保存关联关系
+        saveUserRelations(user.getId(), req.getRoleIds(), req.getDeptIds(), req.getPostIds());
     }
 
+    /**
+     * 编辑用户
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateUser(String tenantId, UserUpdateRequest req) {
-        // 校验用户存在并加载当前快照
-        SysUser existing = loadUserEntity(req.getId());
+    public void updateUser(UserUpdateRequest req) {
+        // 查询用户实体
+        SysUser user = loadUserEntity(req.getId());
+        if (!user.getTenantId().equals(SecurityUtils.getTenantId())) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
+        }
+        if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许操作");
+        }
 
-        // 更新可编辑字段（用户名不可修改）
-        existing.setNickname(req.getNickname());
-        existing.setRealName(req.getRealName());
-        existing.setGender(req.getGender());
-        existing.setPhone(req.getPhone());
-        existing.setEmail(req.getEmail());
-        existing.setIsSuperadmin(req.getIsSuperadmin() != null ? req.getIsSuperadmin() : 0);
-        existing.setMustChangePassword(req.getMustChangePassword());
-        existing.setEffectiveStartTime(req.getEffectiveStartTime());
-        existing.setEffectiveEndTime(req.getEffectiveEndTime());
-        existing.setRemark(req.getRemark());
+        // 更新字段
+        user.setNickname(req.getNickname());
+        user.setRealName(req.getRealName());
+        user.setGender(req.getGender());
+        user.setPhone(req.getPhone());
+        user.setEmail(req.getEmail());
+        user.setIsSuperadmin(req.getIsSuperadmin() != null ? req.getIsSuperadmin() : 0);
+        user.setMustChangePassword(req.getMustChangePassword());
+        user.setEffectiveStartTime(req.getEffectiveStartTime());
+        user.setEffectiveEndTime(req.getEffectiveEndTime());
+        user.setRemark(req.getRemark());
 
         // 密码非空时加密更新，并记录密码变更时间
         if (StringUtils.hasText(req.getPassword())) {
-            existing.setPassword(passwordEncoder.encode(req.getPassword()));
-            existing.setPasswordUpdateTime(LocalDateTime.now());
+            user.setPassword(passwordEncoder.encode(req.getPassword()));
+            user.setPasswordUpdateTime(LocalDateTime.now());
         }
 
-        userMapper.updateById(existing);
+        // 更新用户
+        userMapper.updateById(user);
 
-        // 清除旧关联，重新建立
-        deleteUserRelations(tenantId, req.getId());
-        saveUserRelations(tenantId, req.getId(), req.getRoleIds(), req.getDeptIds(), req.getPostIds());
+        // 删除旧的关联关系，并保存新的关联关系
+        deleteUserRelations(req.getId());
+        saveUserRelations(req.getId(), req.getRoleIds(), req.getDeptIds(), req.getPostIds());
     }
 
+    /**
+     * 删除用户
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteUser(String id) {
-        // 加载待删用户并校验内置保护
+        // 查询用户实体
         SysUser user = loadUserEntity(id);
-        if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许删除");
+        if (!user.getTenantId().equals(SecurityUtils.getTenantId())) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
         }
-        // 逻辑删除用户主表
+        if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许操作");
+        }
+
+        // 删除用户
         userMapper.deleteById(id);
-        // 同事务内清理角色、部门关联
-        deleteUserRelations(user.getTenantId(), id);
+
+        // 删除关联关系
+        deleteUserRelations(id);
     }
 
+    /**
+     * 批量删除用户
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void batchDeleteUsers(List<String> ids) {
@@ -240,28 +252,43 @@ public class SysUserServiceImpl implements SysUserService {
         }
     }
 
+    /**
+     * 重置密码
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void resetPassword(String id, String newPassword) {
-        // 校验用户存在
-        loadUserEntity(id);
-        // 更新密码并清除强制改密标记
-        userMapper.update(null, new LambdaUpdateWrapper<SysUser>()
-            .eq(SysUser::getId, id)
-            .set(SysUser::getPassword,
-                passwordEncoder.encode(newPassword))
-            .set(SysUser::getMustChangePassword, 0)
-            .set(SysUser::getPasswordUpdateTime, LocalDateTime.now())
-        );
-    }
-
-    @Override
-    public void changeStatus(String id, String status, String reason) {
-        // 加载用户并校验内置保护
-        SysUser user = loadUserEntity(id);
+    public void resetPassword(UserPasswordResetRequest req) {
+        // 查询用户实体
+        SysUser user = loadUserEntity(req.getId());
+        if (!user.getTenantId().equals(SecurityUtils.getTenantId())) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
+        }
         if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
             throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许操作");
         }
+
+        // 更新密码
+        userMapper.update(null, new LambdaUpdateWrapper<SysUser>()
+            .eq(SysUser::getId, req.getId())
+            .set(SysUser::getPassword, passwordEncoder.encode(req.getNewPassword()))
+            .set(SysUser::getMustChangePassword, 0)
+            .set(SysUser::getPasswordUpdateTime, LocalDateTime.now()));
+    }
+
+    /**
+     * 变更用户状态
+     */
+    @Override
+    public void changeStatus(String id, String status, String reason) {
+        // 查询用户实体
+        SysUser user = loadUserEntity(id);
+        if (!user.getTenantId().equals(SecurityUtils.getTenantId())) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
+        }
+        if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许操作");
+        }
+
         // 更新状态及变更时间与原因
         userMapper.update(null, new LambdaUpdateWrapper<SysUser>()
             .eq(SysUser::getId, id)
@@ -271,6 +298,9 @@ public class SysUserServiceImpl implements SysUserService {
         );
     }
 
+    /**
+     * 批量变更用户状态
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void batchChangeStatus(List<String> ids, String status, String reason) {
@@ -283,11 +313,13 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /**
-     * 保存用户-角色、用户-部门、用户-岗位关联。
+     * 保存用户与角色、部门和岗位的关联关系
      */
-    private void saveUserRelations(String tenantId, String userId, List<String> roleIds,
-                                   List<String> deptIds, List<String> postIds) {
-        // 批量插入用户-角色关联
+    private void saveUserRelations(String userId, List<String> roleIds, List<String> deptIds, List<String> postIds) {
+        // 获取租户 ID
+        String tenantId = SecurityUtils.getTenantId();
+
+        // 保存用户与角色关联关系
         if (!CollectionUtils.isEmpty(roleIds)) {
             roleIds.forEach(roleId -> {
                 SysUserRole ur = new SysUserRole();
@@ -297,7 +329,7 @@ public class SysUserServiceImpl implements SysUserService {
                 userRoleMapper.insert(ur);
             });
         }
-        // 批量插入用户-部门关联
+        // 保存用户与部门关联关系
         if (!CollectionUtils.isEmpty(deptIds)) {
             for (String deptId : deptIds) {
                 SysUserDept ud = new SysUserDept();
@@ -307,7 +339,7 @@ public class SysUserServiceImpl implements SysUserService {
                 userDeptMapper.insert(ud);
             }
         }
-        // 批量插入用户-岗位关联
+        // 保存用户与岗位关联关系
         if (!CollectionUtils.isEmpty(postIds)) {
             postIds.forEach(postId -> {
                 SysUserPost up = new SysUserPost();
@@ -320,20 +352,23 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /**
-     * 删除用户关联的所有角色、部门和岗位
+     * 删除用户与角色、部门和岗位的关联关系
      */
-    private void deleteUserRelations(String tenantId, String userId) {
+    private void deleteUserRelations(String userId) {
+        // 获取租户 ID
+        String tenantId = SecurityUtils.getTenantId();
+
+        // 删除关联关系
         userRoleMapper.physicalDeleteByUser(tenantId, userId);
         userDeptMapper.physicalDeleteByUser(tenantId, userId);
         userPostMapper.physicalDeleteByUser(tenantId, userId);
     }
 
     /**
-     * 按主键加载用户实体（供内部业务逻辑使用，不对外暴露 Entity）。
+     * 根据 ID 加载用户实体
      *
      * @param id 用户 ID
      * @return 用户实体
-     * @throws BusinessException 用户不存在时抛出 NOT_FOUND
      */
     private SysUser loadUserEntity(String id) {
         SysUser user = userMapper.selectById(id);

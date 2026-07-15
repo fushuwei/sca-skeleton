@@ -3,6 +3,7 @@ package io.github.fushuwei.scaskeleton.system.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserPasswordResetRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserProfileResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
@@ -10,7 +11,7 @@ import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
 import java.util.List;
 
 /**
- * 用户管理服务接口
+ * 用户管理 Service
  *
  * @author Fu Wei
  */
@@ -19,30 +20,30 @@ public interface SysUserService {
     /**
      * 获取当前登录用户基本信息
      */
-    UserProfileResponse getCurrentProfile();
+    UserProfileResponse getUserProfile();
 
     /**
-     * 分页查询用户（含部门名称、角色名称，排除密码）
+     * 分页查询用户列表
      */
-    IPage<UserResponse> pageUsers(String tenantId, UserPageRequest request);
+    IPage<UserResponse> pageUsers(UserPageRequest request);
 
     /**
-     * 根据ID查询用户详情
+     * 根据 ID 查询用户详情
      */
     UserResponse getUserById(String id);
 
     /**
-     * 创建用户（含关联部门、岗位、角色）
+     * 新增用户
      */
-    void createUser(String tenantId, UserCreateRequest request);
+    void createUser(UserCreateRequest request);
 
     /**
-     * 更新用户信息
+     * 编辑用户
      */
-    void updateUser(String tenantId, UserUpdateRequest request);
+    void updateUser(UserUpdateRequest request);
 
     /**
-     * 删除用户（逻辑删除，同时清理关联关系）
+     * 删除用户
      */
     void deleteUser(String id);
 
@@ -54,15 +55,15 @@ public interface SysUserService {
     /**
      * 重置密码
      */
-    void resetPassword(String id, String newPassword);
+    void resetPassword(UserPasswordResetRequest request);
 
     /**
-     * 修改账号状态（启用/禁用/锁定等）
+     * 变更用户状态
      */
     void changeStatus(String id, String status, String reason);
 
     /**
-     * 批量修改账号状态
+     * 批量变更用户状态
      */
     void batchChangeStatus(List<String> ids, String status, String reason);
 }

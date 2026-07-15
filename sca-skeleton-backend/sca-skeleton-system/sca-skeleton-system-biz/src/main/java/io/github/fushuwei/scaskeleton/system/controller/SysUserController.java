@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
-import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserBatchStatusRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
@@ -38,29 +37,29 @@ public class SysUserController {
     @Operation(summary = "获取当前登录用户基本信息")
     @GetMapping("/profile")
     public Result<UserProfileResponse> profile() {
-        return Result.ok(userService.getCurrentProfile());
+        return Result.ok(userService.getUserProfile());
     }
 
     @Operation(summary = "分页查询用户列表")
     @GetMapping("/page")
     @RequiresPermission("sys:user:list")
     public Result<IPage<UserResponse>> page(@Validated UserPageRequest request) {
-        return Result.ok(userService.pageUsers(SecurityUtils.getTenantId(), request));
+        return Result.ok(userService.pageUsers(request));
     }
 
-    @Operation(summary = "查询用户详情")
+    @Operation(summary = "根据 ID 查询用户详情")
     @GetMapping("/{id}")
     @RequiresPermission("sys:user:query")
     public Result<UserResponse> getById(@PathVariable String id) {
         return Result.ok(userService.getUserById(id));
     }
 
-    @Operation(summary = "创建用户")
+    @Operation(summary = "新增用户")
     @PostMapping("/create")
     @RequiresPermission("sys:user:add")
     @OperationLog(module = "用户管理", action = "新增用户")
     public Result<Void> create(@Validated @RequestBody UserCreateRequest request) {
-        userService.createUser(SecurityUtils.getTenantId(), request);
+        userService.createUser(request);
         return Result.ok();
     }
 
@@ -69,7 +68,7 @@ public class SysUserController {
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "编辑用户")
     public Result<Void> update(@Validated @RequestBody UserUpdateRequest request) {
-        userService.updateUser(SecurityUtils.getTenantId(), request);
+        userService.updateUser(request);
         return Result.ok();
     }
 
@@ -91,12 +90,12 @@ public class SysUserController {
         return Result.ok();
     }
 
-    @Operation(summary = "重置用户密码")
+    @Operation(summary = "重置密码")
     @PostMapping("/reset-password")
     @RequiresPermission("sys:user:reset-password")
     @OperationLog(module = "用户管理", action = "重置密码")
     public Result<Void> resetPassword(@Validated @RequestBody UserPasswordResetRequest request) {
-        userService.resetPassword(request.getId(), request.getNewPassword());
+        userService.resetPassword(request);
         return Result.ok();
     }
 
