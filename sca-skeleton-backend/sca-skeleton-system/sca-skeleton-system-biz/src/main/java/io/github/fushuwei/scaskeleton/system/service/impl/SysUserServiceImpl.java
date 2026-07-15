@@ -317,6 +317,11 @@ public class SysUserServiceImpl implements SysUserService {
 
     /**
      * 保存用户与角色、部门和岗位的关联关系
+     *
+     * @param userId  用户 ID
+     * @param roleIds 角色 ID 列表
+     * @param deptIds 部门 ID 列表
+     * @param postIds 岗位 ID 列表
      */
     private void saveUserRelations(String userId, List<String> roleIds, List<String> deptIds, List<String> postIds) {
         // 获取租户 ID
@@ -356,6 +361,8 @@ public class SysUserServiceImpl implements SysUserService {
 
     /**
      * 删除用户与角色、部门和岗位的关联关系
+     *
+     * @param userId 用户 ID
      */
     private void deleteUserRelations(String userId) {
         // 获取租户 ID
