@@ -158,12 +158,12 @@ public class SysDeptServiceImpl implements SysDeptService {
         if (StringUtils.hasText(request.getParentId()) && !request.getParentId().equals(dept.getParentId())) {
             String newParentId = request.getParentId();
 
-            // 校验新上级部门不能是自己
+            // 上级部门不能是自己
             if (newParentId.equals(dept.getId())) {
                 throw new BusinessException(ResultCode.VALIDATION_ERROR, "上级部门不能选择自己");
             }
 
-            // 校验上级部门存在，且不能是自己的下级部门
+            // 上级部门不能是自己的下级部门
             if (!"0".equals(newParentId)) {
                 SysDept newParent = loadDeptEntity(newParentId);
                 if (newParent.getTreePath().startsWith(dept.getTreePath() + ",")) {

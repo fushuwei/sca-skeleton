@@ -232,6 +232,28 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         // 加载权限实体
         SysPermission permission = loadPermissionEntity(request.getId());
 
+        // 处理上级权限变更
+        boolean parentChanged = false;
+        if (StringUtils.hasText(request.getParentId()) && !request.getParentId().equals(permission.getParentId())) {
+            String newParentId = request.getParentId();
+
+            // 上级权限不能是自己
+            if (newParentId.equals(permission.getId())) {
+                throw new BusinessException(ResultCode.VALIDATION_ERROR, "上级权限不能选择自己");
+            }
+
+            // 上级权限不能是自己的下级权限
+            if (!"0".equals(newParentId)) {
+                SysPermission newParent = loadPermissionEntity(newParentId);
+                if (newParent.getTreePath().startsWith(permission.getTreePath() + ",")) {
+                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "上级权限不能选择自己的下级权限");
+                }
+            }
+
+            permission.setParentId(newParentId);
+            parentChanged = true;
+        }
+
         // 更新字段
         permission.setName(request.getName());
         permission.setNameEn(request.getNameEn());
@@ -245,8 +267,18 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         permission.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : permission.getStatus());
         permission.setRemark(request.getRemark());
 
+        // 如果上级权限变更，重新计算 treePath
+        if (parentChanged) {
+            permission.setTreePath(buildTreePath(permission.getParentId(), permission.getId()));
+        }
+
         // 更新权限
         permissionMapper.updateById(permission);
+
+        // 上级权限变更后，递归更新所有子孙权限的 treePath
+        if (parentChanged) {
+            updateDescendantsTreePath(permission);
+        }
     }
 
     /**
@@ -305,6 +337,21 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             return "0," + currentId;
         }
         return parent.getTreePath() + "," + currentId;
+    }
+
+    /**
+     * 递归更新所有子孙权限的 treePath
+     *
+     * @param parent 父权限实体（已更新 treePath）
+     */
+    private void updateDescendantsTreePath(SysPermission parent) {
+        List<SysPermission> children = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
+            .eq(SysPermission::getParentId, parent.getId()));
+        for (SysPermission child : children) {
+            child.setTreePath(parent.getTreePath() + "," + child.getId());
+            permissionMapper.updateById(child);
+            updateDescendantsTreePath(child);
+        }
     }
 
     /**

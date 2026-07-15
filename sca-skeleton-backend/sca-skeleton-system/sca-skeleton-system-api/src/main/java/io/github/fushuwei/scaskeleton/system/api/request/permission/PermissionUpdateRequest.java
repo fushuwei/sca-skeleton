@@ -17,6 +17,9 @@ public class PermissionUpdateRequest {
     @NotBlank(message = "权限 ID 不能为空")
     private String id;
 
+    /** 上级权限 ID（顶级为 "0"） */
+    private String parentId;
+
     /** 权限名称 */
     @NotBlank(message = "权限名称不能为空")
     private String name;
