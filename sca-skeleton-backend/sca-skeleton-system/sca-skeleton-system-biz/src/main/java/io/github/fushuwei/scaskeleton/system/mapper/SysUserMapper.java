@@ -19,8 +19,8 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      *
      * @param page     分页对象（框架回填）
      * @param tenantId 租户 ID
-     * @param req      查询条件
+     * @param request  查询条件
      * @return 分页结果
      */
-    IPage<UserResponse> selectUserPage(IPage<UserResponse> page, @Param("tenantId") String tenantId, @Param("req") UserPageRequest req);
+    IPage<UserResponse> selectUserPage(IPage<UserResponse> page, @Param("tenantId") String tenantId, @Param("request") UserPageRequest request);
 }

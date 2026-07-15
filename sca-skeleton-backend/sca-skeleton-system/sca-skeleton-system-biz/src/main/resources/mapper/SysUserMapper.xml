@@ -37,41 +37,41 @@
         WHERE u.is_deleted = 0
           AND u.tenant_id = #{tenantId}
           AND u.user_type = 'backend'
-        <if test="req.userType != null and req.userType != ''">
-            AND u.user_type = #{req.userType}
+        <if test="request.userType != null and request.userType != ''">
+            AND u.user_type = #{request.userType}
         </if>
-        <if test="req.deptId != null and req.deptId != ''">
+        <if test="request.deptId != null and request.deptId != ''">
             AND EXISTS (
                 SELECT 1 FROM sys_user_dept ud2
                 WHERE ud2.user_id = u.id
-                  AND ud2.dept_id = #{req.deptId}
+                  AND ud2.dept_id = #{request.deptId}
                   AND ud2.is_deleted = 0
             )
         </if>
-        <if test="req.keyword != null and req.keyword != ''">
-            AND (u.username LIKE CONCAT('%', #{req.keyword}, '%')
-                 OR u.nickname LIKE CONCAT('%', #{req.keyword}, '%')
-                 OR u.real_name LIKE CONCAT('%', #{req.keyword}, '%')
-                 OR u.phone LIKE CONCAT('%', #{req.keyword}, '%')
-                 OR u.email LIKE CONCAT('%', #{req.keyword}, '%'))
+        <if test="request.keyword != null and request.keyword != ''">
+            AND (u.username LIKE CONCAT('%', #{request.keyword}, '%')
+                 OR u.nickname LIKE CONCAT('%', #{request.keyword}, '%')
+                 OR u.real_name LIKE CONCAT('%', #{request.keyword}, '%')
+                 OR u.phone LIKE CONCAT('%', #{request.keyword}, '%')
+                 OR u.email LIKE CONCAT('%', #{request.keyword}, '%'))
         </if>
-        <if test="req.username != null and req.username != ''">
-            AND u.username LIKE CONCAT('%', #{req.username}, '%')
+        <if test="request.username != null and request.username != ''">
+            AND u.username LIKE CONCAT('%', #{request.username}, '%')
         </if>
-        <if test="req.nickname != null and req.nickname != ''">
-            AND u.nickname LIKE CONCAT('%', #{req.nickname}, '%')
+        <if test="request.nickname != null and request.nickname != ''">
+            AND u.nickname LIKE CONCAT('%', #{request.nickname}, '%')
         </if>
-        <if test="req.status != null and req.status != ''">
-            AND u.status = #{req.status}
+        <if test="request.status != null and request.status != ''">
+            AND u.status = #{request.status}
         </if>
         <choose>
-            <when test="req.safeSortField() != null and req.safeSortField() != ''">
+            <when test="request.safeSortField() != null and request.safeSortField() != ''">
                 <choose>
-                    <when test="req.safeSortField() == 'dept_name'">
-                        ORDER BY d.dept_names ${req.safeSortOrder()}
+                    <when test="request.safeSortField() == 'dept_name'">
+                        ORDER BY d.dept_names ${request.safeSortOrder()}
                     </when>
                     <otherwise>
-                        ORDER BY u.${req.safeSortField()} ${req.safeSortOrder()}
+                        ORDER BY u.${request.safeSortField()} ${request.safeSortOrder()}
                     </otherwise>
                 </choose>
             </when>

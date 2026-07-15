@@ -94,9 +94,9 @@ public class SysUserServiceImpl implements SysUserService {
      * 分页查询用户列表
      */
     @Override
-    public IPage<UserResponse> pageUsers(UserPageRequest req) {
-        Page<UserResponse> page = new Page<>(req.getPageNum(), req.getPageSize());
-        return userMapper.selectUserPage(page, SecurityUtils.getTenantId(), req);
+    public IPage<UserResponse> pageUsers(UserPageRequest request) {
+        Page<UserResponse> page = new Page<>(request.getPageNum(), request.getPageSize());
+        return userMapper.selectUserPage(page, SecurityUtils.getTenantId(), request);
     }
 
     /**
@@ -136,14 +136,14 @@ public class SysUserServiceImpl implements SysUserService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createUser(UserCreateRequest req) {
+    public void createUser(UserCreateRequest request) {
         // 获取租户 ID
         String tenantId = SecurityUtils.getTenantId();
 
         // 用户名在同一个租户内唯一
         long count = userMapper.selectCount(new LambdaQueryWrapper<SysUser>()
             .eq(SysUser::getTenantId, tenantId)
-            .eq(SysUser::getUsername, req.getUsername())
+            .eq(SysUser::getUsername, request.getUsername())
             .eq(SysUser::getUserType, "backend"));
         if (count > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "用户名已存在");
@@ -152,27 +152,27 @@ public class SysUserServiceImpl implements SysUserService {
         // 封装用户实体
         SysUser user = new SysUser();
         user.setTenantId(tenantId);
-        user.setUsername(req.getUsername());
-        user.setPassword(passwordEncoder.encode(StringUtils.hasText(req.getPassword()) ? req.getPassword() : "Aa@123456"));
-        user.setNickname(req.getNickname());
-        user.setRealName(req.getRealName());
-        user.setGender(req.getGender());
-        user.setPhone(req.getPhone());
-        user.setEmail(req.getEmail());
+        user.setUsername(request.getUsername());
+        user.setPassword(passwordEncoder.encode(StringUtils.hasText(request.getPassword()) ? request.getPassword() : "Aa@123456"));
+        user.setNickname(request.getNickname());
+        user.setRealName(request.getRealName());
+        user.setGender(request.getGender());
+        user.setPhone(request.getPhone());
+        user.setEmail(request.getEmail());
         user.setUserType("backend");
-        user.setIsSuperadmin(req.getIsSuperadmin() != null ? req.getIsSuperadmin() : 0);
-        user.setStatus(StringUtils.hasText(req.getStatus()) ? req.getStatus() : "active");
+        user.setIsSuperadmin(request.getIsSuperadmin() != null ? request.getIsSuperadmin() : 0);
+        user.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : "active");
         user.setLoginFailCount(0);
         user.setMustChangePassword(1);
-        user.setEffectiveStartTime(req.getEffectiveStartTime());
-        user.setEffectiveEndTime(req.getEffectiveEndTime());
-        user.setRemark(req.getRemark());
+        user.setEffectiveStartTime(request.getEffectiveStartTime());
+        user.setEffectiveEndTime(request.getEffectiveEndTime());
+        user.setRemark(request.getRemark());
 
         // 保存用户
         userMapper.insert(user);
 
         // 保存关联关系
-        saveUserRelations(user.getId(), req.getRoleIds(), req.getDeptIds(), req.getPostIds());
+        saveUserRelations(user.getId(), request.getRoleIds(), request.getDeptIds(), request.getPostIds());
     }
 
     /**
@@ -180,25 +180,25 @@ public class SysUserServiceImpl implements SysUserService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateUser(UserUpdateRequest req) {
+    public void updateUser(UserUpdateRequest request) {
         // 加载可操作用户实体
-        SysUser user = loadOperableUserEntity(req.getId());
+        SysUser user = loadOperableUserEntity(request.getId());
 
         // 更新字段
-        user.setNickname(req.getNickname());
-        user.setRealName(req.getRealName());
-        user.setGender(req.getGender());
-        user.setPhone(req.getPhone());
-        user.setEmail(req.getEmail());
-        user.setIsSuperadmin(req.getIsSuperadmin() != null ? req.getIsSuperadmin() : 0);
-        user.setMustChangePassword(req.getMustChangePassword());
-        user.setEffectiveStartTime(req.getEffectiveStartTime());
-        user.setEffectiveEndTime(req.getEffectiveEndTime());
-        user.setRemark(req.getRemark());
+        user.setNickname(request.getNickname());
+        user.setRealName(request.getRealName());
+        user.setGender(request.getGender());
+        user.setPhone(request.getPhone());
+        user.setEmail(request.getEmail());
+        user.setIsSuperadmin(request.getIsSuperadmin() != null ? request.getIsSuperadmin() : 0);
+        user.setMustChangePassword(request.getMustChangePassword());
+        user.setEffectiveStartTime(request.getEffectiveStartTime());
+        user.setEffectiveEndTime(request.getEffectiveEndTime());
+        user.setRemark(request.getRemark());
 
         // 密码非空时加密更新，并记录密码变更时间
-        if (StringUtils.hasText(req.getPassword())) {
-            user.setPassword(passwordEncoder.encode(req.getPassword()));
+        if (StringUtils.hasText(request.getPassword())) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
             user.setPasswordUpdateTime(LocalDateTime.now());
         }
 
@@ -206,8 +206,8 @@ public class SysUserServiceImpl implements SysUserService {
         userMapper.updateById(user);
 
         // 删除旧的关联关系，并保存新的关联关系
-        deleteUserRelations(req.getId());
-        saveUserRelations(req.getId(), req.getRoleIds(), req.getDeptIds(), req.getPostIds());
+        deleteUserRelations(request.getId());
+        saveUserRelations(request.getId(), request.getRoleIds(), request.getDeptIds(), request.getPostIds());
     }
 
     /**
@@ -245,14 +245,14 @@ public class SysUserServiceImpl implements SysUserService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void resetPassword(UserPasswordResetRequest req) {
+    public void resetPassword(UserPasswordResetRequest request) {
         // 加载可操作用户实体
-        SysUser user = loadOperableUserEntity(req.getId());
+        SysUser user = loadOperableUserEntity(request.getId());
 
         // 更新密码
         userMapper.update(null, new LambdaUpdateWrapper<SysUser>()
             .eq(SysUser::getId, user.getId())
-            .set(SysUser::getPassword, passwordEncoder.encode(req.getNewPassword()))
+            .set(SysUser::getPassword, passwordEncoder.encode(request.getNewPassword()))
             .set(SysUser::getMustChangePassword, 0)
             .set(SysUser::getPasswordUpdateTime, LocalDateTime.now()));
     }
@@ -261,16 +261,16 @@ public class SysUserServiceImpl implements SysUserService {
      * 变更用户状态
      */
     @Override
-    public void changeStatus(UserStatusChangeRequest req) {
+    public void changeStatus(UserStatusChangeRequest request) {
         // 加载可操作用户实体
-        SysUser user = loadOperableUserEntity(req.getId());
+        SysUser user = loadOperableUserEntity(request.getId());
 
         // 更新状态及变更时间与原因
         userMapper.update(null, new LambdaUpdateWrapper<SysUser>()
             .eq(SysUser::getId, user.getId())
-            .set(SysUser::getStatus, req.getStatus())
+            .set(SysUser::getStatus, request.getStatus())
             .set(SysUser::getStatusTime, LocalDateTime.now())
-            .set(SysUser::getStatusReason, req.getReason())
+            .set(SysUser::getStatusReason, request.getReason())
         );
     }
 
@@ -279,16 +279,16 @@ public class SysUserServiceImpl implements SysUserService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void batchChangeStatus(UserBatchStatusRequest req) {
-        List<String> ids = req.getIds();
+    public void batchChangeStatus(UserBatchStatusRequest request) {
+        List<String> ids = request.getIds();
         if (CollectionUtils.isEmpty(ids)) {
             return;
         }
         for (String id : ids) {
             UserStatusChangeRequest item = new UserStatusChangeRequest();
             item.setId(id);
-            item.setStatus(req.getStatus());
-            item.setReason(req.getReason());
+            item.setStatus(request.getStatus());
+            item.setReason(request.getReason());
             changeStatus(item);
         }
     }
