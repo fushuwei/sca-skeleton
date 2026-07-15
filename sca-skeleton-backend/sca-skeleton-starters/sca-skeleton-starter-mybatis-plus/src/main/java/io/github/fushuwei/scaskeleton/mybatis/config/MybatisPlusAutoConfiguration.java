@@ -10,9 +10,7 @@ import org.springframework.context.annotation.Import;
 import org.jspecify.annotations.Nullable;
 
 /**
- * MyBatis-Plus Starter 自动配置入口。
- * <p>
- * 统一注册：插件链（分页/乐观锁/防全表更新）、审计字段自动填充处理器。
+ * MyBatis-Plus 自动配置类
  *
  * @author Fu Wei
  */
@@ -21,7 +19,7 @@ import org.jspecify.annotations.Nullable;
 public class MybatisPlusAutoConfiguration {
 
     /**
-     * 注册审计字段自动填充处理器，注入可选的 CurrentUserProvider。
+     * 注册审计字段自动填充处理器，注入可选的 CurrentUserProvider
      *
      * @param currentUserProvider 当前用户信息提供者（可选，由 Security Starter 提供）
      * @return MybatisPlusMetaObjectHandler 实例
@@ -29,7 +27,7 @@ public class MybatisPlusAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public MybatisPlusMetaObjectHandler mybatisPlusMetaObjectHandler(
-            @Autowired(required = false) @Nullable CurrentUserProvider currentUserProvider) {
+        @Autowired(required = false) @Nullable CurrentUserProvider currentUserProvider) {
         // 注册审计字段自动填充处理器，Security 未接入时 currentUserProvider 为 null
         return new MybatisPlusMetaObjectHandler(currentUserProvider);
     }

@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 租户套餐权限关联。
+ * 租户套餐权限关联实体类
  *
  * @author Fu Wei
  */
@@ -17,6 +17,7 @@ public class SysTenantPackagePermission extends BaseEntity {
 
     /** 套餐 ID */
     private String packageId;
+
     /** 权限 ID */
     private String permissionId;
 }

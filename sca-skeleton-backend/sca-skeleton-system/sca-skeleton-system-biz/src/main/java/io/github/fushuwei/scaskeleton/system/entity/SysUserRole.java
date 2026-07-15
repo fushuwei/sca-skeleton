@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 用户角色关联。
+ * 用户角色关联实体类
  *
  * @author Fu Wei
  */
@@ -17,8 +17,10 @@ public class SysUserRole extends BaseEntity {
 
     /** 租户 ID */
     private String tenantId;
+
     /** 用户 ID */
     private String userId;
+
     /** 角色 ID */
     private String roleId;
 }

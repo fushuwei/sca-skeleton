@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 用户岗位关联。
+ * 用户岗位关联实体类
  *
  * @author Fu Wei
  */
@@ -15,7 +15,12 @@ import lombok.EqualsAndHashCode;
 @TableName("sys_user_post")
 public class SysUserPost extends BaseEntity {
 
+    /** 租户 ID */
     private String tenantId;
+
+    /** 用户 ID */
     private String userId;
+
+    /** 岗位 ID */
     private String postId;
 }

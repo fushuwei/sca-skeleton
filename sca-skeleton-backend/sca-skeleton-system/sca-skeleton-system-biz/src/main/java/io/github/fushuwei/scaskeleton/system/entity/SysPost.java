@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 岗位实体。
+ * 岗位实体类
  *
  * @author Fu Wei
  */
@@ -18,12 +18,16 @@ public class SysPost extends BaseEntity {
 
     /** 租户 ID */
     private String tenantId;
+
     /** 岗位名称 */
     private String name;
+
     /** 岗位编码 */
     private String code;
-    /** 排序号，越小越靠前 */
+
+    /** 排序号 */
     private Integer sort;
+
     /** 备注 */
     private String remark;
 

@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 字典实体。
+ * 字典实体类
  *
  * @author Fu Wei
  */
@@ -16,14 +16,25 @@ import lombok.EqualsAndHashCode;
 @TableName("sys_dict")
 public class SysDict extends BaseEntity {
 
+    /** 租户 ID */
     private String tenantId;
+
+    /** 字典名称 */
     private String name;
+
+    /** 字典编码 */
     private String code;
-    /** 状态：enabled / disabled（数据库存 TINYINT，0=disabled, 1=enabled；此处用 Integer 映射） */
+
+    /** 状态 */
     private Integer status;
+
+    /** 是否系统内置 */
     private Integer isBuiltin;
+
+    /** 备注 */
     private String remark;
 
+    /** 乐观锁版本号 */
     @Version
     private Integer version;
 }

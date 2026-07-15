@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 角色权限关联。
+ * 角色权限关联实体类
  *
  * @author Fu Wei
  */
@@ -17,8 +17,10 @@ public class SysRolePermission extends BaseEntity {
 
     /** 租户 ID */
     private String tenantId;
+
     /** 角色 ID */
     private String roleId;
+
     /** 权限 ID */
     private String permissionId;
 }

@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 
 /**
- * 租户实体。
+ * 租户实体类
  *
  * @author Fu Wei
  */
@@ -20,30 +20,58 @@ import java.time.LocalDateTime;
 @TableName("sys_tenant")
 public class SysTenant extends BaseEntity {
 
+    // ==================== 基本信息 ====================
+
+    /** 租户名称 */
     private String name;
+
+    /** 租户编码 */
     private String code;
+
+    /** 套餐 ID */
     private String packageId;
+
+    /** 联系人 */
     private String contactName;
+
+    /** 联系电话 */
     private String contactPhone;
+
+    /** 联系邮箱 */
     private String contactEmail;
+
+    /** 域名 */
     private String domainName;
-    /** 生效时间（NULL表示立即生效） */
+
+    // ==================== 有效期与状态 ====================
+
+    /** 生效时间 */
     private LocalDateTime effectiveTime;
-    /** 过期时间（NULL表示永不过期） */
+
+    /** 过期时间 */
     private LocalDateTime expireTime;
-    /** 租户状态（normal 正常，disabled 禁用，expired 过期，cancelled 注销） */
+
+    /** 状态 */
     private String status;
-    /** 租户个性化配置（Logo、主题、策略等），JSON 字符串 */
+
+    // ==================== 配置信息 ====================
+
+    /** 个性化配置 */
     private String configJson;
+
+    /** 备注 */
     private String remark;
 
-    /** 套餐名称（非表字段，仅用于展示，由自定义 SQL 关联查询填充） */
+    // ==================== 关联展示 ====================
+
+    /** 套餐名称 */
     @TableField(value = "package_name",
                 insertStrategy = FieldStrategy.NEVER,
                 updateStrategy = FieldStrategy.NEVER,
                 select = false)
     private String packageName;
 
+    /** 乐观锁版本号 */
     @Version
     private Integer version;
 }

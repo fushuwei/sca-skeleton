@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 字典数据实体。
+ * 字典数据实体类
  *
  * @author Fu Wei
  */
@@ -15,16 +15,39 @@ import lombok.EqualsAndHashCode;
 @TableName("sys_dict_data")
 public class SysDictData extends BaseEntity {
 
+    // ==================== 基本信息 ====================
+
+    /** 字典 ID */
     private String dictId;
+
+    /** 字典标签 */
     private String label;
+
+    /** 字典值 */
     private String value;
-    /** 值类型：string / int / boolean */
+
+    // ==================== 类型与样式 ====================
+
+    /** 值类型 */
     private String valueType;
-    /** Tag 颜色类型：default / primary / success / warning / danger / info */
+
+    /** Tag 颜色类型 */
     private String colorType;
+
+    /** CSS 类名 */
     private String cssClass;
+
+    // ==================== 状态与排序 ====================
+
+    /** 状态 */
     private Integer status;
+
+    /** 是否默认值 */
     private Integer isDefault;
+
+    /** 排序号 */
     private Integer sort;
+
+    /** 备注 */
     private String remark;
 }

@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 角色实体。
+ * 角色实体类
  *
  * @author Fu Wei
  */
@@ -18,27 +18,41 @@ import lombok.EqualsAndHashCode;
 @TableName("sys_role")
 public class SysRole extends BaseEntity {
 
+    // ==================== 基本信息 ====================
+
+    /** 租户 ID */
     private String tenantId;
+
+    /** 角色名称 */
     private String name;
+
+    /** 角色编码 */
     private String code;
-    /**
-     * 数据权限范围：
-     * all-全部，tenant-租户，dept_and_sub-本部门及下级，dept-仅本部门，
-     * personal-仅本人，custom-自定义
-     */
-    private String dataScope;
-    /** 是否系统内置：0-否，1-是，内置角色不允许删除 */
-    private Integer isBuiltin;
+
+    /** 排序号 */
     private Integer sort;
+
+    /** 备注 */
     private String remark;
 
-    /** 关联的权限数量（非表字段，仅用于排序和展示） */
+    // ==================== 权限信息 ====================
+
+    /** 数据权限范围 */
+    private String dataScope;
+
+    /** 是否系统内置 */
+    private Integer isBuiltin;
+
+    // ==================== 关联展示 ====================
+
+    /** 关联权限数量 */
     @TableField(value = "permission_count",
                 insertStrategy = FieldStrategy.NEVER,
                 updateStrategy = FieldStrategy.NEVER,
                 select = false)
     private Integer permissionCount;
 
+    /** 乐观锁版本号 */
     @Version
     private Integer version;
 }
