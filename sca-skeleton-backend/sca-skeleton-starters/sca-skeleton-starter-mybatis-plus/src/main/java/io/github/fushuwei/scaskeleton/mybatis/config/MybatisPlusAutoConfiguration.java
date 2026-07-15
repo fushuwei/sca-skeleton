@@ -58,6 +58,8 @@ public class MybatisPlusAutoConfiguration {
 
     /**
      * MyBatis-Plus 元对象字段自动填充处理器
+     *
+     * @return MybatisPlusMetaObjectHandler 实例
      */
     @Bean
     @ConditionalOnMissingBean
