@@ -14,15 +14,6 @@ import java.util.List;
 public interface SysDeptMapper extends BaseMapper<SysDept> {
 
     /**
-     * 查询指定节点的所有子部门 ID（含自身）
-     *
-     * @param tenantId 租户 ID
-     * @param deptId   部门 ID
-     * @return 子部门 ID 列表（含自身）
-     */
-    List<String> selectChildDeptIds(@Param("tenantId") String tenantId, @Param("deptId") String deptId);
-
-    /**
      * 批量更新所有子孙节点的 tree_path 字段值
      *
      * @param tenantId     租户 ID
