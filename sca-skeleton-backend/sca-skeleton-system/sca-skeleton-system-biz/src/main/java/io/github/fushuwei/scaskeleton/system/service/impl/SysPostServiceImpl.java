@@ -86,7 +86,7 @@ public class SysPostServiceImpl implements SysPostService {
             wrapper.orderByAsc(SysPost::getSort);
         }
 
-        // 查询实体分页并转换为响应对象分页
+        // 查询分页数据，并将结果转换为响应对象
         IPage<SysPost> entityPage = postMapper.selectPage(page, wrapper);
         return entityPage.convert(postConverter::toPostResponse);
     }
@@ -114,7 +114,7 @@ public class SysPostServiceImpl implements SysPostService {
         // 获取租户 ID
         String tenantId = SecurityUtils.getTenantId();
 
-        // 岗位编码在同租户内唯一
+        // 岗位编码在同一个租户内唯一
         long count = postMapper.selectCount(new LambdaQueryWrapper<SysPost>()
             .eq(SysPost::getTenantId, tenantId)
             .eq(SysPost::getCode, request.getCode()));
@@ -145,7 +145,7 @@ public class SysPostServiceImpl implements SysPostService {
         // 加载岗位实体
         SysPost post = loadPostEntity(request.getId());
 
-        // 编码变更时校验同租户内唯一（排除自身）
+        // 岗位编码在同一个租户内唯一（排除自身）
         if (StringUtils.hasText(request.getCode()) && !request.getCode().equals(post.getCode())) {
             long codeCount = postMapper.selectCount(new LambdaQueryWrapper<SysPost>()
                 .eq(SysPost::getTenantId, post.getTenantId())

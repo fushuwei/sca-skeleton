@@ -156,7 +156,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             wrapper.orderByAsc(SysPermission::getSort);
         }
 
-        // 查询实体分页并转换为响应对象分页
+        // 查询分页数据，并将结果转换为响应对象
         IPage<SysPermission> entityPage = permissionMapper.selectPage(page, wrapper);
         return entityPage.convert(permissionConverter::toPermissionResponse);
     }
@@ -217,7 +217,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         // 设置临时 treePath（数据库字段 NOT NULL，需在插入前赋值，插入后立即更新为正确值）
         permission.setTreePath("");
 
-        // 先保存权限以获取自增主键 ID
+        // 保存权限
         permissionMapper.insert(permission);
 
         // 计算真实 treePath 并回写

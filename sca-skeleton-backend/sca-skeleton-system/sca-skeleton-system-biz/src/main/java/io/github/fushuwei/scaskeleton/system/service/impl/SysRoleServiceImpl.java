@@ -68,7 +68,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     public IPage<RoleResponse> pageRoles(RolePageRequest request) {
         // 构造分页对象
         Page<SysRole> page = new Page<>(request.getPageNum(), request.getPageSize());
-        // 查询实体分页并转换为响应对象分页
+        // 查询分页数据，并将结果转换为响应对象
         IPage<SysRole> entityPage = roleMapper.selectRolePage(page, SecurityUtils.getTenantId(), request);
         return entityPage.convert(roleConverter::toRoleResponse);
     }
@@ -96,7 +96,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         // 获取租户 ID
         String tenantId = SecurityUtils.getTenantId();
 
-        // 角色编码在同租户内唯一
+        // 角色编码在同一个租户内唯一
         long count = roleMapper.selectCount(new LambdaQueryWrapper<SysRole>()
             .eq(SysRole::getTenantId, tenantId)
             .eq(SysRole::getCode, request.getCode()));

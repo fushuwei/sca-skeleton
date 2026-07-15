@@ -43,7 +43,7 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
     public IPage<OperationLogResponse> pageLogs(OperationLogPageRequest request) {
         // 构造分页对象
         Page<SysOperationLog> page = new Page<>(request.getPageNum(), request.getPageSize());
-        // 查询实体分页并转换为响应对象分页
+        // 查询分页数据，并将结果转换为响应对象
         IPage<SysOperationLog> entityPage = operationLogMapper.selectLogPage(page,
             request.getModule(),
             request.getAction(),

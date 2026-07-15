@@ -46,7 +46,7 @@ public class SysDeptServiceImpl implements SysDeptService {
      */
     @Override
     public List<DeptResponse> listDepts() {
-        // 按租户查询全部部门，按 sort 升序
+        // 查询当前租户下的全部部门
         List<SysDept> depts = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
             .eq(SysDept::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysDept::getSort));
@@ -65,19 +65,15 @@ public class SysDeptServiceImpl implements SysDeptService {
         // 构造分页对象
         Page<SysDept> page = new Page<>(request.getPageNum(), request.getPageSize());
 
+        // 包装查询条件
         LambdaQueryWrapper<SysDept> wrapper = new LambdaQueryWrapper<SysDept>()
-            // 按租户隔离
             .eq(SysDept::getTenantId, SecurityUtils.getTenantId())
-            // 按父节点筛选子部门，parentId 为空时不按父节点过滤（返回全部记录）
             .eq(StringUtils.hasText(request.getParentId()), SysDept::getParentId, request.getParentId())
-            // 关键词模糊匹配名称或编码
             .and(StringUtils.hasText(request.getKeyword()),
-                w -> w.like(SysDept::getName, request.getKeyword())
-                    .or().like(SysDept::getCode, request.getKeyword()))
-            // 状态筛选
+                w -> w.like(SysDept::getName, request.getKeyword()).or().like(SysDept::getCode, request.getKeyword()))
             .eq(StringUtils.hasText(request.getStatus()), SysDept::getStatus, request.getStatus());
 
-        // 安全排序：白名单校验通过后按指定字段排序，否则按 sort 升序
+        // 包装排序规则
         String sortField = request.safeSortField();
         boolean isAsc = "ASC".equalsIgnoreCase(request.safeSortOrder());
         if (sortField != null) {
@@ -93,7 +89,7 @@ public class SysDeptServiceImpl implements SysDeptService {
             wrapper.orderByAsc(SysDept::getSort);
         }
 
-        // 查询实体分页并转换为响应对象分页
+        // 查询分页数据，并将结果转换为响应对象
         IPage<SysDept> entityPage = deptMapper.selectPage(page, wrapper);
         return entityPage.convert(deptConverter::toDeptResponse);
     }
@@ -106,7 +102,6 @@ public class SysDeptServiceImpl implements SysDeptService {
      */
     @Override
     public DeptResponse getDeptById(String id) {
-        // 加载部门实体并转换为响应对象
         return deptConverter.toDeptResponse(loadDeptEntity(id));
     }
 
@@ -121,7 +116,7 @@ public class SysDeptServiceImpl implements SysDeptService {
         // 获取租户 ID
         String tenantId = SecurityUtils.getTenantId();
 
-        // 部门编码在同租户内唯一
+        // 部门编码在同一个租户内唯一
         long count = deptMapper.selectCount(new LambdaQueryWrapper<SysDept>()
             .eq(SysDept::getTenantId, tenantId)
             .eq(SysDept::getCode, request.getCode()));
@@ -142,10 +137,10 @@ public class SysDeptServiceImpl implements SysDeptService {
         dept.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : "enabled");
         dept.setTreePath("0");
 
-        // 先保存部门以获取自增主键 ID
+        // 保存部门
         deptMapper.insert(dept);
 
-        // 计算真实 treePath 并回写
+        // 计算 treePath 并回写
         dept.setTreePath(buildTreePath(request.getParentId(), dept.getId()));
         deptMapper.updateById(dept);
     }
@@ -163,7 +158,6 @@ public class SysDeptServiceImpl implements SysDeptService {
 
         // 处理上级部门变更
         boolean parentChanged = false;
-        String oldParentId = dept.getParentId();
         if (StringUtils.hasText(request.getParentId()) && !request.getParentId().equals(dept.getParentId())) {
             String newParentId = request.getParentId();
 
@@ -186,7 +180,7 @@ public class SysDeptServiceImpl implements SysDeptService {
             parentChanged = true;
         }
 
-        // 编码变更时校验同租户内唯一（排除自身）
+        // 部门编码在同一个租户内唯一（排除自身）
         if (StringUtils.hasText(request.getCode()) && !request.getCode().equals(dept.getCode())) {
             long codeCount = deptMapper.selectCount(new LambdaQueryWrapper<SysDept>()
                 .eq(SysDept::getTenantId, dept.getTenantId())
@@ -262,7 +256,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     /**
      * 根据父节点 ID 与当前节点 ID 拼接树路径
      *
-     * @param parentId  父部门 ID，根节点为 "0"
+     * @param parentId  父部门 ID
      * @param currentId 当前部门 ID
      * @return 逗号分隔的树路径
      */

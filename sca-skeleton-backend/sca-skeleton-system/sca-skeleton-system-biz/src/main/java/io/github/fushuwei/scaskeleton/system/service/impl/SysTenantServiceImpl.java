@@ -66,7 +66,7 @@ public class SysTenantServiceImpl implements SysTenantService {
     public IPage<TenantResponse> pageTenants(TenantPageRequest request) {
         // 构造分页对象
         Page<SysTenant> page = new Page<>(request.getPageNum(), request.getPageSize());
-        // 查询实体分页并转换为响应对象分页
+        // 查询分页数据，并将结果转换为响应对象
         IPage<SysTenant> entityPage = tenantMapper.selectTenantPage(page, request);
         return entityPage.convert(tenantConverter::toTenantResponse);
     }

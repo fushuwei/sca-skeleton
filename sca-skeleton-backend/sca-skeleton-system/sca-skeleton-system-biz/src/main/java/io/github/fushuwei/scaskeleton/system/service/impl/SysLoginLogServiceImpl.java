@@ -43,7 +43,7 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
     public IPage<LoginLogResponse> pageLogs(LoginLogPageRequest request) {
         // 构造分页对象
         Page<SysLoginLog> page = new Page<>(request.getPageNum(), request.getPageSize());
-        // 查询实体分页并转换为响应对象分页
+        // 查询分页数据，并将结果转换为响应对象
         IPage<SysLoginLog> entityPage = loginLogMapper.selectLogPage(page,
             request.getKeyword(),
             request.getIsSuccess(),
