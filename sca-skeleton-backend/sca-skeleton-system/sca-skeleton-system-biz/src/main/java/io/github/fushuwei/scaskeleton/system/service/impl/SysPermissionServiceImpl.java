@@ -292,7 +292,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     }
 
     /**
-     * 根据父节点 ID 与当前节点 ID 拼接树路径
+     * 生成当前节点的树路径
      *
      * @param parentId  父权限 ID，根节点为 "0"
      * @param currentId 当前权限 ID

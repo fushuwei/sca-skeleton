@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptPageRequest;
@@ -21,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -126,6 +126,7 @@ public class SysDeptServiceImpl implements SysDeptService {
 
         // 封装部门实体
         SysDept dept = new SysDept();
+        dept.setId(UuidUtils.nextSimpleStr());
         dept.setTenantId(tenantId);
         dept.setParentId(request.getParentId());
         dept.setName(request.getName());
@@ -135,14 +136,10 @@ public class SysDeptServiceImpl implements SysDeptService {
         dept.setPhone(request.getPhone());
         dept.setEmail(request.getEmail());
         dept.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : "enabled");
-        dept.setTreePath("0");
+        dept.setTreePath(buildTreePath(dept.getParentId(), dept.getId()));
 
         // 保存部门
         deptMapper.insert(dept);
-
-        // 计算 treePath 并回写
-        dept.setTreePath(buildTreePath(request.getParentId(), dept.getId()));
-        deptMapper.updateById(dept);
     }
 
     /**
@@ -166,14 +163,12 @@ public class SysDeptServiceImpl implements SysDeptService {
                 throw new BusinessException(ResultCode.VALIDATION_ERROR, "上级部门不能选择自己");
             }
 
-            // 校验新上级部门不能是自己的下级部门（含递归）
+            // 校验上级部门存在，且不能是自己的下级部门
             if (!"0".equals(newParentId)) {
-                List<String> descendantIds = getDescendantIds(dept.getId());
-                if (descendantIds.contains(newParentId)) {
+                SysDept newParent = loadDeptEntity(newParentId);
+                if (newParent.getTreePath().startsWith(dept.getTreePath() + ",")) {
                     throw new BusinessException(ResultCode.VALIDATION_ERROR, "上级部门不能选择自己的下级部门");
                 }
-                // 校验新上级部门存在
-                loadDeptEntity(newParentId);
             }
 
             dept.setParentId(newParentId);
@@ -254,7 +249,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     }
 
     /**
-     * 根据父节点 ID 与当前节点 ID 拼接树路径
+     * 生成当前节点的树路径
      *
      * @param parentId  父部门 ID
      * @param currentId 当前部门 ID
@@ -271,23 +266,6 @@ public class SysDeptServiceImpl implements SysDeptService {
             return "0," + currentId;
         }
         return parent.getTreePath() + "," + currentId;
-    }
-
-    /**
-     * 获取指定部门的所有子孙部门 ID 列表
-     *
-     * @param parentId 父部门 ID
-     * @return 子孙部门 ID 列表
-     */
-    private List<String> getDescendantIds(String parentId) {
-        List<String> result = new ArrayList<>();
-        List<SysDept> children = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
-            .eq(SysDept::getParentId, parentId));
-        for (SysDept child : children) {
-            result.add(child.getId());
-            result.addAll(getDescendantIds(child.getId()));
-        }
-        return result;
     }
 
     /**
