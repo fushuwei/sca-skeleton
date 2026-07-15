@@ -24,7 +24,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 
 /**
- * 租户管理服务实现。
+ * 租户管理 Service 实现类
  *
  * @author Fu Wei
  */
@@ -33,117 +33,169 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SysTenantServiceImpl implements SysTenantService {
 
-    /** 默认租户编码，内置租户不允许删除 */
     private static final String DEFAULT_TENANT_CODE = "default";
 
-    /** 租户 Mapper */
     private final SysTenantMapper tenantMapper;
-    /** 套餐 Mapper（校验套餐存在性与状态） */
+
     private final SysTenantPackageMapper packageMapper;
-    /** Entity ↔ Response 转换器（MapStruct 生成） */
+
     private final TenantConverter tenantConverter;
 
-    @Override
-    public IPage<TenantResponse> pageTenants(TenantPageRequest req) {
-        Page<SysTenant> page = new Page<>(req.getPageNum(), req.getPageSize());
-        IPage<SysTenant> entityPage = tenantMapper.selectTenantPage(page, req);
-        return entityPage.convert(tenantConverter::toTenantResponse);
-    }
-
+    /**
+     * 查询租户列表
+     *
+     * @return 租户列表
+     */
     @Override
     public List<TenantResponse> listTenants() {
+        // 查询全部租户，按 name 升序
         List<SysTenant> tenants = tenantMapper.selectList(new LambdaQueryWrapper<SysTenant>()
-                .eq(SysTenant::getIsDeleted, 0)
-                .orderByAsc(SysTenant::getName));
+            .eq(SysTenant::getIsDeleted, 0)
+            .orderByAsc(SysTenant::getName));
+        // 转换为响应对象列表
         return tenants.stream().map(tenantConverter::toTenantResponse).toList();
     }
 
+    /**
+     * 分页查询租户列表
+     *
+     * @param request 查询条件
+     * @return 分页结果
+     */
+    @Override
+    public IPage<TenantResponse> pageTenants(TenantPageRequest request) {
+        // 构造分页对象
+        Page<SysTenant> page = new Page<>(request.getPageNum(), request.getPageSize());
+        // 查询实体分页并转换为响应对象分页
+        IPage<SysTenant> entityPage = tenantMapper.selectTenantPage(page, request);
+        return entityPage.convert(tenantConverter::toTenantResponse);
+    }
+
+    /**
+     * 根据 ID 查询租户详情
+     *
+     * @param id 租户 ID
+     * @return 租户详情
+     */
     @Override
     public TenantResponse getTenantById(String id) {
+        // 加载租户实体并转换为响应对象
         return tenantConverter.toTenantResponse(loadTenantEntity(id));
     }
 
+    /**
+     * 新增租户
+     *
+     * @param request 租户信息
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createTenant(TenantCreateRequest req) {
+    public void createTenant(TenantCreateRequest request) {
         // 租户名称唯一
         long nameCount = tenantMapper.selectCount(new LambdaQueryWrapper<SysTenant>()
-                .eq(SysTenant::getName, req.getName()));
+            .eq(SysTenant::getName, request.getName()));
         if (nameCount > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "租户名称已存在");
         }
+
         // 租户编码唯一
         long codeCount = tenantMapper.selectCount(new LambdaQueryWrapper<SysTenant>()
-                .eq(SysTenant::getCode, req.getCode()));
+            .eq(SysTenant::getCode, request.getCode()));
         if (codeCount > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "租户编码已存在");
         }
-        // 校验套餐存在且启用
-        validatePackage(req.getPackageId());
 
-        // 组装租户实体
+        // 校验套餐存在且启用
+        validatePackage(request.getPackageId());
+
+        // 封装租户实体
         SysTenant tenant = new SysTenant();
-        tenant.setName(req.getName());
-        tenant.setCode(req.getCode());
-        tenant.setPackageId(req.getPackageId());
-        tenant.setContactName(req.getContactName());
-        tenant.setContactPhone(req.getContactPhone());
-        tenant.setContactEmail(req.getContactEmail());
-        tenant.setDomainName(req.getDomainName());
-        tenant.setEffectiveTime(req.getEffectiveTime());
-        tenant.setExpireTime(req.getExpireTime());
-        tenant.setStatus(req.getStatus());
-        tenant.setRemark(req.getRemark());
+        tenant.setName(request.getName());
+        tenant.setCode(request.getCode());
+        tenant.setPackageId(request.getPackageId());
+        tenant.setContactName(request.getContactName());
+        tenant.setContactPhone(request.getContactPhone());
+        tenant.setContactEmail(request.getContactEmail());
+        tenant.setDomainName(request.getDomainName());
+        tenant.setEffectiveTime(request.getEffectiveTime());
+        tenant.setExpireTime(request.getExpireTime());
+        tenant.setStatus(request.getStatus());
+        tenant.setRemark(request.getRemark());
+
+        // 保存租户
         tenantMapper.insert(tenant);
     }
 
+    /**
+     * 编辑租户
+     *
+     * @param request 租户信息
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateTenant(TenantUpdateRequest req) {
-        // 校验租户存在并加载当前快照
-        SysTenant existing = loadTenantEntity(req.getId());
+    public void updateTenant(TenantUpdateRequest request) {
+        // 加载租户实体
+        SysTenant tenant = loadTenantEntity(request.getId());
+
         // 租户名称唯一（排除自身）
         long nameCount = tenantMapper.selectCount(new LambdaQueryWrapper<SysTenant>()
-                .eq(SysTenant::getName, req.getName())
-                .ne(SysTenant::getId, req.getId()));
+            .eq(SysTenant::getName, request.getName())
+            .ne(SysTenant::getId, request.getId()));
         if (nameCount > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "租户名称已存在");
         }
+
         // 租户编码唯一（排除自身）
         long codeCount = tenantMapper.selectCount(new LambdaQueryWrapper<SysTenant>()
-                .eq(SysTenant::getCode, req.getCode())
-                .ne(SysTenant::getId, req.getId()));
+            .eq(SysTenant::getCode, request.getCode())
+            .ne(SysTenant::getId, request.getId()));
         if (codeCount > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "租户编码已存在");
         }
-        // 校验套餐存在且启用
-        validatePackage(req.getPackageId());
 
-        existing.setName(req.getName());
-        existing.setCode(req.getCode());
-        existing.setPackageId(req.getPackageId());
-        existing.setContactName(req.getContactName());
-        existing.setContactPhone(req.getContactPhone());
-        existing.setContactEmail(req.getContactEmail());
-        existing.setDomainName(req.getDomainName());
-        existing.setEffectiveTime(req.getEffectiveTime());
-        existing.setExpireTime(req.getExpireTime());
-        existing.setStatus(req.getStatus());
-        existing.setRemark(req.getRemark());
-        tenantMapper.updateById(existing);
+        // 校验套餐存在且启用
+        validatePackage(request.getPackageId());
+
+        // 更新字段
+        tenant.setName(request.getName());
+        tenant.setCode(request.getCode());
+        tenant.setPackageId(request.getPackageId());
+        tenant.setContactName(request.getContactName());
+        tenant.setContactPhone(request.getContactPhone());
+        tenant.setContactEmail(request.getContactEmail());
+        tenant.setDomainName(request.getDomainName());
+        tenant.setEffectiveTime(request.getEffectiveTime());
+        tenant.setExpireTime(request.getExpireTime());
+        tenant.setStatus(request.getStatus());
+        tenant.setRemark(request.getRemark());
+
+        // 更新租户
+        tenantMapper.updateById(tenant);
     }
 
+    /**
+     * 删除租户
+     *
+     * @param id 租户 ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteTenant(String id) {
-        // 加载待删租户并校验内置保护
+        // 加载租户实体并校验内置保护
         SysTenant tenant = loadTenantEntity(id);
         if (DEFAULT_TENANT_CODE.equals(tenant.getCode())) {
             throw new BusinessException(ResultCode.FORBIDDEN, "系统内置租户不允许删除");
         }
+
+        // 删除租户
         tenantMapper.deleteById(id);
     }
 
+    /**
+     * 批量删除租户
+     *
+     * @param ids 租户 ID 列表
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void batchDeleteTenants(List<String> ids) {
@@ -156,7 +208,9 @@ public class SysTenantServiceImpl implements SysTenantService {
     }
 
     /**
-     * 校验套餐存在且处于启用状态。
+     * 校验套餐存在且处于启用状态
+     *
+     * @param packageId 套餐 ID
      */
     private void validatePackage(String packageId) {
         SysTenantPackage pkg = packageMapper.selectById(packageId);
@@ -169,7 +223,10 @@ public class SysTenantServiceImpl implements SysTenantService {
     }
 
     /**
-     * 按主键加载租户实体（供内部业务逻辑使用，不对外暴露 Entity）。
+     * 根据 ID 加载租户实体
+     *
+     * @param id 租户 ID
+     * @return 租户实体
      */
     private SysTenant loadTenantEntity(String id) {
         SysTenant tenant = tenantMapper.selectById(id);

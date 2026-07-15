@@ -9,26 +9,60 @@ import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptResponse;
 import java.util.List;
 
 /**
- * 部门管理服务接口。
+ * 部门管理 Service
  *
  * @author Fu Wei
  */
 public interface SysDeptService {
 
-    /** 查询租户下全量部门列表（前端自行构建树形结构） */
-    List<DeptResponse> listDepts(String tenantId);
+    /**
+     * 查询部门列表
+     *
+     * @return 部门列表
+     */
+    List<DeptResponse> listDepts();
 
-    /** 分页查询指定父节点下的子部门列表（按租户隔离） */
-    IPage<DeptResponse> pageDepts(String tenantId, DeptPageRequest request);
+    /**
+     * 分页查询部门列表
+     *
+     * @param request 查询条件
+     * @return 分页结果
+     */
+    IPage<DeptResponse> pageDepts(DeptPageRequest request);
 
+    /**
+     * 根据 ID 查询部门详情
+     *
+     * @param id 部门 ID
+     * @return 部门详情
+     */
     DeptResponse getDeptById(String id);
 
-    void createDept(String tenantId, DeptCreateRequest request);
+    /**
+     * 新增部门
+     *
+     * @param request 部门信息
+     */
+    void createDept(DeptCreateRequest request);
 
-    void updateDept(String tenantId, DeptUpdateRequest request);
+    /**
+     * 编辑部门
+     *
+     * @param request 部门信息
+     */
+    void updateDept(DeptUpdateRequest request);
 
+    /**
+     * 删除部门
+     *
+     * @param id 部门 ID
+     */
     void deleteDept(String id);
 
-    /** 批量删除部门 */
+    /**
+     * 批量删除部门
+     *
+     * @param ids 部门 ID 列表
+     */
     void batchDeleteDepts(List<String> ids);
 }

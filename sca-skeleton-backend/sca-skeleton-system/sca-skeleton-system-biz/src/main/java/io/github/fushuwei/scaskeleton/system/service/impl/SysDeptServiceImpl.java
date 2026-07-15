@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptUpdateRequest;
@@ -14,6 +15,7 @@ import io.github.fushuwei.scaskeleton.system.entity.SysDept;
 import io.github.fushuwei.scaskeleton.system.mapper.SysDeptMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysDeptService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -21,52 +23,63 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
- * 部门管理服务实现。
+ * 部门管理 Service 实现类
  *
  * @author Fu Wei
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SysDeptServiceImpl implements SysDeptService {
 
-    /** 部门主表 Mapper */
     private final SysDeptMapper deptMapper;
-    /** Entity ↔ Response 转换器（MapStruct 生成） */
+
     private final DeptConverter deptConverter;
 
+    /**
+     * 查询部门列表
+     *
+     * @return 部门列表
+     */
     @Override
-    public List<DeptResponse> listDepts(String tenantId) {
+    public List<DeptResponse> listDepts() {
         // 按租户查询全部部门，按 sort 升序
         List<SysDept> depts = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
-                .eq(SysDept::getTenantId, tenantId)
-                .orderByAsc(SysDept::getSort));
+            .eq(SysDept::getTenantId, SecurityUtils.getTenantId())
+            .orderByAsc(SysDept::getSort));
         // 转换为响应对象列表
         return depts.stream().map(deptConverter::toDeptResponse).toList();
     }
 
+    /**
+     * 分页查询部门列表
+     *
+     * @param request 查询条件
+     * @return 分页结果
+     */
     @Override
-    public IPage<DeptResponse> pageDepts(String tenantId, DeptPageRequest req) {
+    public IPage<DeptResponse> pageDepts(DeptPageRequest request) {
         // 构造分页对象
-        Page<SysDept> page = new Page<>(req.getPageNum(), req.getPageSize());
+        Page<SysDept> page = new Page<>(request.getPageNum(), request.getPageSize());
 
         LambdaQueryWrapper<SysDept> wrapper = new LambdaQueryWrapper<SysDept>()
-                // 按租户隔离
-                .eq(SysDept::getTenantId, tenantId)
-                // 按父节点筛选子部门，parentId 为空时不按父节点过滤（返回全部记录）
-                .eq(StringUtils.hasText(req.getParentId()), SysDept::getParentId, req.getParentId())
-                // 关键词模糊匹配名称或编码
-                .and(StringUtils.hasText(req.getKeyword()),
-                        w -> w.like(SysDept::getName, req.getKeyword())
-                                .or().like(SysDept::getCode, req.getKeyword()))
-                // 状态筛选
-                .eq(StringUtils.hasText(req.getStatus()), SysDept::getStatus, req.getStatus());
+            // 按租户隔离
+            .eq(SysDept::getTenantId, SecurityUtils.getTenantId())
+            // 按父节点筛选子部门，parentId 为空时不按父节点过滤（返回全部记录）
+            .eq(StringUtils.hasText(request.getParentId()), SysDept::getParentId, request.getParentId())
+            // 关键词模糊匹配名称或编码
+            .and(StringUtils.hasText(request.getKeyword()),
+                w -> w.like(SysDept::getName, request.getKeyword())
+                    .or().like(SysDept::getCode, request.getKeyword()))
+            // 状态筛选
+            .eq(StringUtils.hasText(request.getStatus()), SysDept::getStatus, request.getStatus());
 
         // 安全排序：白名单校验通过后按指定字段排序，否则按 sort 升序
-        String sortField = req.safeSortField();
-        boolean isAsc = "ASC".equalsIgnoreCase(req.safeSortOrder());
+        String sortField = request.safeSortField();
+        boolean isAsc = "ASC".equalsIgnoreCase(request.safeSortOrder());
         if (sortField != null) {
             switch (sortField) {
                 case "name" -> wrapper.orderBy(true, isAsc, SysDept::getName);
@@ -85,64 +98,83 @@ public class SysDeptServiceImpl implements SysDeptService {
         return entityPage.convert(deptConverter::toDeptResponse);
     }
 
+    /**
+     * 根据 ID 查询部门详情
+     *
+     * @param id 部门 ID
+     * @return 部门详情
+     */
     @Override
     public DeptResponse getDeptById(String id) {
-        // 按主键查询部门并转换为响应对象
+        // 加载部门实体并转换为响应对象
         return deptConverter.toDeptResponse(loadDeptEntity(id));
     }
 
+    /**
+     * 新增部门
+     *
+     * @param request 部门信息
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createDept(String tenantId, DeptCreateRequest req) {
+    public void createDept(DeptCreateRequest request) {
+        // 获取租户 ID
+        String tenantId = SecurityUtils.getTenantId();
+
         // 部门编码在同租户内唯一
         long count = deptMapper.selectCount(new LambdaQueryWrapper<SysDept>()
-                .eq(SysDept::getTenantId, tenantId)
-                .eq(SysDept::getCode, req.getCode()));
+            .eq(SysDept::getTenantId, tenantId)
+            .eq(SysDept::getCode, request.getCode()));
         if (count > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "部门编码已存在");
         }
-        // 组装部门实体
+
+        // 封装部门实体
         SysDept dept = new SysDept();
         dept.setTenantId(tenantId);
-        dept.setParentId(req.getParentId());
-        dept.setName(req.getName());
-        dept.setCode(req.getCode());
-        dept.setSort(req.getSort() != null ? req.getSort() : 100);
-        dept.setLeader(req.getLeader());
-        dept.setPhone(req.getPhone());
-        dept.setEmail(req.getEmail());
-        dept.setStatus(StringUtils.hasText(req.getStatus()) ? req.getStatus() : "enabled");
-        dept.setTreePath("0");  // 占位，insert 后更新
-        // 先插入以获取自增主键 ID
+        dept.setParentId(request.getParentId());
+        dept.setName(request.getName());
+        dept.setCode(request.getCode());
+        dept.setSort(request.getSort() != null ? request.getSort() : 100);
+        dept.setLeader(request.getLeader());
+        dept.setPhone(request.getPhone());
+        dept.setEmail(request.getEmail());
+        dept.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : "enabled");
+        dept.setTreePath("0");
+
+        // 先保存部门以获取自增主键 ID
         deptMapper.insert(dept);
 
         // 计算真实 treePath 并回写
-        String treePath = buildTreePath(req.getParentId(), dept.getId());
-        dept.setTreePath(treePath);
+        dept.setTreePath(buildTreePath(request.getParentId(), dept.getId()));
         deptMapper.updateById(dept);
     }
 
+    /**
+     * 编辑部门
+     *
+     * @param request 部门信息
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateDept(String tenantId, DeptUpdateRequest req) {
-        // 校验部门存在并加载当前快照
-        SysDept existing = loadDeptEntity(req.getId());
-
-        boolean parentChanged = false;
-        String oldParentId = existing.getParentId();
+    public void updateDept(DeptUpdateRequest request) {
+        // 加载部门实体
+        SysDept dept = loadDeptEntity(request.getId());
 
         // 处理上级部门变更
-        if (StringUtils.hasText(req.getParentId()) && !req.getParentId().equals(existing.getParentId())) {
-            String newParentId = req.getParentId();
+        boolean parentChanged = false;
+        String oldParentId = dept.getParentId();
+        if (StringUtils.hasText(request.getParentId()) && !request.getParentId().equals(dept.getParentId())) {
+            String newParentId = request.getParentId();
 
             // 校验新上级部门不能是自己
-            if (newParentId.equals(existing.getId())) {
+            if (newParentId.equals(dept.getId())) {
                 throw new BusinessException(ResultCode.VALIDATION_ERROR, "上级部门不能选择自己");
             }
 
             // 校验新上级部门不能是自己的下级部门（含递归）
             if (!"0".equals(newParentId)) {
-                List<String> descendantIds = getDescendantIds(existing.getId());
+                List<String> descendantIds = getDescendantIds(dept.getId());
                 if (descendantIds.contains(newParentId)) {
                     throw new BusinessException(ResultCode.VALIDATION_ERROR, "上级部门不能选择自己的下级部门");
                 }
@@ -150,60 +182,72 @@ public class SysDeptServiceImpl implements SysDeptService {
                 loadDeptEntity(newParentId);
             }
 
-            existing.setParentId(newParentId);
+            dept.setParentId(newParentId);
             parentChanged = true;
         }
 
         // 编码变更时校验同租户内唯一（排除自身）
-        if (StringUtils.hasText(req.getCode()) && !req.getCode().equals(existing.getCode())) {
-            long count = deptMapper.selectCount(new LambdaQueryWrapper<SysDept>()
-                    .eq(SysDept::getTenantId, tenantId)
-                    .eq(SysDept::getCode, req.getCode())
-                    .ne(SysDept::getId, req.getId()));
-            if (count > 0) {
+        if (StringUtils.hasText(request.getCode()) && !request.getCode().equals(dept.getCode())) {
+            long codeCount = deptMapper.selectCount(new LambdaQueryWrapper<SysDept>()
+                .eq(SysDept::getTenantId, dept.getTenantId())
+                .eq(SysDept::getCode, request.getCode())
+                .ne(SysDept::getId, request.getId()));
+            if (codeCount > 0) {
                 throw new BusinessException(ResultCode.ALREADY_EXISTS, "部门编码已存在");
             }
-            existing.setCode(req.getCode());
+            dept.setCode(request.getCode());
         }
 
         // 更新其他字段
-        existing.setName(req.getName());
-        existing.setSort(req.getSort() != null ? req.getSort() : existing.getSort());
-        existing.setLeader(req.getLeader());
-        existing.setPhone(req.getPhone());
-        existing.setEmail(req.getEmail());
-        existing.setStatus(StringUtils.hasText(req.getStatus()) ? req.getStatus() : existing.getStatus());
+        dept.setName(request.getName());
+        dept.setSort(request.getSort() != null ? request.getSort() : dept.getSort());
+        dept.setLeader(request.getLeader());
+        dept.setPhone(request.getPhone());
+        dept.setEmail(request.getEmail());
+        dept.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : dept.getStatus());
 
         // 如果上级部门变更，重新计算 treePath
         if (parentChanged) {
-            String newTreePath = buildTreePath(existing.getParentId(), existing.getId());
-            existing.setTreePath(newTreePath);
+            dept.setTreePath(buildTreePath(dept.getParentId(), dept.getId()));
         }
 
-        deptMapper.updateById(existing);
+        // 更新部门
+        deptMapper.updateById(dept);
 
         // 上级部门变更后，递归更新所有子孙部门的 treePath
         if (parentChanged) {
-            updateDescendantsTreePath(existing);
+            updateDescendantsTreePath(dept);
         }
     }
 
+    /**
+     * 删除部门
+     *
+     * @param id 部门 ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteDept(String id) {
-        // 加载待删部门
+        // 加载部门实体
         SysDept dept = loadDeptEntity(id);
+
         // 存在子部门时不允许删除
         long childCount = deptMapper.selectCount(new LambdaQueryWrapper<SysDept>()
-                .eq(SysDept::getTenantId, dept.getTenantId())
-                .eq(SysDept::getParentId, id));
+            .eq(SysDept::getTenantId, dept.getTenantId())
+            .eq(SysDept::getParentId, id));
         if (childCount > 0) {
             throw new BusinessException(ResultCode.VALIDATION_ERROR, "请先删除子部门");
         }
-        // 逻辑删除部门主表
+
+        // 删除部门
         deptMapper.deleteById(id);
     }
 
+    /**
+     * 批量删除部门
+     *
+     * @param ids 部门 ID 列表
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void batchDeleteDepts(List<String> ids) {
@@ -216,11 +260,11 @@ public class SysDeptServiceImpl implements SysDeptService {
     }
 
     /**
-     * 根据父节点 ID 与当前节点 ID 拼接树路径。
+     * 根据父节点 ID 与当前节点 ID 拼接树路径
      *
      * @param parentId  父部门 ID，根节点为 "0"
      * @param currentId 当前部门 ID
-     * @return 逗号分隔的树路径，如 {@code 0,parentId,currentId}
+     * @return 逗号分隔的树路径
      */
     private String buildTreePath(String parentId, String currentId) {
         // 根节点下直接挂载
@@ -230,14 +274,13 @@ public class SysDeptServiceImpl implements SysDeptService {
         // 父节点存在则继承其 treePath
         SysDept parent = deptMapper.selectById(parentId);
         if (parent == null) {
-            // 父节点缺失时降级为根路径
             return "0," + currentId;
         }
         return parent.getTreePath() + "," + currentId;
     }
 
     /**
-     * 获取指定部门的所有子孙部门 ID 列表（含子、孙、曾孙等递归下级）。
+     * 获取指定部门的所有子孙部门 ID 列表
      *
      * @param parentId 父部门 ID
      * @return 子孙部门 ID 列表
@@ -245,7 +288,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     private List<String> getDescendantIds(String parentId) {
         List<String> result = new ArrayList<>();
         List<SysDept> children = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
-                .eq(SysDept::getParentId, parentId));
+            .eq(SysDept::getParentId, parentId));
         for (SysDept child : children) {
             result.add(child.getId());
             result.addAll(getDescendantIds(child.getId()));
@@ -254,13 +297,13 @@ public class SysDeptServiceImpl implements SysDeptService {
     }
 
     /**
-     * 递归更新所有子孙部门的 treePath。
+     * 递归更新所有子孙部门的 treePath
      *
      * @param parent 父部门实体（已更新 treePath）
      */
     private void updateDescendantsTreePath(SysDept parent) {
         List<SysDept> children = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
-                .eq(SysDept::getParentId, parent.getId()));
+            .eq(SysDept::getParentId, parent.getId()));
         for (SysDept child : children) {
             child.setTreePath(parent.getTreePath() + "," + child.getId());
             deptMapper.updateById(child);
@@ -269,16 +312,18 @@ public class SysDeptServiceImpl implements SysDeptService {
     }
 
     /**
-     * 按主键加载部门实体（供内部业务逻辑使用，不对外暴露 Entity）。
+     * 根据 ID 加载部门实体
      *
      * @param id 部门 ID
      * @return 部门实体
-     * @throws BusinessException 部门不存在时抛出 NOT_FOUND
      */
     private SysDept loadDeptEntity(String id) {
         SysDept dept = deptMapper.selectById(id);
         if (dept == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "部门不存在");
+        }
+        if (!Objects.equals(dept.getTenantId(), SecurityUtils.getTenantId())) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
         }
         return dept;
     }

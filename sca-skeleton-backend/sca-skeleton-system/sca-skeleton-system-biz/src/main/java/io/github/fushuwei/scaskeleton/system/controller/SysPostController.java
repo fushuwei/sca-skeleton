@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
-import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.post.PostCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.post.PostPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.post.PostUpdateRequest;
@@ -35,29 +34,29 @@ public class SysPostController {
     @GetMapping("/list")
     @RequiresPermission("sys:post:list")
     public Result<List<PostResponse>> list() {
-        return Result.ok(postService.listPosts(SecurityUtils.getTenantId()));
+        return Result.ok(postService.listPosts());
     }
 
     @Operation(summary = "分页查询岗位列表")
     @GetMapping("/page")
     @RequiresPermission("sys:post:list")
     public Result<IPage<PostResponse>> page(@Validated PostPageRequest request) {
-        return Result.ok(postService.pagePosts(SecurityUtils.getTenantId(), request));
+        return Result.ok(postService.pagePosts(request));
     }
 
-    @Operation(summary = "查询岗位详情")
+    @Operation(summary = "根据 ID 查询岗位详情")
     @GetMapping("/{id}")
     @RequiresPermission("sys:post:query")
     public Result<PostResponse> getById(@PathVariable String id) {
         return Result.ok(postService.getPostById(id));
     }
 
-    @Operation(summary = "创建岗位")
+    @Operation(summary = "新增岗位")
     @PostMapping("/create")
     @RequiresPermission("sys:post:add")
-    @OperationLog(module = "岗位管理", action = "添加岗位")
+    @OperationLog(module = "岗位管理", action = "新增岗位")
     public Result<Void> create(@Validated @RequestBody PostCreateRequest request) {
-        postService.createPost(SecurityUtils.getTenantId(), request);
+        postService.createPost(request);
         return Result.ok();
     }
 
@@ -66,7 +65,7 @@ public class SysPostController {
     @RequiresPermission("sys:post:edit")
     @OperationLog(module = "岗位管理", action = "编辑岗位")
     public Result<Void> update(@Validated @RequestBody PostUpdateRequest request) {
-        postService.updatePost(SecurityUtils.getTenantId(), request);
+        postService.updatePost(request);
         return Result.ok();
     }
 

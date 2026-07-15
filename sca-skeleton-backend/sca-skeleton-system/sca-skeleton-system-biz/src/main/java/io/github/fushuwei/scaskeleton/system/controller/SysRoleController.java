@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
-import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePermissionAssignRequest;
@@ -36,17 +35,17 @@ public class SysRoleController {
     @GetMapping("/list")
     @RequiresPermission("sys:role:list")
     public Result<List<RoleResponse>> list() {
-        return Result.ok(roleService.listRoles(SecurityUtils.getTenantId()));
+        return Result.ok(roleService.listRoles());
     }
 
     @Operation(summary = "分页查询角色列表")
     @GetMapping("/page")
     @RequiresPermission("sys:role:list")
     public Result<IPage<RoleResponse>> page(@Validated RolePageRequest request) {
-        return Result.ok(roleService.pageRoles(SecurityUtils.getTenantId(), request));
+        return Result.ok(roleService.pageRoles(request));
     }
 
-    @Operation(summary = "查询角色详情")
+    @Operation(summary = "根据 ID 查询角色详情")
     @GetMapping("/{id}")
     @RequiresPermission("sys:role:query")
     public Result<RoleResponse> getById(@PathVariable String id) {
@@ -60,12 +59,12 @@ public class SysRoleController {
         return Result.ok(roleService.getRolePermissionIds(id));
     }
 
-    @Operation(summary = "创建角色")
+    @Operation(summary = "新增角色")
     @PostMapping("/create")
     @RequiresPermission("sys:role:add")
-    @OperationLog(module = "角色管理", action = "添加角色")
+    @OperationLog(module = "角色管理", action = "新增角色")
     public Result<Void> create(@Validated @RequestBody RoleCreateRequest request) {
-        roleService.createRole(SecurityUtils.getTenantId(), request);
+        roleService.createRole(request);
         return Result.ok();
     }
 
@@ -74,7 +73,7 @@ public class SysRoleController {
     @RequiresPermission("sys:role:edit")
     @OperationLog(module = "角色管理", action = "编辑角色")
     public Result<Void> update(@Validated @RequestBody RoleUpdateRequest request) {
-        roleService.updateRole(SecurityUtils.getTenantId(), request);
+        roleService.updateRole(request);
         return Result.ok();
     }
 
@@ -101,7 +100,7 @@ public class SysRoleController {
     @RequiresPermission("sys:role:assign-permission")
     @OperationLog(module = "角色管理", action = "分配权限")
     public Result<Void> assignPermissions(@Validated @RequestBody RolePermissionAssignRequest request) {
-        roleService.assignPermissions(SecurityUtils.getTenantId(), request.getId(), request.getPermissionIds());
+        roleService.assignPermissions(request);
         return Result.ok();
     }
 }

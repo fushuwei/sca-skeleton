@@ -100,7 +100,7 @@ public class SysTenantPackageController {
     @RequiresPermission("sys:tenant-package:assign-permission")
     @OperationLog(module = "套餐管理", action = "分配权限")
     public Result<Void> assignPermissions(@Validated @RequestBody TenantPackagePermissionAssignRequest request) {
-        packageService.assignPermissions(request.getId(), request.getPermissionIds());
+        packageService.assignPermissions(request);
         return Result.ok();
     }
 }

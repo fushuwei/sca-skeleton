@@ -19,6 +19,7 @@ import io.github.fushuwei.scaskeleton.system.mapper.SysRolePermissionMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysPermissionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -26,42 +27,51 @@ import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * 权限管理服务实现。
+ * 权限管理 Service 实现类
  *
  * @author Fu Wei
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SysPermissionServiceImpl implements SysPermissionService {
 
-    /** 权限主表 Mapper */
     private final SysPermissionMapper permissionMapper;
-    /** Entity ↔ Response 转换器（MapStruct 生成） */
+
     private final PermissionConverter permissionConverter;
-    /** 用户角色关联 Mapper */
+
     private final SysUserRoleMapper userRoleMapper;
-    /** 角色权限关联 Mapper */
+
     private final SysRolePermissionMapper rolePermissionMapper;
 
+    /**
+     * 查询全量权限列表
+     *
+     * @return 权限列表
+     */
     @Override
     public List<PermissionResponse> listAllPermissions() {
         // 查询全局权限树（不按租户隔离），按 sort 升序
         List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
-                .orderByAsc(SysPermission::getSort));
+            .orderByAsc(SysPermission::getSort));
         // 转换为响应对象列表
         return permissions.stream().map(permissionConverter::toPermissionResponse).toList();
     }
 
+    /**
+     * 查询当前用户菜单列表
+     *
+     * @return 菜单列表
+     */
     @Override
     public List<PermissionResponse> listUserMenus() {
         // 超级管理员直接返回所有权限
         if (SecurityUtils.isSuperAdmin()) {
             List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
-                    .eq(SysPermission::getStatus, "enabled")
-                    .orderByAsc(SysPermission::getSort));
+                .eq(SysPermission::getStatus, "enabled")
+                .orderByAsc(SysPermission::getSort));
             return permissions.stream().map(permissionConverter::toPermissionResponse).toList();
         }
 
@@ -73,60 +83,64 @@ public class SysPermissionServiceImpl implements SysPermissionService {
 
         // 查询用户的角色列表
         List<SysUserRole> userRoles = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>()
-                .eq(SysUserRole::getUserId, userId));
+            .eq(SysUserRole::getUserId, userId));
         if (CollectionUtils.isEmpty(userRoles)) {
             return Collections.emptyList();
         }
 
-        // 获取角色ID列表
-        List<String> roleIds = userRoles.stream()
-                .map(SysUserRole::getRoleId)
-                .toList();
+        // 获取角色 ID 列表
+        List<String> roleIds = userRoles.stream().map(SysUserRole::getRoleId).toList();
 
-        // 查询角色关联的权限ID列表
+        // 查询角色关联的权限 ID 列表
         List<SysRolePermission> rolePermissions = rolePermissionMapper.selectList(new LambdaQueryWrapper<SysRolePermission>()
-                .in(SysRolePermission::getRoleId, roleIds));
+            .in(SysRolePermission::getRoleId, roleIds));
         if (CollectionUtils.isEmpty(rolePermissions)) {
             return Collections.emptyList();
         }
 
-        // 去重权限ID
+        // 去重权限 ID
         List<String> permissionIds = rolePermissions.stream()
-                .map(SysRolePermission::getPermissionId)
-                .distinct()
-                .toList();
+            .map(SysRolePermission::getPermissionId)
+            .distinct()
+            .toList();
 
         // 查询权限详情（所有类型，前端负责过滤）
         List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
-                .in(SysPermission::getId, permissionIds)
-                .eq(SysPermission::getStatus, "enabled")
-                .orderByAsc(SysPermission::getSort));
+            .in(SysPermission::getId, permissionIds)
+            .eq(SysPermission::getStatus, "enabled")
+            .orderByAsc(SysPermission::getSort));
 
         // 转换为响应对象列表
         return permissions.stream().map(permissionConverter::toPermissionResponse).toList();
     }
 
+    /**
+     * 分页查询权限列表
+     *
+     * @param request 查询条件
+     * @return 分页结果
+     */
     @Override
-    public IPage<PermissionResponse> pagePermissions(PermissionPageRequest req) {
+    public IPage<PermissionResponse> pagePermissions(PermissionPageRequest request) {
         // 构造分页对象
-        Page<SysPermission> page = new Page<>(req.getPageNum(), req.getPageSize());
+        Page<SysPermission> page = new Page<>(request.getPageNum(), request.getPageSize());
 
         LambdaQueryWrapper<SysPermission> wrapper = new LambdaQueryWrapper<SysPermission>()
-                // 按父节点筛选子权限，parentId 为空时不按父节点过滤（返回全部记录）
-                .eq(StringUtils.hasText(req.getParentId()), SysPermission::getParentId, req.getParentId())
-                // 关键词模糊匹配名称（中文/英文）或权限标识
-                .and(StringUtils.hasText(req.getKeyword()),
-                        w -> w.like(SysPermission::getName, req.getKeyword())
-                                .or().like(SysPermission::getNameEn, req.getKeyword())
-                                .or().like(SysPermission::getCode, req.getKeyword()))
-                // 类型筛选
-                .eq(StringUtils.hasText(req.getType()), SysPermission::getType, req.getType())
-                // 状态筛选
-                .eq(StringUtils.hasText(req.getStatus()), SysPermission::getStatus, req.getStatus());
+            // 按父节点筛选子权限，parentId 为空时不按父节点过滤（返回全部记录）
+            .eq(StringUtils.hasText(request.getParentId()), SysPermission::getParentId, request.getParentId())
+            // 关键词模糊匹配名称（中文/英文）或权限标识
+            .and(StringUtils.hasText(request.getKeyword()),
+                w -> w.like(SysPermission::getName, request.getKeyword())
+                    .or().like(SysPermission::getNameEn, request.getKeyword())
+                    .or().like(SysPermission::getCode, request.getKeyword()))
+            // 类型筛选
+            .eq(StringUtils.hasText(request.getType()), SysPermission::getType, request.getType())
+            // 状态筛选
+            .eq(StringUtils.hasText(request.getStatus()), SysPermission::getStatus, request.getStatus());
 
         // 安全排序：白名单校验通过后按指定字段排序，否则按 sort 升序
-        String sortField = req.safeSortField();
-        boolean isAsc = "ASC".equalsIgnoreCase(req.safeSortOrder());
+        String sortField = request.safeSortField();
+        boolean isAsc = "ASC".equalsIgnoreCase(request.safeSortOrder());
         if (sortField != null) {
             switch (sortField) {
                 case "name" -> wrapper.orderBy(true, isAsc, SysPermission::getName);
@@ -147,85 +161,125 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         return entityPage.convert(permissionConverter::toPermissionResponse);
     }
 
+    /**
+     * 查询指定父节点下的按钮权限列表
+     *
+     * @param parentId 父权限 ID
+     * @return 按钮权限列表
+     */
     @Override
     public List<PermissionResponse> listButtonsByParentId(String parentId) {
         // 查询指定父节点下的按钮权限，按 sort 升序
         List<SysPermission> buttons = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
-                .eq(SysPermission::getParentId, parentId)
-                .eq(SysPermission::getType, "button")
-                .orderByAsc(SysPermission::getSort));
+            .eq(SysPermission::getParentId, parentId)
+            .eq(SysPermission::getType, "button")
+            .orderByAsc(SysPermission::getSort));
         // 转换为响应对象列表
         return buttons.stream().map(permissionConverter::toPermissionResponse).toList();
     }
 
+    /**
+     * 根据 ID 查询权限详情
+     *
+     * @param id 权限 ID
+     * @return 权限详情
+     */
     @Override
     public PermissionResponse getPermissionById(String id) {
-        // 按主键查询权限并转换为响应对象
+        // 加载权限实体并转换为响应对象
         return permissionConverter.toPermissionResponse(loadPermissionEntity(id));
     }
 
+    /**
+     * 新增权限
+     *
+     * @param request 权限信息
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createPermission(PermissionCreateRequest req) {
-        // 组装权限实体
+    public void createPermission(PermissionCreateRequest request) {
+        // 封装权限实体
         SysPermission permission = new SysPermission();
-        permission.setParentId(req.getParentId());
-        permission.setName(req.getName());
-        permission.setNameEn(req.getNameEn());
-        permission.setType(req.getType());
-        permission.setCode(req.getCode());
-        permission.setPath(req.getPath());
-        permission.setComponent(req.getComponent());
-        permission.setIcon(req.getIcon());
-        permission.setSort(req.getSort() != null ? req.getSort() : 100);
-        permission.setIsVisible(req.getIsVisible() != null ? req.getIsVisible() : 1);
-        permission.setIsExternal(req.getIsExternal() != null ? req.getIsExternal() : 0);
-        permission.setStatus(StringUtils.hasText(req.getStatus()) ? req.getStatus() : "enabled");
-        permission.setRemark(req.getRemark());
+        permission.setParentId(request.getParentId());
+        permission.setName(request.getName());
+        permission.setNameEn(request.getNameEn());
+        permission.setType(request.getType());
+        permission.setCode(request.getCode());
+        permission.setPath(request.getPath());
+        permission.setComponent(request.getComponent());
+        permission.setIcon(request.getIcon());
+        permission.setSort(request.getSort() != null ? request.getSort() : 100);
+        permission.setIsVisible(request.getIsVisible() != null ? request.getIsVisible() : 1);
+        permission.setIsExternal(request.getIsExternal() != null ? request.getIsExternal() : 0);
+        permission.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : "enabled");
+        permission.setRemark(request.getRemark());
 
         // 设置临时 treePath（数据库字段 NOT NULL，需在插入前赋值，插入后立即更新为正确值）
         permission.setTreePath("");
-        // 先插入以获取自增主键 ID
+
+        // 先保存权限以获取自增主键 ID
         permissionMapper.insert(permission);
 
-        // 更新 treePath：父路径 + 当前 ID
-        String treePath = buildTreePath(req.getParentId(), permission.getId());
-        permission.setTreePath(treePath);
+        // 计算真实 treePath 并回写
+        permission.setTreePath(buildTreePath(request.getParentId(), permission.getId()));
         permissionMapper.updateById(permission);
     }
 
+    /**
+     * 编辑权限
+     *
+     * @param request 权限信息
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updatePermission(PermissionUpdateRequest req) {
-        // 校验权限存在并加载当前快照（parentId / treePath 不在此接口变更）
-        SysPermission existing = loadPermissionEntity(req.getId());
-        existing.setName(req.getName());
-        existing.setNameEn(req.getNameEn());
-        existing.setCode(req.getCode());
-        existing.setPath(req.getPath());
-        existing.setComponent(req.getComponent());
-        existing.setIcon(req.getIcon());
-        existing.setSort(req.getSort() != null ? req.getSort() : existing.getSort());
-        existing.setIsVisible(req.getIsVisible() != null ? req.getIsVisible() : existing.getIsVisible());
-        existing.setIsExternal(req.getIsExternal() != null ? req.getIsExternal() : existing.getIsExternal());
-        existing.setStatus(StringUtils.hasText(req.getStatus()) ? req.getStatus() : existing.getStatus());
-        existing.setRemark(req.getRemark());
-        permissionMapper.updateById(existing);
+    public void updatePermission(PermissionUpdateRequest request) {
+        // 加载权限实体
+        SysPermission permission = loadPermissionEntity(request.getId());
+
+        // 更新字段
+        permission.setName(request.getName());
+        permission.setNameEn(request.getNameEn());
+        permission.setCode(request.getCode());
+        permission.setPath(request.getPath());
+        permission.setComponent(request.getComponent());
+        permission.setIcon(request.getIcon());
+        permission.setSort(request.getSort() != null ? request.getSort() : permission.getSort());
+        permission.setIsVisible(request.getIsVisible() != null ? request.getIsVisible() : permission.getIsVisible());
+        permission.setIsExternal(request.getIsExternal() != null ? request.getIsExternal() : permission.getIsExternal());
+        permission.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : permission.getStatus());
+        permission.setRemark(request.getRemark());
+
+        // 更新权限
+        permissionMapper.updateById(permission);
     }
 
+    /**
+     * 删除权限
+     *
+     * @param id 权限 ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deletePermission(String id) {
+        // 加载权限实体
+        loadPermissionEntity(id);
+
         // 存在子权限时不允许删除
         long childCount = permissionMapper.selectCount(new LambdaQueryWrapper<SysPermission>()
-                .eq(SysPermission::getParentId, id));
+            .eq(SysPermission::getParentId, id));
         if (childCount > 0) {
             throw new BusinessException(ResultCode.VALIDATION_ERROR, "请先删除子权限");
         }
-        // 逻辑删除权限主表
+
+        // 删除权限
         permissionMapper.deleteById(id);
     }
 
+    /**
+     * 批量删除权限
+     *
+     * @param ids 权限 ID 列表
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void batchDeletePermissions(List<String> ids) {
@@ -238,11 +292,11 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     }
 
     /**
-     * 根据父节点 ID 与当前节点 ID 拼接树路径。
+     * 根据父节点 ID 与当前节点 ID 拼接树路径
      *
      * @param parentId  父权限 ID，根节点为 "0"
      * @param currentId 当前权限 ID
-     * @return 逗号分隔的树路径，如 {@code 0,parentId,currentId}
+     * @return 逗号分隔的树路径
      */
     private String buildTreePath(String parentId, String currentId) {
         // 根节点下直接挂载
@@ -252,24 +306,22 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         // 父节点存在则继承其 treePath
         SysPermission parent = permissionMapper.selectById(parentId);
         if (parent == null) {
-            // 父节点缺失时降级为根路径
             return "0," + currentId;
         }
         return parent.getTreePath() + "," + currentId;
     }
 
     /**
-     * 按主键加载权限实体（供内部业务逻辑使用，不对外暴露 Entity）。
+     * 根据 ID 加载权限实体
      *
      * @param id 权限 ID
      * @return 权限实体
-     * @throws BusinessException 权限不存在时抛出 NOT_FOUND
      */
     private SysPermission loadPermissionEntity(String id) {
-        SysPermission perm = permissionMapper.selectById(id);
-        if (perm == null) {
+        SysPermission permission = permissionMapper.selectById(id);
+        if (permission == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "权限不存在");
         }
-        return perm;
+        return permission;
     }
 }

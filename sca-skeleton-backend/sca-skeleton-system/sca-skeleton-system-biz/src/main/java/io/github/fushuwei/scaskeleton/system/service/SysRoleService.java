@@ -3,37 +3,82 @@ package io.github.fushuwei.scaskeleton.system.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.role.RolePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
 
 import java.util.List;
 
 /**
- * 角色管理服务接口。
+ * 角色管理 Service
  *
  * @author Fu Wei
  */
 public interface SysRoleService {
 
-    /** 分页查询角色（按租户隔离） */
-    IPage<RoleResponse> pageRoles(String tenantId, RolePageRequest request);
+    /**
+     * 查询角色列表
+     *
+     * @return 角色列表
+     */
+    List<RoleResponse> listRoles();
 
-    List<RoleResponse> listRoles(String tenantId);
+    /**
+     * 分页查询角色列表
+     *
+     * @param request 查询条件
+     * @return 分页结果
+     */
+    IPage<RoleResponse> pageRoles(RolePageRequest request);
 
+    /**
+     * 根据 ID 查询角色详情
+     *
+     * @param id 角色 ID
+     * @return 角色详情
+     */
     RoleResponse getRoleById(String id);
 
-    void createRole(String tenantId, RoleCreateRequest request);
+    /**
+     * 新增角色
+     *
+     * @param request 角色信息
+     */
+    void createRole(RoleCreateRequest request);
 
-    void updateRole(String tenantId, RoleUpdateRequest request);
+    /**
+     * 编辑角色
+     *
+     * @param request 角色信息
+     */
+    void updateRole(RoleUpdateRequest request);
 
+    /**
+     * 删除角色
+     *
+     * @param id 角色 ID
+     */
     void deleteRole(String id);
 
-    /** 批量删除角色 */
+    /**
+     * 批量删除角色
+     *
+     * @param ids 角色 ID 列表
+     */
     void batchDeleteRoles(List<String> ids);
 
-    /** 查询角色已分配的权限 ID 列表 */
+    /**
+     * 查询角色已分配的权限 ID 列表
+     *
+     * @param roleId 角色 ID
+     * @return 权限 ID 列表
+     */
     List<String> getRolePermissionIds(String roleId);
 
-    /** 为角色分配权限（全量替换） */
-    void assignPermissions(String tenantId, String roleId, List<String> permissionIds);
+    /**
+     * 为角色分配权限
+     *
+     * @param request 权限分配信息
+     */
+    void assignPermissions(RolePermissionAssignRequest request);
 }

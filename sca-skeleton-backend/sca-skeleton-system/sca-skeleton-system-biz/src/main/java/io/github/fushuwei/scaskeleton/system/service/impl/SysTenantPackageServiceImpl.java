@@ -7,6 +7,7 @@ import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageResponse;
 import io.github.fushuwei.scaskeleton.system.converter.TenantPackageConverter;
@@ -25,10 +26,9 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * 租户套餐管理服务实现。
+ * 租户套餐管理 Service 实现类
  *
  * @author Fu Wei
  */
@@ -37,123 +37,170 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SysTenantPackageServiceImpl implements SysTenantPackageService {
 
-    /** 默认套餐编码，内置套餐不允许删除 */
     private static final String DEFAULT_PACKAGE_CODE = "default";
 
-    /** 权限 Mapper */
     private final SysPermissionMapper permissionMapper;
-    /** 套餐主表 Mapper */
+
     private final SysTenantPackageMapper packageMapper;
-    /** 套餐-权限关联 Mapper */
+
     private final SysTenantPackagePermissionMapper packagePermissionMapper;
-    /** Entity ↔ Response 转换器（MapStruct 生成） */
+
     private final TenantPackageConverter packageConverter;
 
-    @Override
-    public IPage<TenantPackageResponse> pagePackages(TenantPackagePageRequest req) {
-        // 构造分页对象
-        Page<SysTenantPackage> page = new Page<>(req.getPageNum(), req.getPageSize());
-        // 查询实体分页并转换为响应对象分页
-        IPage<SysTenantPackage> entityPage = packageMapper.selectPackagePage(page, req);
-        return entityPage.convert(packageConverter::toTenantPackageResponse);
-    }
-
+    /**
+     * 查询套餐列表
+     *
+     * @return 套餐列表
+     */
     @Override
     public List<TenantPackageResponse> listPackages() {
         // 查询全部套餐，按 sort 升序
         List<SysTenantPackage> packages = packageMapper.selectList(new LambdaQueryWrapper<SysTenantPackage>()
-                .orderByAsc(SysTenantPackage::getSort));
+            .orderByAsc(SysTenantPackage::getSort));
+        // 转换为响应对象列表
         return packages.stream().map(packageConverter::toTenantPackageResponse).toList();
     }
 
+    /**
+     * 分页查询套餐列表
+     *
+     * @param request 查询条件
+     * @return 分页结果
+     */
+    @Override
+    public IPage<TenantPackageResponse> pagePackages(TenantPackagePageRequest request) {
+        // 构造分页对象
+        Page<SysTenantPackage> page = new Page<>(request.getPageNum(), request.getPageSize());
+        // 查询实体分页并转换为响应对象分页
+        IPage<SysTenantPackage> entityPage = packageMapper.selectPackagePage(page, request);
+        return entityPage.convert(packageConverter::toTenantPackageResponse);
+    }
+
+    /**
+     * 根据 ID 查询套餐详情
+     *
+     * @param id 套餐 ID
+     * @return 套餐详情
+     */
     @Override
     public TenantPackageResponse getPackageById(String id) {
-        // 按主键查询套餐并转换为响应对象
+        // 加载套餐实体并转换为响应对象
         return packageConverter.toTenantPackageResponse(loadPackageEntity(id));
     }
 
+    /**
+     * 新增套餐
+     *
+     * @param request 套餐信息
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createPackage(TenantPackageCreateRequest req) {
+    public void createPackage(TenantPackageCreateRequest request) {
         // 套餐名称唯一
         long nameCount = packageMapper.selectCount(new LambdaQueryWrapper<SysTenantPackage>()
-                .eq(SysTenantPackage::getName, req.getName()));
+            .eq(SysTenantPackage::getName, request.getName()));
         if (nameCount > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "套餐名称已存在");
         }
+
         // 套餐编码唯一
         long codeCount = packageMapper.selectCount(new LambdaQueryWrapper<SysTenantPackage>()
-                .eq(SysTenantPackage::getCode, req.getCode()));
+            .eq(SysTenantPackage::getCode, request.getCode()));
         if (codeCount > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "套餐编码已存在");
         }
-        // 组装套餐实体
+
+        // 封装套餐实体
         SysTenantPackage pkg = new SysTenantPackage();
-        pkg.setName(req.getName());
-        pkg.setCode(req.getCode());
-        pkg.setStatus(req.getStatus());
-        pkg.setUserLimit(req.getUserLimit() != null ? req.getUserLimit() : -1);
-        pkg.setApiLimit(req.getApiLimit() != null ? req.getApiLimit() : -1);
-        pkg.setStorageLimit(req.getStorageLimit() != null ? req.getStorageLimit() : -1);
-        pkg.setExpireDays(req.getExpireDays() != null ? req.getExpireDays() : -1);
-        pkg.setSort(req.getSort() != null ? req.getSort() : 100);
-        pkg.setRemark(req.getRemark());
-        // 持久化套餐主表
+        pkg.setName(request.getName());
+        pkg.setCode(request.getCode());
+        pkg.setStatus(request.getStatus());
+        pkg.setUserLimit(request.getUserLimit() != null ? request.getUserLimit() : -1);
+        pkg.setApiLimit(request.getApiLimit() != null ? request.getApiLimit() : -1);
+        pkg.setStorageLimit(request.getStorageLimit() != null ? request.getStorageLimit() : -1);
+        pkg.setExpireDays(request.getExpireDays() != null ? request.getExpireDays() : -1);
+        pkg.setSort(request.getSort() != null ? request.getSort() : 100);
+        pkg.setRemark(request.getRemark());
+
+        // 保存套餐
         packageMapper.insert(pkg);
-        // 同事务内建立套餐-权限关联
-        savePackagePermissions(pkg.getId(), req.getPermissionIds());
+
+        // 保存关联关系
+        savePackagePermissions(pkg.getId(), request.getPermissionIds());
     }
 
+    /**
+     * 编辑套餐
+     *
+     * @param request 套餐信息
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updatePackage(TenantPackageUpdateRequest req) {
-        // 校验套餐存在并加载当前快照
-        SysTenantPackage existing = loadPackageEntity(req.getId());
+    public void updatePackage(TenantPackageUpdateRequest request) {
+        // 加载套餐实体
+        SysTenantPackage pkg = loadPackageEntity(request.getId());
+
         // 套餐名称唯一（排除自身）
         long nameCount = packageMapper.selectCount(new LambdaQueryWrapper<SysTenantPackage>()
-                .eq(SysTenantPackage::getName, req.getName())
-                .ne(SysTenantPackage::getId, req.getId()));
+            .eq(SysTenantPackage::getName, request.getName())
+            .ne(SysTenantPackage::getId, request.getId()));
         if (nameCount > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "套餐名称已存在");
         }
+
         // 套餐编码唯一（排除自身）
         long codeCount = packageMapper.selectCount(new LambdaQueryWrapper<SysTenantPackage>()
-                .eq(SysTenantPackage::getCode, req.getCode())
-                .ne(SysTenantPackage::getId, req.getId()));
+            .eq(SysTenantPackage::getCode, request.getCode())
+            .ne(SysTenantPackage::getId, request.getId()));
         if (codeCount > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "套餐编码已存在");
         }
-        existing.setName(req.getName());
-        existing.setCode(req.getCode());
-        existing.setStatus(req.getStatus());
-        existing.setUserLimit(req.getUserLimit() != null ? req.getUserLimit() : -1);
-        existing.setApiLimit(req.getApiLimit() != null ? req.getApiLimit() : -1);
-        existing.setStorageLimit(req.getStorageLimit() != null ? req.getStorageLimit() : -1);
-        existing.setExpireDays(req.getExpireDays() != null ? req.getExpireDays() : -1);
-        existing.setSort(req.getSort() != null ? req.getSort() : existing.getSort());
-        existing.setRemark(req.getRemark());
-        packageMapper.updateById(existing);
-        // 清除旧关联，重新建立
-        packagePermissionMapper.delete(new LambdaQueryWrapper<SysTenantPackagePermission>()
-                .eq(SysTenantPackagePermission::getPackageId, req.getId()));
-        savePackagePermissions(req.getId(), req.getPermissionIds());
+
+        // 更新字段
+        pkg.setName(request.getName());
+        pkg.setCode(request.getCode());
+        pkg.setStatus(request.getStatus());
+        pkg.setUserLimit(request.getUserLimit() != null ? request.getUserLimit() : -1);
+        pkg.setApiLimit(request.getApiLimit() != null ? request.getApiLimit() : -1);
+        pkg.setStorageLimit(request.getStorageLimit() != null ? request.getStorageLimit() : -1);
+        pkg.setExpireDays(request.getExpireDays() != null ? request.getExpireDays() : -1);
+        pkg.setSort(request.getSort() != null ? request.getSort() : pkg.getSort());
+        pkg.setRemark(request.getRemark());
+
+        // 更新套餐
+        packageMapper.updateById(pkg);
+
+        // 删除旧的关联关系，并保存新的关联关系
+        deletePackagePermissions(request.getId());
+        savePackagePermissions(request.getId(), request.getPermissionIds());
     }
 
+    /**
+     * 删除套餐
+     *
+     * @param id 套餐 ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deletePackage(String id) {
-        // 加载待删套餐并校验内置保护
+        // 加载套餐实体并校验内置保护
         SysTenantPackage pkg = loadPackageEntity(id);
         if (DEFAULT_PACKAGE_CODE.equals(pkg.getCode())) {
             throw new BusinessException(ResultCode.FORBIDDEN, "系统内置套餐不允许删除");
         }
-        // 逻辑删除套餐主表
+
+        // 删除套餐
         packageMapper.deleteById(id);
-        // 同事务内清理套餐-权限关联
-        packagePermissionMapper.delete(new LambdaQueryWrapper<SysTenantPackagePermission>()
-                .eq(SysTenantPackagePermission::getPackageId, id));
+
+        // 删除关联关系
+        deletePackagePermissions(id);
     }
 
+    /**
+     * 批量删除套餐
+     *
+     * @param ids 套餐 ID 列表
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void batchDeletePackages(List<String> ids) {
@@ -165,64 +212,86 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
         }
     }
 
+    /**
+     * 查询套餐已分配的权限 ID 列表
+     *
+     * @param packageId 套餐 ID
+     * @return 权限 ID 列表
+     */
     @Override
     public List<String> getPackagePermissionIds(String packageId) {
+        // 校验套餐存在
         SysTenantPackage pkg = loadPackageEntity(packageId);
+
         // 内置默认套餐拥有全部权限，返回 menu 和 button 类别的权限 ID
         if (DEFAULT_PACKAGE_CODE.equals(pkg.getCode())) {
             return permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
-                            .in(SysPermission::getType, "menu", "button")).stream()
-                    .map(SysPermission::getId)
-                    .collect(Collectors.toList());
+                    .in(SysPermission::getType, "menu", "button")).stream()
+                .map(SysPermission::getId)
+                .toList();
         }
+
         // 查询套餐已分配的权限 ID 列表
         List<SysTenantPackagePermission> list = packagePermissionMapper.selectList(
-                new LambdaQueryWrapper<SysTenantPackagePermission>()
-                        .eq(SysTenantPackagePermission::getPackageId, packageId));
+            new LambdaQueryWrapper<SysTenantPackagePermission>()
+                .eq(SysTenantPackagePermission::getPackageId, packageId));
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }
-        return list.stream()
-                .map(SysTenantPackagePermission::getPermissionId)
-                .collect(Collectors.toList());
+        return list.stream().map(SysTenantPackagePermission::getPermissionId).toList();
     }
 
+    /**
+     * 为套餐分配权限
+     *
+     * @param request 权限分配信息
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void assignPermissions(String packageId, List<String> permissionIds) {
-        // 校验套餐存在
-        loadPackageEntity(packageId);
+    public void assignPermissions(TenantPackagePermissionAssignRequest request) {
+        // 加载套餐实体
+        loadPackageEntity(request.getId());
+
         // 先清空该套餐下原有权限关联（全量替换策略）
-        packagePermissionMapper.delete(new LambdaQueryWrapper<SysTenantPackagePermission>()
-                .eq(SysTenantPackagePermission::getPackageId, packageId));
-        // 非空则逐条插入新的套餐-权限关联
-        savePackagePermissions(packageId, permissionIds);
+        deletePackagePermissions(request.getId());
+
+        // 保存新的套餐-权限关联
+        savePackagePermissions(request.getId(), request.getPermissionIds());
     }
 
     /**
-     * 批量插入套餐-权限关联记录。
+     * 保存套餐与权限的关联关系
      *
      * @param packageId     套餐 ID
-     * @param permissionIds 权限 ID 列表，为空则不操作
+     * @param permissionIds 权限 ID 列表
      */
     private void savePackagePermissions(String packageId, List<String> permissionIds) {
-        if (CollectionUtils.isEmpty(permissionIds)) {
-            return;
+        // 保存套餐与权限关联关系
+        if (!CollectionUtils.isEmpty(permissionIds)) {
+            permissionIds.forEach(permId -> {
+                SysTenantPackagePermission tpp = new SysTenantPackagePermission();
+                tpp.setPackageId(packageId);
+                tpp.setPermissionId(permId);
+                packagePermissionMapper.insert(tpp);
+            });
         }
-        permissionIds.forEach(permId -> {
-            SysTenantPackagePermission tpp = new SysTenantPackagePermission();
-            tpp.setPackageId(packageId);
-            tpp.setPermissionId(permId);
-            packagePermissionMapper.insert(tpp);
-        });
     }
 
     /**
-     * 按主键加载套餐实体（供内部业务逻辑使用，不对外暴露 Entity）。
+     * 删除套餐与权限的关联关系
+     *
+     * @param packageId 套餐 ID
+     */
+    private void deletePackagePermissions(String packageId) {
+        packagePermissionMapper.delete(new LambdaQueryWrapper<SysTenantPackagePermission>()
+            .eq(SysTenantPackagePermission::getPackageId, packageId));
+    }
+
+    /**
+     * 根据 ID 加载套餐实体
      *
      * @param id 套餐 ID
      * @return 套餐实体
-     * @throws BusinessException 套餐不存在时抛出 NOT_FOUND
      */
     private SysTenantPackage loadPackageEntity(String id) {
         SysTenantPackage pkg = packageMapper.selectById(id);

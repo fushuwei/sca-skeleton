@@ -1,11 +1,9 @@
 package io.github.fushuwei.scaskeleton.system.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import io.github.fushuwei.scaskeleton.core.exception.ForbiddenException;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
-import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.loginlog.LoginLogPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.loginlog.LoginLogResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysLoginLogService;
@@ -37,7 +35,7 @@ public class SysLoginLogController {
         return Result.ok(loginLogService.pageLogs(request));
     }
 
-    @Operation(summary = "查询登录日志详情")
+    @Operation(summary = "根据 ID 查询登录日志详情")
     @GetMapping("/{id}")
     @RequiresPermission("sys:login-log:query")
     public Result<LoginLogResponse> getById(@PathVariable String id) {
@@ -49,9 +47,6 @@ public class SysLoginLogController {
     @RequiresPermission("sys:login-log:delete")
     @OperationLog(module = "登录日志", action = "批量删除登录日志")
     public Result<Void> batchDelete(@RequestBody List<String> ids) {
-        if (!SecurityUtils.isSuperAdmin()) {
-            throw new ForbiddenException("仅超级管理员可批量删除登录日志");
-        }
         loginLogService.batchDeleteLogs(ids);
         return Result.ok();
     }
@@ -61,9 +56,6 @@ public class SysLoginLogController {
     @RequiresPermission("sys:login-log:delete")
     @OperationLog(module = "登录日志", action = "清空登录日志")
     public Result<Void> clearAll() {
-        if (!SecurityUtils.isSuperAdmin()) {
-            throw new ForbiddenException("仅超级管理员可清空登录日志");
-        }
         loginLogService.clearAllLogs();
         return Result.ok();
     }

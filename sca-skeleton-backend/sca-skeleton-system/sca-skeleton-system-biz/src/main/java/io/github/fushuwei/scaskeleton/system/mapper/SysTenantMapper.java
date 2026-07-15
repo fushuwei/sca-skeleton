@@ -16,9 +16,9 @@ public interface SysTenantMapper extends BaseMapper<SysTenant> {
     /**
      * 分页查询租户列表
      *
-     * @param page 分页对象（框架回填）
-     * @param req  查询条件
+     * @param page    分页对象（框架回填）
+     * @param request 查询条件
      * @return 分页结果
      */
-    IPage<SysTenant> selectTenantPage(IPage<SysTenant> page, @Param("req") TenantPageRequest req);
+    IPage<SysTenant> selectTenantPage(IPage<SysTenant> page, @Param("request") TenantPageRequest request);
 }
