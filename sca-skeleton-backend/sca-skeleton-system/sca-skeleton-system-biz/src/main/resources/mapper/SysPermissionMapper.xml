@@ -22,9 +22,9 @@
     <!-- 批量更新所有子孙节点的 tree_path 字段值 -->
     <update id="updateDescendantsTreePath">
         UPDATE sys_permission
-        SET tree_path = CONCAT(#{newTreePath}, SUBSTRING(tree_path, CHAR_LENGTH(#{oldTreePath}) + 1))
+        SET tree_path = CONCAT(#{newPrefix}, SUBSTRING(tree_path, #{oldPrefixLen}))
         WHERE is_deleted = 0
-          AND tree_path LIKE CONCAT(#{oldTreePath}, ',%')
+          AND tree_path LIKE CONCAT(#{oldPrefix}, ',%')
     </update>
 
 </mapper>

@@ -208,7 +208,7 @@ public class SysDeptServiceImpl implements SysDeptService {
 
         // 上级部门变更后，批量更新所有子孙节点的 tree_path 字段值
         if (parentChanged) {
-            deptMapper.updateDescendantsTreePath(dept.getTenantId(), oldTreePath, dept.getTreePath());
+            deptMapper.updateDescendantsTreePath(dept.getTenantId(), oldTreePath, dept.getTreePath(), oldTreePath.length() + 1);
         }
     }
 
@@ -269,21 +269,6 @@ public class SysDeptServiceImpl implements SysDeptService {
             return "0," + currentId;
         }
         return parent.getTreePath() + "," + currentId;
-    }
-
-    /**
-     * 递归更新所有子孙部门的 treePath
-     *
-     * @param parent 父部门实体（已更新 treePath）
-     */
-    private void updateDescendantsTreePath(SysDept parent) {
-        List<SysDept> children = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
-            .eq(SysDept::getParentId, parent.getId()));
-        for (SysDept child : children) {
-            child.setTreePath(parent.getTreePath() + "," + child.getId());
-            deptMapper.updateById(child);
-            updateDescendantsTreePath(child);
-        }
     }
 
     /**

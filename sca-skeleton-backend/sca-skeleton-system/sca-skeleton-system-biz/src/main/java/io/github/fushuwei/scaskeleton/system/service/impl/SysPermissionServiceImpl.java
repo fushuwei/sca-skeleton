@@ -280,7 +280,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
 
         // 上级权限变更后，批量更新所有子孙节点的 tree_path 字段值
         if (parentChanged) {
-            permissionMapper.updateDescendantsTreePath(oldTreePath, permission.getTreePath());
+            permissionMapper.updateDescendantsTreePath(oldTreePath, permission.getTreePath(), oldTreePath.length() + 1);
         }
     }
 
@@ -340,21 +340,6 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             return "0," + currentId;
         }
         return parent.getTreePath() + "," + currentId;
-    }
-
-    /**
-     * 递归更新所有子孙权限的 treePath
-     *
-     * @param parent 父权限实体（已更新 treePath）
-     */
-    private void updateDescendantsTreePath(SysPermission parent) {
-        List<SysPermission> children = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
-            .eq(SysPermission::getParentId, parent.getId()));
-        for (SysPermission child : children) {
-            child.setTreePath(parent.getTreePath() + "," + child.getId());
-            permissionMapper.updateById(child);
-            updateDescendantsTreePath(child);
-        }
     }
 
     /**
