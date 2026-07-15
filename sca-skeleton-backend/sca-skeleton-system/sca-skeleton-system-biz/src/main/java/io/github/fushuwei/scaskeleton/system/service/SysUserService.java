@@ -5,6 +5,8 @@ import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPasswordResetRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserBatchStatusRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserStatusChangeRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserProfileResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
 
@@ -60,10 +62,10 @@ public interface SysUserService {
     /**
      * 变更用户状态
      */
-    void changeStatus(String id, String status, String reason);
+    void changeStatus(UserStatusChangeRequest request);
 
     /**
      * 批量变更用户状态
      */
-    void batchChangeStatus(List<String> ids, String status, String reason);
+    void batchChangeStatus(UserBatchStatusRequest request);
 }

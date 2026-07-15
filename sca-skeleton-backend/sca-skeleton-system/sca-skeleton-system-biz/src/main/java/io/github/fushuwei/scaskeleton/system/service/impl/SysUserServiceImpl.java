@@ -11,6 +11,8 @@ import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPasswordResetRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserBatchStatusRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.user.UserStatusChangeRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserProfileResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse;
 import io.github.fushuwei.scaskeleton.system.converter.UserConverter;
@@ -33,6 +35,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 用户管理 Service 实现类
@@ -101,11 +104,8 @@ public class SysUserServiceImpl implements SysUserService {
      */
     @Override
     public UserResponse getUserById(String id) {
-        // 查询用户实体
+        // 加载用户实体
         SysUser user = loadUserEntity(id);
-        if (!user.getTenantId().equals(SecurityUtils.getTenantId())) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
-        }
 
         // 将用户实体转换为响应对象
         UserResponse response = userConverter.toUserResponse(user);
@@ -181,14 +181,8 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateUser(UserUpdateRequest req) {
-        // 查询用户实体
-        SysUser user = loadUserEntity(req.getId());
-        if (!user.getTenantId().equals(SecurityUtils.getTenantId())) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
-        }
-        if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许操作");
-        }
+        // 加载可操作用户实体
+        SysUser user = loadOperableUserEntity(req.getId());
 
         // 更新字段
         user.setNickname(req.getNickname());
@@ -222,20 +216,14 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteUser(String id) {
-        // 查询用户实体
-        SysUser user = loadUserEntity(id);
-        if (!user.getTenantId().equals(SecurityUtils.getTenantId())) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
-        }
-        if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许操作");
-        }
+        // 加载可操作用户实体
+        SysUser user = loadOperableUserEntity(id);
 
         // 删除用户
-        userMapper.deleteById(id);
+        userMapper.deleteById(user.getId());
 
         // 删除关联关系
-        deleteUserRelations(id);
+        deleteUserRelations(user.getId());
     }
 
     /**
@@ -258,18 +246,12 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void resetPassword(UserPasswordResetRequest req) {
-        // 查询用户实体
-        SysUser user = loadUserEntity(req.getId());
-        if (!user.getTenantId().equals(SecurityUtils.getTenantId())) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
-        }
-        if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许操作");
-        }
+        // 加载可操作用户实体
+        SysUser user = loadOperableUserEntity(req.getId());
 
         // 更新密码
         userMapper.update(null, new LambdaUpdateWrapper<SysUser>()
-            .eq(SysUser::getId, req.getId())
+            .eq(SysUser::getId, user.getId())
             .set(SysUser::getPassword, passwordEncoder.encode(req.getNewPassword()))
             .set(SysUser::getMustChangePassword, 0)
             .set(SysUser::getPasswordUpdateTime, LocalDateTime.now()));
@@ -279,22 +261,16 @@ public class SysUserServiceImpl implements SysUserService {
      * 变更用户状态
      */
     @Override
-    public void changeStatus(String id, String status, String reason) {
-        // 查询用户实体
-        SysUser user = loadUserEntity(id);
-        if (!user.getTenantId().equals(SecurityUtils.getTenantId())) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
-        }
-        if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许操作");
-        }
+    public void changeStatus(UserStatusChangeRequest req) {
+        // 加载可操作用户实体
+        SysUser user = loadOperableUserEntity(req.getId());
 
         // 更新状态及变更时间与原因
         userMapper.update(null, new LambdaUpdateWrapper<SysUser>()
-            .eq(SysUser::getId, id)
-            .set(SysUser::getStatus, status)
+            .eq(SysUser::getId, user.getId())
+            .set(SysUser::getStatus, req.getStatus())
             .set(SysUser::getStatusTime, LocalDateTime.now())
-            .set(SysUser::getStatusReason, reason)
+            .set(SysUser::getStatusReason, req.getReason())
         );
     }
 
@@ -303,12 +279,17 @@ public class SysUserServiceImpl implements SysUserService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void batchChangeStatus(List<String> ids, String status, String reason) {
+    public void batchChangeStatus(UserBatchStatusRequest req) {
+        List<String> ids = req.getIds();
         if (CollectionUtils.isEmpty(ids)) {
             return;
         }
         for (String id : ids) {
-            changeStatus(id, status, reason);
+            UserStatusChangeRequest item = new UserStatusChangeRequest();
+            item.setId(id);
+            item.setStatus(req.getStatus());
+            item.setReason(req.getReason());
+            changeStatus(item);
         }
     }
 
@@ -374,6 +355,23 @@ public class SysUserServiceImpl implements SysUserService {
         SysUser user = userMapper.selectById(id);
         if (user == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在");
+        }
+        if (!Objects.equals(user.getTenantId(), SecurityUtils.getTenantId())) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
+        }
+        return user;
+    }
+
+    /**
+     * 根据 ID 加载可操作用户实体
+     *
+     * @param id 用户 ID
+     * @return 用户实体
+     */
+    private SysUser loadOperableUserEntity(String id) {
+        SysUser user = loadUserEntity(id);
+        if (user.getIsBuiltin() != null && user.getIsBuiltin() == 1) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许操作");
         }
         return user;
     }

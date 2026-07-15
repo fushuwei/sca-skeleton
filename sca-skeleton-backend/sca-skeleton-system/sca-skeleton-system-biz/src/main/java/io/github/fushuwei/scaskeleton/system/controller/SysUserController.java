@@ -104,7 +104,7 @@ public class SysUserController {
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "变更用户状态")
     public Result<Void> changeStatus(@Validated @RequestBody UserStatusChangeRequest request) {
-        userService.changeStatus(request.getId(), request.getStatus(), request.getReason());
+        userService.changeStatus(request);
         return Result.ok();
     }
 
@@ -113,7 +113,7 @@ public class SysUserController {
     @RequiresPermission("sys:user:edit")
     @OperationLog(module = "用户管理", action = "批量变更用户状态")
     public Result<Void> batchChangeStatus(@Validated @RequestBody UserBatchStatusRequest request) {
-        userService.batchChangeStatus(request.getIds(), request.getStatus(), request.getReason());
+        userService.batchChangeStatus(request);
         return Result.ok();
     }
 }
