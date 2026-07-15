@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.incrementer.IdentifierGenerator;
 import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 
 /**
- * 基于 UUID v7 的主键生成器，替代 MyBatis-Plus 默认的随机 UUID
+ * 基于 UUID v7 的主键生成器
  *
  * @author Fu Wei
  */
