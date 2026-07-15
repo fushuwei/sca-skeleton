@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionCreateRequest;
@@ -200,6 +201,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     public void createPermission(PermissionCreateRequest request) {
         // 封装权限实体
         SysPermission permission = new SysPermission();
+        permission.setId(UuidUtils.nextSimpleStr());
         permission.setParentId(request.getParentId());
         permission.setName(request.getName());
         permission.setNameEn(request.getNameEn());
@@ -213,16 +215,10 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         permission.setIsExternal(request.getIsExternal() != null ? request.getIsExternal() : 0);
         permission.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : "enabled");
         permission.setRemark(request.getRemark());
-
-        // 设置临时 treePath（数据库字段 NOT NULL，需在插入前赋值，插入后立即更新为正确值）
-        permission.setTreePath("");
+        permission.setTreePath(buildTreePath(permission.getParentId(), permission.getId()));
 
         // 保存权限
         permissionMapper.insert(permission);
-
-        // 计算真实 treePath 并回写
-        permission.setTreePath(buildTreePath(request.getParentId(), permission.getId()));
-        permissionMapper.updateById(permission);
     }
 
     /**
