@@ -7,14 +7,18 @@ import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * 租户 Mapper。
+ * 租户管理 Mapper
  *
  * @author Fu Wei
  */
 public interface SysTenantMapper extends BaseMapper<SysTenant> {
 
     /**
-     * 分页查询租户，左关联套餐表查出套餐名称。
+     * 分页查询租户列表
+     *
+     * @param page 分页对象（框架回填）
+     * @param req  查询条件
+     * @return 分页结果
      */
     IPage<SysTenant> selectTenantPage(IPage<SysTenant> page, @Param("req") TenantPageRequest req);
 }

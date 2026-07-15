@@ -320,7 +320,7 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /**
-     * 物理删除用户的所有角色、部门和岗位关联（关联表为纯关系数据，无需逻辑删除）。
+     * 删除用户关联的所有角色、部门和岗位
      */
     private void deleteUserRelations(String tenantId, String userId) {
         userRoleMapper.physicalDeleteByUser(tenantId, userId);

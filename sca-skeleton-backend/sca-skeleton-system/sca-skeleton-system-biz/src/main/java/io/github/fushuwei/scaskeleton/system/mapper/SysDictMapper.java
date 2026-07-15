@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.github.fushuwei.scaskeleton.system.entity.SysDict;
 
 /**
- * 字典 Mapper。
+ * 字典管理 Mapper
  *
  * @author Fu Wei
  */

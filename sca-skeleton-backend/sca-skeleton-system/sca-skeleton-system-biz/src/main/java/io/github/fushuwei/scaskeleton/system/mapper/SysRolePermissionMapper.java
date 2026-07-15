@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.github.fushuwei.scaskeleton.system.entity.SysRolePermission;
 
 /**
- * 角色权限关联 Mapper。
+ * 角色权限关联 Mapper
  *
  * @author Fu Wei
  */

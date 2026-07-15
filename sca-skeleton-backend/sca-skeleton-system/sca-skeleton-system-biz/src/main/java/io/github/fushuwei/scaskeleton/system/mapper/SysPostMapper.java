@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.github.fushuwei.scaskeleton.system.entity.SysPost;
 
 /**
- * 岗位 Mapper。
+ * 岗位管理 Mapper
  *
  * @author Fu Wei
  */

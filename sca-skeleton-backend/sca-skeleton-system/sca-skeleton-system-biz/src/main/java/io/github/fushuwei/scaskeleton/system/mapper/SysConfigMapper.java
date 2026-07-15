@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.github.fushuwei.scaskeleton.system.entity.SysConfig;
 
 /**
- * 系统配置 Mapper。
+ * 系统配置管理 Mapper
  *
  * @author Fu Wei
  */

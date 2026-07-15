@@ -7,19 +7,18 @@ import io.github.fushuwei.scaskeleton.system.entity.SysTenantPackage;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * 租户套餐 Mapper。
+ * 租户套餐管理 Mapper
  *
  * @author Fu Wei
  */
 public interface SysTenantPackageMapper extends BaseMapper<SysTenantPackage> {
 
     /**
-     * 分页查询套餐，关联子查询一次性查出权限数量。
+     * 分页查询租户套餐列表
      *
-     * @param page 分页对象
-     * @param req  分页查询请求参数（含关键词、状态、排序等）
-     * @return 分页结果（每条记录含 permissionCount）
+     * @param page 分页对象（框架回填）
+     * @param req  查询条件
+     * @return 分页结果
      */
-    IPage<SysTenantPackage> selectPackagePage(IPage<SysTenantPackage> page,
-                                              @Param("req") TenantPackagePageRequest req);
+    IPage<SysTenantPackage> selectPackagePage(IPage<SysTenantPackage> page, @Param("req") TenantPackagePageRequest req);
 }
