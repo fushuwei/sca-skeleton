@@ -10,6 +10,8 @@ import io.github.fushuwei.scaskeleton.system.api.request.post.PostPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.post.PostUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.post.PostResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysPostService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +19,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 岗位管理 Controller。
+ * 岗位管理 Controller
  *
  * @author Fu Wei
  */
+@Tag(name = "岗位管理")
 @RestController
 @RequestMapping("/post")
 @RequiredArgsConstructor
@@ -28,48 +31,46 @@ public class SysPostController {
 
     private final SysPostService postService;
 
-    // 分页查询当前租户下岗位列表，需 sys:post:list
-    @GetMapping("/page")
-    @RequiresPermission("sys:post:list")
-    public Result<IPage<PostResponse>> page(@Validated PostPageRequest request) {
-        return Result.ok(postService.pagePosts(SecurityUtils.getTenantId(), request));
-    }
-
-    // 查询当前租户下岗位列表，需 sys:post:list
+    @Operation(summary = "查询岗位列表")
     @GetMapping("/list")
     @RequiresPermission("sys:post:list")
     public Result<List<PostResponse>> list() {
         return Result.ok(postService.listPosts(SecurityUtils.getTenantId()));
     }
 
-    // 按 ID 查询岗位详情，需 sys:post:query
+    @Operation(summary = "分页查询岗位列表")
+    @GetMapping("/page")
+    @RequiresPermission("sys:post:list")
+    public Result<IPage<PostResponse>> page(@Validated PostPageRequest request) {
+        return Result.ok(postService.pagePosts(SecurityUtils.getTenantId(), request));
+    }
+
+    @Operation(summary = "查询岗位详情")
     @GetMapping("/{id}")
     @RequiresPermission("sys:post:query")
     public Result<PostResponse> getById(@PathVariable String id) {
         return Result.ok(postService.getPostById(id));
     }
 
-    // 在当前租户下创建岗位，需 sys:post:add
+    @Operation(summary = "创建岗位")
     @PostMapping("/create")
     @RequiresPermission("sys:post:add")
     @OperationLog(module = "岗位管理", action = "添加岗位")
-    public Result<Void> create(
-            @Validated @RequestBody PostCreateRequest request) {
+    public Result<Void> create(@Validated @RequestBody PostCreateRequest request) {
         postService.createPost(SecurityUtils.getTenantId(), request);
         return Result.ok();
     }
 
-    // 更新当前租户下岗位信息，需 sys:post:edit
+    @Operation(summary = "编辑岗位")
     @PostMapping("/update")
     @RequiresPermission("sys:post:edit")
     @OperationLog(module = "岗位管理", action = "编辑岗位")
-    public Result<Void> update(
-            @Validated @RequestBody PostUpdateRequest request) {
+    public Result<Void> update(@Validated @RequestBody PostUpdateRequest request) {
         postService.updatePost(SecurityUtils.getTenantId(), request);
         return Result.ok();
     }
 
-    // 删除指定岗位，需 sys:post:delete
+    @Operation(summary = "删除岗位")
     @PostMapping("/delete")
     @RequiresPermission("sys:post:delete")
     @OperationLog(module = "岗位管理", action = "删除岗位")
@@ -78,7 +79,7 @@ public class SysPostController {
         return Result.ok();
     }
 
-    // 批量删除岗位
+    @Operation(summary = "批量删除岗位")
     @PostMapping("/batch/delete")
     @RequiresPermission("sys:post:delete")
     @OperationLog(module = "岗位管理", action = "批量删除岗位")

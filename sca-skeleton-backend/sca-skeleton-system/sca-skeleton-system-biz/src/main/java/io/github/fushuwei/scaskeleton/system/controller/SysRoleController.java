@@ -5,12 +5,14 @@ import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
-import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysRoleService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +20,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 角色管理 Controller。
+ * 角色管理 Controller
  *
  * @author Fu Wei
  */
+@Tag(name = "角色管理")
 @RestController
 @RequestMapping("/role")
 @RequiredArgsConstructor
@@ -29,55 +32,53 @@ public class SysRoleController {
 
     private final SysRoleService roleService;
 
-    // 分页查询当前租户下角色列表，需 sys:role:list
-    @GetMapping("/page")
-    @RequiresPermission("sys:role:list")
-    public Result<IPage<RoleResponse>> page(@Validated RolePageRequest request) {
-        return Result.ok(roleService.pageRoles(SecurityUtils.getTenantId(), request));
-    }
-
-    // 查询当前租户下角色列表，需 sys:role:list
+    @Operation(summary = "查询角色列表")
     @GetMapping("/list")
     @RequiresPermission("sys:role:list")
     public Result<List<RoleResponse>> list() {
         return Result.ok(roleService.listRoles(SecurityUtils.getTenantId()));
     }
 
-    // 按 ID 查询角色详情，需 sys:role:query
+    @Operation(summary = "分页查询角色列表")
+    @GetMapping("/page")
+    @RequiresPermission("sys:role:list")
+    public Result<IPage<RoleResponse>> page(@Validated RolePageRequest request) {
+        return Result.ok(roleService.pageRoles(SecurityUtils.getTenantId(), request));
+    }
+
+    @Operation(summary = "查询角色详情")
     @GetMapping("/{id}")
     @RequiresPermission("sys:role:query")
     public Result<RoleResponse> getById(@PathVariable String id) {
         return Result.ok(roleService.getRoleById(id));
     }
 
-    // 查询角色已分配的权限 ID 列表，需 sys:role:query
+    @Operation(summary = "查询角色已分配权限")
     @GetMapping("/{id}/permissions")
     @RequiresPermission("sys:role:query")
     public Result<List<String>> getPermissionIds(@PathVariable String id) {
         return Result.ok(roleService.getRolePermissionIds(id));
     }
 
-    // 在当前租户下创建角色，需 sys:role:add
+    @Operation(summary = "创建角色")
     @PostMapping("/create")
     @RequiresPermission("sys:role:add")
     @OperationLog(module = "角色管理", action = "添加角色")
-    public Result<Void> create(
-            @Validated @RequestBody RoleCreateRequest request) {
+    public Result<Void> create(@Validated @RequestBody RoleCreateRequest request) {
         roleService.createRole(SecurityUtils.getTenantId(), request);
         return Result.ok();
     }
 
-    // 更新当前租户下角色信息，需 sys:role:edit
+    @Operation(summary = "编辑角色")
     @PostMapping("/update")
     @RequiresPermission("sys:role:edit")
     @OperationLog(module = "角色管理", action = "编辑角色")
-    public Result<Void> update(
-            @Validated @RequestBody RoleUpdateRequest request) {
+    public Result<Void> update(@Validated @RequestBody RoleUpdateRequest request) {
         roleService.updateRole(SecurityUtils.getTenantId(), request);
         return Result.ok();
     }
 
-    // 删除指定角色，需 sys:role:delete
+    @Operation(summary = "删除角色")
     @PostMapping("/delete")
     @RequiresPermission("sys:role:delete")
     @OperationLog(module = "角色管理", action = "删除角色")
@@ -86,7 +87,7 @@ public class SysRoleController {
         return Result.ok();
     }
 
-    // 批量删除角色
+    @Operation(summary = "批量删除角色")
     @PostMapping("/batch/delete")
     @RequiresPermission("sys:role:delete")
     @OperationLog(module = "角色管理", action = "批量删除角色")
@@ -95,7 +96,7 @@ public class SysRoleController {
         return Result.ok();
     }
 
-    // 为角色分配权限，需 sys:role:assign-permission；按当前租户隔离
+    @Operation(summary = "为角色分配权限")
     @PostMapping("/assign-permission")
     @RequiresPermission("sys:role:assign-permission")
     @OperationLog(module = "角色管理", action = "分配权限")
