@@ -561,8 +561,7 @@ function handleReset() {
   searchForm.keyword = "";
   searchForm.username = "";
   searchForm.nickname = "";
-  
-  
+  searchForm.userType = "";
   searchForm.status = "";
   searchForm.deptId = "";
   extraSearch.phone = "";
