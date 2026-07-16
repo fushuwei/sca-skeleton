@@ -1090,7 +1090,7 @@ function beginRightDrawerResize(e) {
         </q-btn>
         <div class="bottom-toolbar-meta">
           <div>{{ t('layout.versionLabel') }}</div>
-          <div class="bottom-toolbar-copyright">{{ t('layout.copyright') }}</div>
+          <div class="bottom-toolbar-copyright" v-html="$t('layout.copyright')"></div>
         </div>
         <div class="bottom-toolbar-footer-actions row items-center no-wrap">
           <q-btn
@@ -1909,5 +1909,15 @@ function beginRightDrawerResize(e) {
 <style>
 .q-tooltip {
   white-space: nowrap;
+}
+
+.bottom-toolbar-copyright a {
+  color: inherit;
+  text-decoration: none !important;
+  font-weight: bold;
+}
+
+.bottom-toolbar-copyright a:hover {
+  opacity: 0.8;
 }
 </style>

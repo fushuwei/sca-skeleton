@@ -176,7 +176,11 @@
   }
 
   .bottom-toolbar-copyright {
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .bottom-toolbar-copyright a:hover {
+    opacity: 0.8;
   }
 
   .bottom-drawer-toggle,
