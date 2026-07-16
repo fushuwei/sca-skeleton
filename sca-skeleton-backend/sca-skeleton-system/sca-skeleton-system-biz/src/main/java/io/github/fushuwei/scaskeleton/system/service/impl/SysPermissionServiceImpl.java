@@ -13,10 +13,8 @@ import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionUp
 import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionResponse;
 import io.github.fushuwei.scaskeleton.system.converter.PermissionConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
-import io.github.fushuwei.scaskeleton.system.entity.SysRolePermission;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.mapper.SysPermissionMapper;
-import io.github.fushuwei.scaskeleton.system.mapper.SysRolePermissionMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysPermissionService;
 import lombok.RequiredArgsConstructor;
@@ -44,8 +42,6 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     private final PermissionConverter permissionConverter;
 
     private final SysUserRoleMapper userRoleMapper;
-
-    private final SysRolePermissionMapper rolePermissionMapper;
 
     /**
      * 查询全量权限列表
@@ -76,40 +72,22 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             return permissions.stream().map(permissionConverter::toPermissionResponse).toList();
         }
 
-        // 普通用户根据角色获取权限
+        // 获取当前用户 ID
         String userId = SecurityUtils.getUserId();
         if (!StringUtils.hasText(userId)) {
             return Collections.emptyList();
         }
 
-        // 查询用户的角色列表
+        // 查询用户的角色
         List<SysUserRole> userRoles = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>()
             .eq(SysUserRole::getUserId, userId));
         if (CollectionUtils.isEmpty(userRoles)) {
             return Collections.emptyList();
         }
 
-        // 获取角色 ID 列表
+        // 通过角色查询权限
         List<String> roleIds = userRoles.stream().map(SysUserRole::getRoleId).toList();
-
-        // 查询角色关联的权限 ID 列表
-        List<SysRolePermission> rolePermissions = rolePermissionMapper.selectList(new LambdaQueryWrapper<SysRolePermission>()
-            .in(SysRolePermission::getRoleId, roleIds));
-        if (CollectionUtils.isEmpty(rolePermissions)) {
-            return Collections.emptyList();
-        }
-
-        // 去重权限 ID
-        List<String> permissionIds = rolePermissions.stream()
-            .map(SysRolePermission::getPermissionId)
-            .distinct()
-            .toList();
-
-        // 查询权限详情（所有类型，前端负责过滤）
-        List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
-            .in(SysPermission::getId, permissionIds)
-            .eq(SysPermission::getStatus, "enabled")
-            .orderByAsc(SysPermission::getSort));
+        List<SysPermission> permissions = permissionMapper.selectPermissionsByRoleIds(roleIds);
 
         // 转换为响应对象列表
         return permissions.stream().map(permissionConverter::toPermissionResponse).toList();

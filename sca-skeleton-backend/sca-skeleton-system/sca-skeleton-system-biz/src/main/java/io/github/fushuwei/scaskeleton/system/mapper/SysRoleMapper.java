@@ -24,13 +24,4 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
      * @return 分页结果
      */
     IPage<SysRole> selectRolePage(IPage<SysRole> page, @Param("tenantId") String tenantId, @Param("request") RolePageRequest request);
-
-    /**
-     * 查询指定用户关联的角色列表
-     *
-     * @param userId   用户 ID
-     * @param tenantId 租户 ID
-     * @return 角色列表
-     */
-    List<SysRole> selectRolesByUserId(@Param("userId") String userId, @Param("tenantId") String tenantId);
 }
