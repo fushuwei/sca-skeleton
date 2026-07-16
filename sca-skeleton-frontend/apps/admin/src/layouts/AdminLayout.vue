@@ -1745,7 +1745,7 @@ function beginRightDrawerResize(e) {
   font-weight: 400;
   color: rgba(0, 0, 0, 0.45);
   line-height: 1.2;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .bottom-toolbar-footer-actions {
