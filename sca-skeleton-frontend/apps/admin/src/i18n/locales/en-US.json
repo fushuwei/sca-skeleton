@@ -39,7 +39,9 @@
     "view": "View",
     "close": "Close",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "targetTenant": "Target Tenant",
+    "targetTenantRequired": "Please select a target tenant"
   },
   "layout": {
     "brandTitle": "Data Middle Platform",

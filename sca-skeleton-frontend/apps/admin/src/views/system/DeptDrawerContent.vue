@@ -2,10 +2,13 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { SysDept, DeptTreeNode } from "../../types/auth";
+import type { SysDept, DeptTreeNode, SysTenant } from "../../types/auth";
 import { createDeptApi, updateDeptApi, getDeptListApi } from "../../apis/dept";
+import { getTenantListApi } from "../../apis/tenant";
+import { useAuthStore } from "../../stores/auth";
 
 const { t } = useI18n({ useScope: "global" });
+const authStore = useAuthStore();
 
 const props = defineProps<{
   mode: "add" | "edit" | "view";
@@ -20,10 +23,13 @@ const emit = defineEmits<{
 }>();
 
 const drawerReadonly = computed(() => props.mode === "view");
+/** 当前登录用户是否为超管（超管创建时需选择目标租户） */
+const isSuperadmin = computed(() => authStore.isSuperadmin);
 
 const formLoading = ref(false);
 const form = reactive({
   id: "",
+  tenantId: "",
   parentId: "",
   name: "",
   code: "",
@@ -33,6 +39,25 @@ const form = reactive({
   sort: 100,
   status: "enabled"
 });
+
+// ── 租户下拉数据（仅超管加载） ──
+const tenantOptions = ref<SysTenant[]>([]);
+
+async function loadTenantOptions() {
+  if (!isSuperadmin.value) return;
+  try {
+    const result = await getTenantListApi();
+    if (result.code === 10_000 && result.data) {
+      tenantOptions.value = result.data;
+    }
+  } catch {
+    // 静默失败，下拉为空
+  }
+}
+
+const tenantOptionsFormatted = computed(() =>
+  tenantOptions.value.map(t => ({ label: t.name, value: t.id }))
+);
 
 const formRules = computed(() => ({
   parentId: [(v: string) => !!v || t("deptMgmt.parentIdRequired")],
@@ -223,6 +248,7 @@ async function loadDeptTree() {
 
 function resetForm() {
   form.id = "";
+  form.tenantId = "";
   form.parentId = props.defaultParentId || "0";
   form.name = "";
   form.code = "";
@@ -264,6 +290,7 @@ watch(() => form.code, (val) => {
 
 onMounted(() => {
   loadDeptTree();
+  loadTenantOptions();
 });
 
 function handleClose() {
@@ -286,6 +313,11 @@ async function handleSave() {
   // 添加模式传 parentId，编辑模式也传 parentId（支持修改上级部门）
   if (props.mode === "add" || (props.mode === "edit" && form.parentId !== props.dept?.parentId)) {
     data.parentId = form.parentId;
+  }
+
+  // 超管创建时传目标租户 ID
+  if (props.mode === "add" && isSuperadmin.value) {
+    data.tenantId = form.tenantId;
   }
 
   try {
@@ -318,6 +350,21 @@ async function handleSave() {
   <div class="dept-drawer-content">
     <q-form class="dept-drawer-form" @submit="handleSave">
       <div class="row q-col-gutter-md">
+        <!-- 目标租户（仅超管创建时显示） -->
+        <div v-if="mode === 'add' && isSuperadmin" class="col-12">
+          <q-select
+            v-model="form.tenantId"
+            :label="t('common.targetTenant')"
+            filled
+            square
+            :options="tenantOptionsFormatted"
+            emit-value
+            map-options
+            :rules="[(v: string) => !!v || t('common.targetTenantRequired')]"
+            hide-bottom-space
+            class="required-field"
+          />
+        </div>
         <!-- 上级部门 -->
         <div class="col-12">
           <q-select

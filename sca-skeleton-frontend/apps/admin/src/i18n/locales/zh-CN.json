@@ -39,7 +39,9 @@
     "view": "查看",
     "close": "关闭",
     "yes": "是",
-    "no": "否"
+    "no": "否",
+    "targetTenant": "目标租户",
+    "targetTenantRequired": "请选择目标租户"
   },
   "layout": {
     "brandTitle": "数据中台管理系统",

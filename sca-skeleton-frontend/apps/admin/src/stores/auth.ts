@@ -101,7 +101,9 @@ export const useAuthStore = defineStore("auth", {
     dynamicReady: false
   }),
   getters: {
-    isLoggedIn: (state): boolean => Boolean(state.token)
+    isLoggedIn: (state): boolean => Boolean(state.token),
+    /** 当前登录用户是否为平台超级管理员 */
+    isSuperadmin: (state): boolean => state.profile?.isSuperadmin === 1
   },
   actions: {
     /** OAuth2 PKCE 回调成功后写入令牌并加载菜单。 */

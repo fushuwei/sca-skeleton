@@ -2,15 +2,18 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { SysUser, SysDept, SysPost, SysRole } from "../../types/auth";
+import type { SysUser, SysDept, SysPost, SysRole, SysTenant } from "../../types/auth";
 import { createUserApi, updateUserApi } from "../../apis/user";
 import { getDeptListApi } from "../../apis/dept";
 import { getPostListApi } from "../../apis/post";
 import { getRoleListApi } from "../../apis/role";
+import { getTenantListApi } from "../../apis/tenant";
 import { checkPasswordStrength } from "../../utils/passwordStrength";
+import { useAuthStore } from "../../stores/auth";
 import DateTimePicker from "../../components/DateTimePicker.vue";
 
 const { t } = useI18n({ useScope: "global" });
+const authStore = useAuthStore();
 
 const props = defineProps<{
   mode: "add" | "edit" | "view";
@@ -23,10 +26,13 @@ const emit = defineEmits<{
 }>();
 
 const drawerReadonly = computed(() => props.mode === "view");
+/** 当前登录用户是否为超管（超管创建时需选择目标租户） */
+const isSuperadmin = computed(() => authStore.isSuperadmin);
 
 const formLoading = ref(false);
 const form = reactive({
   id: "",
+  tenantId: "",
   username: "",
   password: "",
   nickname: "",
@@ -45,6 +51,25 @@ const form = reactive({
   postIds: [] as string[],
   roleIds: [] as string[]
 });
+
+// ── 租户下拉数据（仅超管加载） ──
+const tenantOptions = ref<SysTenant[]>([]);
+
+async function loadTenantOptions() {
+  if (!isSuperadmin.value) return;
+  try {
+    const result = await getTenantListApi();
+    if (result.code === 10_000 && result.data) {
+      tenantOptions.value = result.data;
+    }
+  } catch {
+    // 静默失败，下拉为空
+  }
+}
+
+const tenantOptionsFormatted = computed(() =>
+  tenantOptions.value.map(t => ({ label: t.name, value: t.id }))
+);
 
 const formRules = {
   username: [
@@ -310,6 +335,7 @@ async function loadDropdownData() {
 
 function resetForm() {
   form.id = "";
+  form.tenantId = "";
   form.username = "";
   form.password = "";
   form.nickname = "";
@@ -357,6 +383,7 @@ watch(() => props.user, initForm, { immediate: true });
 
 onMounted(() => {
   loadDropdownData();
+  loadTenantOptions();
 });
 
 function handleClose() {
@@ -389,6 +416,11 @@ async function handleSave() {
     data.password = form.password;
   }
 
+  // 超管创建时传目标租户 ID
+  if (props.mode === "add" && isSuperadmin.value) {
+    data.tenantId = form.tenantId;
+  }
+
   try {
     formLoading.value = true;
     let result;
@@ -419,6 +451,21 @@ async function handleSave() {
   <div class="user-drawer-content">
     <q-form class="user-drawer-form" @submit="handleSave">
       <div class="row q-col-gutter-md">
+        <!-- 目标租户（仅超管创建时显示） -->
+        <div v-if="mode === 'add' && isSuperadmin" class="col-12">
+          <q-select
+            v-model="form.tenantId"
+            :label="t('common.targetTenant')"
+            filled
+            square
+            :options="tenantOptionsFormatted"
+            emit-value
+            map-options
+            :rules="[(v: string) => !!v || t('common.targetTenantRequired')]"
+            hide-bottom-space
+            class="required-field"
+          />
+        </div>
         <!-- 用户名 -->
         <div class="col-12 col-md-6">
           <q-input
