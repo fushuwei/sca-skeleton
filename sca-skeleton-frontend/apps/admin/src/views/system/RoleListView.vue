@@ -809,12 +809,6 @@ onMounted(() => {
   min-width: 160px;
 }
 
-.status-placeholder {
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 14px;
-  pointer-events: none;
-}
-
 /* ── 工具栏区域 ── */
 .toolbar-area {
   flex-shrink: 0;

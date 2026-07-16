@@ -107,16 +107,25 @@ function mapMenuToTreeNode(item) {
   }
   return {
     label: translateMenuItemTitle(item),
-    name: nodeKey
+    name: nodeKey,
+    selectable: !!item.component
   };
 }
 
-/** 顶层手风琴对应一棵树：有 children 则展开一层；单页叶子则树内仅一行 */
+/**
+ * 顶层手风琴对应一棵树：
+ * - 有 children 则展示为子节点树；
+ * - 无子节点时，仅当模块自身可路由（配置了 component）才作为单个可点击叶子，
+ *   否则不渲染任何子项，避免出现「模块自己作为自己子菜单」的幽灵条目（点击还会因无对应路由而报错）。
+ */
 function menuToTreeNodes(topItem) {
   if (topItem.children?.length) {
     return topItem.children.map(mapMenuToTreeNode);
   }
-  return [mapMenuToTreeNode(topItem)];
+  if (topItem.component) {
+    return [mapMenuToTreeNode(topItem)];
+  }
+  return [];
 }
 
 function filterTreeNodesByKeyword(nodes, keyword) {
@@ -480,6 +489,10 @@ function handleTreeSelect(routeName) {
   }
   const name = String(routeName);
   if (name === activeRouteName.value) {
+    return;
+  }
+  // 仅当对应路由已注册时才跳转，避免点击无 component / 未注册路由的菜单项抛错
+  if (!router.hasRoute(name)) {
     return;
   }
   router.push({ name });

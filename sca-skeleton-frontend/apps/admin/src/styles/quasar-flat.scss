@@ -21,12 +21,16 @@
   padding: 4px 16px;
 }
 
-/* 修复：下拉框清空后占位符文字颜色变黑（scoped 样式在 #selected slot 动态重建时未生效）。
-   颜色与原生 q-input 占位符保持一致：rgba(0,0,0,0.87) × opacity 0.7 ≈ 0.6 */
+/* ═══ 使用 Quasar 原生 placeholder 样式逻辑：继承颜色 + opacity 降低可见度 ═══
+ * Quasar 的 ::placeholder 使用 color: inherit; opacity: 0.7
+ * 因此 .status-placeholder 应该继承父元素颜色并应用相同的 opacity
+ */
 .q-field__native .status-placeholder {
-  color: rgba(0, 0, 0, 0.6) !important;
+  color: inherit;
+  opacity: 0.7;
 }
 
 .body--dark .q-field__native .status-placeholder {
-  color: rgba(255, 255, 255, 0.7) !important;
+  color: inherit;
+  opacity: 0.7;
 }
