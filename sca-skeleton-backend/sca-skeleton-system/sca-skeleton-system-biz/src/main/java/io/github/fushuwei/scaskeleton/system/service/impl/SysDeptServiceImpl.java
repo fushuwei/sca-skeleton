@@ -198,7 +198,7 @@ public class SysDeptServiceImpl implements SysDeptService {
         dept.setEmail(request.getEmail());
         dept.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : dept.getStatus());
 
-        // 如果上级部门变更，重新计算 treePath
+        // 如果上级部门变更，重新生成 treePath
         if (parentChanged) {
             dept.setTreePath(buildTreePath(dept.getParentId(), dept.getId()));
         }

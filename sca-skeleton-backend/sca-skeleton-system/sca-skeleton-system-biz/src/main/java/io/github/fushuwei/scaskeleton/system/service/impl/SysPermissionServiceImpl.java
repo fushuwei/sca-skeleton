@@ -248,7 +248,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         permission.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : permission.getStatus());
         permission.setRemark(request.getRemark());
 
-        // 如果上级权限变更，重新计算 treePath
+        // 如果上级权限变更，重新生成 treePath
         if (parentChanged) {
             permission.setTreePath(buildTreePath(permission.getParentId(), permission.getId()));
         }
