@@ -14,6 +14,11 @@ import java.util.List;
 @Data
 public class RoleCreateRequest {
 
+    // ==================== 租户信息 ====================
+
+    /** 目标租户 ID（仅超管创建时必填，非超管传入会被忽略） */
+    private String tenantId;
+
     // ==================== 基本信息 ====================
 
     /** 角色名称 */

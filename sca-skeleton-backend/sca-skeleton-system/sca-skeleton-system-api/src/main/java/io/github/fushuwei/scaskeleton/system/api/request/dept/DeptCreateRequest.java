@@ -11,6 +11,9 @@ import lombok.Data;
 @Data
 public class DeptCreateRequest {
 
+    /** 目标租户 ID（仅超管创建时必填，非超管传入会被忽略） */
+    private String tenantId;
+
     /** 上级部门 ID（顶级为 "0"） */
     @NotBlank(message = "上级部门 ID 不能为空")
     private String parentId;

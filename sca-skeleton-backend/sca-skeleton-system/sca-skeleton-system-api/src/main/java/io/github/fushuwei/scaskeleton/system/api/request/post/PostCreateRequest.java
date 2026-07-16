@@ -11,6 +11,9 @@ import lombok.Data;
 @Data
 public class PostCreateRequest {
 
+    /** 目标租户 ID（仅超管创建时必填，非超管传入会被忽略） */
+    private String tenantId;
+
     /** 岗位名称 */
     @NotBlank(message = "岗位名称不能为空")
     private String name;

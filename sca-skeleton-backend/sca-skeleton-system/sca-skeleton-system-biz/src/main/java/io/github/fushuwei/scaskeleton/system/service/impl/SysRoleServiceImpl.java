@@ -14,14 +14,17 @@ import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
 import io.github.fushuwei.scaskeleton.system.converter.RoleConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysRole;
 import io.github.fushuwei.scaskeleton.system.entity.SysRolePermission;
+import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRolePermissionMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysRoleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +43,8 @@ public class SysRoleServiceImpl implements SysRoleService {
     private final SysRoleMapper roleMapper;
 
     private final SysRolePermissionMapper rolePermissionMapper;
+
+    private final SysTenantMapper tenantMapper;
 
     private final RoleConverter roleConverter;
 
@@ -93,8 +98,8 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createRole(RoleCreateRequest request) {
-        // 获取租户 ID
-        String tenantId = SecurityUtils.getTenantId();
+        // 获取租户 ID（如果是超管创建，该值由前端页面传入，如果是租户内部用户自己创建，则取当前登录人所在租户的 ID）
+        String tenantId = resolveTenantId(request.getTenantId());
 
         // 角色编码在同一个租户内唯一
         long count = roleMapper.selectCount(new LambdaQueryWrapper<SysRole>()
@@ -118,7 +123,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         roleMapper.insert(role);
 
         // 保存关联关系
-        saveRolePermissions(role.getId(), request.getPermissionIds());
+        saveRolePermissions(role.getId(), tenantId, request.getPermissionIds());
     }
 
     /**
@@ -143,7 +148,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
         // 删除旧的关联关系，并保存新的关联关系
         deleteRolePermissions(request.getId());
-        saveRolePermissions(request.getId(), request.getPermissionIds());
+        saveRolePermissions(request.getId(), role.getTenantId(), request.getPermissionIds());
     }
 
     /**
@@ -209,25 +214,23 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Transactional(rollbackFor = Exception.class)
     public void assignPermissions(RolePermissionAssignRequest request) {
         // 加载可操作角色实体
-        loadOperableRoleEntity(request.getId());
+        SysRole role = loadOperableRoleEntity(request.getId());
 
-        // 先清空该角色下原有权限关联（全量替换策略）
+        // 先清空该角色下原有权限关联关系
         deleteRolePermissions(request.getId());
 
-        // 保存新的角色-权限关联
-        saveRolePermissions(request.getId(), request.getPermissionIds());
+        // 保存新的角色与权限关联关系
+        saveRolePermissions(request.getId(), role.getTenantId(), request.getPermissionIds());
     }
 
     /**
      * 保存角色与权限的关联关系
      *
      * @param roleId        角色 ID
+     * @param tenantId      租户 ID
      * @param permissionIds 权限 ID 列表
      */
-    private void saveRolePermissions(String roleId, List<String> permissionIds) {
-        // 获取租户 ID
-        String tenantId = SecurityUtils.getTenantId();
-
+    private void saveRolePermissions(String roleId, String tenantId, List<String> permissionIds) {
         // 保存角色与权限关联关系
         if (!CollectionUtils.isEmpty(permissionIds)) {
             permissionIds.forEach(permId -> {
@@ -248,6 +251,26 @@ public class SysRoleServiceImpl implements SysRoleService {
     private void deleteRolePermissions(String roleId) {
         rolePermissionMapper.delete(new LambdaQueryWrapper<SysRolePermission>()
             .eq(SysRolePermission::getRoleId, roleId));
+    }
+
+    /**
+     * 解析创建时的目标租户 ID
+     *
+     * @param requestTenantId 创建时传入的目标租户 ID（仅当超管创建时才会使用该参数）
+     * @return 实际写入用的租户 ID
+     */
+    private String resolveTenantId(String requestTenantId) {
+        if (SecurityUtils.isSuperAdmin()) {
+            if (!StringUtils.hasText(requestTenantId)) {
+                throw new BusinessException(ResultCode.VALIDATION_ERROR, "超管创建需指定目标租户");
+            }
+            SysTenant tenant = tenantMapper.selectById(requestTenantId);
+            if (tenant == null) {
+                throw new BusinessException(ResultCode.NOT_FOUND, "目标租户不存在");
+            }
+            return requestTenantId;
+        }
+        return SecurityUtils.getTenantId();
     }
 
     /**

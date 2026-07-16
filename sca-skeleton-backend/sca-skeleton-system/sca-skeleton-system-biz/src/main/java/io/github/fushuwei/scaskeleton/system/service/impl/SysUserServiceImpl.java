@@ -20,10 +20,12 @@ import io.github.fushuwei.scaskeleton.system.entity.SysUser;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserDept;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserPost;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
+import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserDeptMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserPostMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +56,8 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysUserDeptMapper userDeptMapper;
 
     private final SysUserPostMapper userPostMapper;
+
+    private final SysTenantMapper tenantMapper;
 
     private final UserConverter userConverter;
 
@@ -147,8 +151,8 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createUser(UserCreateRequest request) {
-        // 获取租户 ID
-        String tenantId = SecurityUtils.getTenantId();
+        // 获取租户 ID（如果是超管创建，该值由前端页面传入，如果是租户内部用户自己创建，则取当前登录人所在租户的 ID）
+        String tenantId = resolveTenantId(request.getTenantId());
 
         // 用户名在同一个租户内唯一
         long count = userMapper.selectCount(new LambdaQueryWrapper<SysUser>()
@@ -182,7 +186,7 @@ public class SysUserServiceImpl implements SysUserService {
         userMapper.insert(user);
 
         // 保存关联关系
-        saveUserRelations(user.getId(), request.getRoleIds(), request.getDeptIds(), request.getPostIds());
+        saveUserRelations(user.getId(), tenantId, request.getRoleIds(), request.getDeptIds(), request.getPostIds());
     }
 
     /**
@@ -218,8 +222,8 @@ public class SysUserServiceImpl implements SysUserService {
         userMapper.updateById(user);
 
         // 删除旧的关联关系，并保存新的关联关系
-        deleteUserRelations(request.getId());
-        saveUserRelations(request.getId(), request.getRoleIds(), request.getDeptIds(), request.getPostIds());
+        deleteUserRelations(request.getId(), user.getTenantId());
+        saveUserRelations(request.getId(), user.getTenantId(), request.getRoleIds(), request.getDeptIds(), request.getPostIds());
     }
 
     /**
@@ -237,7 +241,7 @@ public class SysUserServiceImpl implements SysUserService {
         userMapper.deleteById(user.getId());
 
         // 删除关联关系
-        deleteUserRelations(user.getId());
+        deleteUserRelations(user.getId(), user.getTenantId());
     }
 
     /**
@@ -318,15 +322,13 @@ public class SysUserServiceImpl implements SysUserService {
     /**
      * 保存用户与角色、部门和岗位的关联关系
      *
-     * @param userId  用户 ID
-     * @param roleIds 角色 ID 列表
-     * @param deptIds 部门 ID 列表
-     * @param postIds 岗位 ID 列表
+     * @param userId   用户 ID
+     * @param tenantId 租户 ID
+     * @param roleIds  角色 ID 列表
+     * @param deptIds  部门 ID 列表
+     * @param postIds  岗位 ID 列表
      */
-    private void saveUserRelations(String userId, List<String> roleIds, List<String> deptIds, List<String> postIds) {
-        // 获取租户 ID
-        String tenantId = SecurityUtils.getTenantId();
-
+    private void saveUserRelations(String userId, String tenantId, List<String> roleIds, List<String> deptIds, List<String> postIds) {
         // 保存用户与角色关联关系
         if (!CollectionUtils.isEmpty(roleIds)) {
             roleIds.forEach(roleId -> {
@@ -362,16 +364,34 @@ public class SysUserServiceImpl implements SysUserService {
     /**
      * 删除用户与角色、部门和岗位的关联关系
      *
-     * @param userId 用户 ID
+     * @param userId   用户 ID
+     * @param tenantId 租户 ID
      */
-    private void deleteUserRelations(String userId) {
-        // 获取租户 ID
-        String tenantId = SecurityUtils.getTenantId();
-
+    private void deleteUserRelations(String userId, String tenantId) {
         // 删除关联关系
         userRoleMapper.physicalDeleteByUser(tenantId, userId);
         userDeptMapper.physicalDeleteByUser(tenantId, userId);
         userPostMapper.physicalDeleteByUser(tenantId, userId);
+    }
+
+    /**
+     * 解析创建时的目标租户 ID
+     *
+     * @param requestTenantId 创建时传入的目标租户 ID（仅当超管创建时才会使用该参数）
+     * @return 实际写入用的租户 ID
+     */
+    private String resolveTenantId(String requestTenantId) {
+        if (SecurityUtils.isSuperAdmin()) {
+            if (!StringUtils.hasText(requestTenantId)) {
+                throw new BusinessException(ResultCode.VALIDATION_ERROR, "超管创建需指定目标租户");
+            }
+            SysTenant tenant = tenantMapper.selectById(requestTenantId);
+            if (tenant == null) {
+                throw new BusinessException(ResultCode.NOT_FOUND, "目标租户不存在");
+            }
+            return requestTenantId;
+        }
+        return SecurityUtils.getTenantId();
     }
 
     /**

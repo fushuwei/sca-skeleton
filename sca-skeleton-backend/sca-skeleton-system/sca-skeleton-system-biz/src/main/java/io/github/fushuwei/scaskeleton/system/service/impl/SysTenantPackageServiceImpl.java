@@ -252,10 +252,10 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
         // 加载套餐实体
         loadPackageEntity(request.getId());
 
-        // 先清空该套餐下原有权限关联（全量替换策略）
+        // 先清空该套餐下原有权限关联关系
         deletePackagePermissions(request.getId());
 
-        // 保存新的套餐-权限关联
+        // 保存新的套餐与权限关联关系
         savePackagePermissions(request.getId(), request.getPermissionIds());
     }
 
