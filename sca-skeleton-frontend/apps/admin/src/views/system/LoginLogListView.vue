@@ -48,6 +48,17 @@ const statusLabelOf = (isSuccess: number): string =>
 const statusColorOf = (isSuccess: number): string =>
   isSuccess === 1 ? "green-7" : "red-7";
 
+// ── 设备类型：后端返回英文，前端按 i18n 映射为本地化文案 ──
+const DEVICE_TYPE_MAP: Record<string, string> = {
+  Mobile: "loginLog.deviceType.mobile",
+  Tablet: "loginLog.deviceType.tablet",
+  PC: "loginLog.deviceType.pc",
+  Unknown: "loginLog.deviceType.unknown"
+};
+
+const deviceLabelOf = (device: string): string =>
+  device ? (DEVICE_TYPE_MAP[device] ? t(DEVICE_TYPE_MAP[device]) : device) : "";
+
 // ── 耗时颜色 ──
 const costColorOf = (ms: number): string => {
   if (ms > 3000) return "text-red-7";
@@ -299,6 +310,11 @@ function handleReset() {
   searchForm.isSuccess = undefined;
   searchForm.startTime = "";
   searchForm.endTime = "";
+  // 清空排序状态（与 q-table 的 pagination.sortBy / descending 保持一致）
+  sortState.value.sortBy = "";
+  sortState.value.descending = false;
+  tablePagination.value.sortBy = "";
+  tablePagination.value.descending = false;
   tablePagination.value.page = 1;
   curPage.value = 1;
   loadTableData();
@@ -802,7 +818,7 @@ onMounted(() => {
                         <q-badge
                           v-if="detailData.device"
                           color="blue-grey-6"
-                          :label="detailData.device"
+                          :label="deviceLabelOf(detailData.device)"
                           rounded
                           class="log-type-badge"
                         />

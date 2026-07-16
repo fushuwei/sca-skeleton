@@ -442,6 +442,12 @@
     "clientIp": "Client IP",
     "location": "Location",
     "device": "Device",
+    "deviceType": {
+      "mobile": "Mobile",
+      "tablet": "Tablet",
+      "pc": "PC",
+      "unknown": "Unknown"
+    },
     "browser": "Browser",
     "os": "OS",
     "errorMessage": "Error Message",

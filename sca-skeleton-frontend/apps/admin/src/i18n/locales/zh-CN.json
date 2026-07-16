@@ -442,6 +442,12 @@
     "clientIp": "客户端IP",
     "location": "登录位置",
     "device": "设备类型",
+    "deviceType": {
+      "mobile": "手机",
+      "tablet": "平板",
+      "pc": "电脑",
+      "unknown": "未知"
+    },
     "browser": "浏览器",
     "os": "操作系统",
     "errorMessage": "异常信息",

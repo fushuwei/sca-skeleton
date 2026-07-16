@@ -231,6 +231,11 @@ function handleJumpToPage() {
 
 function handleReset() {
   searchForm.keyword = "";
+  // 清空排序状态（与 q-table 的 pagination.sortBy / descending 保持一致）
+  sortState.value.sortBy = "";
+  sortState.value.descending = false;
+  tablePagination.value.sortBy = "";
+  tablePagination.value.descending = false;
   tablePagination.value.page = 1;
   curPage.value = 1;
   loadTableData();
