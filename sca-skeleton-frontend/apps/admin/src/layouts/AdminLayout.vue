@@ -1088,7 +1088,10 @@ function beginRightDrawerResize(e) {
         >
           <q-tooltip>{{ leftDrawerOpen ? t('layout.toggleLeftPanel') : t('layout.showLeftPanel') }}</q-tooltip>
         </q-btn>
-        <div class="bottom-toolbar-meta">{{ t('layout.versionLabel') }}</div>
+        <div class="bottom-toolbar-meta">
+          <div>{{ t('layout.versionLabel') }}</div>
+          <div class="bottom-toolbar-copyright">{{ t('layout.copyright') }}</div>
+        </div>
         <div class="bottom-toolbar-footer-actions row items-center no-wrap">
           <q-btn
             flat
@@ -1735,6 +1738,14 @@ function beginRightDrawerResize(e) {
   font-weight: 500;
   color: rgba(0, 0, 0, 0.65);
   line-height: 1.2;
+}
+
+.bottom-toolbar-copyright {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.45);
+  line-height: 1.2;
+  margin-top: 1px;
 }
 
 .bottom-toolbar-footer-actions {
