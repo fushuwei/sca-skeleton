@@ -208,7 +208,8 @@ public class SysPostServiceImpl implements SysPostService {
         if (post == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "岗位不存在");
         }
-        if (!Objects.equals(post.getTenantId(), SecurityUtils.getTenantId())) {
+        if (!SecurityUtils.isSuperAdmin()
+            && !Objects.equals(post.getTenantId(), SecurityUtils.getTenantId())) {
             throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
         }
         return post;

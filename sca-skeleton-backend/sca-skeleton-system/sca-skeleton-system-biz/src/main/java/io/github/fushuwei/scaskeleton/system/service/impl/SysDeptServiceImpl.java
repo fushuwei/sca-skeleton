@@ -282,7 +282,8 @@ public class SysDeptServiceImpl implements SysDeptService {
         if (dept == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "部门不存在");
         }
-        if (!Objects.equals(dept.getTenantId(), SecurityUtils.getTenantId())) {
+        if (!SecurityUtils.isSuperAdmin()
+            && !Objects.equals(dept.getTenantId(), SecurityUtils.getTenantId())) {
             throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
         }
         return dept;

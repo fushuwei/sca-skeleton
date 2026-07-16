@@ -49,15 +49,16 @@ const statusColorOf = (isSuccess: number): string =>
   isSuccess === 1 ? "green-7" : "red-7";
 
 // ── 设备类型：后端返回英文，前端按 i18n 映射为本地化文案 ──
-const DEVICE_TYPE_MAP: Record<string, string> = {
-  Mobile: "loginLog.deviceType.mobile",
-  Tablet: "loginLog.deviceType.tablet",
-  PC: "loginLog.deviceType.pc",
-  Unknown: "loginLog.deviceType.unknown"
-};
+// 使用 computed 确保语言切换时映射表响应式更新
+const deviceLabelMap = computed<Record<string, string>>(() => ({
+  Mobile: t("loginLog.deviceType.mobile"),
+  Tablet: t("loginLog.deviceType.tablet"),
+  PC: t("loginLog.deviceType.pc"),
+  Unknown: t("loginLog.deviceType.unknown")
+}));
 
 const deviceLabelOf = (device: string): string =>
-  device ? (DEVICE_TYPE_MAP[device] ? t(DEVICE_TYPE_MAP[device]) : device) : "";
+  device ? (deviceLabelMap.value[device] ?? device) : "";
 
 // ── 耗时颜色 ──
 const costColorOf = (ms: number): string => {

@@ -385,7 +385,8 @@ public class SysUserServiceImpl implements SysUserService {
         if (user == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在");
         }
-        if (!Objects.equals(user.getTenantId(), SecurityUtils.getTenantId())) {
+        if (!SecurityUtils.isSuperAdmin()
+            && !Objects.equals(user.getTenantId(), SecurityUtils.getTenantId())) {
             throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
         }
         return user;

@@ -261,7 +261,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         if (role == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "角色不存在");
         }
-        if (!Objects.equals(role.getTenantId(), SecurityUtils.getTenantId())) {
+        if (!SecurityUtils.isSuperAdmin()
+            && !Objects.equals(role.getTenantId(), SecurityUtils.getTenantId())) {
             throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
         }
         return role;
