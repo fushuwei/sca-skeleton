@@ -60,6 +60,17 @@ const deviceLabelMap = computed<Record<string, string>>(() => ({
 const deviceLabelOf = (device: string): string =>
   device ? (deviceLabelMap.value[device] ?? device) : "";
 
+// 设备类型颜色：刻意避开绿/红，以免与成功/失败状态色混淆
+const DEVICE_COLOR_MAP: Record<string, string> = {
+  Mobile: "blue-7",
+  Tablet: "purple-6",
+  PC: "indigo-8",
+  Unknown: "blue-grey-6"
+};
+
+const deviceColorOf = (device: string): string =>
+  DEVICE_COLOR_MAP[device] ?? "blue-grey-6";
+
 // ── 耗时颜色 ──
 const costColorOf = (ms: number): string => {
   if (ms > 3000) return "text-red-7";
@@ -602,7 +613,7 @@ onMounted(() => {
           <q-td :props="props">
             <q-badge
               v-if="props.value"
-              color="blue-grey-6"
+              :color="deviceColorOf(props.value)"
               :label="deviceLabelOf(props.value)"
               rounded
               class="log-type-badge"
@@ -818,7 +829,7 @@ onMounted(() => {
                       <div class="detail-field-value">
                         <q-badge
                           v-if="detailData.device"
-                          color="blue-grey-6"
+                          :color="deviceColorOf(detailData.device)"
                           :label="deviceLabelOf(detailData.device)"
                           rounded
                           class="log-type-badge"
