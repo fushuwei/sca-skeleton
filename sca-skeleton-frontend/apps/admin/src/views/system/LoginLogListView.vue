@@ -60,11 +60,11 @@ const deviceLabelMap = computed<Record<string, string>>(() => ({
 const deviceLabelOf = (device: string): string =>
   device ? (deviceLabelMap.value[device] ?? device) : "";
 
-// 设备类型颜色：刻意避开绿/红，以免与成功/失败状态色混淆
+// 设备类型颜色：以 blue 蓝色为基准色，按设备类型做同色系变异；刻意避开绿/红，以免与成功/失败状态色混淆
 const DEVICE_COLOR_MAP: Record<string, string> = {
-  Mobile: "blue-7",
-  Tablet: "purple-6",
-  PC: "indigo-8",
+  Mobile: "light-blue-7",
+  Tablet: "cyan-9",
+  PC: "blue-9",
   Unknown: "blue-grey-6"
 };
 
