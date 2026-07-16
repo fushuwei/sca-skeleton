@@ -10,7 +10,7 @@
     "./vite-plugin": "./src/vite-plugin-dev-landing.ts"
   },
   "peerDependencies": {
-    "quasar": "2.19.3",
+    "quasar": "2.21.4",
     "vite": "8.0.16",
     "vue": "3.5.33",
     "vue-i18n": "^10.0.7"
