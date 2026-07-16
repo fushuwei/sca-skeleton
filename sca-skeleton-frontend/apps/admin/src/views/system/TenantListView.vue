@@ -901,7 +901,8 @@ onMounted(() => {
 
 .status-select :deep(.q-field__native),
 .package-select :deep(.q-field__native) {
-  color: rgba(0, 0, 0, 0.72);
+  /* 与搜索文本框（q-input）输入文字颜色保持一致：rgba(0, 0, 0, 0.87) */
+  color: rgba(0, 0, 0, 0.87);
 }
 
 .status-select :deep(.q-field__control),
