@@ -603,7 +603,7 @@ onMounted(() => {
             <q-badge
               v-if="props.value"
               color="blue-grey-6"
-              :label="props.value"
+              :label="deviceLabelOf(props.value)"
               rounded
               class="log-type-badge"
             />
