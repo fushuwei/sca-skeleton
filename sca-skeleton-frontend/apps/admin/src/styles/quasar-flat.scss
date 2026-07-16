@@ -27,13 +27,20 @@
  * q-select 的 .q-field__native 已由各列表页 scoped 样式对齐为 rgba(0,0,0,0.87)（与 q-input 输入文字一致）
  *
  * 显式指定基色 0.87 再叠加 opacity: 0.7，确保空状态占位文字与 q-input 占位符（0.87×0.7≈0.609）完全一致。
+ *
+ * 注意：Quasar q-select 在选中后清空时，会用 <span class="ellipsis"> 替代
+ * v-slot:selected 中的 <span class="status-placeholder">，因此必须同时覆盖两者。
+ * 使用 :has(.q-select__focus-target[value=""]) 精准限定仅在无值时生效，
+ * 避免影响已选中值的文字显示（选中值应保持 opacity: 1）。
  */
-.q-field__native .status-placeholder {
+.q-field__native .status-placeholder,
+.status-select:has(.q-select__focus-target[value=""]) .q-field__native > .ellipsis {
   color: rgba(0, 0, 0, 0.87);
   opacity: 0.7;
 }
 
-.body--dark .q-field__native .status-placeholder {
+.body--dark .q-field__native .status-placeholder,
+.body--dark .status-select:has(.q-select__focus-target[value=""]) .q-field__native > .ellipsis {
   color: rgba(255, 255, 255, 0.87);
   opacity: 0.7;
 }
