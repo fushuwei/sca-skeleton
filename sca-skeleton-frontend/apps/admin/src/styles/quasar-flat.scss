@@ -21,16 +21,21 @@
   padding: 4px 16px;
 }
 
-/* ═══ 使用 Quasar 原生 placeholder 样式逻辑：继承颜色 + opacity 降低可见度 ═══
- * Quasar 的 ::placeholder 使用 color: inherit; opacity: 0.7
- * 因此 .status-placeholder 应该继承父元素颜色并应用相同的 opacity
+/* ═══ 下拉框占位符与 q-input 的 ::placeholder 保持完全一致 ═══
+ * Quasar ::placeholder 实现：color: inherit; opacity: 0.7
+ * q-input 的 .q-field__native 颜色为 rgba(0,0,0,0.87)（Quasar 默认）
+ * q-select 的 .q-field__native 被 scoped 样式覆盖为 rgba(0,0,0,0.72)
+ *
+ * 若用 color: inherit，placeholder 会继承 0.72 而非 0.87，
+ * 经 opacity: 0.7 后：0.72×0.7=0.504 vs 0.87×0.7=0.609，肉眼可见差异。
+ * 因此必须显式指定与 q-input 一致的基色 0.87，再叠加 opacity: 0.7。
  */
 .q-field__native .status-placeholder {
-  color: inherit;
+  color: rgba(0, 0, 0, 0.87);
   opacity: 0.7;
 }
 
 .body--dark .q-field__native .status-placeholder {
-  color: inherit;
+  color: rgba(255, 255, 255, 0.87);
   opacity: 0.7;
 }
