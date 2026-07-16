@@ -34,7 +34,7 @@ export async function updateUserApi(data: Record<string, unknown>): Promise<ApiE
 
 /** 删除用户 */
 export async function deleteUserApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: "/sys/user/delete", data: id });
+  return request<null>({ method: "POST", url: "/sys/user/delete", data: { id } });
 }
 
 /** 批量删除用户 */

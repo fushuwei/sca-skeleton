@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
+import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserBatchStatusRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
@@ -76,8 +77,8 @@ public class SysUserController {
     @PostMapping("/delete")
     @RequiresPermission("sys:user:delete")
     @OperationLog(module = "用户管理", action = "删除用户")
-    public Result<Void> delete(@RequestBody String id) {
-        userService.deleteUser(id);
+    public Result<Void> delete(@Validated @RequestBody DeleteRequest request) {
+        userService.deleteUser(request.getId());
         return Result.ok();
     }
 

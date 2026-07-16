@@ -186,7 +186,7 @@ public class SysUserServiceImpl implements SysUserService {
         userMapper.insert(user);
 
         // 保存关联关系
-        saveUserRelations(user.getId(), tenantId, request.getRoleIds(), request.getDeptIds(), request.getPostIds());
+        saveUserRelations(tenantId, user.getId(), request.getRoleIds(), request.getDeptIds(), request.getPostIds());
     }
 
     /**
@@ -222,8 +222,8 @@ public class SysUserServiceImpl implements SysUserService {
         userMapper.updateById(user);
 
         // 删除旧的关联关系，并保存新的关联关系
-        deleteUserRelations(request.getId(), user.getTenantId());
-        saveUserRelations(request.getId(), user.getTenantId(), request.getRoleIds(), request.getDeptIds(), request.getPostIds());
+        deleteUserRelations(user.getTenantId(), request.getId());
+        saveUserRelations(user.getTenantId(), request.getId(), request.getRoleIds(), request.getDeptIds(), request.getPostIds());
     }
 
     /**
@@ -241,7 +241,7 @@ public class SysUserServiceImpl implements SysUserService {
         userMapper.deleteById(user.getId());
 
         // 删除关联关系
-        deleteUserRelations(user.getId(), user.getTenantId());
+        deleteUserRelations(user.getTenantId(), user.getId());
     }
 
     /**
@@ -322,13 +322,13 @@ public class SysUserServiceImpl implements SysUserService {
     /**
      * 保存用户与角色、部门和岗位的关联关系
      *
-     * @param userId   用户 ID
      * @param tenantId 租户 ID
+     * @param userId   用户 ID
      * @param roleIds  角色 ID 列表
      * @param deptIds  部门 ID 列表
      * @param postIds  岗位 ID 列表
      */
-    private void saveUserRelations(String userId, String tenantId, List<String> roleIds, List<String> deptIds, List<String> postIds) {
+    private void saveUserRelations(String tenantId, String userId, List<String> roleIds, List<String> deptIds, List<String> postIds) {
         // 保存用户与角色关联关系
         if (!CollectionUtils.isEmpty(roleIds)) {
             roleIds.forEach(roleId -> {
@@ -364,10 +364,10 @@ public class SysUserServiceImpl implements SysUserService {
     /**
      * 删除用户与角色、部门和岗位的关联关系
      *
-     * @param userId   用户 ID
      * @param tenantId 租户 ID
+     * @param userId   用户 ID
      */
-    private void deleteUserRelations(String userId, String tenantId) {
+    private void deleteUserRelations(String tenantId, String userId) {
         // 删除关联关系
         userRoleMapper.physicalDeleteByUser(tenantId, userId);
         userDeptMapper.physicalDeleteByUser(tenantId, userId);

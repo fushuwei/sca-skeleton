@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
+import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePermissionAssignRequest;
@@ -81,8 +82,8 @@ public class SysTenantPackageController {
     @PostMapping("/delete")
     @RequiresPermission("sys:tenant-package:delete")
     @OperationLog(module = "套餐管理", action = "删除套餐")
-    public Result<Void> delete(@RequestBody String id) {
-        packageService.deletePackage(id);
+    public Result<Void> delete(@Validated @RequestBody DeleteRequest request) {
+        packageService.deletePackage(request.getId());
         return Result.ok();
     }
 

@@ -123,7 +123,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         roleMapper.insert(role);
 
         // 保存关联关系
-        saveRolePermissions(role.getId(), tenantId, request.getPermissionIds());
+        saveRolePermissions(tenantId, role.getId(), request.getPermissionIds());
     }
 
     /**
@@ -148,7 +148,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
         // 删除旧的关联关系，并保存新的关联关系
         deleteRolePermissions(request.getId());
-        saveRolePermissions(request.getId(), role.getTenantId(), request.getPermissionIds());
+        saveRolePermissions(role.getTenantId(), request.getId(), request.getPermissionIds());
     }
 
     /**
@@ -220,17 +220,17 @@ public class SysRoleServiceImpl implements SysRoleService {
         deleteRolePermissions(request.getId());
 
         // 保存新的角色与权限关联关系
-        saveRolePermissions(request.getId(), role.getTenantId(), request.getPermissionIds());
+        saveRolePermissions(role.getTenantId(), request.getId(), request.getPermissionIds());
     }
 
     /**
      * 保存角色与权限的关联关系
      *
-     * @param roleId        角色 ID
      * @param tenantId      租户 ID
+     * @param roleId        角色 ID
      * @param permissionIds 权限 ID 列表
      */
-    private void saveRolePermissions(String roleId, String tenantId, List<String> permissionIds) {
+    private void saveRolePermissions(String tenantId, String roleId, List<String> permissionIds) {
         // 保存角色与权限关联关系
         if (!CollectionUtils.isEmpty(permissionIds)) {
             permissionIds.forEach(permId -> {

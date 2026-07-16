@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
+import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenant.TenantCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenant.TenantPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenant.TenantUpdateRequest;
@@ -73,8 +74,8 @@ public class SysTenantController {
     @PostMapping("/delete")
     @RequiresPermission("sys:tenant:delete")
     @OperationLog(module = "租户管理", action = "删除租户")
-    public Result<Void> delete(@RequestBody String id) {
-        tenantService.deleteTenant(id);
+    public Result<Void> delete(@Validated @RequestBody DeleteRequest request) {
+        tenantService.deleteTenant(request.getId());
         return Result.ok();
     }
 

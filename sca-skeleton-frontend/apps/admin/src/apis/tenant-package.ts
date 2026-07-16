@@ -39,7 +39,7 @@ export async function updateTenantPackageApi(data: Record<string, unknown>): Pro
 
 /** 删除套餐 */
 export async function deleteTenantPackageApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: "/sys/tenant-package/delete", data: id });
+  return request<null>({ method: "POST", url: "/sys/tenant-package/delete", data: { id } });
 }
 
 /** 批量删除套餐 */

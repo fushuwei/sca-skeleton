@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
+import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.post.PostCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.post.PostPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.post.PostUpdateRequest;
@@ -73,8 +74,8 @@ public class SysPostController {
     @PostMapping("/delete")
     @RequiresPermission("sys:post:delete")
     @OperationLog(module = "岗位管理", action = "删除岗位")
-    public Result<Void> delete(@RequestBody String id) {
-        postService.deletePost(id);
+    public Result<Void> delete(@Validated @RequestBody DeleteRequest request) {
+        postService.deletePost(request.getId());
         return Result.ok();
     }
 

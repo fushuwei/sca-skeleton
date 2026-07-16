@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
+import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePermissionAssignRequest;
@@ -81,8 +82,8 @@ public class SysRoleController {
     @PostMapping("/delete")
     @RequiresPermission("sys:role:delete")
     @OperationLog(module = "角色管理", action = "删除角色")
-    public Result<Void> delete(@RequestBody String id) {
-        roleService.deleteRole(id);
+    public Result<Void> delete(@Validated @RequestBody DeleteRequest request) {
+        roleService.deleteRole(request.getId());
         return Result.ok();
     }
 

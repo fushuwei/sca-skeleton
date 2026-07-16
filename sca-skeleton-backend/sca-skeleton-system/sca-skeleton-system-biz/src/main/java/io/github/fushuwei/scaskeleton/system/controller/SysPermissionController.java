@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
+import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionUpdateRequest;
@@ -86,8 +87,8 @@ public class SysPermissionController {
     @PostMapping("/delete")
     @RequiresPermission("sys:permission:delete")
     @OperationLog(module = "菜单管理", action = "删除菜单")
-    public Result<Void> delete(@RequestBody String id) {
-        permissionService.deletePermission(id);
+    public Result<Void> delete(@Validated @RequestBody DeleteRequest request) {
+        permissionService.deletePermission(request.getId());
         return Result.ok();
     }
 

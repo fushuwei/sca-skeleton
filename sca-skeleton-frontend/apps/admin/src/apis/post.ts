@@ -34,7 +34,7 @@ export async function updatePostApi(data: Record<string, unknown>): Promise<ApiE
 
 /** 删除岗位 */
 export async function deletePostApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: "/sys/post/delete", data: id });
+  return request<null>({ method: "POST", url: "/sys/post/delete", data: { id } });
 }
 
 /** 批量删除岗位 */
