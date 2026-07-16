@@ -238,6 +238,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         // 更新字段
         permission.setName(request.getName());
         permission.setNameEn(request.getNameEn());
+        permission.setType(request.getType());
         permission.setCode(request.getCode());
         permission.setPath(request.getPath());
         permission.setComponent(request.getComponent());

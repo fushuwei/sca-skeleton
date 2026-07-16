@@ -27,6 +27,10 @@ public class PermissionUpdateRequest {
     /** 英文名称 */
     private String nameEn;
 
+    /** 类型 */
+    @NotBlank(message = "权限类型不能为空")
+    private String type;
+
     // ==================== 前端配置 ====================
 
     /** 权限标识 */
