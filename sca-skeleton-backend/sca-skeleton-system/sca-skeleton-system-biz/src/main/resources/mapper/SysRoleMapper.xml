@@ -18,19 +18,19 @@
         FROM sys_role r
         WHERE r.is_deleted = 0
           AND r.tenant_id = #{tenantId}
-        <if test="req.keyword != null and req.keyword != ''">
-            AND (r.name LIKE CONCAT('%', #{req.keyword}, '%')
-                 OR r.code LIKE CONCAT('%', #{req.keyword}, '%'))
+        <if test="request.keyword != null and request.keyword != ''">
+            AND (r.name LIKE CONCAT('%', #{request.keyword}, '%')
+                 OR r.code LIKE CONCAT('%', #{request.keyword}, '%'))
         </if>
-        <if test="req.dataScope != null and req.dataScope != ''">
-            AND r.data_scope = #{req.dataScope}
+        <if test="request.dataScope != null and request.dataScope != ''">
+            AND r.data_scope = #{request.dataScope}
         </if>
         <choose>
-            <when test="req.safeSortField() == 'permission_count'">
-                ORDER BY permission_count ${req.safeSortOrder()}
+            <when test="request.safeSortField() == 'permission_count'">
+                ORDER BY permission_count ${request.safeSortOrder()}
             </when>
-            <when test="req.safeSortField() != null and req.safeSortField() != ''">
-                ORDER BY r.${req.safeSortField()} ${req.safeSortOrder()}
+            <when test="request.safeSortField() != null and request.safeSortField() != ''">
+                ORDER BY r.${request.safeSortField()} ${request.safeSortOrder()}
             </when>
             <otherwise>
                 ORDER BY r.sort ASC

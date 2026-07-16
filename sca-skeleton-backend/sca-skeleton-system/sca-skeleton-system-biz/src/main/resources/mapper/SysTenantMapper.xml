@@ -10,19 +10,19 @@
                 WHERE pk.id = t.package_id AND pk.is_deleted = 0) AS package_name
         FROM sys_tenant t
         WHERE t.is_deleted = 0
-        <if test="req.keyword != null and req.keyword != ''">
-            AND (t.name LIKE CONCAT('%', #{req.keyword}, '%')
-                 OR t.code LIKE CONCAT('%', #{req.keyword}, '%'))
+        <if test="request.keyword != null and request.keyword != ''">
+            AND (t.name LIKE CONCAT('%', #{request.keyword}, '%')
+                 OR t.code LIKE CONCAT('%', #{request.keyword}, '%'))
         </if>
-        <if test="req.status != null and req.status != ''">
-            AND t.status = #{req.status}
+        <if test="request.status != null and request.status != ''">
+            AND t.status = #{request.status}
         </if>
-        <if test="req.packageId != null and req.packageId != ''">
-            AND t.package_id = #{req.packageId}
+        <if test="request.packageId != null and request.packageId != ''">
+            AND t.package_id = #{request.packageId}
         </if>
         <choose>
-            <when test="req.safeSortField() != null and req.safeSortField() != ''">
-                ORDER BY t.${req.safeSortField()} ${req.safeSortOrder()}
+            <when test="request.safeSortField() != null and request.safeSortField() != ''">
+                ORDER BY t.${request.safeSortField()} ${request.safeSortOrder()}
             </when>
             <otherwise>
                 ORDER BY t.create_time DESC
