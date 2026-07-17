@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.auth.security;
+package io.github.fushuwei.scaskeleton.log.support;
 
 /**
  * 轻量级 User-Agent 解析器：从 UA 字符串提取设备类型、浏览器、操作系统。

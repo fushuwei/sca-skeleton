@@ -5,6 +5,7 @@ import io.github.fushuwei.scaskeleton.auth.infrastructure.entity.SysUser;
 import io.github.fushuwei.scaskeleton.auth.infrastructure.mapper.SysUserMapper;
 import io.github.fushuwei.scaskeleton.auth.security.filter.LoginChannelFilter;
 import io.github.fushuwei.scaskeleton.log.event.LoginLogEvent;
+import io.github.fushuwei.scaskeleton.log.support.UserAgentParser;
 import io.github.fushuwei.scaskeleton.security.user.ScaUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

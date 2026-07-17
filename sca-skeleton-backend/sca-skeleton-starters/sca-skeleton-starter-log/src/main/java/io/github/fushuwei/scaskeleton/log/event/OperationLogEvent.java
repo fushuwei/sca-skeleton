@@ -50,6 +50,26 @@ public class OperationLogEvent {
     private String clientIp;
 
     /**
+     * 登录位置（由异步监听器通过 IpRegionResolver 解析填充）
+     */
+    private String location;
+
+    /**
+     * 设备类型
+     */
+    private String device;
+
+    /**
+     * 浏览器
+     */
+    private String browser;
+
+    /**
+     * 操作系统
+     */
+    private String os;
+
+    /**
      * 请求方法（GET/POST 等）
      */
     private String httpMethod;

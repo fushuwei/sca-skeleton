@@ -5,6 +5,7 @@ import io.github.fushuwei.scaskeleton.core.trace.TraceContext;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.log.event.OperationLogEvent;
+import io.github.fushuwei.scaskeleton.log.support.UserAgentParser;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -145,6 +146,11 @@ public class OperationLogAspect {
         event.setRequestUri(request.getRequestURI());
         // 优先从 X-Forwarded-For 获取真实客户端 IP（经过反向代理时有效）
         event.setClientIp(resolveClientIp(request));
+        // 解析 User-Agent，提取设备类型、浏览器、操作系统
+        String[] deviceInfo = UserAgentParser.parse(request.getHeader("User-Agent"));
+        event.setDevice(deviceInfo[0]);
+        event.setBrowser(deviceInfo[1]);
+        event.setOs(deviceInfo[2]);
     }
 
     /**

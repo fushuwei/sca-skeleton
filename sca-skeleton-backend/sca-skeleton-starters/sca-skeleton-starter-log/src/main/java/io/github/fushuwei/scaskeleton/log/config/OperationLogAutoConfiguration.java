@@ -8,6 +8,7 @@ import io.github.fushuwei.scaskeleton.log.event.OperationLogEventListener;
 import io.github.fushuwei.scaskeleton.log.handler.DefaultOperationLogHandler;
 import io.github.fushuwei.scaskeleton.log.handler.OperationLogHandler;
 import io.github.fushuwei.scaskeleton.log.mapper.SysOperationLogMapper;
+import io.github.fushuwei.scaskeleton.log.support.IpRegionResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.mybatis.spring.annotation.MapperScan;
@@ -82,8 +83,8 @@ public class OperationLogAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public OperationLogEventListener operationLogEventListener(
-        @Autowired(required = false) @Nullable OperationLogHandler operationLogHandler) {
-        return new OperationLogEventListener(operationLogHandler);
+        @Autowired(required = false) @Nullable OperationLogHandler operationLogHandler, IpRegionResolver ipRegionResolver) {
+        return new OperationLogEventListener(operationLogHandler, ipRegionResolver);
     }
 
     /**

@@ -20,11 +20,20 @@ public class OperationLogResponse {
     /** 链路追踪 ID */
     private String traceId;
 
+    /** 租户 ID */
+    private String tenantId;
+
+    /** 租户名称 */
+    private String tenantName;
+
     /** 操作人 ID */
     private String userId;
 
-    /** 操作人展示名称 */
-    private String operator;
+    /** 操作用户名 */
+    private String username;
+
+    /** 真实姓名 */
+    private String realName;
 
     // ==================== 操作信息 ====================
 
@@ -67,6 +76,18 @@ public class OperationLogResponse {
 
     /** 客户端 IP */
     private String clientIp;
+
+    /** 登录位置 */
+    private String location;
+
+    /** 设备类型 */
+    private String device;
+
+    /** 浏览器 */
+    private String browser;
+
+    /** 操作系统 */
+    private String os;
 
     /** 操作时间 */
     private LocalDateTime operationTime;

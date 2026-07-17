@@ -21,6 +21,7 @@ public class DefaultOperationLogHandler implements OperationLogHandler {
         operationLog.setTraceId(event.getTraceId());
         operationLog.setTenantId(event.getTenantId());
         operationLog.setUserId(event.getUserId());
+        operationLog.setUsername(event.getUsername());
         operationLog.setModule(event.getModule());
         operationLog.setAction(event.getAction());
         operationLog.setHttpMethod(event.getHttpMethod());
@@ -33,6 +34,10 @@ public class DefaultOperationLogHandler implements OperationLogHandler {
         operationLog.setErrorMessage(event.getErrorMessage());
         operationLog.setCostMs(event.getCostMs());
         operationLog.setClientIp(event.getClientIp());
+        operationLog.setLocation(event.getLocation());
+        operationLog.setDevice(event.getDevice());
+        operationLog.setBrowser(event.getBrowser());
+        operationLog.setOs(event.getOs());
         operationLog.setOperationTime(event.getOperationTime());
         operationLogMapper.insert(operationLog);
     }

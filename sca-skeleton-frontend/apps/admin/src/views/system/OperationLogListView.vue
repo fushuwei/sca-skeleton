@@ -28,9 +28,7 @@ const isSuperAdmin = computed(() => authStore.profile?.isSuperadmin === 1);
 const searchForm = reactive<OperationLogPageRequest>({
   pageNum: 1,
   pageSize: 10,
-  module: "",
-  action: "",
-  operator: "",
+  keyword: "",
   isSuccess: undefined,
   startTime: "",
   endTime: ""
@@ -49,6 +47,29 @@ const statusLabelOf = (s: number): string =>
 
 const statusColorOf = (s: number): string =>
   s ? "green-7" : "red-7";
+
+// ── 设备类型：后端返回英文，前端按 i18n 映射为本地化文案 ──
+// 使用 computed 确保语言切换时映射表响应式更新
+const deviceLabelMap = computed<Record<string, string>>(() => ({
+  Mobile: t("operationLog.deviceType.mobile"),
+  Tablet: t("operationLog.deviceType.tablet"),
+  PC: t("operationLog.deviceType.pc"),
+  Unknown: t("operationLog.deviceType.unknown")
+}));
+
+const deviceLabelOf = (device: string): string =>
+  device ? (deviceLabelMap.value[device] ?? device) : "";
+
+// 设备类型颜色：以 blue 蓝色为基准色，按设备类型做同色系变异；刻意避开绿/红，以免与成功/失败状态色混淆
+const DEVICE_COLOR_MAP: Record<string, string> = {
+  Mobile: "light-blue-7",
+  Tablet: "cyan-9",
+  PC: "blue-9",
+  Unknown: "blue-grey-6"
+};
+
+const deviceColorOf = (device: string): string =>
+  DEVICE_COLOR_MAP[device] ?? "blue-grey-6";
 
 // ── HTTP 方法颜色 ──
 const methodColorOf = (m: string): string =>
@@ -117,9 +138,23 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
     format: (val: string) => formatDateTime(val)
   },
   {
-    name: "operator",
-    field: "operator",
+    name: "tenantName",
+    field: "tenantName",
+    label: t("operationLog.tenantName"),
+    align: "left",
+    sortable: true
+  },
+  {
+    name: "username",
+    field: "username",
     label: t("operationLog.username"),
+    align: "left",
+    sortable: true
+  },
+  {
+    name: "realName",
+    field: "realName",
+    label: t("operationLog.realName"),
     align: "left",
     sortable: true
   },
@@ -159,6 +194,34 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
     sortable: true
   },
   {
+    name: "location",
+    field: "location",
+    label: t("operationLog.location"),
+    align: "left",
+    sortable: true
+  },
+  {
+    name: "device",
+    field: "device",
+    label: t("operationLog.device"),
+    align: "center",
+    sortable: true
+  },
+  {
+    name: "browser",
+    field: "browser",
+    label: t("operationLog.browser"),
+    align: "center",
+    sortable: true
+  },
+  {
+    name: "os",
+    field: "os",
+    label: t("operationLog.os"),
+    align: "center",
+    sortable: true
+  },
+  {
     name: "costMs",
     field: "costMs",
     label: t("operationLog.costMs"),
@@ -184,12 +247,18 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
 // ── 前端列名 → 后端排序列名映射 ──
 const SORT_FIELD_MAP: Record<string, string> = {
   operationTime: "operation_time",
-  operator: "operator",
+  tenantName: "tenant_name",
+  username: "username",
+  realName: "real_name",
   module: "module",
   action: "action",
   httpMethod: "http_method",
   requestUri: "request_uri",
   clientIp: "client_ip",
+  location: "location",
+  device: "device",
+  browser: "browser",
+  os: "os",
   costMs: "cost_ms",
   isSuccess: "is_success"
 };
@@ -235,9 +304,7 @@ async function loadTableData(
   const params: OperationLogPageRequest = {
     pageNum,
     pageSize,
-    module: searchForm.module || undefined,
-    action: searchForm.action || undefined,
-    operator: searchForm.operator || undefined,
+    keyword: searchForm.keyword || undefined,
     isSuccess: searchForm.isSuccess,
     startTime: searchForm.startTime || undefined,
     endTime: searchForm.endTime || undefined,
@@ -296,9 +363,7 @@ function handleJumpToPage() {
 }
 
 function handleReset() {
-  searchForm.module = "";
-  searchForm.action = "";
-  searchForm.operator = "";
+  searchForm.keyword = "";
   searchForm.isSuccess = undefined;
   searchForm.startTime = "";
   searchForm.endTime = "";
@@ -468,35 +533,11 @@ onMounted(() => {
           <div class="row q-col-gutter-sm items-end">
             <div class="col">
               <q-input
-                v-model="searchForm.module"
+                v-model="searchForm.keyword"
                 filled
                 square
                 dense
-                :placeholder="t('operationLog.module')"
-                hide-bottom-space
-                clearable
-                @keyup.enter="handleSearch"
-              />
-            </div>
-            <div class="col">
-              <q-input
-                v-model="searchForm.action"
-                filled
-                square
-                dense
-                :placeholder="t('operationLog.action')"
-                hide-bottom-space
-                clearable
-                @keyup.enter="handleSearch"
-              />
-            </div>
-            <div class="col">
-              <q-input
-                v-model="searchForm.operator"
-                filled
-                square
-                dense
-                :placeholder="t('operationLog.username')"
+                :placeholder="t('operationLog.keywordPlaceholder')"
                 hide-bottom-space
                 clearable
                 @keyup.enter="handleSearch"
@@ -618,8 +659,24 @@ onMounted(() => {
         :class="['operation-log-table', { 'operation-log-table--empty': !tableRows.length }]"
         @request="loadTableData"
       >
-        <!-- 操作人列：展示 真实姓名(登录用户名)，由后端 SQL 拼接 -->
-        <template #body-cell-operator="props">
+        <!-- 租户名称列 -->
+        <template #body-cell-tenantName="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 操作用户名列 -->
+        <template #body-cell-username="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 真实姓名列 -->
+        <template #body-cell-realName="props">
           <q-td :props="props">
             <span v-if="props.value">{{ props.value }}</span>
             <span v-else class="text-grey-5">-</span>
@@ -666,6 +723,44 @@ onMounted(() => {
 
         <!-- 客户端IP列 -->
         <template #body-cell-clientIp="props">
+          <q-td :props="props">
+            <span v-if="props.value" class="mono-text">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 登录位置列 -->
+        <template #body-cell-location="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 设备类型列 -->
+        <template #body-cell-device="props">
+          <q-td :props="props">
+            <q-badge
+              v-if="props.value"
+              :color="deviceColorOf(props.value)"
+              :label="deviceLabelOf(props.value)"
+              rounded
+              class="log-type-badge"
+            />
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 浏览器列 -->
+        <template #body-cell-browser="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 操作系统列 -->
+        <template #body-cell-os="props">
           <q-td :props="props">
             <span v-if="props.value">{{ props.value }}</span>
             <span v-else class="text-grey-5">-</span>
@@ -808,6 +903,18 @@ onMounted(() => {
                   </div>
                   <div class="detail-grid">
                     <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.tenantName") }}</div>
+                      <div class="detail-field-value">{{ detailData.tenantName || "-" }}</div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.username") }}</div>
+                      <div class="detail-field-value">{{ detailData.username || "-" }}</div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.realName") }}</div>
+                      <div class="detail-field-value">{{ detailData.realName || "-" }}</div>
+                    </div>
+                    <div class="detail-field">
                       <div class="detail-field-label">{{ t("operationLog.module") }}</div>
                       <div class="detail-field-value">{{ detailData.module || "-" }}</div>
                     </div>
@@ -816,16 +923,51 @@ onMounted(() => {
                       <div class="detail-field-value">{{ detailData.action || "-" }}</div>
                     </div>
                     <div class="detail-field">
-                      <div class="detail-field-label">{{ t("operationLog.username") }}</div>
-                      <div class="detail-field-value">{{ detailData.operator || "-" }}</div>
-                    </div>
-                    <div class="detail-field">
                       <div class="detail-field-label">{{ t("operationLog.operationTime") }}</div>
                       <div class="detail-field-value">{{ formatDateTime(detailData.operationTime) }}</div>
                     </div>
                     <div class="detail-field">
                       <div class="detail-field-label">{{ t("operationLog.clientIp") }}</div>
-                      <div class="detail-field-value">{{ detailData.clientIp || "-" }}</div>
+                      <div class="detail-field-value detail-field-value--mono">{{ detailData.clientIp || "-" }}</div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.location") }}</div>
+                      <div class="detail-field-value">{{ detailData.location || "-" }}</div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.costMs") }}</div>
+                      <div class="detail-field-value detail-field-value--mono">{{ detailData.costMs != null ? `${detailData.costMs} ms` : "-" }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ── 设备信息卡片 ── -->
+                <div class="detail-section q-mt-md">
+                  <div class="detail-section-header row items-center no-wrap q-mb-sm">
+                    <q-icon name="sym_r_devices" size="20px" class="q-mr-xs" color="grey-8" />
+                    <span class="detail-section-title">{{ t('operationLog.deviceInfo') }}</span>
+                  </div>
+                  <div class="detail-grid">
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.device") }}</div>
+                      <div class="detail-field-value">
+                        <q-badge
+                          v-if="detailData.device"
+                          :color="deviceColorOf(detailData.device)"
+                          :label="deviceLabelOf(detailData.device)"
+                          rounded
+                          class="log-type-badge"
+                        />
+                        <span v-else class="text-grey-5">-</span>
+                      </div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.browser") }}</div>
+                      <div class="detail-field-value">{{ detailData.browser || "-" }}</div>
+                    </div>
+                    <div class="detail-field">
+                      <div class="detail-field-label">{{ t("operationLog.os") }}</div>
+                      <div class="detail-field-value">{{ detailData.os || "-" }}</div>
                     </div>
                   </div>
                 </div>
@@ -847,10 +989,6 @@ onMounted(() => {
                           class="log-type-badge"
                         />
                       </div>
-                    </div>
-                    <div class="detail-field">
-                      <div class="detail-field-label">{{ t("operationLog.costMs") }}</div>
-                      <div class="detail-field-value">{{ detailData.costMs }}ms</div>
                     </div>
                     <div class="detail-field detail-field--full">
                       <div class="detail-field-label">{{ t("operationLog.requestUri") }}</div>
@@ -1269,6 +1407,12 @@ onMounted(() => {
   vertical-align: middle;
 }
 
+/* 等宽字体（IP 等） */
+.mono-text {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 12px;
+}
+
 /* ═══ 详情抽屉卡片样式 ═══ */
 .detail-section {
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -1298,7 +1442,7 @@ onMounted(() => {
 /* 字段网格布局 */
 .detail-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 12px 16px;
 }
 

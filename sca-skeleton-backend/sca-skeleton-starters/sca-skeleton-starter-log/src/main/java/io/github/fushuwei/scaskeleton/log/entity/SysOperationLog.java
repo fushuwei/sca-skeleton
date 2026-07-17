@@ -35,15 +35,25 @@ public class SysOperationLog implements Serializable {
     /** 租户 ID */
     private String tenantId;
 
-    /** 用户 ID */
-    private String userId;
-
-    /** 操作人名称 */
-    @TableField(value = "operator",
+    /** 租户名称 */
+    @TableField(value = "tenant_name",
         insertStrategy = FieldStrategy.NEVER,
         updateStrategy = FieldStrategy.NEVER,
         select = false)
-    private String operator;
+    private String tenantName;
+
+    /** 用户 ID */
+    private String userId;
+
+    /** 操作用户名 */
+    private String username;
+
+    /** 真实姓名 */
+    @TableField(value = "real_name",
+        insertStrategy = FieldStrategy.NEVER,
+        updateStrategy = FieldStrategy.NEVER,
+        select = false)
+    private String realName;
 
     // ==================== 操作详情 ====================
 
@@ -84,6 +94,18 @@ public class SysOperationLog implements Serializable {
 
     /** 客户端 IP */
     private String clientIp;
+
+    /** 登录位置 */
+    private String location;
+
+    /** 设备类型 */
+    private String device;
+
+    /** 浏览器 */
+    private String browser;
+
+    /** 操作系统 */
+    private String os;
 
     /** 操作时间 */
     private LocalDateTime operationTime;

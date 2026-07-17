@@ -358,9 +358,14 @@ export interface TenantPageRequest {
 export interface SysOperationLog {
   id: string;
   traceId: string;
+  tenantId: string;
+  /** 租户名称（通过 tenant_id 关联 sys_tenant 查询，租户不存在时为空） */
+  tenantName: string;
   userId: string;
-  /** 操作人展示名称（格式："real_name (username)"） */
-  operator: string;
+  /** 操作用户名 */
+  username: string;
+  /** 真实姓名（通过 user_id 关联 sys_user 查询，user 不存在时为空） */
+  realName: string;
   module: string;
   action: string;
   httpMethod: string;
@@ -373,6 +378,10 @@ export interface SysOperationLog {
   errorMessage: string;
   costMs: number;
   clientIp: string;
+  location: string;
+  device: string;
+  browser: string;
+  os: string;
   operationTime: string;
 }
 
@@ -380,9 +389,8 @@ export interface SysOperationLog {
 export interface OperationLogPageRequest {
   pageNum?: number;
   pageSize?: number;
-  module?: string;
-  action?: string;
-  operator?: string;
+  /** 搜索关键字（模糊匹配租户名称、操作用户、真实姓名、操作模块、操作动作、请求路径） */
+  keyword?: string;
   isSuccess?: number;
   startTime?: string;
   endTime?: string;

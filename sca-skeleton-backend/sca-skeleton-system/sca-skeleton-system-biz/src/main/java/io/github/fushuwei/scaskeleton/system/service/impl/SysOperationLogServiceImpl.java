@@ -46,9 +46,7 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
         // 查询分页数据，并将结果转换为响应对象
         IPage<SysOperationLog> entityPage = operationLogMapper.selectLogPage(page,
             SecurityUtils.isSuperAdmin() ? null : SecurityUtils.getTenantId(),  // 数据隔离：超管看所有租户，非超管只看自己租户
-            request.getModule(),
-            request.getAction(),
-            request.getOperator(),
+            request.getKeyword(),
             request.getIsSuccess(),
             request.getStartTime(),
             request.getEndTime(),

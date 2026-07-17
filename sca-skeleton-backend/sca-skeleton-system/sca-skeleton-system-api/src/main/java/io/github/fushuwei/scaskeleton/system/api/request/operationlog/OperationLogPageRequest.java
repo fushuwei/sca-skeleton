@@ -17,7 +17,7 @@ public class OperationLogPageRequest {
 
     /** 允许排序的字段白名单 */
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
-        "operation_time", "operator", "module", "action", "http_method", "request_uri", "client_ip", "cost_ms", "is_success"
+        "operation_time", "tenant_name", "username", "real_name", "module", "action", "http_method", "request_uri", "client_ip", "location", "device", "browser", "os", "cost_ms", "is_success"
     );
 
     // ==================== 分页参数 ====================
@@ -33,14 +33,8 @@ public class OperationLogPageRequest {
 
     // ==================== 查询条件 ====================
 
-    /** 操作模块 */
-    private String module;
-
-    /** 操作动作 */
-    private String action;
-
-    /** 操作人 */
-    private String operator;
+    /** 搜索关键字（模糊匹配租户名称、操作用户、真实姓名、操作模块、操作动作、请求路径） */
+    private String keyword;
 
     /** 是否成功 */
     private Integer isSuccess;
