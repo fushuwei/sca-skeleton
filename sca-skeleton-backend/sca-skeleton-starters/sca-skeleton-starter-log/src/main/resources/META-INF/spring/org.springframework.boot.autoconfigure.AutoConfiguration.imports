@@ -1,2 +1,3 @@
+io.github.fushuwei.scaskeleton.log.config.IpRegionAutoConfiguration
 io.github.fushuwei.scaskeleton.log.config.OperationLogAutoConfiguration
 io.github.fushuwei.scaskeleton.log.config.LoginLogAutoConfiguration

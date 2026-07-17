@@ -52,6 +52,5 @@ public class OperationLogProperties {
          * 优雅关闭等待时间（秒），确保队列中剩余日志处理完毕
          */
         private int awaitTerminationSeconds = 30;
-
     }
 }

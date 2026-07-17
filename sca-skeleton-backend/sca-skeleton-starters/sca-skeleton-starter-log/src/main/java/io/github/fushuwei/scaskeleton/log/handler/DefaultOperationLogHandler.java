@@ -21,7 +21,6 @@ public class DefaultOperationLogHandler implements OperationLogHandler {
         operationLog.setTraceId(event.getTraceId());
         operationLog.setTenantId(event.getTenantId());
         operationLog.setUserId(event.getUserId());
-        operationLog.setUsername(event.getUsername());
         operationLog.setModule(event.getModule());
         operationLog.setAction(event.getAction());
         operationLog.setHttpMethod(event.getHttpMethod());

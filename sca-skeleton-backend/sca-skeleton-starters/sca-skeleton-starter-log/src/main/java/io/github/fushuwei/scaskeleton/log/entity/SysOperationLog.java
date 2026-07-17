@@ -46,6 +46,10 @@ public class SysOperationLog implements Serializable {
     private String userId;
 
     /** 操作用户名 */
+    @TableField(value = "username",
+        insertStrategy = FieldStrategy.NEVER,
+        updateStrategy = FieldStrategy.NEVER,
+        select = false)
     private String username;
 
     /** 真实姓名 */

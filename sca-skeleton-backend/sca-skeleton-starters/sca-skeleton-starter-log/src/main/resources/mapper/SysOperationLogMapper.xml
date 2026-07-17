@@ -7,6 +7,7 @@
     <select id="selectLogPage" resultType="io.github.fushuwei.scaskeleton.log.entity.SysOperationLog">
         SELECT l.*,
                t.name AS tenant_name,
+               u.username AS username,
                u.real_name AS real_name
         FROM sys_operation_log l
         LEFT JOIN sys_tenant t ON t.id = l.tenant_id
@@ -17,7 +18,7 @@
         </if>
         <if test="keyword != null and keyword != ''">
             AND (t.name LIKE CONCAT('%', #{keyword}, '%')
-                 OR l.username LIKE CONCAT('%', #{keyword}, '%')
+                 OR u.username LIKE CONCAT('%', #{keyword}, '%')
                  OR u.real_name LIKE CONCAT('%', #{keyword}, '%')
                  OR l.module LIKE CONCAT('%', #{keyword}, '%')
                  OR l.action LIKE CONCAT('%', #{keyword}, '%')
@@ -36,6 +37,9 @@
             <when test="sortField == 'tenant_name'">
                 ORDER BY t.name ${sortOrder}
             </when>
+            <when test="sortField == 'username'">
+                ORDER BY u.username ${sortOrder}
+            </when>
             <when test="sortField == 'real_name'">
                 ORDER BY u.real_name ${sortOrder}
             </when>
@@ -52,6 +56,7 @@
     <select id="selectLogById" resultType="io.github.fushuwei.scaskeleton.log.entity.SysOperationLog">
         SELECT l.*,
                t.name AS tenant_name,
+               u.username AS username,
                u.real_name AS real_name
         FROM sys_operation_log l
         LEFT JOIN sys_tenant t ON t.id = l.tenant_id
