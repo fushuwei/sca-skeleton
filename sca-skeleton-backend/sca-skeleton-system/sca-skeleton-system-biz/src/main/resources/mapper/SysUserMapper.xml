@@ -35,8 +35,10 @@
             GROUP BY ur.user_id
         ) r ON r.user_id = u.id
         WHERE u.is_deleted = 0
-          AND u.tenant_id = #{tenantId}
           AND u.user_type = 'backend'
+        <if test="tenantId != null">
+            AND u.tenant_id = #{tenantId}
+        </if>
         <if test="request.userType != null and request.userType != ''">
             AND u.user_type = #{request.userType}
         </if>

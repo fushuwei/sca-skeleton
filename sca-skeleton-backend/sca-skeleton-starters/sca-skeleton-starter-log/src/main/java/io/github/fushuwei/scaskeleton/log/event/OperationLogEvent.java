@@ -30,6 +30,11 @@ public class OperationLogEvent {
     private String action;
 
     /**
+     * 操作人租户 ID
+     */
+    private String tenantId;
+
+    /**
      * 操作人 ID
      */
     private String userId;

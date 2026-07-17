@@ -32,7 +32,10 @@ public class SysOperationLog implements Serializable {
     /** 链路追踪 ID */
     private String traceId;
 
-    /** 操作人 ID */
+    /** 租户 ID */
+    private String tenantId;
+
+    /** 用户 ID */
     private String userId;
 
     /** 操作人名称 */

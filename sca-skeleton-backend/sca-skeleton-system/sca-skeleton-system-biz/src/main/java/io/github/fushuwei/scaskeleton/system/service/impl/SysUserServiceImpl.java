@@ -105,7 +105,9 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public IPage<UserResponse> pageUsers(UserPageRequest request) {
         Page<UserResponse> page = new Page<>(request.getPageNum(), request.getPageSize());
-        return userMapper.selectUserPage(page, SecurityUtils.getTenantId(), request);
+        // 数据隔离：超管看所有租户，非超管只看自己租户
+        String tenantId = SecurityUtils.isSuperAdmin() ? null : SecurityUtils.getTenantId();
+        return userMapper.selectUserPage(page, tenantId, request);
     }
 
     /**

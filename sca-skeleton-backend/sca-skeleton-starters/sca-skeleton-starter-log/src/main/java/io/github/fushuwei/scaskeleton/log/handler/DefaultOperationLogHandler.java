@@ -19,6 +19,7 @@ public class DefaultOperationLogHandler implements OperationLogHandler {
     public void handle(OperationLogEvent event) {
         SysOperationLog operationLog = new SysOperationLog();
         operationLog.setTraceId(event.getTraceId());
+        operationLog.setTenantId(event.getTenantId());
         operationLog.setUserId(event.getUserId());
         operationLog.setModule(event.getModule());
         operationLog.setAction(event.getAction());

@@ -49,9 +49,9 @@ public class SysPostServiceImpl implements SysPostService {
      */
     @Override
     public List<PostResponse> listPosts() {
-        // 按租户查询全部岗位，按 sort 升序
+        // 数据隔离：超管看所有租户，非超管只看自己租户
         List<SysPost> posts = postMapper.selectList(new LambdaQueryWrapper<SysPost>()
-            .eq(SysPost::getTenantId, SecurityUtils.getTenantId())
+            .eq(!SecurityUtils.isSuperAdmin(), SysPost::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysPost::getSort));
         // 转换为响应对象列表
         return posts.stream().map(postConverter::toPostResponse).toList();
@@ -69,14 +69,14 @@ public class SysPostServiceImpl implements SysPostService {
         Page<SysPost> page = new Page<>(request.getPageNum(), request.getPageSize());
 
         LambdaQueryWrapper<SysPost> wrapper = new LambdaQueryWrapper<SysPost>()
-            // 按租户隔离
-            .eq(SysPost::getTenantId, SecurityUtils.getTenantId())
+            // 数据隔离：超管看所有租户，非超管只看自己租户
+            .eq(!SecurityUtils.isSuperAdmin(), SysPost::getTenantId, SecurityUtils.getTenantId())
             // 关键词模糊匹配名称或编码
             .and(StringUtils.hasText(request.getKeyword()),
                 w -> w.like(SysPost::getName, request.getKeyword())
                     .or().like(SysPost::getCode, request.getKeyword()));
 
-        // 安全排序：白名单校验通过后按指定字段排序，否则按 sort 升序
+        // 安全排序：白名单校验通过后按指定字段排序，默认按 sort 升序
         String sortField = request.safeSortField();
         boolean isAsc = "ASC".equalsIgnoreCase(request.safeSortOrder());
         if (sortField != null) {

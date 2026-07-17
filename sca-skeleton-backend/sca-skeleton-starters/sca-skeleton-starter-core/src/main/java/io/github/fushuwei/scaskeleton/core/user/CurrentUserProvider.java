@@ -10,6 +10,13 @@ package io.github.fushuwei.scaskeleton.core.user;
 public interface CurrentUserProvider {
 
     /**
+     * 获取当前请求用户的租户 ID
+     *
+     * @return 租户 ID，未认证或超管（无固定租户）时返回 null
+     */
+    String getTenantId();
+
+    /**
      * 获取当前请求用户的 ID
      *
      * @return 用户 ID，未认证时返回 null

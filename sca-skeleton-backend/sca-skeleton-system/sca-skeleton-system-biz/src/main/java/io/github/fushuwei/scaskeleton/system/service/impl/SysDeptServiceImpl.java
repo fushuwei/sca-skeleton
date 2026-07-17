@@ -50,9 +50,9 @@ public class SysDeptServiceImpl implements SysDeptService {
      */
     @Override
     public List<DeptResponse> listDepts() {
-        // 查询当前租户下的全部部门
+        // 数据隔离：超管看所有租户，非超管只看自己租户
         List<SysDept> depts = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
-            .eq(SysDept::getTenantId, SecurityUtils.getTenantId())
+            .eq(!SecurityUtils.isSuperAdmin(), SysDept::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysDept::getSort));
         // 转换为响应对象列表
         return depts.stream().map(deptConverter::toDeptResponse).toList();
@@ -69,9 +69,9 @@ public class SysDeptServiceImpl implements SysDeptService {
         // 构造分页对象
         Page<SysDept> page = new Page<>(request.getPageNum(), request.getPageSize());
 
-        // 包装查询条件
+        // 包装查询条件（数据隔离：超管看所有租户，非超管只看自己租户）
         LambdaQueryWrapper<SysDept> wrapper = new LambdaQueryWrapper<SysDept>()
-            .eq(SysDept::getTenantId, SecurityUtils.getTenantId())
+            .eq(!SecurityUtils.isSuperAdmin(), SysDept::getTenantId, SecurityUtils.getTenantId())
             .eq(StringUtils.hasText(request.getParentId()), SysDept::getParentId, request.getParentId())
             .and(StringUtils.hasText(request.getKeyword()),
                 w -> w.like(SysDept::getName, request.getKeyword()).or().like(SysDept::getCode, request.getKeyword()))

@@ -12,6 +12,9 @@
         LEFT JOIN sys_tenant t ON t.id = l.tenant_id
         LEFT JOIN sys_user u ON u.id = l.user_id
         WHERE 1=1
+        <if test="tenantId != null">
+            AND l.tenant_id = #{tenantId}
+        </if>
         <if test="keyword != null and keyword != ''">
             AND (l.username LIKE CONCAT('%', #{keyword}, '%')
                  OR l.client_ip LIKE CONCAT('%', #{keyword}, '%')

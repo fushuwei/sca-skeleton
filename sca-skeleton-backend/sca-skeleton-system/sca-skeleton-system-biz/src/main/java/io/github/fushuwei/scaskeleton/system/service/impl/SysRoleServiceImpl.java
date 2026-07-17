@@ -55,9 +55,9 @@ public class SysRoleServiceImpl implements SysRoleService {
      */
     @Override
     public List<RoleResponse> listRoles() {
-        // 按租户查询全部角色，按 sort 升序
+        // 数据隔离：超管看所有租户，非超管只看自己租户
         List<SysRole> roles = roleMapper.selectList(new LambdaQueryWrapper<SysRole>()
-            .eq(SysRole::getTenantId, SecurityUtils.getTenantId())
+            .eq(!SecurityUtils.isSuperAdmin(), SysRole::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysRole::getSort));
         // 转换为响应对象列表
         return roles.stream().map(roleConverter::toRoleResponse).toList();
@@ -73,8 +73,10 @@ public class SysRoleServiceImpl implements SysRoleService {
     public IPage<RoleResponse> pageRoles(RolePageRequest request) {
         // 构造分页对象
         Page<SysRole> page = new Page<>(request.getPageNum(), request.getPageSize());
+        // 数据隔离：超管看所有租户，非超管只看自己租户
+        String tenantId = SecurityUtils.isSuperAdmin() ? null : SecurityUtils.getTenantId();
         // 查询分页数据，并将结果转换为响应对象
-        IPage<SysRole> entityPage = roleMapper.selectRolePage(page, SecurityUtils.getTenantId(), request);
+        IPage<SysRole> entityPage = roleMapper.selectRolePage(page, tenantId, request);
         return entityPage.convert(roleConverter::toRoleResponse);
     }
 

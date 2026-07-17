@@ -45,6 +45,7 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
         Page<SysLoginLog> page = new Page<>(request.getPageNum(), request.getPageSize());
         // 查询分页数据，并将结果转换为响应对象
         IPage<SysLoginLog> entityPage = loginLogMapper.selectLogPage(page,
+            SecurityUtils.isSuperAdmin() ? null : SecurityUtils.getTenantId(),  // 数据隔离：超管看所有租户，非超管只看自己租户
             request.getKeyword(),
             request.getIsSuccess(),
             request.getStartTime(),

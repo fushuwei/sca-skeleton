@@ -54,7 +54,7 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
      */
     @Override
     public List<TenantPackageResponse> listPackages() {
-        // 查询全部套餐，按 sort 升序
+        // 查询全部套餐
         List<SysTenantPackage> packages = packageMapper.selectList(new LambdaQueryWrapper<SysTenantPackage>()
             .orderByAsc(SysTenantPackage::getSort));
         // 转换为响应对象列表

@@ -18,6 +18,7 @@ public interface SysLoginLogMapper extends BaseMapper<SysLoginLog> {
      * 分页查询登录日志列表
      *
      * @param page      分页对象（框架回填）
+     * @param tenantId  租户 ID（超管传 null 查询所有租户）
      * @param keyword   搜索关键字
      * @param isSuccess 是否成功
      * @param startTime 开始时间
@@ -27,6 +28,7 @@ public interface SysLoginLogMapper extends BaseMapper<SysLoginLog> {
      * @return 分页结果
      */
     IPage<SysLoginLog> selectLogPage(IPage<SysLoginLog> page,
+                                     @Param("tenantId") String tenantId,
                                      @Param("keyword") String keyword,
                                      @Param("isSuccess") Integer isSuccess,
                                      @Param("startTime") LocalDateTime startTime,

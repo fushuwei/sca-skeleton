@@ -555,7 +555,7 @@ CREATE TABLE IF NOT EXISTS `sys_config` (
 CREATE TABLE IF NOT EXISTS `sys_login_log` (
     `id`              VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
     `tenant_id`       VARCHAR(64)     DEFAULT NULL                COMMENT '租户ID',
-    `user_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '用户ID（关联sys_user.id，用户不存在时为空）',
+    `user_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '用户ID',
     `username`        VARCHAR(64)     NOT NULL                    COMMENT '登录时输入的用户名（原始输入，无论用户是否存在都记录）',
     `client_ip`       VARCHAR(128)    DEFAULT NULL                COMMENT '客户端IP',
     `location`        VARCHAR(255)    DEFAULT NULL                COMMENT '登录位置',
@@ -579,7 +579,8 @@ CREATE TABLE IF NOT EXISTS `sys_login_log` (
 CREATE TABLE IF NOT EXISTS `sys_operation_log` (
     `id`              VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
     `trace_id`        VARCHAR(64)     DEFAULT NULL                COMMENT '链路追踪ID',
-    `user_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '操作人ID（关联sys_user.id）',
+    `tenant_id`       VARCHAR(64)     DEFAULT NULL                COMMENT '租户ID',
+    `user_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '用户ID',
     `module`          VARCHAR(100)    DEFAULT NULL                COMMENT '操作模块',
     `action`          VARCHAR(100)    DEFAULT NULL                COMMENT '操作动作',
     `http_method`     VARCHAR(10)     DEFAULT NULL                COMMENT '请求方法（GET/POST等）',
@@ -595,6 +596,7 @@ CREATE TABLE IF NOT EXISTS `sys_operation_log` (
     `operation_time`  DATETIME        NOT NULL                    COMMENT '操作时间',
     PRIMARY KEY (`id`),
     KEY `idx_operation_time` (`operation_time`),
+    KEY `idx_tenant_id` (`tenant_id`),
     KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='操作日志表';
 

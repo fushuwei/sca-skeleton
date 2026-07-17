@@ -18,6 +18,7 @@ public interface SysOperationLogMapper extends BaseMapper<SysOperationLog> {
      * 分页查询操作日志列表
      *
      * @param page      分页对象（框架回填）
+     * @param tenantId  租户 ID（超管传 null 查询所有租户）
      * @param module    操作模块
      * @param action    操作动作
      * @param operator  操作人
@@ -29,6 +30,7 @@ public interface SysOperationLogMapper extends BaseMapper<SysOperationLog> {
      * @return 分页结果
      */
     IPage<SysOperationLog> selectLogPage(IPage<SysOperationLog> page,
+                                         @Param("tenantId") String tenantId,
                                          @Param("module") String module,
                                          @Param("action") String action,
                                          @Param("operator") String operator,

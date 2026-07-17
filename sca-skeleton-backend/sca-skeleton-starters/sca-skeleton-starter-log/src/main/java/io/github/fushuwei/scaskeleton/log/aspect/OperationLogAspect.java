@@ -74,8 +74,9 @@ public class OperationLogAspect {
         event.setClassName(joinPoint.getTarget().getClass().getName());
         event.setMethodName(signature.getName());
 
-        // 填充当前用户信息（依赖 Security Starter 的 CurrentUserProvider 实现）
+        // 填充当前用户信息
         if (currentUserProvider != null) {
+            event.setTenantId(currentUserProvider.getTenantId());
             event.setUserId(currentUserProvider.getUserId());
             event.setUsername(currentUserProvider.getUsername());
         }

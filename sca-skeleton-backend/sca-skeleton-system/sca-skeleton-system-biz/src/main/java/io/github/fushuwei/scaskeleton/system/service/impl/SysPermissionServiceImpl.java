@@ -50,7 +50,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
      */
     @Override
     public List<PermissionResponse> listAllPermissions() {
-        // 查询全局权限树（不按租户隔离），按 sort 升序
+        // 查询全局权限树（不按租户隔离）
         List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
             .orderByAsc(SysPermission::getSort));
         // 转换为响应对象列表
@@ -117,7 +117,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             // 状态筛选
             .eq(StringUtils.hasText(request.getStatus()), SysPermission::getStatus, request.getStatus());
 
-        // 安全排序：白名单校验通过后按指定字段排序，否则按 sort 升序
+        // 安全排序：白名单校验通过后按指定字段排序，默认按 sort 升序
         String sortField = request.safeSortField();
         boolean isAsc = "ASC".equalsIgnoreCase(request.safeSortOrder());
         if (sortField != null) {
@@ -148,7 +148,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
      */
     @Override
     public List<PermissionResponse> listButtonsByParentId(String parentId) {
-        // 查询指定父节点下的按钮权限，按 sort 升序
+        // 查询指定父节点下的按钮权限
         List<SysPermission> buttons = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
             .eq(SysPermission::getParentId, parentId)
             .eq(SysPermission::getType, "button")

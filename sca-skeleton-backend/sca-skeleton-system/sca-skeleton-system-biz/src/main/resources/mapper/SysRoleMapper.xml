@@ -17,7 +17,9 @@
                   AND perm.type IN ('menu', 'button')) AS permission_count
         FROM sys_role r
         WHERE r.is_deleted = 0
-          AND r.tenant_id = #{tenantId}
+        <if test="tenantId != null">
+            AND r.tenant_id = #{tenantId}
+        </if>
         <if test="request.keyword != null and request.keyword != ''">
             AND (r.name LIKE CONCAT('%', #{request.keyword}, '%')
                  OR r.code LIKE CONCAT('%', #{request.keyword}, '%'))
