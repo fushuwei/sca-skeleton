@@ -91,22 +91,6 @@ CREATE TABLE IF NOT EXISTS `sys_tenant` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户表';
 
 
--- 默认平台租户
-INSERT INTO `sys_tenant` (
-    `id`, `name`, `code`, `package_id`, `contact_name`, `contact_phone`, `contact_email`, `domain_name`,
-    `effective_time`, `expire_time`, `status`, `config_json`, `remark`, `version`,
-    `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
-)
-SELECT
-    '1', '默认租户', 'default', '1',
-    NULL, NULL, NULL, NULL,
-    NULL, NULL, 'normal', NULL, '系统内置租户', 0,
-    'system', NOW(), 'system', NOW(), 0
-WHERE NOT EXISTS (
-    SELECT 1 FROM `sys_tenant` WHERE `code` = 'default' AND `is_deleted` = 0
-);
-
-
 -- ---------------------------------------------------
 -- 部门表
 -- ---------------------------------------------------
@@ -191,7 +175,7 @@ CREATE TABLE IF NOT EXISTS `sys_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
 
--- 内置管理员账号（密码：admin@123）
+-- 内置超级管理员用户（密码：admin@123）
 INSERT INTO `sys_user` (
     `id`, `tenant_id`, `username`, `password`, `nickname`, `real_name`, `gender`, `avatar`, `phone`, `email`,
     `user_type`, `is_superadmin`, `status`, `status_time`, `status_reason`, `login_fail_count`, `must_change_password`,
@@ -199,7 +183,7 @@ INSERT INTO `sys_user` (
     `is_builtin`, `source_type`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
-    '1', '1', 'admin',
+    '1', NULL, 'admin',
     '{bcrypt}$2b$10$oW8PgdSN8jCUwZoApsRpc.8xhcCNInM8i0iH/6k.G7cmKB/5tb.Pq',
     '超级管理员', '超级管理员', NULL, NULL, NULL, NULL,
     'backend', 1, 'active', NULL, NULL, 0, 0,
@@ -207,7 +191,7 @@ SELECT
     1, 'initial', '系统内置管理员账号', 0, 'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (
     SELECT 1 FROM `sys_user`
-    WHERE `tenant_id` = '1' AND `username` = 'admin' AND `is_deleted` = 0
+    WHERE `username` = 'admin' AND `is_superadmin` = 1 AND `is_deleted` = 0
 );
 
 

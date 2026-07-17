@@ -18,9 +18,9 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
     /**
      * 查询指定用户的权限编码列表
      *
-     * @param userId   用户 ID
      * @param tenantId 租户 ID
+     * @param userId   用户 ID
      * @return 权限编码列表（去重）
      */
-    List<String> selectPermissionCodesByUserId(@Param("userId") String userId, @Param("tenantId") String tenantId);
+    List<String> selectPermissionCodesByUserId(@Param("tenantId") String tenantId, @Param("userId") String userId);
 }

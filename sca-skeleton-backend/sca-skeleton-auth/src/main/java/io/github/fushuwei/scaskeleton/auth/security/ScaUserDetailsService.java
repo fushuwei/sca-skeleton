@@ -28,7 +28,9 @@ public class ScaUserDetailsService {
 
     private final SysUserMapper sysUserMapper;
 
-    /** 登录失败锁定与自动解锁 */
+    /**
+     * 登录失败锁定与自动解锁
+     */
     private final LoginAttemptService loginAttemptService;
 
     /**
@@ -41,9 +43,9 @@ public class ScaUserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // 查询后台用户类别
         SysUser user = sysUserMapper.selectOne(
-                new LambdaQueryWrapper<SysUser>()
-                        .eq(SysUser::getUsername, username)
-                        .eq(SysUser::getUserType, "backend")
+            new LambdaQueryWrapper<SysUser>()
+                .eq(SysUser::getUsername, username)
+                .eq(SysUser::getUserType, "backend")
         );
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在：" + username);
@@ -61,9 +63,9 @@ public class ScaUserDetailsService {
     public UserDetails loadFrontendUserByUsername(String username) throws UsernameNotFoundException {
         // 查询前台用户类别
         SysUser user = sysUserMapper.selectOne(
-                new LambdaQueryWrapper<SysUser>()
-                        .eq(SysUser::getUsername, username)
-                        .eq(SysUser::getUserType, "frontend")
+            new LambdaQueryWrapper<SysUser>()
+                .eq(SysUser::getUsername, username)
+                .eq(SysUser::getUserType, "frontend")
         );
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在：" + username);
@@ -80,13 +82,13 @@ public class ScaUserDetailsService {
      * @throws UsernameNotFoundException 用户不存在
      */
     public UserDetails loadUserByUsernameAndTenant(String username, String tenantId)
-            throws UsernameNotFoundException {
+        throws UsernameNotFoundException {
         // 多租户场景：用户名 + 租户 ID + 后台用户类别三重约束
         SysUser user = sysUserMapper.selectOne(
-                new LambdaQueryWrapper<SysUser>()
-                        .eq(SysUser::getUsername, username)
-                        .eq(SysUser::getTenantId, tenantId)
-                        .eq(SysUser::getUserType, "backend")
+            new LambdaQueryWrapper<SysUser>()
+                .eq(SysUser::getUsername, username)
+                .eq(SysUser::getTenantId, tenantId)
+                .eq(SysUser::getUserType, "backend")
         );
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在：" + username);
@@ -104,39 +106,39 @@ public class ScaUserDetailsService {
         loginAttemptService.unlockIfExpired(user);
 
         List<String> permissions = sysUserMapper.selectPermissionCodesByUserId(
-                user.getId(), user.getTenantId());
+            user.getTenantId(), user.getId());
 
         LocalDateTime now = LocalDateTime.now();
 
         // 账号是否可用（status=active 且在有效期内）
         boolean enabled = "active".equals(user.getStatus())
-                && (user.getEffectiveStartTime() == null || !now.isBefore(user.getEffectiveStartTime()))
-                && (user.getEffectiveEndTime() == null || !now.isAfter(user.getEffectiveEndTime()));
+            && (user.getEffectiveStartTime() == null || !now.isBefore(user.getEffectiveStartTime()))
+            && (user.getEffectiveEndTime() == null || !now.isAfter(user.getEffectiveEndTime()));
 
         // 账号是否未锁定
         boolean accountNonLocked = !"locked".equals(user.getStatus())
-                && !"frozen".equals(user.getStatus());
+            && !"frozen".equals(user.getStatus());
 
         // 账号是否未过期
         boolean accountNonExpired = !"expired".equals(user.getStatus())
-                && (user.getEffectiveEndTime() == null || !now.isAfter(user.getEffectiveEndTime()));
+            && (user.getEffectiveEndTime() == null || !now.isAfter(user.getEffectiveEndTime()));
 
         // 凭证是否未过期（mustChangePassword=1 表示必须修改密码，此时拒绝登录）
         boolean credentialsNonExpired = user.getMustChangePassword() == null
-                || user.getMustChangePassword() == 0;
+            || user.getMustChangePassword() == 0;
 
         return new ScaUserDetails(
-                user.getId(),
-                user.getTenantId(),
-                user.getUsername(),
-                user.getPassword(),
-                user.getNickname(),
-                user.getIsSuperadmin(),
-                permissions,
-                enabled,
-                accountNonLocked,
-                accountNonExpired,
-                credentialsNonExpired
+            user.getId(),
+            user.getTenantId(),
+            user.getUsername(),
+            user.getPassword(),
+            user.getNickname(),
+            user.getIsSuperadmin(),
+            permissions,
+            enabled,
+            accountNonLocked,
+            accountNonExpired,
+            credentialsNonExpired
         );
     }
 }
