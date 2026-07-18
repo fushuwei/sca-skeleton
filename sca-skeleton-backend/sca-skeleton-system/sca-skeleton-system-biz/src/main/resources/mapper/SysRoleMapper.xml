@@ -7,6 +7,7 @@
          权限个数仅统计 menu 和 button 类别（模块/目录不计入）。 -->
     <select id="selectRolePage" resultType="io.github.fushuwei.scaskeleton.system.entity.SysRole">
         SELECT r.*,
+               t.name AS tenant_name,
                (SELECT COUNT(*)
                 FROM sys_role_permission rp
                          INNER JOIN sys_permission perm
@@ -16,6 +17,7 @@
                   AND rp.is_deleted = 0
                   AND perm.type IN ('menu', 'button')) AS permission_count
         FROM sys_role r
+        LEFT JOIN sys_tenant t ON t.id = r.tenant_id AND t.is_deleted = 0
         WHERE r.is_deleted = 0
         <if test="tenantId != null">
             AND r.tenant_id = #{tenantId}

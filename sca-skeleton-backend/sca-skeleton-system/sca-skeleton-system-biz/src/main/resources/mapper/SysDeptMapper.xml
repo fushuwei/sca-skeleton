@@ -3,6 +3,35 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.fushuwei.scaskeleton.system.mapper.SysDeptMapper">
 
+    <!-- 分页查询部门列表 -->
+    <select id="selectDeptPage" resultType="io.github.fushuwei.scaskeleton.system.api.response.dept.DeptResponse">
+        SELECT d.*, t.name AS tenant_name
+        FROM sys_dept d
+        LEFT JOIN sys_tenant t ON t.id = d.tenant_id AND t.is_deleted = 0
+        WHERE d.is_deleted = 0
+        <if test="tenantId != null">
+            AND d.tenant_id = #{tenantId}
+        </if>
+        <if test="request.parentId != null and request.parentId != ''">
+            AND d.parent_id = #{request.parentId}
+        </if>
+        <if test="request.keyword != null and request.keyword != ''">
+            AND (d.name LIKE CONCAT('%', #{request.keyword}, '%')
+                 OR d.code LIKE CONCAT('%', #{request.keyword}, '%'))
+        </if>
+        <if test="request.status != null and request.status != ''">
+            AND d.status = #{request.status}
+        </if>
+        <choose>
+            <when test="request.safeSortField() != null and request.safeSortField() != ''">
+                ORDER BY d.${request.safeSortField()} ${request.safeSortOrder()}
+            </when>
+            <otherwise>
+                ORDER BY d.sort ASC
+            </otherwise>
+        </choose>
+    </select>
+
     <!-- 批量更新所有子孙节点的 tree_path 字段值 -->
     <update id="updateDescendantsTreePath">
         UPDATE sys_dept

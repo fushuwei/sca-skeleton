@@ -45,6 +45,10 @@ public class SysRole extends BaseEntity {
 
     // ==================== 关联展示 ====================
 
+    /** 租户名称 */
+    @TableField(exist = false)
+    private String tenantName;
+
     /** 关联权限数量 */
     @TableField(value = "permission_count",
                 insertStrategy = FieldStrategy.NEVER,

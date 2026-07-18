@@ -66,36 +66,10 @@ public class SysDeptServiceImpl implements SysDeptService {
      */
     @Override
     public IPage<DeptResponse> pageDepts(DeptPageRequest request) {
-        // 构造分页对象
-        Page<SysDept> page = new Page<>(request.getPageNum(), request.getPageSize());
-
-        // 包装查询条件（数据隔离：超管看所有租户，非超管只看自己租户）
-        LambdaQueryWrapper<SysDept> wrapper = new LambdaQueryWrapper<SysDept>()
-            .eq(!SecurityUtils.isSuperAdmin(), SysDept::getTenantId, SecurityUtils.getTenantId())
-            .eq(StringUtils.hasText(request.getParentId()), SysDept::getParentId, request.getParentId())
-            .and(StringUtils.hasText(request.getKeyword()),
-                w -> w.like(SysDept::getName, request.getKeyword()).or().like(SysDept::getCode, request.getKeyword()))
-            .eq(StringUtils.hasText(request.getStatus()), SysDept::getStatus, request.getStatus());
-
-        // 包装排序规则
-        String sortField = request.safeSortField();
-        boolean isAsc = "ASC".equalsIgnoreCase(request.safeSortOrder());
-        if (sortField != null) {
-            switch (sortField) {
-                case "name" -> wrapper.orderBy(true, isAsc, SysDept::getName);
-                case "code" -> wrapper.orderBy(true, isAsc, SysDept::getCode);
-                case "sort" -> wrapper.orderBy(true, isAsc, SysDept::getSort);
-                case "status" -> wrapper.orderBy(true, isAsc, SysDept::getStatus);
-                case "create_time" -> wrapper.orderBy(true, isAsc, SysDept::getCreateTime);
-                case "tree_path" -> wrapper.orderBy(true, isAsc, SysDept::getTreePath);
-            }
-        } else {
-            wrapper.orderByAsc(SysDept::getSort);
-        }
-
-        // 查询分页数据，并将结果转换为响应对象
-        IPage<SysDept> entityPage = deptMapper.selectPage(page, wrapper);
-        return entityPage.convert(deptConverter::toDeptResponse);
+        Page<DeptResponse> page = new Page<>(request.getPageNum(), request.getPageSize());
+        // 数据隔离：超管看所有租户，非超管只看自己租户
+        String tenantId = SecurityUtils.isSuperAdmin() ? null : SecurityUtils.getTenantId();
+        return deptMapper.selectDeptPage(page, tenantId, request);
     }
 
     /**

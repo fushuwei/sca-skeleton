@@ -21,6 +21,9 @@ public class UserResponse {
     /** 租户 ID */
     private String tenantId;
 
+    /** 租户名称 */
+    private String tenantName;
+
     /** 用户名 */
     private String username;
 

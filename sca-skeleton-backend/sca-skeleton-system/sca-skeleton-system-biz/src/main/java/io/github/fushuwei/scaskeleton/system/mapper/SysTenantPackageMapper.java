@@ -16,7 +16,7 @@ public interface SysTenantPackageMapper extends BaseMapper<SysTenantPackage> {
     /**
      * 分页查询租户套餐列表
      *
-     * @param page    分页对象（框架回填）
+     * @param page    分页对象
      * @param request 查询条件
      * @return 分页结果
      */

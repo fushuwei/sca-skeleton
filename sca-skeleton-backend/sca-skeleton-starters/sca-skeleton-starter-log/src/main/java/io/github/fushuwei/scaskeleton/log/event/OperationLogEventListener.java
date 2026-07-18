@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.log.event;
 
-import io.github.fushuwei.scaskeleton.core.support.IpRegionResolver;
+import io.github.fushuwei.scaskeleton.core.ip.IpRegionResolver;
 import io.github.fushuwei.scaskeleton.log.handler.OperationLogHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

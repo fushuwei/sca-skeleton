@@ -65,34 +65,10 @@ public class SysPostServiceImpl implements SysPostService {
      */
     @Override
     public IPage<PostResponse> pagePosts(PostPageRequest request) {
-        // 构造分页对象
-        Page<SysPost> page = new Page<>(request.getPageNum(), request.getPageSize());
-
-        LambdaQueryWrapper<SysPost> wrapper = new LambdaQueryWrapper<SysPost>()
-            // 数据隔离：超管看所有租户，非超管只看自己租户
-            .eq(!SecurityUtils.isSuperAdmin(), SysPost::getTenantId, SecurityUtils.getTenantId())
-            // 关键词模糊匹配名称或编码
-            .and(StringUtils.hasText(request.getKeyword()),
-                w -> w.like(SysPost::getName, request.getKeyword())
-                    .or().like(SysPost::getCode, request.getKeyword()));
-
-        // 安全排序：白名单校验通过后按指定字段排序，默认按 sort 升序
-        String sortField = request.safeSortField();
-        boolean isAsc = "ASC".equalsIgnoreCase(request.safeSortOrder());
-        if (sortField != null) {
-            switch (sortField) {
-                case "name" -> wrapper.orderBy(true, isAsc, SysPost::getName);
-                case "code" -> wrapper.orderBy(true, isAsc, SysPost::getCode);
-                case "sort" -> wrapper.orderBy(true, isAsc, SysPost::getSort);
-                case "create_time" -> wrapper.orderBy(true, isAsc, SysPost::getCreateTime);
-            }
-        } else {
-            wrapper.orderByAsc(SysPost::getSort);
-        }
-
-        // 查询分页数据，并将结果转换为响应对象
-        IPage<SysPost> entityPage = postMapper.selectPage(page, wrapper);
-        return entityPage.convert(postConverter::toPostResponse);
+        Page<PostResponse> page = new Page<>(request.getPageNum(), request.getPageSize());
+        // 数据隔离：超管看所有租户，非超管只看自己租户
+        String tenantId = SecurityUtils.isSuperAdmin() ? null : SecurityUtils.getTenantId();
+        return postMapper.selectPostPage(page, tenantId, request);
     }
 
     /**

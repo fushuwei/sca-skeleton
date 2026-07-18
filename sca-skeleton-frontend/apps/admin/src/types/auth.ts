@@ -51,6 +51,8 @@ export interface OAuthTokenPair {
 export interface SysUser {
   id: string;
   tenantId: string;
+  /** 租户名称（通过 tenant_id 关联 sys_tenant 查询，租户不存在时为空） */
+  tenantName?: string;
   username: string;
   nickname: string;
   realName: string;
@@ -123,6 +125,8 @@ export interface IPage<T> {
 export interface SysDept {
   id: string;
   tenantId: string;
+  /** 租户名称（通过 tenant_id 关联 sys_tenant 查询，租户不存在时为空） */
+  tenantName?: string;
   /** 上级部门ID，顶级为 "0" */
   parentId: string;
   name: string;
@@ -165,6 +169,8 @@ export interface DeptPageRequest {
 export interface SysPost {
   id: string;
   tenantId: string;
+  /** 租户名称（通过 tenant_id 关联 sys_tenant 查询，租户不存在时为空） */
+  tenantName?: string;
   name: string;
   code: string;
   sort: number;
@@ -191,6 +197,8 @@ export interface PostPageRequest {
 export interface SysRole {
   id: string;
   tenantId: string;
+  /** 租户名称（通过 tenant_id 关联 sys_tenant 查询，租户不存在时为空） */
+  tenantName?: string;
   name: string;
   code: string;
   /** 数据权限范围：all / tenant / dept_and_sub / dept / personal / custom */

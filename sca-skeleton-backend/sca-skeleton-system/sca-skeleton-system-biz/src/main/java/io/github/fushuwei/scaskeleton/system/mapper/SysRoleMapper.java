@@ -18,7 +18,7 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
     /**
      * 分页查询角色列表
      *
-     * @param page     分页对象（框架回填）
+     * @param page     分页对象
      * @param tenantId 租户 ID
      * @param request  查询条件
      * @return 分页结果

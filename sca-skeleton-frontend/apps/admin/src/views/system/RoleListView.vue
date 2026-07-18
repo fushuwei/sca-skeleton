@@ -133,6 +133,14 @@ const columns = computed<QTableColumn<SysRole>[]>(() => [
     sortable: true
   },
   {
+    name: "tenantName",
+    field: "tenantName",
+    label: t("roleMgmt.tenantName"),
+    align: "left",
+    sortable: false,
+    format: (val: string) => (val ? val : "-")
+  },
+  {
     name: "dataScope",
     field: "dataScope",
     label: t("roleMgmt.dataScope"),

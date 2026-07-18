@@ -20,6 +20,9 @@ public class RoleResponse {
     /** 租户 ID */
     private String tenantId;
 
+    /** 租户名称 */
+    private String tenantName;
+
     /** 角色名称 */
     private String name;
 

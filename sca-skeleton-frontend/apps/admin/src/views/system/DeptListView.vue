@@ -321,6 +321,14 @@ const columns = computed<QTableColumn<SysDept>[]>(() => [
     sortable: true
   },
   {
+    name: "tenantName",
+    field: "tenantName",
+    label: t("deptMgmt.tenantName"),
+    align: "left",
+    sortable: false,
+    format: (val: string) => (val ? val : "-")
+  },
+  {
     name: "leader",
     field: "leader",
     label: t("deptMgmt.leader"),

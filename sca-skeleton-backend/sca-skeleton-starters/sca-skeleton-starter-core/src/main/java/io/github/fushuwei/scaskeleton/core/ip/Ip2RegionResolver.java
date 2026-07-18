@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.core.support;
+package io.github.fushuwei.scaskeleton.core.ip;
 
 import lombok.extern.slf4j.Slf4j;
 import org.lionsoul.ip2region.service.Config;

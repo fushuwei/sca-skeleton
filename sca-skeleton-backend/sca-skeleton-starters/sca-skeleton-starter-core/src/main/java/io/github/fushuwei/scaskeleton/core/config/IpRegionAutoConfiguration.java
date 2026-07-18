@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.core.config;
 
-import io.github.fushuwei.scaskeleton.core.support.Ip2RegionResolver;
-import io.github.fushuwei.scaskeleton.core.support.IpRegionResolver;
+import io.github.fushuwei.scaskeleton.core.ip.Ip2RegionResolver;
+import io.github.fushuwei.scaskeleton.core.ip.IpRegionResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

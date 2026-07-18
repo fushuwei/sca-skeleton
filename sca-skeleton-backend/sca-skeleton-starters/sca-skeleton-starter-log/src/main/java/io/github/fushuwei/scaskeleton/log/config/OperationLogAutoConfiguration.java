@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.log.config;
 
-import io.github.fushuwei.scaskeleton.core.support.IpRegionResolver;
+import io.github.fushuwei.scaskeleton.core.ip.IpRegionResolver;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.log.aspect.OperationLogAspect;
 import io.github.fushuwei.scaskeleton.log.event.OperationLogEventListener;

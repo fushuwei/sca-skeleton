@@ -20,6 +20,9 @@ public class DeptResponse {
     /** 租户 ID */
     private String tenantId;
 
+    /** 租户名称 */
+    private String tenantName;
+
     /** 上级部门 ID（顶级为 "0"） */
     private String parentId;
 

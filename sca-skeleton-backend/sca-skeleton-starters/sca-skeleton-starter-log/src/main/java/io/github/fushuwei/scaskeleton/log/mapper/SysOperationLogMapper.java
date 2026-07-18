@@ -17,8 +17,8 @@ public interface SysOperationLogMapper extends BaseMapper<SysOperationLog> {
     /**
      * 分页查询操作日志列表
      *
-     * @param page      分页对象（框架回填）
-     * @param tenantId  租户 ID（超管传 null 查询所有租户）
+     * @param page      分页对象
+     * @param tenantId  租户 ID
      * @param keyword   搜索关键字（模糊匹配租户名称、操作用户、真实姓名、操作模块、操作动作、请求路径）
      * @param isSuccess 操作状态
      * @param startTime 开始时间

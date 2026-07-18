@@ -102,6 +102,14 @@ const columns = computed<QTableColumn<SysPost>[]>(() => [
     sortable: true
   },
   {
+    name: "tenantName",
+    field: "tenantName",
+    label: t("postMgmt.tenantName"),
+    align: "left",
+    sortable: false,
+    format: (val: string) => (val ? val : "-")
+  },
+  {
     name: "sort",
     field: "sort",
     label: t("postMgmt.sort"),

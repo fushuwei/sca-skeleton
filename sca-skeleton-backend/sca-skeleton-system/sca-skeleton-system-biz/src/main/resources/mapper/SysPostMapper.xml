@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.fushuwei.scaskeleton.system.mapper.SysPostMapper">
+
+    <!-- 分页查询岗位（含租户名称） -->
+    <select id="selectPostPage" resultType="io.github.fushuwei.scaskeleton.system.api.response.post.PostResponse">
+        SELECT p.*, t.name AS tenant_name
+        FROM sys_post p
+        LEFT JOIN sys_tenant t ON t.id = p.tenant_id AND t.is_deleted = 0
+        WHERE p.is_deleted = 0
+        <if test="tenantId != null">
+            AND p.tenant_id = #{tenantId}
+        </if>
+        <if test="request.keyword != null and request.keyword != ''">
+            AND (p.name LIKE CONCAT('%', #{request.keyword}, '%')
+                 OR p.code LIKE CONCAT('%', #{request.keyword}, '%'))
+        </if>
+        <choose>
+            <when test="request.safeSortField() != null and request.safeSortField() != ''">
+                ORDER BY p.${request.safeSortField()} ${request.safeSortOrder()}
+            </when>
+            <otherwise>
+                ORDER BY p.sort ASC
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

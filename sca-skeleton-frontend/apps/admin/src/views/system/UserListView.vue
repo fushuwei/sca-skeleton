@@ -387,6 +387,14 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     sortable: true
   },
   {
+    name: "tenantName",
+    field: "tenantName",
+    label: t("user.tenantName"),
+    align: "left",
+    sortable: false,
+    format: (val: string) => (val ? val : "-")
+  },
+  {
     name: "status",
     field: "status",
     label: t("user.status"),
