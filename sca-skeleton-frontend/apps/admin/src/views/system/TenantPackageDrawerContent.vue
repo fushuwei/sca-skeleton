@@ -106,10 +106,15 @@ const permSearchKey = ref("");
 /** 权限树未加载时的待处理操作 */
 const pendingPermIds = ref<string[] | null>(null);
 
-/** 将扁平权限列表转成树结构 */
+/** 将扁平权限列表转成树结构（仅保留启用且可见的节点，父节点被过滤时子孙一并剔除） */
 function buildPermTree(perms: SysPermission[]): PermissionTreeNode[] {
   if (!perms.length) return [];
-  const sorted = [...perms].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+
+  // 过滤：仅保留启用且可见的权限节点（disabled 或 is_visible=0 的菜单不参与套餐授权）
+  const visiblePerms = perms.filter(p => p.status === "enabled" && p.isVisible === 1);
+  if (!visiblePerms.length) return [];
+
+  const sorted = [...visiblePerms].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
 
   const map = new Map<string, PermissionTreeNode>();
   const isEn = locale.value.startsWith("en");
@@ -134,9 +139,8 @@ function buildPermTree(perms: SysPermission[]): PermissionTreeNode[] {
       if (parent) {
         parent.children = parent.children ?? [];
         parent.children.push(node);
-      } else {
-        roots.push(node);
       }
+      // 父节点被过滤（不在 map 中），丢弃该节点（不提升为根节点，避免孤儿子菜单）
     }
   }
 
@@ -167,6 +171,26 @@ function collectLeafIds(nodes: PermissionTreeNode[]): Set<string> {
   };
   collect(nodes);
   return leafIds;
+}
+
+/** 收集被勾选节点的所有祖先 ID（含自身），用于保存完整权限链（module/folder/menu + button） */
+function collectWithAncestors(tickedIds: string[]): string[] {
+  if (!tickedIds.length) return [];
+  const result = new Set<string>(tickedIds);
+  // 构建 id -> parentId 映射（基于全量权限列表，确保能追溯到被过滤的祖先）
+  const parentMap = new Map<string, string>();
+  for (const p of allPermissions.value) {
+    parentMap.set(p.id, p.parentId);
+  }
+  // 对每个 ticked ID 沿 parentId 向上追溯，补全所有祖先
+  for (const id of tickedIds) {
+    let current = parentMap.get(id);
+    while (current && current !== "0" && !result.has(current)) {
+      result.add(current);
+      current = parentMap.get(current);
+    }
+  }
+  return [...result];
 }
 
 /** 节点图标：模块/目录用 folder/folder_open（随展开状态切换），菜单用 nest_eco_leaf，按钮无图标 */
@@ -315,6 +339,10 @@ function handleClose() {
 async function handleSave() {
   if (drawerReadonly.value) return;
 
+  // 收集被勾选叶子节点的所有祖先 ID，确保保存完整权限链（module/folder/menu + button），
+  // 避免 leaf-filtered 策略导致只保存 button 而菜单树断裂
+  const fullPermissionIds = collectWithAncestors(form.permissionIds);
+
   const data: Record<string, unknown> = {
     name: form.name,
     code: form.code,
@@ -325,7 +353,7 @@ async function handleSave() {
     expireDays: form.expireDays,
     sort: form.sort,
     remark: form.remark || undefined,
-    permissionIds: form.permissionIds.length ? form.permissionIds : undefined
+    permissionIds: fullPermissionIds.length ? fullPermissionIds : undefined
   };
 
   try {
