@@ -9,6 +9,7 @@ import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.role.RoleOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysRoleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,6 +40,13 @@ public class SysRoleController {
         return Result.ok(roleService.listRoles());
     }
 
+    @Operation(summary = "查询角色选项列表", description = "用于用户管理等功能表单下拉选择")
+    @GetMapping("/options")
+    @RequiresPermission("sys:user:list")
+    public Result<List<RoleOptionResponse>> options() {
+        return Result.ok(roleService.listRoleOptions());
+    }
+
     @Operation(summary = "分页查询角色列表")
     @GetMapping("/page")
     @RequiresPermission("sys:role:list")
@@ -48,14 +56,14 @@ public class SysRoleController {
 
     @Operation(summary = "根据 ID 查询角色详情")
     @GetMapping("/{id}")
-    @RequiresPermission("sys:role:query")
+    @RequiresPermission("sys:role:list")
     public Result<RoleResponse> getById(@PathVariable String id) {
         return Result.ok(roleService.getRoleById(id));
     }
 
     @Operation(summary = "查询角色已分配权限")
     @GetMapping("/{id}/permissions")
-    @RequiresPermission("sys:role:query")
+    @RequiresPermission("sys:role:list")
     public Result<List<String>> getPermissionIds(@PathVariable String id) {
         return Result.ok(roleService.getRolePermissionIds(id));
     }

@@ -9,6 +9,7 @@ import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPac
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageResponse;
 import io.github.fushuwei.scaskeleton.system.converter.TenantPackageConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenantPackage;
@@ -53,6 +54,21 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
             .orderByAsc(SysTenantPackage::getSort));
         // 转换为响应对象列表
         return packages.stream().map(packageConverter::toTenantPackageResponse).toList();
+    }
+
+    /**
+     * 查询套餐选项列表
+     *
+     * @return 套餐选项列表
+     */
+    @Override
+    public List<TenantPackageOptionResponse> listPackageOptions() {
+        // 查询启用的套餐
+        List<SysTenantPackage> packages = packageMapper.selectList(new LambdaQueryWrapper<SysTenantPackage>()
+            .eq(SysTenantPackage::getStatus, "enabled")
+            .orderByAsc(SysTenantPackage::getSort));
+        // 转换为响应对象列表
+        return packageConverter.toTenantPackageOptionResponseList(packages);
     }
 
     /**

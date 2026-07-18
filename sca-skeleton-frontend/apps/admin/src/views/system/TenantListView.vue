@@ -4,13 +4,13 @@ import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { SysTenant, SysTenantPackage, TenantPageRequest } from "../../types/auth";
+import type { SysTenant, TenantPackageOption, TenantPageRequest } from "../../types/auth";
 import {
   getTenantPageApi,
   deleteTenantApi,
   batchDeleteTenantApi
 } from "../../apis/tenant";
-import { getTenantPackageListApi } from "../../apis/tenant-package";
+import { getTenantPackageOptionsApi } from "../../apis/tenant-package";
 import { useConfirmDialog } from "@repo/ui";
 import TenantDrawerContent from "./TenantDrawerContent.vue";
 
@@ -56,11 +56,11 @@ const statusColorOf = (s: string): string =>
   }[s] ?? "grey-5");
 
 // ── 套餐筛选选项 ──
-const packageFilterOptions = ref<SysTenantPackage[]>([]);
+const packageFilterOptions = ref<TenantPackageOption[]>([]);
 
 async function loadPackageFilterOptions() {
   try {
-    const result = await getTenantPackageListApi();
+    const result = await getTenantPackageOptionsApi();
     if (result.code === 10_000 && result.data) {
       packageFilterOptions.value = result.data;
     }
@@ -515,7 +515,7 @@ onMounted(() => {
                 square
                 dense
                 :options="packageFilterOptions"
-                :option-label="(o: SysTenantPackage) => o ? o.name : ''"
+                :option-label="(o: TenantPackageOption) => o ? o.name : ''"
                 option-value="id"
                 emit-value
                 map-options

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptResponse;
 
 import java.util.List;
@@ -21,6 +22,13 @@ public interface SysDeptService {
      * @return 部门列表
      */
     List<DeptResponse> listDepts();
+
+    /**
+     * 查询部门选项列表
+     *
+     * @return 部门选项列表
+     */
+    List<DeptOptionResponse> listDeptOptions();
 
     /**
      * 分页查询部门列表

@@ -1,9 +1,17 @@
 import { request } from "./http";
-import type { ApiEnvelope, SysRole, RolePageRequest, IPage } from "../types/auth";
+import type { ApiEnvelope, SysRole, RoleOption, RolePageRequest, IPage } from "../types/auth";
 
-/** 获取当前租户下角色列表 */
+/** 获取当前租户下角色列表（角色管理页面） */
 export async function getRoleListApi(): Promise<ApiEnvelope<SysRole[]>> {
   return request<SysRole[]>({ method: "GET", url: "/sys/role/list" });
+}
+
+/**
+ * 查询角色选项列表（用户管理表单下拉选择）
+ * 返回最小化字段（id/name/code/sort），后端已剥离 dataScope/tenantId/isBuiltin/审计字段等。
+ */
+export async function getRoleOptionsApi(): Promise<ApiEnvelope<RoleOption[]>> {
+  return request<RoleOption[]>({ method: "GET", url: "/sys/role/options" });
 }
 
 /** 分页查询当前租户下角色列表 */

@@ -47,7 +47,7 @@ public class SysTenantController {
 
     @Operation(summary = "查询租户详情")
     @GetMapping("/{id}")
-    @RequiresPermission("sys:tenant:query")
+    @RequiresPermission("sys:tenant:list")
     public Result<TenantResponse> getById(@PathVariable String id) {
         return Result.ok(tenantService.getTenantById(id));
     }

@@ -37,7 +37,7 @@ public class SysLoginLogController {
 
     @Operation(summary = "根据 ID 查询登录日志详情")
     @GetMapping("/{id}")
-    @RequiresPermission("sys:login-log:query")
+    @RequiresPermission("sys:login-log:list")
     public Result<LoginLogResponse> getById(@PathVariable String id) {
         return Result.ok(loginLogService.getLogById(id));
     }

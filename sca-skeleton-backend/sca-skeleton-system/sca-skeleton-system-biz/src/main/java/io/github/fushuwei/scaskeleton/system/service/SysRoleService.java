@@ -5,6 +5,7 @@ import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.role.RoleOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
 
 import java.util.List;
@@ -22,6 +23,13 @@ public interface SysRoleService {
      * @return 角色列表
      */
     List<RoleResponse> listRoles();
+
+    /**
+     * 查询角色选项列表
+     *
+     * @return 角色选项列表
+     */
+    List<RoleOptionResponse> listRoleOptions();
 
     /**
      * 分页查询角色列表

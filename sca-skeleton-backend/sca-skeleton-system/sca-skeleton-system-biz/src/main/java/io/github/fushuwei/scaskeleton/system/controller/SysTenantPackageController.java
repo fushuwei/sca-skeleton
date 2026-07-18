@@ -9,6 +9,7 @@ import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPac
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysTenantPackageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,6 +40,13 @@ public class SysTenantPackageController {
         return Result.ok(packageService.listPackages());
     }
 
+    @Operation(summary = "查询套餐选项列表", description = "用于租户管理等功能表单下拉选择")
+    @GetMapping("/options")
+    @RequiresPermission("sys:tenant:list")
+    public Result<List<TenantPackageOptionResponse>> options() {
+        return Result.ok(packageService.listPackageOptions());
+    }
+
     @Operation(summary = "分页查询套餐列表")
     @GetMapping("/page")
     @RequiresPermission("sys:tenant-package:list")
@@ -48,14 +56,14 @@ public class SysTenantPackageController {
 
     @Operation(summary = "查询套餐详情")
     @GetMapping("/{id}")
-    @RequiresPermission("sys:tenant-package:query")
+    @RequiresPermission("sys:tenant-package:list")
     public Result<TenantPackageResponse> getById(@PathVariable String id) {
         return Result.ok(packageService.getPackageById(id));
     }
 
     @Operation(summary = "查询套餐已分配权限")
     @GetMapping("/{id}/permissions")
-    @RequiresPermission("sys:tenant-package:query")
+    @RequiresPermission("sys:tenant-package:list")
     public Result<List<String>> getPermissionIds(@PathVariable String id) {
         return Result.ok(packageService.getPackagePermissionIds(id));
     }

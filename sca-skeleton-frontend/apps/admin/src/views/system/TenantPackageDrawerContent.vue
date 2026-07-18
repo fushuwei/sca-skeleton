@@ -2,10 +2,10 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { SysTenantPackage, SysPermission, PermissionTreeNode } from "../../types/auth";
+import type { SysTenantPackage, PermissionAssignOption, PermissionTreeNode } from "../../types/auth";
 import { createTenantPackageApi, updateTenantPackageApi } from "../../apis/tenant-package";
 import { getTenantPackagePermissionIdsApi } from "../../apis/tenant-package";
-import { getPermissionListApi } from "../../apis/permission";
+import { getPermissionAssignOptionsApi } from "../../apis/permission";
 
 const { t, locale } = useI18n({ useScope: "global" });
 
@@ -97,7 +97,7 @@ const statusOptions = computed(() => [
 
 // ── 权限树 ──
 const permTreeLoading = ref(false);
-const allPermissions = ref<SysPermission[]>([]);
+const allPermissions = ref<PermissionAssignOption[]>([]);
 const permTreeNodes = computed(() => buildPermTree(allPermissions.value));
 const permTreeExpanded = ref<string[]>([]);
 const permTreeTicked = ref<string[]>([]);
@@ -106,15 +106,16 @@ const permSearchKey = ref("");
 /** 权限树未加载时的待处理操作 */
 const pendingPermIds = ref<string[] | null>(null);
 
-/** 将扁平权限列表转成树结构（仅保留启用且可见的节点，父节点被过滤时子孙一并剔除） */
-function buildPermTree(perms: SysPermission[]): PermissionTreeNode[] {
+/**
+ * 将扁平权限列表转成树结构。
+ *
+ * 后端已做过滤（仅返回启用且可见的权限，且非超管仅返回自身拥有的权限），
+ * 前端直接信任后端数据，不再做任何过滤，避免「掩耳盗铃」式掩盖后端问题。
+ */
+function buildPermTree(perms: PermissionAssignOption[]): PermissionTreeNode[] {
   if (!perms.length) return [];
 
-  // 过滤：仅保留启用且可见的权限节点（disabled 或 is_visible=0 的菜单不参与套餐授权）
-  const visiblePerms = perms.filter(p => p.status === "enabled" && p.isVisible === 1);
-  if (!visiblePerms.length) return [];
-
-  const sorted = [...visiblePerms].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+  const sorted = [...perms].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
 
   const map = new Map<string, PermissionTreeNode>();
   const isEn = locale.value.startsWith("en");
@@ -140,7 +141,7 @@ function buildPermTree(perms: SysPermission[]): PermissionTreeNode[] {
         parent.children = parent.children ?? [];
         parent.children.push(node);
       }
-      // 父节点被过滤（不在 map 中），丢弃该节点（不提升为根节点，避免孤儿子菜单）
+      // 父节点不在返回列表中（非超管场景下当前用户未持有该父权限），丢弃该节点
     }
   }
 
@@ -236,7 +237,7 @@ watch(permSearchKey, (val) => {
 async function loadPermTree() {
   permTreeLoading.value = true;
   try {
-    const result = await getPermissionListApi();
+    const result = await getPermissionAssignOptionsApi();
     if (result.code === 10_000 && result.data) {
       allPermissions.value = result.data;
       permTreeExpanded.value = permTreeNodes.value.map((n) => n.id);

@@ -2,9 +2,9 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { SysTenant, SysTenantPackage } from "../../types/auth";
+import type { SysTenant, TenantPackageOption } from "../../types/auth";
 import { createTenantApi, updateTenantApi } from "../../apis/tenant";
-import { getTenantPackageListApi } from "../../apis/tenant-package";
+import { getTenantPackageOptionsApi } from "../../apis/tenant-package";
 import DateTimePicker from "../../components/DateTimePicker.vue";
 
 const { t } = useI18n({ useScope: "global" });
@@ -66,16 +66,16 @@ const statusOptions = computed(() => {
 });
 
 // ── 套餐列表（用于下拉选择） ──
-const packageOptions = ref<SysTenantPackage[]>([]);
+const packageOptions = ref<TenantPackageOption[]>([]);
 const packageLoading = ref(false);
 
 async function loadPackageOptions() {
   packageLoading.value = true;
   try {
-    const result = await getTenantPackageListApi();
+    const result = await getTenantPackageOptionsApi();
     if (result.code === 10_000 && result.data) {
-      // 仅展示启用状态的套餐
-      packageOptions.value = result.data.filter((p) => p.status === "enabled");
+      // 后端已过滤 status=enabled，前端直接信任后端数据
+      packageOptions.value = result.data;
     }
   } catch {
     // 静默失败
@@ -214,7 +214,7 @@ async function handleSave() {
             filled
             square
             :options="packageOptions"
-            :option-label="(o: SysTenantPackage) => o ? o.name : ''"
+            :option-label="(o: TenantPackageOption) => o ? o.name : ''"
             option-value="id"
             emit-value
             map-options

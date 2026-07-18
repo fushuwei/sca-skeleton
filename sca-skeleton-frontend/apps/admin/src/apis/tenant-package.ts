@@ -1,5 +1,5 @@
 import { request } from "./http";
-import type { ApiEnvelope, SysTenantPackage, TenantPackagePageRequest, IPage } from "../types/auth";
+import type { ApiEnvelope, SysTenantPackage, TenantPackageOption, TenantPackagePageRequest, IPage } from "../types/auth";
 
 /** 分页查询套餐列表 */
 export async function getTenantPackagePageApi(
@@ -12,9 +12,18 @@ export async function getTenantPackagePageApi(
   });
 }
 
-/** 查询全部套餐列表 */
+/** 查询全部套餐列表（套餐管理页面） */
 export async function getTenantPackageListApi(): Promise<ApiEnvelope<SysTenantPackage[]>> {
   return request<SysTenantPackage[]>({ method: "GET", url: "/sys/tenant-package/list" });
+}
+
+/**
+ * 查询套餐选项列表（租户管理表单下拉选择）
+ * 返回最小化字段（id/name/code/status/sort），后端已剥离 userLimit/apiLimit/storageLimit/expireDays/审计字段等。
+ * 仅返回 status=enabled 的套餐。
+ */
+export async function getTenantPackageOptionsApi(): Promise<ApiEnvelope<TenantPackageOption[]>> {
+  return request<TenantPackageOption[]>({ method: "GET", url: "/sys/tenant-package/options" });
 }
 
 /** 根据 ID 查询套餐详情 */

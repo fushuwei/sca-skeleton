@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.post.PostCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.post.PostPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.post.PostUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.post.PostOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.post.PostResponse;
 
 import java.util.List;
@@ -21,6 +22,13 @@ public interface SysPostService {
      * @return 岗位列表
      */
     List<PostResponse> listPosts();
+
+    /**
+     * 查询岗位选项列表
+     *
+     * @return 岗位选项列表
+     */
+    List<PostOptionResponse> listPostOptions();
 
     /**
      * 分页查询岗位列表

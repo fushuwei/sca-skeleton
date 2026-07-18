@@ -8,6 +8,7 @@ import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysDeptService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,6 +39,13 @@ public class SysDeptController {
         return Result.ok(deptService.listDepts());
     }
 
+    @Operation(summary = "查询部门选项列表", description = "用于用户管理等功能表单下拉选择")
+    @GetMapping("/options")
+    @RequiresPermission("sys:user:list")
+    public Result<List<DeptOptionResponse>> options() {
+        return Result.ok(deptService.listDeptOptions());
+    }
+
     @Operation(summary = "分页查询部门列表")
     @GetMapping("/page")
     @RequiresPermission("sys:dept:list")
@@ -47,7 +55,7 @@ public class SysDeptController {
 
     @Operation(summary = "根据 ID 查询部门详情")
     @GetMapping("/{id}")
-    @RequiresPermission("sys:dept:query")
+    @RequiresPermission("sys:dept:list")
     public Result<DeptResponse> getById(@PathVariable String id) {
         return Result.ok(deptService.getDeptById(id));
     }

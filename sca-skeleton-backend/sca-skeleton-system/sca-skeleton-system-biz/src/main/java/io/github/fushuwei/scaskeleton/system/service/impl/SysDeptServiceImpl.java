@@ -10,6 +10,7 @@ import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dept.DeptUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptResponse;
 import io.github.fushuwei.scaskeleton.system.converter.DeptConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysDept;
@@ -56,6 +57,21 @@ public class SysDeptServiceImpl implements SysDeptService {
             .orderByAsc(SysDept::getSort));
         // 转换为响应对象列表
         return depts.stream().map(deptConverter::toDeptResponse).toList();
+    }
+
+    /**
+     * 查询部门选项列表
+     *
+     * @return 部门选项列表
+     */
+    @Override
+    public List<DeptOptionResponse> listDeptOptions() {
+        // 数据隔离：超管看所有租户，非超管只看自己租户
+        List<SysDept> depts = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
+            .eq(!SecurityUtils.isSuperAdmin(), SysDept::getTenantId, SecurityUtils.getTenantId())
+            .orderByAsc(SysDept::getSort));
+        // 转换为响应对象列表
+        return deptConverter.toDeptOptionResponseList(depts);
     }
 
     /**

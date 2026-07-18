@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionAssignOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionResponse;
 
 import java.util.List;
@@ -21,6 +22,13 @@ public interface SysPermissionService {
      * @return 权限列表
      */
     List<PermissionResponse> listAllPermissions();
+
+    /**
+     * 查询可授权权限列表
+     *
+     * @return 可授权权限列表
+     */
+    List<PermissionAssignOptionResponse> listAssignablePermissions();
 
     /**
      * 查询当前用户菜单列表

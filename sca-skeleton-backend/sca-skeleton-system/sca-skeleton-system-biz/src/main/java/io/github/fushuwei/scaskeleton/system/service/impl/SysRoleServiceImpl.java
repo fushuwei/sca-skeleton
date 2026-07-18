@@ -10,14 +10,17 @@ import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.role.RoleOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
 import io.github.fushuwei.scaskeleton.system.converter.RoleConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysRole;
 import io.github.fushuwei.scaskeleton.system.entity.SysRolePermission;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
+import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRolePermissionMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysRoleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +49,8 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     private final SysTenantMapper tenantMapper;
 
+    private final SysUserRoleMapper userRoleMapper;
+
     private final RoleConverter roleConverter;
 
     /**
@@ -61,6 +66,42 @@ public class SysRoleServiceImpl implements SysRoleService {
             .orderByAsc(SysRole::getSort));
         // 转换为响应对象列表
         return roles.stream().map(roleConverter::toRoleResponse).toList();
+    }
+
+    /**
+     * 查询角色选项列表
+     *
+     * @return 角色选项列表
+     */
+    @Override
+    public List<RoleOptionResponse> listRoleOptions() {
+        List<SysRole> roles;
+
+        if (SecurityUtils.isSuperAdmin()) {
+            // 超级管理员：返回所有角色
+            roles = roleMapper.selectList(new LambdaQueryWrapper<SysRole>().orderByAsc(SysRole::getSort));
+        } else {
+            // 非超级管理员：仅返回当前用户自身拥有的角色（防止越权授予自己不具备的角色）
+            String userId = SecurityUtils.getUserId();
+            if (!StringUtils.hasText(userId)) {
+                return Collections.emptyList();
+            }
+            List<SysUserRole> userRoles = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>()
+                .eq(SysUserRole::getUserId, userId));
+            if (CollectionUtils.isEmpty(userRoles)) {
+                return Collections.emptyList();
+            }
+            List<String> roleIds = userRoles.stream().map(SysUserRole::getRoleId).toList();
+            // 按当前用户拥有的角色 ID 查询，并按租户隔离过滤（防御性：user_role 应该只含本租户角色，但保持一致性）
+            String tenantId = SecurityUtils.getTenantId();
+            roles = roleMapper.selectList(new LambdaQueryWrapper<SysRole>()
+                .in(SysRole::getId, roleIds)
+                .eq(SysRole::getTenantId, tenantId)
+                .orderByAsc(SysRole::getSort));
+        }
+
+        // 转换为响应对象列表
+        return roleConverter.toRoleOptionResponseList(roles);
     }
 
     /**

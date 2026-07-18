@@ -176,7 +176,7 @@ public class SysUserServiceImpl implements SysUserService {
         user.setPhone(request.getPhone());
         user.setEmail(request.getEmail());
         user.setUserType("backend");
-        user.setIsSuperadmin(request.getIsSuperadmin() != null ? request.getIsSuperadmin() : 0);
+        user.setIsSuperadmin(resolveIsSuperadmin(request.getIsSuperadmin()));  // 安全防护：仅超级管理员可创建超级管理员账号，非超管强制为 0（防止垂直越权）
         user.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : "active");
         user.setLoginFailCount(0);
         user.setMustChangePassword(1);
@@ -208,7 +208,7 @@ public class SysUserServiceImpl implements SysUserService {
         user.setGender(request.getGender());
         user.setPhone(request.getPhone());
         user.setEmail(request.getEmail());
-        user.setIsSuperadmin(request.getIsSuperadmin() != null ? request.getIsSuperadmin() : 0);
+        user.setIsSuperadmin(resolveIsSuperadminForUpdate(request.getIsSuperadmin(), user.getIsSuperadmin()));  // 安全防护：仅超级管理员可修改超级管理员标志，非超管强制保持原值（防止垂直越权）
         user.setMustChangePassword(request.getMustChangePassword());
         user.setEffectiveStartTime(request.getEffectiveStartTime());
         user.setEffectiveEndTime(request.getEffectiveEndTime());
@@ -394,6 +394,37 @@ public class SysUserServiceImpl implements SysUserService {
             return requestTenantId;
         }
         return SecurityUtils.getTenantId();
+    }
+
+    /**
+     * 解析新建用户的 isSuperadmin 字段（防止垂直越权）
+     * <p>
+     * 仅超级管理员可创建超级管理员账号，非超管传入的 isSuperadmin 值会被强制忽略为 0
+     *
+     * @param requestIsSuperadmin 请求传入的 isSuperadmin 值
+     * @return 实际写入用的 isSuperadmin 值
+     */
+    private Integer resolveIsSuperadmin(Integer requestIsSuperadmin) {
+        if (SecurityUtils.isSuperAdmin()) {
+            return requestIsSuperadmin != null ? requestIsSuperadmin : 0;
+        }
+        return 0;
+    }
+
+    /**
+     * 解析编辑用户的 isSuperadmin 字段（防止垂直越权）
+     * <p>
+     * 仅超级管理员可修改超级管理员标志，非超管传入的 isSuperadmin 值会被忽略，保持用户原有的 isSuperadmin 值不变（避免普通用户通过编辑接口提权其他用户）
+     *
+     * @param requestIsSuperadmin 请求传入的 isSuperadmin 值
+     * @param originalIsSuperadmin 用户原有的 isSuperadmin 值
+     * @return 实际写入用的 isSuperadmin 值
+     */
+    private Integer resolveIsSuperadminForUpdate(Integer requestIsSuperadmin, Integer originalIsSuperadmin) {
+        if (SecurityUtils.isSuperAdmin()) {
+            return requestIsSuperadmin != null ? requestIsSuperadmin : 0;
+        }
+        return originalIsSuperadmin != null ? originalIsSuperadmin : 0;
     }
 
     /**

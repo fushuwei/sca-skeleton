@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { SysUser, SysDept, DeptTreeNode, UserPageRequest } from "../../types/auth";
+import type { SysUser, DeptOption, DeptTreeNode, UserPageRequest } from "../../types/auth";
 import {
   getUserPageApi,
   getUserByIdApi,
@@ -13,7 +13,7 @@ import {
   changeUserStatusApi,
   resetUserPasswordApi
 } from "../../apis/user";
-import { getDeptListApi } from "../../apis/dept";
+import { getDeptOptionsApi } from "../../apis/dept";
 import { useConfirmDialog } from "@repo/ui";
 import UserDrawerContent from "./UserDrawerContent.vue";
 
@@ -26,7 +26,7 @@ const { confirmDialog } = useConfirmDialog();
 
 const ROOT_ID = "__root__";
 const deptTreeLoading = ref(false);
-const deptList = ref<SysDept[]>([]);
+const deptList = ref<DeptOption[]>([]);
 const deptTreeNodes = ref<DeptTreeNode[]>([]);
 const selectedDeptId = ref<string>("");
 let lastSelectedDeptId = "";
@@ -35,7 +35,7 @@ const leftPanelWidth = ref(260);
 const leftPanelCollapsed = ref(false);
 
 /** 将后端返回的扁平部门列表转成树结构 */
-function buildDeptTree(depts: SysDept[]): DeptTreeNode[] {
+function buildDeptTree(depts: DeptOption[]): DeptTreeNode[] {
   if (!depts.length) return [];
 
   const sorted = [...depts].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
@@ -97,7 +97,7 @@ const deptTreeWithRoot = computed(() => [{
 async function loadDeptTree() {
   deptTreeLoading.value = true;
   try {
-    const result = await getDeptListApi();
+    const result = await getDeptOptionsApi();
     if (result.code === 10_000 && result.data?.length) {
       deptList.value = result.data;
       deptTreeNodes.value = buildDeptTree(result.data);

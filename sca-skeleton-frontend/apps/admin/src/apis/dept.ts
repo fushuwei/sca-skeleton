@@ -1,9 +1,17 @@
 import { request } from "./http";
-import type { ApiEnvelope, SysDept, DeptPageRequest, IPage } from "../types/auth";
+import type { ApiEnvelope, SysDept, DeptOption, DeptPageRequest, IPage } from "../types/auth";
 
-/** 查询当前租户下部门列表 */
+/** 查询当前租户下部门列表（部门管理页面） */
 export async function getDeptListApi(): Promise<ApiEnvelope<SysDept[]>> {
   return request<SysDept[]>({ method: "GET", url: "/sys/dept/list" });
+}
+
+/**
+ * 查询部门选项列表（用户管理表单下拉选择）
+ * 返回最小化字段（id/parentId/name/sort），后端已剥离 leader/phone/email/tenantId/treePath/审计字段等。
+ */
+export async function getDeptOptionsApi(): Promise<ApiEnvelope<DeptOption[]>> {
+  return request<DeptOption[]>({ method: "GET", url: "/sys/dept/options" });
 }
 
 /** 分页查询当前租户下部门列表 */

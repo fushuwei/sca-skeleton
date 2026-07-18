@@ -1,9 +1,17 @@
 import { request } from "./http";
-import type { ApiEnvelope, SysPost, PostPageRequest, IPage } from "../types/auth";
+import type { ApiEnvelope, SysPost, PostOption, PostPageRequest, IPage } from "../types/auth";
 
-/** 获取当前租户下岗位列表 */
+/** 获取当前租户下岗位列表（岗位管理页面） */
 export async function getPostListApi(): Promise<ApiEnvelope<SysPost[]>> {
   return request<SysPost[]>({ method: "GET", url: "/sys/post/list" });
+}
+
+/**
+ * 查询岗位选项列表（用户管理表单下拉选择）
+ * 返回最小化字段（id/name/code/sort），后端已剥离 tenantId/remark/version/审计字段等。
+ */
+export async function getPostOptionsApi(): Promise<ApiEnvelope<PostOption[]>> {
+  return request<PostOption[]>({ method: "GET", url: "/sys/post/options" });
 }
 
 /** 分页查询当前租户下岗位列表 */

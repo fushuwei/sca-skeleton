@@ -272,6 +272,25 @@ export interface PermissionPageRequest {
   sortOrder?: "asc" | "desc";
 }
 
+/**
+ * 权限分配选项响应（最小化字段，对应后端 PermissionAssignOptionResponse）
+ *
+ * 用于角色/套餐授权面板，仅包含渲染所需字段，剥离 path/component/code/treePath 等敏感字段。
+ * 后端已做越权防护：非超管仅返回自身拥有的权限，前端无需再过滤。
+ */
+export interface PermissionAssignOption {
+  id: string;
+  /** 父权限ID，顶级为 "0" */
+  parentId: string;
+  name: string;
+  /** 英文名称，用于国际化 */
+  nameEn?: string;
+  /** 类型：module / folder / menu / button */
+  type: string;
+  icon: string;
+  sort: number;
+}
+
 /** 权限树节点（用于 q-tree，排除 button 类型） */
 export interface PermissionTreeNode {
   id: string;
@@ -444,4 +463,52 @@ export interface LoginLogPageRequest {
   endTime?: string;
   sortField?: string;
   sortOrder?: string;
+}
+
+// ── Options 精简响应类型（对应后端 XxxOptionResponse，用于下拉选择场景） ──
+
+/**
+ * 角色选项（最小化字段，对应后端 RoleOptionResponse）
+ * 用于用户管理表单下拉选择，剥离 dataScope/tenantId/isBuiltin/审计字段等。
+ */
+export interface RoleOption {
+  id: string;
+  name: string;
+  code: string;
+  sort: number;
+}
+
+/**
+ * 部门选项（最小化字段，对应后端 DeptOptionResponse）
+ * 用于用户管理表单部门树选择，剥离 leader/phone/email/tenantId/treePath/审计字段等。
+ */
+export interface DeptOption {
+  id: string;
+  parentId: string;
+  name: string;
+  sort: number;
+}
+
+/**
+ * 岗位选项（最小化字段，对应后端 PostOptionResponse）
+ * 用于用户管理表单下拉选择，剥离 tenantId/remark/version/审计字段等。
+ */
+export interface PostOption {
+  id: string;
+  name: string;
+  code: string;
+  sort: number;
+}
+
+/**
+ * 租户套餐选项（最小化字段，对应后端 TenantPackageOptionResponse）
+ * 用于租户管理表单下拉选择，剥离 userLimit/apiLimit/storageLimit/expireDays/审计字段等。
+ * 仅返回 status=enabled 的套餐。
+ */
+export interface TenantPackageOption {
+  id: string;
+  name: string;
+  code: string;
+  status: string;
+  sort: number;
 }

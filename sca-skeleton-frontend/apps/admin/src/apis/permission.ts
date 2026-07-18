@@ -1,9 +1,22 @@
 import { request } from "./http";
-import type { ApiEnvelope, SysPermission, PermissionPageRequest, IPage } from "../types/auth";
+import type { ApiEnvelope, SysPermission, PermissionAssignOption, PermissionPageRequest, IPage } from "../types/auth";
 
-/** 查询全部权限列表 */
+/** 查询全部权限列表（菜单管理页面，返回全量数据含 disabled 菜单） */
 export async function getPermissionListApi(): Promise<ApiEnvelope<SysPermission[]>> {
   return request<SysPermission[]>({ method: "GET", url: "/sys/permission/list" });
+}
+
+/**
+ * 查询可授权权限列表（角色/套餐授权面板）
+ *
+ * 后端已做两层防护：
+ * 1. 字段最小化：仅返回 id/parentId/name/nameEn/type/icon/sort，不含 path/component/code/treePath 等敏感字段
+ * 2. 越权防护：非超管仅返回当前用户自身拥有的权限（不能授予自己不具备的权限）
+ *
+ * 前端无需再做任何过滤，直接信任后端数据。
+ */
+export async function getPermissionAssignOptionsApi(): Promise<ApiEnvelope<PermissionAssignOption[]>> {
+  return request<PermissionAssignOption[]>({ method: "GET", url: "/sys/permission/assign-options" });
 }
 
 /** 查询当前用户菜单列表（扁平列表，前端负责转树形） */

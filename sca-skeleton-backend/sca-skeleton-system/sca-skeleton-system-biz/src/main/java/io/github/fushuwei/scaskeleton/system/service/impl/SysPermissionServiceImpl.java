@@ -10,6 +10,7 @@ import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionAssignOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionResponse;
 import io.github.fushuwei.scaskeleton.system.converter.PermissionConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
@@ -55,6 +56,42 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             .orderByAsc(SysPermission::getSort));
         // 转换为响应对象列表
         return permissions.stream().map(permissionConverter::toPermissionResponse).toList();
+    }
+
+    /**
+     * 查询可授权权限列表（用于角色/套餐授权面板）
+     *
+     * @return 可授权权限列表
+     */
+    @Override
+    public List<PermissionAssignOptionResponse> listAssignablePermissions() {
+        List<SysPermission> permissions;
+
+        if (SecurityUtils.isSuperAdmin()) {
+            // 超级管理员：返回所有「启用 + 可见」的权限
+            permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
+                .eq(SysPermission::getStatus, "enabled")
+                .eq(SysPermission::getIsVisible, 1)
+                .orderByAsc(SysPermission::getSort));
+        } else {
+            // 非超级管理员：仅返回当前用户自身拥有的权限（防止越权授予自己不具备的权限）
+            String userId = SecurityUtils.getUserId();
+            if (!StringUtils.hasText(userId)) {
+                return Collections.emptyList();
+            }
+            List<SysUserRole> userRoles = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>()
+                .eq(SysUserRole::getUserId, userId));
+            if (CollectionUtils.isEmpty(userRoles)) {
+                return Collections.emptyList();
+            }
+            List<String> roleIds = userRoles.stream().map(SysUserRole::getRoleId).toList();
+            permissions = permissionMapper.selectPermissionsByRoleIds(roleIds).stream()
+                .filter(p -> p.getIsVisible() != null && p.getIsVisible() == 1)
+                .toList();
+        }
+
+        // 转换为响应对象列表
+        return permissionConverter.toPermissionAssignOptionResponseList(permissions);
     }
 
     /**

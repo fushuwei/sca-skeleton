@@ -2,11 +2,11 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { SysUser, SysDept, SysPost, SysRole, SysTenant } from "../../types/auth";
+import type { SysUser, SysTenant, DeptOption, PostOption, RoleOption } from "../../types/auth";
 import { createUserApi, updateUserApi } from "../../apis/user";
-import { getDeptListApi } from "../../apis/dept";
-import { getPostListApi } from "../../apis/post";
-import { getRoleListApi } from "../../apis/role";
+import { getDeptOptionsApi } from "../../apis/dept";
+import { getPostOptionsApi } from "../../apis/post";
+import { getRoleOptionsApi } from "../../apis/role";
 import { getTenantListApi } from "../../apis/tenant";
 import { checkPasswordStrength } from "../../utils/passwordStrength";
 import { useAuthStore } from "../../stores/auth";
@@ -167,9 +167,9 @@ function getPasswordColor(level: number): string {
 }
 
 // ── 下拉数据 ──
-const deptOptions = ref<SysDept[]>([]);
-const postOptions = ref<SysPost[]>([]);
-const roleOptions = ref<SysRole[]>([]);
+const deptOptions = ref<DeptOption[]>([]);
+const postOptions = ref<PostOption[]>([]);
+const roleOptions = ref<RoleOption[]>([]);
 
 // ── 部门树 ──
 /** 部门树虚拟根节点 ID（不可选择） */
@@ -188,7 +188,7 @@ const deptMenuRef = ref();
 const deptMenuOpen = ref(false);
 
 /** 将扁平部门列表转换为树结构 */
-function buildDeptTree(depts: SysDept[]): DeptTreeNode[] {
+function buildDeptTree(depts: DeptOption[]): DeptTreeNode[] {
   if (!depts.length) return [];
   const sorted = [...depts].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
 
@@ -314,9 +314,9 @@ const roleMultiOptions = computed(() =>
 async function loadDropdownData() {
   try {
     const [deptRes, postRes, roleRes] = await Promise.all([
-      getDeptListApi(),
-      getPostListApi(),
-      getRoleListApi()
+      getDeptOptionsApi(),
+      getPostOptionsApi(),
+      getRoleOptionsApi()
     ]);
     if (deptRes.code === 10_000 && deptRes.data) {
       deptOptions.value = deptRes.data;
@@ -615,14 +615,14 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-        <!-- 超级管理员 -->
+        <!-- 超级管理员（仅超管可操作，其他用户禁用） -->
         <div class="col-12 col-md-6">
           <q-toggle
             v-model="form.isSuperadmin"
             :label="t('user.isSuperadmin')"
             :true-value="1"
             :false-value="0"
-            :disable="drawerReadonly"
+            :disable="drawerReadonly || !isSuperadmin"
             class="q-mt-sm"
           />
         </div>

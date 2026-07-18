@@ -9,6 +9,7 @@ import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.post.PostCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.post.PostPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.post.PostUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.post.PostOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.post.PostResponse;
 import io.github.fushuwei.scaskeleton.system.converter.PostConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysPost;
@@ -55,6 +56,21 @@ public class SysPostServiceImpl implements SysPostService {
             .orderByAsc(SysPost::getSort));
         // 转换为响应对象列表
         return posts.stream().map(postConverter::toPostResponse).toList();
+    }
+
+    /**
+     * 查询岗位选项列表
+     *
+     * @return 岗位选项列表
+     */
+    @Override
+    public List<PostOptionResponse> listPostOptions() {
+        // 数据隔离：超管看所有租户，非超管只看自己租户
+        List<SysPost> posts = postMapper.selectList(new LambdaQueryWrapper<SysPost>()
+            .eq(!SecurityUtils.isSuperAdmin(), SysPost::getTenantId, SecurityUtils.getTenantId())
+            .orderByAsc(SysPost::getSort));
+        // 转换为响应对象列表
+        return postConverter.toPostOptionResponseList(posts);
     }
 
     /**

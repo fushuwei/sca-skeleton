@@ -8,6 +8,7 @@ import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionAssignOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysPermissionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,6 +39,16 @@ public class SysPermissionController {
         return Result.ok(permissionService.listAllPermissions());
     }
 
+    @Operation(summary = "查询可授权权限列表", description = "用于租户套餐/角色等功能授权面板")
+    @GetMapping("/assign-options")
+    @RequiresPermission({
+        "sys:role:list",              // 角色管理授权面板
+        "sys:tenant-package:list"     // 租户套餐管理授权面板
+    })
+    public Result<List<PermissionAssignOptionResponse>> assignOptions() {
+        return Result.ok(permissionService.listAssignablePermissions());
+    }
+
     @Operation(summary = "查询当前用户菜单列表")
     @GetMapping("/menus")
     public Result<List<PermissionResponse>> menus() {
@@ -60,7 +71,7 @@ public class SysPermissionController {
 
     @Operation(summary = "查询权限详情")
     @GetMapping("/{id}")
-    @RequiresPermission("sys:permission:query")
+    @RequiresPermission("sys:permission:list")
     public Result<PermissionResponse> getById(@PathVariable String id) {
         return Result.ok(permissionService.getPermissionById(id));
     }

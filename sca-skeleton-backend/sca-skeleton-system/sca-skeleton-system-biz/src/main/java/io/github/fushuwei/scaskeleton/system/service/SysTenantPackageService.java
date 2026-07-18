@@ -5,6 +5,7 @@ import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPac
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageResponse;
 
 import java.util.List;
@@ -22,6 +23,13 @@ public interface SysTenantPackageService {
      * @return 套餐列表
      */
     List<TenantPackageResponse> listPackages();
+
+    /**
+     * 查询套餐选项列表
+     *
+     * @return 套餐选项列表
+     */
+    List<TenantPackageOptionResponse> listPackageOptions();
 
     /**
      * 分页查询套餐列表

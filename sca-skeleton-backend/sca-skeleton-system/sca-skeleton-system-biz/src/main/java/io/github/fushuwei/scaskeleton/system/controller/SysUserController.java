@@ -50,7 +50,7 @@ public class SysUserController {
 
     @Operation(summary = "根据 ID 查询用户详情")
     @GetMapping("/{id}")
-    @RequiresPermission("sys:user:query")
+    @RequiresPermission("sys:user:list")
     public Result<UserResponse> getById(@PathVariable String id) {
         return Result.ok(userService.getUserById(id));
     }
