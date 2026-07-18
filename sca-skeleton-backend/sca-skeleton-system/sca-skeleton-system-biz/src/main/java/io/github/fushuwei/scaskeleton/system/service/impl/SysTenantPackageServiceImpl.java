@@ -11,10 +11,8 @@ import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPac
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageResponse;
 import io.github.fushuwei.scaskeleton.system.converter.TenantPackageConverter;
-import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenantPackage;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenantPackagePermission;
-import io.github.fushuwei.scaskeleton.system.mapper.SysPermissionMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantPackageMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantPackagePermissionMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysTenantPackageService;
@@ -36,10 +34,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SysTenantPackageServiceImpl implements SysTenantPackageService {
-
-    private static final String DEFAULT_PACKAGE_CODE = "default";
-
-    private final SysPermissionMapper permissionMapper;
 
     private final SysTenantPackageMapper packageMapper;
 
@@ -183,11 +177,8 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deletePackage(String id) {
-        // 加载套餐实体并校验内置保护
-        SysTenantPackage pkg = loadPackageEntity(id);
-        if (DEFAULT_PACKAGE_CODE.equals(pkg.getCode())) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置套餐不允许删除");
-        }
+        // 加载套餐实体
+        loadPackageEntity(id);
 
         // 删除套餐
         packageMapper.deleteById(id);
@@ -221,15 +212,7 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     @Override
     public List<String> getPackagePermissionIds(String packageId) {
         // 校验套餐存在
-        SysTenantPackage pkg = loadPackageEntity(packageId);
-
-        // 内置默认套餐拥有全部权限，返回 menu 和 button 类别的权限 ID
-        if (DEFAULT_PACKAGE_CODE.equals(pkg.getCode())) {
-            return permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
-                    .in(SysPermission::getType, "menu", "button")).stream()
-                .map(SysPermission::getId)
-                .toList();
-        }
+        loadPackageEntity(packageId);
 
         // 查询套餐已分配的权限 ID 列表
         List<SysTenantPackagePermission> list = packagePermissionMapper.selectList(

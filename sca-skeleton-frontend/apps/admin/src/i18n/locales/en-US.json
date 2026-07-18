@@ -348,8 +348,6 @@
     "codeLocked": "Package code cannot be modified",
     "deleteConfirm": "Confirm to delete package \"{name}\"?",
     "batchDeleteConfirm": "Confirm to delete {count} selected package(s)? This cannot be undone.",
-    "cannotDeleteBuiltin": "Built-in system packages cannot be deleted",
-    "cannotDeleteBuiltinBatch": "Cannot delete built-in packages: {names}",
     "saveSuccess": "Saved successfully",
     "saveFail": "Failed to save",
     "permissionAssign": "Permission Assignment",

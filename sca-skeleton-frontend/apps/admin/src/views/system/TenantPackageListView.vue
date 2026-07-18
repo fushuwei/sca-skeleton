@@ -332,17 +332,6 @@ async function handleBatchDelete() {
     return;
   }
 
-  const builtinPackages = selectedRows.value.filter((r) => r.code === "default");
-  if (builtinPackages.length) {
-    showToast(
-      t("tenantPackageMgmt.cannotDeleteBuiltinBatch", {
-        names: builtinPackages.map((r) => r.name).join("、")
-      }),
-      "warning"
-    );
-    return;
-  }
-
   try {
     await confirmDialog(t("tenantPackageMgmt.batchDeleteConfirm", { count: selectedRows.value.length }));
   } catch {
@@ -377,11 +366,6 @@ function handleEdit(pkg: SysTenantPackage) {
 
 // 删除
 async function handleDelete(pkg: SysTenantPackage) {
-  if (pkg.code === "default") {
-    showToast(t("tenantPackageMgmt.cannotDeleteBuiltin"), "warning");
-    return;
-  }
-
   try {
     await confirmDialog(t("tenantPackageMgmt.deleteConfirm", { name: pkg.name }));
   } catch {
@@ -650,7 +634,6 @@ onMounted(() => {
               size="sm"
               color="primary"
               icon="sym_r_edit"
-              :disable="props.row.code === 'default'"
               @click.stop="handleEdit(props.row)"
             >
               <q-tooltip>{{ t("common.edit") }}</q-tooltip>
@@ -662,7 +645,6 @@ onMounted(() => {
               size="sm"
               color="negative"
               icon="sym_r_delete"
-              :disable="props.row.code === 'default'"
               @click.stop="handleDelete(props.row)"
             >
               <q-tooltip>{{ t("common.delete") }}</q-tooltip>

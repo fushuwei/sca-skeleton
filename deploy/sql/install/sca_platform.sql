@@ -35,19 +35,6 @@ CREATE TABLE IF NOT EXISTS `sys_tenant_package` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户套餐表';
 
 
--- 默认租户套餐
-INSERT INTO `sys_tenant_package` (
-    `id`, `name`, `code`, `status`, `user_limit`, `api_limit`, `storage_limit`, `expire_days`,
-    `sort`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
-)
-SELECT
-    '1', '默认套餐', 'default', 'enabled', -1, -1, -1, -1,
-    1, '系统内置套餐', 0, 'system', NOW(), 'system', NOW(), 0
-WHERE NOT EXISTS (
-    SELECT 1 FROM `sys_tenant_package` WHERE `code` = 'default' AND `is_deleted` = 0
-);
-
-
 -- ---------------------------------------------------
 -- 租户套餐权限关联表
 -- ---------------------------------------------------

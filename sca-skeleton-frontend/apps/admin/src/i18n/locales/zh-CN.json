@@ -348,8 +348,6 @@
     "codeLocked": "套餐编码不可修改",
     "deleteConfirm": "确认删除套餐「{name}」？",
     "batchDeleteConfirm": "确认删除选中的 {count} 个套餐？删除后不可恢复。",
-    "cannotDeleteBuiltin": "系统内置套餐不允许删除",
-    "cannotDeleteBuiltinBatch": "不能删除系统内置套餐：{names}",
     "saveSuccess": "保存成功",
     "saveFail": "保存失败",
     "permissionAssign": "权限分配",
