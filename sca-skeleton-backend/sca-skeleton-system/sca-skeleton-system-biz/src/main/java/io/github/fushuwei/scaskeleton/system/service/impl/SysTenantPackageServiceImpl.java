@@ -64,10 +64,9 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     @Override
     public IPage<TenantPackageResponse> pagePackages(TenantPackagePageRequest request) {
         // 构造分页对象
-        Page<SysTenantPackage> page = new Page<>(request.getPageNum(), request.getPageSize());
-        // 查询分页数据，并将结果转换为响应对象
-        IPage<SysTenantPackage> entityPage = packageMapper.selectPackagePage(page, request);
-        return entityPage.convert(packageConverter::toTenantPackageResponse);
+        Page<TenantPackageResponse> page = new Page<>(request.getPageNum(), request.getPageSize());
+        // 查询分页数据
+        return packageMapper.selectPackagePage(page, request);
     }
 
     /**

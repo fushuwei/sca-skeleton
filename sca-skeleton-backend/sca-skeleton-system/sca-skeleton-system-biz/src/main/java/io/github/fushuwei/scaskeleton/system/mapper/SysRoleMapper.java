@@ -3,10 +3,9 @@ package io.github.fushuwei.scaskeleton.system.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
 import io.github.fushuwei.scaskeleton.system.entity.SysRole;
 import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
 
 /**
  * 角色管理 Mapper
@@ -23,5 +22,5 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
      * @param request  查询条件
      * @return 分页结果
      */
-    IPage<SysRole> selectRolePage(IPage<SysRole> page, @Param("tenantId") String tenantId, @Param("request") RolePageRequest request);
+    IPage<RoleResponse> selectRolePage(IPage<RoleResponse> page, @Param("tenantId") String tenantId, @Param("request") RolePageRequest request);
 }

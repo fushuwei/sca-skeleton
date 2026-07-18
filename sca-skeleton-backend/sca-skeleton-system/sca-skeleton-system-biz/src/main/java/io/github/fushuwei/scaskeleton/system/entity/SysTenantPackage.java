@@ -1,7 +1,5 @@
 package io.github.fushuwei.scaskeleton.system.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldStrategy;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.Version;
 import io.github.fushuwei.scaskeleton.mybatis.base.BaseEntity;
@@ -48,15 +46,6 @@ public class SysTenantPackage extends BaseEntity {
 
     /** 有效期天数 */
     private Integer expireDays;
-
-    // ==================== 关联展示 ====================
-
-    /** 关联权限数量 */
-    @TableField(value = "permission_count",
-                insertStrategy = FieldStrategy.NEVER,
-                updateStrategy = FieldStrategy.NEVER,
-                select = false)
-    private Integer permissionCount;
 
     /** 乐观锁版本号 */
     @Version

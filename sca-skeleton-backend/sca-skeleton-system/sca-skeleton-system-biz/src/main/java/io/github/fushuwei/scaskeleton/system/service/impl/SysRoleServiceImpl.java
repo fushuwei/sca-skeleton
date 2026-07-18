@@ -72,12 +72,11 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     public IPage<RoleResponse> pageRoles(RolePageRequest request) {
         // 构造分页对象
-        Page<SysRole> page = new Page<>(request.getPageNum(), request.getPageSize());
+        Page<RoleResponse> page = new Page<>(request.getPageNum(), request.getPageSize());
         // 数据隔离：超管看所有租户，非超管只看自己租户
         String tenantId = SecurityUtils.isSuperAdmin() ? null : SecurityUtils.getTenantId();
-        // 查询分页数据，并将结果转换为响应对象
-        IPage<SysRole> entityPage = roleMapper.selectRolePage(page, tenantId, request);
-        return entityPage.convert(roleConverter::toRoleResponse);
+        // 查询分页数据
+        return roleMapper.selectRolePage(page, tenantId, request);
     }
 
     /**

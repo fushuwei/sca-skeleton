@@ -3,9 +3,8 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.fushuwei.scaskeleton.system.mapper.SysTenantPackageMapper">
 
-    <!-- 套餐分页查询（含权限数量），使用关联子查询避免 GROUP BY 膨胀。
-         权限个数仅统计 menu 和 button 类别（模块/目录不计入）。 -->
-    <select id="selectPackagePage" resultType="io.github.fushuwei.scaskeleton.system.entity.SysTenantPackage">
+    <!-- 套餐分页查询 -->
+    <select id="selectPackagePage" resultType="io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageResponse">
         SELECT p.*,
                (SELECT COUNT(*)
                 FROM sys_tenant_package_permission tpp
