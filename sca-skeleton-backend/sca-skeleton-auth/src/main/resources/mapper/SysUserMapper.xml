@@ -4,13 +4,14 @@
 <mapper namespace="io.github.fushuwei.scaskeleton.auth.infrastructure.mapper.SysUserMapper">
 
     <!--
-        查询用户的所有可用权限编码（button 类型）。
+        查询用户的所有可用权限编码（menu 和 button 类型）。
         链路：sys_user_role → sys_role → sys_role_permission → sys_permission
         过滤条件：
           - 角色状态 enabled
-          - 权限类型 button（页面按钮级别，即接口鉴权最小粒度）
+          - 权限类型 menu（菜单访问鉴权，如 sys:user:list）或 button（按钮/操作鉴权，如 sys:user:add）
           - 权限状态 enabled
           - 所有表均使用逻辑删除过滤（is_deleted=0）
+        注意：module/folder 类型是容器节点，不参与接口鉴权，不查询。
     -->
     <select id="selectPermissionCodesByUserId" resultType="java.lang.String">
         SELECT DISTINCT p.code
@@ -29,7 +30,7 @@
                                 AND ur.tenant_id = #{tenantId}
         WHERE p.is_deleted = 0
           AND p.status = 'enabled'
-          AND p.type = 'button'
+          AND p.type IN ('menu', 'button')
           AND p.code IS NOT NULL
           AND p.code != ''
     </select>

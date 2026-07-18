@@ -44,7 +44,8 @@ const formRules = computed(() => ({
   name: [(v: string) => !!v?.trim() || t("menuMgmt.nameRequired")],
   nameEn: [(v: string) => !!v?.trim() || t("menuMgmt.nameEnRequired")],
   type: [(v: string) => !!v || t("menuMgmt.typeRequired")],
-  code: form.type === "button"
+  // 菜单和按钮类型要求权限标识必填（module/folder 类型可选）
+  code: (form.type === "menu" || form.type === "button")
     ? [(v: string) => !!v?.trim() || t("menuMgmt.codeRequired")]
     : []
 }));
@@ -498,19 +499,19 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-        <!-- 权限标识（仅 button 类型可填且必填） -->
+        <!-- 权限标识（menu 和 button 类型可填且必填，module/folder 类型禁用） -->
         <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.code"
             :label="t('menuMgmt.code')"
             filled
             square
-            :disable="drawerReadonly || form.type !== 'button'"
+            :disable="drawerReadonly || (form.type !== 'menu' && form.type !== 'button')"
             :readonly="drawerReadonly"
             :rules="formRules.code"
             lazy-rules
             hide-bottom-space
-            :class="{ 'required-field': form.type === 'button' }"
+            :class="{ 'required-field': form.type === 'menu' || form.type === 'button' }"
           />
         </div>
         <!-- 图标（button 类型禁用，硬编码） -->
