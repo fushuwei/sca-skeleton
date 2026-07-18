@@ -371,13 +371,14 @@ SELECT t.* FROM (
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
     UNION ALL
     -- 二级菜单：租户管理 (sort = 9910, 一级菜单99 + 二级序号10)
-    SELECT '9910', '9999', '租户管理', 'Tenant Management', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9910, 1, 0, 'enabled', '0,9999,9910', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 多租户能力保留，但当前以单租户模式运行；菜单禁用，恢复时改回 'enabled' 即可
+    SELECT '9910', '9999', '租户管理', 'Tenant Management', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9910, 0, 0, 'disabled', '0,9999,9910', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     -- 三级菜单：租户管理 (sort = 99101, 一级菜单99 + 二级菜单10 + 三级序号1)
-    SELECT '9911', '9910', '租户管理', 'Tenants', 'menu', NULL, '/system/tenant', 'TenantListView', 'sym_r_nest_eco_leaf', 99101, 1, 0, 'enabled', '0,9999,9910,9911', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9911', '9910', '租户管理', 'Tenants', 'menu', NULL, '/system/tenant', 'TenantListView', 'sym_r_nest_eco_leaf', 99101, 0, 0, 'disabled', '0,9999,9910,9911', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     -- 三级菜单：套餐管理 (sort = 99102, 一级菜单99 + 二级菜单10 + 三级序号2)
-    SELECT '9912', '9910', '套餐管理', 'Packages', 'menu', NULL, '/system/tenant-package', 'TenantPackageListView', 'sym_r_nest_eco_leaf', 99102, 1, 0, 'enabled', '0,9999,9910,9912', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9912', '9910', '套餐管理', 'Packages', 'menu', NULL, '/system/tenant-package', 'TenantPackageListView', 'sym_r_nest_eco_leaf', 99102, 0, 0, 'disabled', '0,9999,9910,9912', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     -- 二级菜单：用户与权限 (sort = 9911, 一级菜单99 + 二级序号11)
     SELECT '9920', '9999', '用户与权限', 'Users & Permissions', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9911, 1, 0, 'enabled', '0,9999,9920', NULL, 0, 'system', NOW(), 'system', NOW(), 0
