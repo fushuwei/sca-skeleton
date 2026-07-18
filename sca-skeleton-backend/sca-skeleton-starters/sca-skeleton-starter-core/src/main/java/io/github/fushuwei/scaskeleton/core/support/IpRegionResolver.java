@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.log.support;
+package io.github.fushuwei.scaskeleton.core.support;
 
 /**
  * IP 地理位置解析器

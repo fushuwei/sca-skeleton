@@ -1,10 +1,10 @@
 package io.github.fushuwei.scaskeleton.log.config;
 
+import io.github.fushuwei.scaskeleton.core.support.IpRegionResolver;
 import io.github.fushuwei.scaskeleton.log.event.LoginLogEventListener;
 import io.github.fushuwei.scaskeleton.log.handler.DefaultLoginLogHandler;
 import io.github.fushuwei.scaskeleton.log.handler.LoginLogHandler;
 import io.github.fushuwei.scaskeleton.log.mapper.SysLoginLogMapper;
-import io.github.fushuwei.scaskeleton.log.support.IpRegionResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;

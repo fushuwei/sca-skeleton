@@ -391,14 +391,17 @@ SELECT t.* FROM (
     -- 三级菜单：菜单管理 (sort = 99113, 一级菜单99 + 二级菜单11 + 三级序号3)
     SELECT '9923', '9920', '菜单管理', 'Menus', 'menu', NULL, '/system/menu', 'MenuListView', 'sym_r_nest_eco_leaf', 99113, 1, 0, 'enabled', '0,9999,9920,9923', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：组织与岗位 (sort = 9912, 一级菜单99 + 二级序号12)
-    SELECT '9930', '9999', '组织与岗位', 'Organization', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9912, 1, 0, 'enabled', '0,9999,9930', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 二级菜单：组织管理 (sort = 9912, 一级菜单99 + 二级序号12)
+    SELECT '9930', '9999', '组织管理', 'Organization', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9912, 1, 0, 'enabled', '0,9999,9930', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：部门管理 (sort = 99121, 一级菜单99 + 二级菜单12 + 三级序号1)
-    SELECT '9931', '9930', '部门管理', 'Departments', 'menu', NULL, '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 99121, 1, 0, 'enabled', '0,9999,9930,9931', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 三级菜单：校区管理 (sort = 99121, 一级菜单99 + 二级菜单12 + 三级序号1)
+    SELECT '9931', '9930', '校区管理', 'Campuses', 'menu', NULL, '/system/campus', 'CampusListView', 'sym_r_nest_eco_leaf', 99121, 1, 0, 'enabled', '0,9999,9930,9931', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：岗位管理 (sort = 99122, 一级菜单99 + 二级菜单12 + 三级序号2)
-    SELECT '9932', '9930', '岗位管理', 'Positions', 'menu', NULL, '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 99122, 1, 0, 'enabled', '0,9999,9930,9932', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 三级菜单：部门管理 (sort = 99122, 一级菜单99 + 二级菜单12 + 三级序号2)
+    SELECT '9932', '9930', '部门管理', 'Departments', 'menu', NULL, '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 99122, 1, 0, 'enabled', '0,9999,9930,9932', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    UNION ALL
+    -- 三级菜单：岗位管理 (sort = 99123, 一级菜单99 + 二级菜单12 + 三级序号3)
+    SELECT '9933', '9930', '岗位管理', 'Positions', 'menu', NULL, '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 99123, 1, 0, 'enabled', '0,9999,9930,9933', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     -- 二级菜单：系统与厂商 (sort = 9913, 一级菜单99 + 二级序号13)
     SELECT '9940', '9999', '系统与厂商', 'System & Vendors', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9913, 1, 0, 'enabled', '0,9999,9940', NULL, 0, 'system', NOW(), 'system', NOW(), 0

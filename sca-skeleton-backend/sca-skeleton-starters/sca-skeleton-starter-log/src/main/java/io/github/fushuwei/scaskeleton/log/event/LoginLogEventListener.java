@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.log.event;
 
+import io.github.fushuwei.scaskeleton.core.support.IpRegionResolver;
 import io.github.fushuwei.scaskeleton.log.handler.LoginLogHandler;
-import io.github.fushuwei.scaskeleton.log.support.IpRegionResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

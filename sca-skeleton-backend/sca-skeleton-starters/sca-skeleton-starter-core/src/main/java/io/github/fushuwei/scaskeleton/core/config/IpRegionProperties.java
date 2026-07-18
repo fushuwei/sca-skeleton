@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.log.config;
+package io.github.fushuwei.scaskeleton.core.config;
 
 import lombok.Getter;
 import lombok.Setter;

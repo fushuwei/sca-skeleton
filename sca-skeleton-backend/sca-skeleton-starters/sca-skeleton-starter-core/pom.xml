@@ -42,6 +42,19 @@
             <artifactId>hutool-extra</artifactId>
         </dependency>
 
+        <!-- ip2region 离线 IP 地址定位库（IP 地理位置解析，供日志、安全等多模块复用） -->
+        <dependency>
+            <groupId>org.lionsoul</groupId>
+            <artifactId>ip2region</artifactId>
+        </dependency>
+
+        <!-- 配置元数据处理器（为自定义配置类提供 IDE 自动补全与元数据生成功能） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Lombok 代码简化工具 -->
         <dependency>
             <groupId>org.projectlombok</groupId>

@@ -48,11 +48,5 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
-
-        <!-- ip2region 离线 IP 地址定位库（登录日志 location 字段解析） -->
-        <dependency>
-            <groupId>org.lionsoul</groupId>
-            <artifactId>ip2region</artifactId>
-        </dependency>
     </dependencies>
 </project>
