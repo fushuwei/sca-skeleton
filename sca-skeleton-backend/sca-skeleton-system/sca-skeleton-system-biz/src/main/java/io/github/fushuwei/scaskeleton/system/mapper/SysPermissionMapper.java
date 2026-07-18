@@ -28,7 +28,5 @@ public interface SysPermissionMapper extends BaseMapper<SysPermission> {
      * @param newPrefix    变更后的 treePath 前缀
      * @param oldPrefixLen 旧前缀的字符长度
      */
-    void updateDescendantsTreePath(@Param("oldPrefix") String oldPrefix,
-                                   @Param("newPrefix") String newPrefix,
-                                   @Param("oldPrefixLen") int oldPrefixLen);
+    void updateDescendantsTreePath(@Param("oldPrefix") String oldPrefix, @Param("newPrefix") String newPrefix, @Param("oldPrefixLen") int oldPrefixLen);
 }

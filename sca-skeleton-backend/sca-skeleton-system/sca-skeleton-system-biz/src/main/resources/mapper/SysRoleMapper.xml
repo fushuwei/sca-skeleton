@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper">
 
-    <!-- 角色分页查询 -->
+    <!-- 分页查询角色列表 -->
     <select id="selectRolePage" resultType="io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse">
         SELECT r.*,
                t.name AS tenant_name,

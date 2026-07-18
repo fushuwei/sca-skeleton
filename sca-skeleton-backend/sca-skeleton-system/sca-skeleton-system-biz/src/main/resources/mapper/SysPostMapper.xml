@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.fushuwei.scaskeleton.system.mapper.SysPostMapper">
 
-    <!-- 分页查询岗位（含租户名称） -->
+    <!-- 分页查询岗位列表 -->
     <select id="selectPostPage" resultType="io.github.fushuwei.scaskeleton.system.api.response.post.PostResponse">
         SELECT p.*, t.name AS tenant_name
         FROM sys_post p

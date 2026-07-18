@@ -15,19 +15,6 @@ import org.apache.ibatis.annotations.Param;
 public interface SysDeptMapper extends BaseMapper<SysDept> {
 
     /**
-     * 批量更新所有子孙节点的 tree_path 字段值
-     *
-     * @param tenantId     租户 ID
-     * @param oldPrefix    变更前的 treePath 前缀
-     * @param newPrefix    变更后的 treePath 前缀
-     * @param oldPrefixLen 旧前缀的字符长度
-     */
-    void updateDescendantsTreePath(@Param("tenantId") String tenantId,
-                                   @Param("oldPrefix") String oldPrefix,
-                                   @Param("newPrefix") String newPrefix,
-                                   @Param("oldPrefixLen") int oldPrefixLen);
-
-    /**
      * 分页查询部门列表
      *
      * @param page     分页对象
@@ -36,4 +23,14 @@ public interface SysDeptMapper extends BaseMapper<SysDept> {
      * @return 分页结果
      */
     IPage<DeptResponse> selectDeptPage(IPage<DeptResponse> page, @Param("tenantId") String tenantId, @Param("request") DeptPageRequest request);
+
+    /**
+     * 批量更新所有子孙节点的 tree_path 字段值
+     *
+     * @param tenantId     租户 ID
+     * @param oldPrefix    变更前的 treePath 前缀
+     * @param newPrefix    变更后的 treePath 前缀
+     * @param oldPrefixLen 旧前缀的字符长度
+     */
+    void updateDescendantsTreePath(@Param("tenantId") String tenantId, @Param("oldPrefix") String oldPrefix, @Param("newPrefix") String newPrefix, @Param("oldPrefixLen") int oldPrefixLen);
 }
