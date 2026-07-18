@@ -18,7 +18,7 @@
         </if>
         <choose>
             <when test="request.safeSortField() != null and request.safeSortField() != ''">
-                ORDER BY p.${request.safeSortField()} ${request.safeSortOrder()}
+                ORDER BY ${request.safeSortField()} ${request.safeSortOrder()}
             </when>
             <otherwise>
                 ORDER BY p.sort ASC

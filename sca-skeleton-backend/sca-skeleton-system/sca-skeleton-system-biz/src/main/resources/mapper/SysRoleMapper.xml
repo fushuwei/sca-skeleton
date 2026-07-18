@@ -29,11 +29,8 @@
             AND r.data_scope = #{request.dataScope}
         </if>
         <choose>
-            <when test="request.safeSortField() == 'permission_count'">
-                ORDER BY permission_count ${request.safeSortOrder()}
-            </when>
             <when test="request.safeSortField() != null and request.safeSortField() != ''">
-                ORDER BY r.${request.safeSortField()} ${request.safeSortOrder()}
+                ORDER BY ${request.safeSortField()} ${request.safeSortOrder()}
             </when>
             <otherwise>
                 ORDER BY r.sort ASC

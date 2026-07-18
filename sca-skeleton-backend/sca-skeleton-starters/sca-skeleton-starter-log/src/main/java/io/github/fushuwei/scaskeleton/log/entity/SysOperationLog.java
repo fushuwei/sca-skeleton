@@ -89,7 +89,7 @@ public class SysOperationLog implements Serializable {
     /** 客户端 IP */
     private String clientIp;
 
-    /** 登录位置 */
+    /** 操作位置 */
     private String location;
 
     /** 设备类型 */

@@ -411,7 +411,7 @@
     "httpMethod": "请求方法",
     "requestUri": "请求路径",
     "clientIp": "客户端IP",
-    "location": "登录位置",
+    "location": "操作位置",
     "device": "设备类型",
     "deviceType": {
       "mobile": "手机",

@@ -729,7 +729,7 @@ onMounted(() => {
           </q-td>
         </template>
 
-        <!-- 登录位置列 -->
+        <!-- 操作位置列 -->
         <template #body-cell-location="props">
           <q-td :props="props">
             <span v-if="props.value">{{ props.value }}</span>

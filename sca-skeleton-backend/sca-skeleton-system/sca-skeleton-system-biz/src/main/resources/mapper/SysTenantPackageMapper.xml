@@ -24,14 +24,7 @@
         </if>
         <choose>
             <when test="request.safeSortField() != null and request.safeSortField() != ''">
-                <choose>
-                    <when test="request.safeSortField() == 'permission_count'">
-                        ORDER BY permission_count ${request.safeSortOrder()}
-                    </when>
-                    <otherwise>
-                        ORDER BY p.${request.safeSortField()} ${request.safeSortOrder()}
-                    </otherwise>
-                </choose>
+                ORDER BY ${request.safeSortField()} ${request.safeSortOrder()}
             </when>
             <otherwise>
                 ORDER BY p.sort ASC

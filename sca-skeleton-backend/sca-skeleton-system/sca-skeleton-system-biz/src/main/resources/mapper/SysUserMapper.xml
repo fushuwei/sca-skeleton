@@ -70,14 +70,7 @@
         </if>
         <choose>
             <when test="request.safeSortField() != null and request.safeSortField() != ''">
-                <choose>
-                    <when test="request.safeSortField() == 'dept_name'">
-                        ORDER BY d.dept_names ${request.safeSortOrder()}
-                    </when>
-                    <otherwise>
-                        ORDER BY u.${request.safeSortField()} ${request.safeSortOrder()}
-                    </otherwise>
-                </choose>
+                ORDER BY ${request.safeSortField()} ${request.safeSortOrder()}
             </when>
             <otherwise>
                 ORDER BY u.create_time DESC

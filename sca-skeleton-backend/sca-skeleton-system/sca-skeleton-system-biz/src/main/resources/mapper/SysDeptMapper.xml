@@ -24,7 +24,7 @@
         </if>
         <choose>
             <when test="request.safeSortField() != null and request.safeSortField() != ''">
-                ORDER BY d.${request.safeSortField()} ${request.safeSortOrder()}
+                ORDER BY ${request.safeSortField()} ${request.safeSortOrder()}
             </when>
             <otherwise>
                 ORDER BY d.sort ASC

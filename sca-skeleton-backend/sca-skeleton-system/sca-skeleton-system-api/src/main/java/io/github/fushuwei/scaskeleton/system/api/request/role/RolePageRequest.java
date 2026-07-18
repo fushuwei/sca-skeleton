@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 
-import java.util.Set;
+import java.util.Map;
 
 /**
  * 角色分页查询请求对象
@@ -15,8 +15,13 @@ import java.util.Set;
 public class RolePageRequest {
 
     /** 允许排序的字段白名单 */
-    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
-        "name", "code", "data_scope", "sort", "create_time", "permission_count"
+    private static final Map<String, String> ALLOWED_SORT_FIELD_MAP = Map.of(
+        "name", "r.name",
+        "code", "r.code",
+        "data_scope", "r.data_scope",
+        "sort", "r.sort",
+        "create_time", "r.create_time",
+        "permission_count", "permission_count"
     );
 
     // ==================== 分页参数 ====================
@@ -46,12 +51,9 @@ public class RolePageRequest {
     /** 排序方向 */
     private String sortOrder;
 
-    /** 返回安全的排序字段（不在白名单则返回 null） */
+    /** 返回安全的排序字段 SQL 表达式（不在白名单则返回 null） */
     public String safeSortField() {
-        if (sortField != null && ALLOWED_SORT_FIELDS.contains(sortField)) {
-            return sortField;
-        }
-        return null;
+        return sortField == null ? null : ALLOWED_SORT_FIELD_MAP.get(sortField);
     }
 
     /** 返回安全的排序方向（默认 asc） */

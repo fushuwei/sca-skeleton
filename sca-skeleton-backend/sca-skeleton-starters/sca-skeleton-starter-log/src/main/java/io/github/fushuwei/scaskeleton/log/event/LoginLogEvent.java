@@ -35,7 +35,7 @@ public class LoginLogEvent {
     private String clientIp;
 
     /**
-     * 登录位置（由异步监听器通过 IpRegionResolver 解析填充）
+     * 登录位置
      */
     private String location;
 

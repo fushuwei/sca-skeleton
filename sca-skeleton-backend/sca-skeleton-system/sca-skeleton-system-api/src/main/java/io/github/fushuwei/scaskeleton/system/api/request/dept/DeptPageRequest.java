@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 
-import java.util.Set;
+import java.util.Map;
 
 /**
  * 部门分页查询请求对象
@@ -15,8 +15,13 @@ import java.util.Set;
 public class DeptPageRequest {
 
     /** 允许排序的字段白名单 */
-    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
-        "name", "code", "sort", "status", "create_time", "tree_path"
+    private static final Map<String, String> ALLOWED_SORT_FIELD_MAP = Map.of(
+        "name", "d.name",
+        "code", "d.code",
+        "sort", "d.sort",
+        "status", "d.status",
+        "create_time", "d.create_time",
+        "tree_path", "d.tree_path"
     );
 
     // ==================== 分页参数 ====================
@@ -49,12 +54,9 @@ public class DeptPageRequest {
     /** 排序方向 */
     private String sortOrder;
 
-    /** 返回安全的排序字段（不在白名单则返回 null） */
+    /** 返回安全的排序字段 SQL 表达式（不在白名单则返回 null） */
     public String safeSortField() {
-        if (sortField != null && ALLOWED_SORT_FIELDS.contains(sortField)) {
-            return sortField;
-        }
-        return null;
+        return sortField == null ? null : ALLOWED_SORT_FIELD_MAP.get(sortField);
     }
 
     /** 返回安全的排序方向（默认 asc） */

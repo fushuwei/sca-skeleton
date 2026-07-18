@@ -580,7 +580,7 @@ CREATE TABLE IF NOT EXISTS `sys_operation_log` (
     `error_message`   TEXT            DEFAULT NULL                COMMENT '异常信息',
     `cost_ms`         BIGINT          DEFAULT NULL                COMMENT '操作耗时（毫秒）',
     `client_ip`       VARCHAR(128)    DEFAULT NULL                COMMENT '客户端IP',
-    `location`        VARCHAR(255)    DEFAULT NULL                COMMENT '登录位置',
+    `location`        VARCHAR(255)    DEFAULT NULL                COMMENT '操作位置',
     `device`          VARCHAR(100)    DEFAULT NULL                COMMENT '设备类型',
     `browser`         VARCHAR(100)    DEFAULT NULL                COMMENT '浏览器',
     `os`              VARCHAR(100)    DEFAULT NULL                COMMENT '操作系统',
