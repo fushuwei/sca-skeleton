@@ -1,7 +1,5 @@
 package io.github.fushuwei.scaskeleton.system.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldStrategy;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.Version;
 import io.github.fushuwei.scaskeleton.mybatis.base.BaseEntity;
@@ -61,15 +59,6 @@ public class SysTenant extends BaseEntity {
 
     /** 备注 */
     private String remark;
-
-    // ==================== 关联展示 ====================
-
-    /** 套餐名称 */
-    @TableField(value = "package_name",
-                insertStrategy = FieldStrategy.NEVER,
-                updateStrategy = FieldStrategy.NEVER,
-                select = false)
-    private String packageName;
 
     /** 乐观锁版本号 */
     @Version

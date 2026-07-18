@@ -3,6 +3,7 @@ package io.github.fushuwei.scaskeleton.system.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.tenant.TenantPageRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.tenant.TenantResponse;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import org.apache.ibatis.annotations.Param;
 
@@ -20,5 +21,5 @@ public interface SysTenantMapper extends BaseMapper<SysTenant> {
      * @param request 查询条件
      * @return 分页结果
      */
-    IPage<SysTenant> selectTenantPage(IPage<SysTenant> page, @Param("request") TenantPageRequest request);
+    IPage<TenantResponse> selectTenantPage(IPage<TenantResponse> page, @Param("request") TenantPageRequest request);
 }

@@ -1,6 +1,5 @@
 package io.github.fushuwei.scaskeleton.log.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -36,27 +35,18 @@ public class SysOperationLog implements Serializable {
     private String tenantId;
 
     /** 租户名称 */
-    @TableField(value = "tenant_name",
-        insertStrategy = FieldStrategy.NEVER,
-        updateStrategy = FieldStrategy.NEVER,
-        select = false)
+    @TableField(exist = false)
     private String tenantName;
 
     /** 用户 ID */
     private String userId;
 
     /** 操作用户名 */
-    @TableField(value = "username",
-        insertStrategy = FieldStrategy.NEVER,
-        updateStrategy = FieldStrategy.NEVER,
-        select = false)
+    @TableField(exist = false)
     private String username;
 
     /** 真实姓名 */
-    @TableField(value = "real_name",
-        insertStrategy = FieldStrategy.NEVER,
-        updateStrategy = FieldStrategy.NEVER,
-        select = false)
+    @TableField(exist = false)
     private String realName;
 
     // ==================== 操作详情 ====================
