@@ -99,14 +99,18 @@ public class ScaUserDetailsService {
 
     /**
      * 将数据库用户对象转换为 Spring Security UserDetails。
-     * 同时加载该用户所有可用的权限编码（button 类型）。
+     * 同时加载该用户所有可用的权限编码（menu 和 button 类型）。
+     * <p>
+     * 平台超级管理员跳过权限查询：RequiresPermissionChecker 对超管直接放行，
+     * 且 admin 账号的 tenant_id 为 NULL，SQL 的 tenant_id 条件无法匹配，查询无意义。
      */
     private ScaUserDetails buildUserDetails(SysUser user) {
         // 锁定到期后自动解锁，避免永久 locked
         loginAttemptService.unlockIfExpired(user);
 
-        List<String> permissions = sysUserMapper.selectPermissionCodesByUserId(
-            user.getTenantId(), user.getId());
+        // 超管跳过权限查询（鉴权时 RequiresPermissionChecker 直接放行，无需加载权限）
+        List<String> permissions = (user.getIsSuperadmin() != null && user.getIsSuperadmin() == 1)
+            ? List.of() : sysUserMapper.selectPermissionCodesByUserId(user.getTenantId(), user.getId());
 
         LocalDateTime now = LocalDateTime.now();
 
