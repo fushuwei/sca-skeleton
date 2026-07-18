@@ -7,9 +7,8 @@ import io.github.fushuwei.scaskeleton.log.event.OperationLogEventListener;
 import io.github.fushuwei.scaskeleton.log.handler.DefaultOperationLogHandler;
 import io.github.fushuwei.scaskeleton.log.handler.OperationLogHandler;
 import io.github.fushuwei.scaskeleton.log.mapper.SysOperationLogMapper;
-import org.jspecify.annotations.NullMarked;
-import tools.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.mybatis.spring.annotation.MapperScan;
 import org.slf4j.MDC;
@@ -22,6 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.TaskDecorator;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
 import java.util.concurrent.Executor;
