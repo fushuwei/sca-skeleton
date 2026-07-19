@@ -172,21 +172,21 @@ const columns = computed<QTableColumn<SysTenant>[]>(() => [
     field: "packageName",
     label: t("tenantMgmt.package"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "contactName",
     field: "contactName",
     label: t("tenantMgmt.contactName"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "contactPhone",
     field: "contactPhone",
     label: t("tenantMgmt.contactPhone"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "effectiveTime",
@@ -232,6 +232,9 @@ const visibleColumns = ref(columns.value.map((c) => c.name));
 const SORT_FIELD_MAP: Record<string, string> = {
   name: "name",
   code: "code",
+  contactName: "contact_name",
+  contactPhone: "contact_phone",
+  packageName: "package_name",
   status: "status",
   effectiveTime: "effective_time",
   expireTime: "expire_time",

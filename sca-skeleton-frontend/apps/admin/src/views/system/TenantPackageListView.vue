@@ -137,28 +137,28 @@ const columns = computed<QTableColumn<SysTenantPackage>[]>(() => [
     field: "userLimit",
     label: t("tenantPackageMgmt.userLimit"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "apiLimit",
     field: "apiLimit",
     label: t("tenantPackageMgmt.apiLimit"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "storageLimit",
     field: "storageLimit",
     label: t("tenantPackageMgmt.storageLimit"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "expireDays",
     field: "expireDays",
     label: t("tenantPackageMgmt.expireDays"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "permissionCount",
@@ -206,6 +206,10 @@ const SORT_FIELD_MAP: Record<string, string> = {
   code: "code",
   status: "status",
   sort: "sort",
+  userLimit: "user_limit",
+  apiLimit: "api_limit",
+  storageLimit: "storage_limit",
+  expireDays: "expire_days",
   permissionCount: "permission_count",
   createTime: "create_time"
 };

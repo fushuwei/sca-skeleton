@@ -20,6 +20,10 @@ public class TenantPackagePageRequest {
         "code", "p.code",
         "status", "p.status",
         "sort", "p.sort",
+        "user_limit", "p.user_limit",
+        "api_limit", "p.api_limit",
+        "storage_limit", "p.storage_limit",
+        "expire_days", "p.expire_days",
         "create_time", "p.create_time",
         "permission_count", "permission_count"
     );

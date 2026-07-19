@@ -18,6 +18,9 @@ public class TenantPageRequest {
     private static final Map<String, String> ALLOWED_SORT_FIELD_MAP = Map.of(
         "name", "t.name",
         "code", "t.code",
+        "contact_name", "t.contact_name",
+        "contact_phone", "t.contact_phone",
+        "package_name", "package_name",
         "status", "t.status",
         "effective_time", "t.effective_time",
         "expire_time", "t.expire_time",
