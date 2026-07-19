@@ -351,7 +351,7 @@ const columns = computed<QTableColumn<SysPermission>[]>(() => [
     name: "type",
     field: "type",
     label: t("menuMgmt.type"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
@@ -379,35 +379,35 @@ const columns = computed<QTableColumn<SysPermission>[]>(() => [
     name: "icon",
     field: "icon",
     label: t("menuMgmt.icon"),
-    align: "center",
+    align: "left",
     sortable: false
   },
   {
     name: "sort",
     field: "sort",
     label: t("menuMgmt.sort"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "isVisible",
     field: "isVisible",
     label: t("menuMgmt.isVisible"),
-    align: "center",
+    align: "left",
     sortable: false
   },
   {
     name: "status",
     field: "status",
     label: t("menuMgmt.status"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "createTime",
     field: "createTime",
     label: t("menuMgmt.createTime"),
-    align: "center",
+    align: "left",
     sortable: true,
     format: (val: string) => (val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-")
   },

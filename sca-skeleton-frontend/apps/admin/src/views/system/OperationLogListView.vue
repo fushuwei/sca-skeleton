@@ -180,7 +180,7 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
     name: "httpMethod",
     field: "httpMethod",
     label: t("operationLog.httpMethod"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
@@ -208,21 +208,21 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
     name: "device",
     field: "device",
     label: t("operationLog.device"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "browser",
     field: "browser",
     label: t("operationLog.browser"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "os",
     field: "os",
     label: t("operationLog.os"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
@@ -236,7 +236,7 @@ const columns = computed<QTableColumn<SysOperationLog>[]>(() => [
     name: "isSuccess",
     field: "isSuccess",
     label: t("operationLog.status"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {

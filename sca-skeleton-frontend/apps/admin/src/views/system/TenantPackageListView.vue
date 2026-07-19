@@ -136,56 +136,56 @@ const columns = computed<QTableColumn<SysTenantPackage>[]>(() => [
     name: "userLimit",
     field: "userLimit",
     label: t("tenantPackageMgmt.userLimit"),
-    align: "center",
+    align: "left",
     sortable: false
   },
   {
     name: "apiLimit",
     field: "apiLimit",
     label: t("tenantPackageMgmt.apiLimit"),
-    align: "center",
+    align: "left",
     sortable: false
   },
   {
     name: "storageLimit",
     field: "storageLimit",
     label: t("tenantPackageMgmt.storageLimit"),
-    align: "center",
+    align: "left",
     sortable: false
   },
   {
     name: "expireDays",
     field: "expireDays",
     label: t("tenantPackageMgmt.expireDays"),
-    align: "center",
+    align: "left",
     sortable: false
   },
   {
     name: "permissionCount",
     field: "permissionCount",
     label: t("tenantPackageMgmt.permissionCount"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "sort",
     field: "sort",
     label: t("tenantPackageMgmt.sort"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "status",
     field: "status",
     label: t("tenantPackageMgmt.status"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "createTime",
     field: "createTime",
     label: t("tenantPackageMgmt.createTime"),
-    align: "center",
+    align: "left",
     sortable: true,
     format: (val: string) => (val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-")
   },

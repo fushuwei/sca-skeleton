@@ -170,35 +170,35 @@ const columns = computed<QTableColumn<SysLoginLog>[]>(() => [
     name: "device",
     field: "device",
     label: t("loginLog.device"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "browser",
     field: "browser",
     label: t("loginLog.browser"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "os",
     field: "os",
     label: t("loginLog.os"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "costMs",
     field: "costMs",
     label: t("loginLog.costMs"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "isSuccess",
     field: "isSuccess",
     label: t("loginLog.status"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {

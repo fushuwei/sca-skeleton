@@ -192,28 +192,28 @@ const columns = computed<QTableColumn<SysTenant>[]>(() => [
     name: "effectiveTime",
     field: "effectiveTime",
     label: t("tenantMgmt.effectiveTime"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "expireTime",
     field: "expireTime",
     label: t("tenantMgmt.expireTime"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "status",
     field: "status",
     label: t("tenantMgmt.status"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "createTime",
     field: "createTime",
     label: t("tenantMgmt.createTime"),
-    align: "center",
+    align: "left",
     sortable: true,
     format: (val: string) => (val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-")
   },

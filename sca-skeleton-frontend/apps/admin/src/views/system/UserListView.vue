@@ -383,7 +383,7 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     name: "userType",
     field: "userType",
     label: t("user.userType"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
@@ -398,7 +398,7 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     name: "status",
     field: "status",
     label: t("user.status"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
@@ -426,7 +426,7 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     name: "createTime",
     field: "createTime",
     label: t("user.createTime"),
-    align: "center",
+    align: "left",
     sortable: true,
     format: (val: string) => (val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-")
   },

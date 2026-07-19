@@ -347,21 +347,21 @@ const columns = computed<QTableColumn<SysDept>[]>(() => [
     name: "sort",
     field: "sort",
     label: t("deptMgmt.sort"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "status",
     field: "status",
     label: t("deptMgmt.status"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "createTime",
     field: "createTime",
     label: t("deptMgmt.createTime"),
-    align: "center",
+    align: "left",
     sortable: true,
     format: (val: string) => (val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-")
   },
