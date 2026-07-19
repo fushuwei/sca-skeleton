@@ -342,7 +342,7 @@ async function handleSave() {
               :max="form.expireTime"
               clearable
             />
-            <div class="validity-hint q-mt-xs">{{ t('tenantMgmt.effectiveTimeHint') }}</div>
+            <div v-if="!form.effectiveTime" class="validity-hint q-mt-xs">{{ t('tenantMgmt.effectiveTimeHint') }}</div>
           </div>
           <!-- 过期时间 -->
           <div class="col-12 col-md-6">
@@ -354,7 +354,7 @@ async function handleSave() {
               :min="form.effectiveTime"
               clearable
             />
-            <div class="validity-hint q-mt-xs">{{ t('tenantMgmt.expireTimeHint') }}</div>
+            <div v-if="!form.expireTime" class="validity-hint q-mt-xs">{{ t('tenantMgmt.expireTimeHint') }}</div>
           </div>
         </div>
       </div>
