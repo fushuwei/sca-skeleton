@@ -41,7 +41,8 @@
     "yes": "Yes",
     "no": "No",
     "targetTenant": "Target Tenant",
-    "targetTenantRequired": "Please select a target tenant"
+    "targetTenantRequired": "Please select a target tenant",
+    "searchFormInvalid": "Search conditions contain format errors, please check and retry"
   },
   "layout": {
     "brandTitle": "Data Middle Platform",

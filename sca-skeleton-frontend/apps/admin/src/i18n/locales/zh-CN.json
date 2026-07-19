@@ -41,7 +41,8 @@
     "yes": "是",
     "no": "否",
     "targetTenant": "目标租户",
-    "targetTenantRequired": "请选择目标租户"
+    "targetTenantRequired": "请选择目标租户",
+    "searchFormInvalid": "搜索条件存在格式错误，请检查后再试"
   },
   "layout": {
     "brandTitle": "数据中台管理系统",

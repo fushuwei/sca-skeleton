@@ -70,6 +70,12 @@ watch(
 const pickerDisabled = computed(() => props.disable || props.readonly);
 const hasError = computed(() => Boolean(errorMessage.value));
 
+/**
+ * 暴露校验状态给父组件，便于父组件在触发搜索前拦截非法输入，
+ * 避免把已知非法值提交到后端导致类型转换异常。
+ */
+defineExpose({ hasError, errorMessage });
+
 function showPicker() {
   popupRef.value?.show();
 }

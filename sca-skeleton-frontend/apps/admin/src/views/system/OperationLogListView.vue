@@ -36,6 +36,10 @@ const searchForm = reactive<OperationLogPageRequest>({
 
 const searchExpanded = ref(true);
 
+// 时间选择器引用（用于搜索前校验，避免非法日期格式提交到后端）
+const startTimePickerRef = ref<InstanceType<typeof SearchDateTimePicker>>();
+const endTimePickerRef = ref<InstanceType<typeof SearchDateTimePicker>>();
+
 // ── 状态选项 ──
 const statusOptions = [
   { label: "operationLog.success", value: 1 },
@@ -340,6 +344,11 @@ async function loadTableData(
 }
 
 function handleSearch() {
+  // 拦截已知非法日期格式，避免提交到后端触发类型转换异常
+  if (startTimePickerRef.value?.hasError || endTimePickerRef.value?.hasError) {
+    showToast(t("common.searchFormInvalid"), "warning");
+    return;
+  }
   tablePagination.value.page = 1;
   curPage.value = 1;
   loadTableData();
@@ -568,6 +577,7 @@ onMounted(() => {
             </div>
             <div class="col-auto datetime-picker-col">
               <SearchDateTimePicker
+                ref="startTimePickerRef"
                 v-model="searchForm.startTime"
                 :placeholder="t('operationLog.startTime')"
                 :max="searchForm.endTime"
@@ -576,6 +586,7 @@ onMounted(() => {
             </div>
             <div class="col-auto datetime-picker-col">
               <SearchDateTimePicker
+                ref="endTimePickerRef"
                 v-model="searchForm.endTime"
                 :placeholder="t('operationLog.endTime')"
                 :min="searchForm.startTime"
