@@ -4,6 +4,8 @@ import io.github.fushuwei.scaskeleton.system.api.response.tenant.TenantResponse;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import org.mapstruct.Mapper;
 
+import java.util.List;
+
 /**
  * 租户对象转换器（MapStruct）
  *
@@ -19,4 +21,12 @@ public interface TenantConverter {
      * @return 租户响应对象
      */
     TenantResponse toTenantResponse(SysTenant tenant);
+
+    /**
+     * 租户实体列表 → 租户响应列表
+     *
+     * @param tenants 租户实体列表
+     * @return 租户响应列表
+     */
+    List<TenantResponse> toTenantResponseList(List<SysTenant> tenants);
 }

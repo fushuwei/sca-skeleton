@@ -24,6 +24,14 @@ public interface TenantPackageConverter {
     TenantPackageResponse toTenantPackageResponse(SysTenantPackage pkg);
 
     /**
+     * 租户套餐实体列表 → 租户套餐响应列表
+     *
+     * @param packages 租户套餐实体列表
+     * @return 租户套餐响应列表
+     */
+    List<TenantPackageResponse> toTenantPackageResponseList(List<SysTenantPackage> packages);
+
+    /**
      * 租户套餐实体 → 租户套餐选项响应
      *
      * @param pkg 租户套餐实体

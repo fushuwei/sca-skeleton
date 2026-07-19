@@ -16,6 +16,7 @@
                                     </foreach>
         WHERE p.is_deleted = 0
           AND p.status = 'enabled'
+          AND p.is_visible = 1
         ORDER BY p.sort ASC
     </select>
 

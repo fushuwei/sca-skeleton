@@ -24,6 +24,14 @@ public interface RoleConverter {
     RoleResponse toRoleResponse(SysRole role);
 
     /**
+     * 角色实体列表 → 角色响应列表
+     *
+     * @param roles 角色实体列表
+     * @return 角色响应列表
+     */
+    List<RoleResponse> toRoleResponseList(List<SysRole> roles);
+
+    /**
      * 角色实体 → 角色选项响应
      *
      * @param role 角色实体

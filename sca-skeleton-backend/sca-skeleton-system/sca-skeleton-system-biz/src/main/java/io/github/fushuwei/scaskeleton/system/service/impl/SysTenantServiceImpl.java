@@ -53,7 +53,7 @@ public class SysTenantServiceImpl implements SysTenantService {
             .eq(SysTenant::getIsDeleted, 0)
             .orderByAsc(SysTenant::getName));
         // 转换为响应对象列表
-        return tenants.stream().map(tenantConverter::toTenantResponse).toList();
+        return tenantConverter.toTenantResponseList(tenants);
     }
 
     /**

@@ -56,7 +56,7 @@ public class SysDeptServiceImpl implements SysDeptService {
             .eq(!SecurityUtils.isSuperAdmin(), SysDept::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysDept::getSort));
         // 转换为响应对象列表
-        return depts.stream().map(deptConverter::toDeptResponse).toList();
+        return deptConverter.toDeptResponseList(depts);
     }
 
     /**

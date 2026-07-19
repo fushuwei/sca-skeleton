@@ -24,6 +24,14 @@ public interface PostConverter {
     PostResponse toPostResponse(SysPost post);
 
     /**
+     * 岗位实体列表 → 岗位响应列表
+     *
+     * @param posts 岗位实体列表
+     * @return 岗位响应列表
+     */
+    List<PostResponse> toPostResponseList(List<SysPost> posts);
+
+    /**
      * 岗位实体 → 岗位选项响应
      *
      * @param post 岗位实体

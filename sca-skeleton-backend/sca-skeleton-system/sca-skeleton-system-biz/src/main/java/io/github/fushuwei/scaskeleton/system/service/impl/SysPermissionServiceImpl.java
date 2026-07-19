@@ -55,7 +55,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
             .orderByAsc(SysPermission::getSort));
         // 转换为响应对象列表
-        return permissions.stream().map(permissionConverter::toPermissionResponse).toList();
+        return permissionConverter.toPermissionResponseList(permissions);
     }
 
     /**
@@ -85,9 +85,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
                 return Collections.emptyList();
             }
             List<String> roleIds = userRoles.stream().map(SysUserRole::getRoleId).toList();
-            permissions = permissionMapper.selectPermissionsByRoleIds(roleIds).stream()
-                .filter(p -> p.getIsVisible() != null && p.getIsVisible() == 1)
-                .toList();
+            permissions = permissionMapper.selectPermissionsByRoleIds(roleIds);
         }
 
         // 转换为响应对象列表
@@ -105,8 +103,9 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         if (SecurityUtils.isSuperAdmin()) {
             List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
                 .eq(SysPermission::getStatus, "enabled")
+                .eq(SysPermission::getIsVisible, 1)
                 .orderByAsc(SysPermission::getSort));
-            return permissions.stream().map(permissionConverter::toPermissionResponse).toList();
+            return permissionConverter.toPermissionResponseList(permissions);
         }
 
         // 获取当前用户 ID
@@ -127,7 +126,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         List<SysPermission> permissions = permissionMapper.selectPermissionsByRoleIds(roleIds);
 
         // 转换为响应对象列表
-        return permissions.stream().map(permissionConverter::toPermissionResponse).toList();
+        return permissionConverter.toPermissionResponseList(permissions);
     }
 
     /**
@@ -191,7 +190,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             .eq(SysPermission::getType, "button")
             .orderByAsc(SysPermission::getSort));
         // 转换为响应对象列表
-        return buttons.stream().map(permissionConverter::toPermissionResponse).toList();
+        return permissionConverter.toPermissionResponseList(buttons);
     }
 
     /**

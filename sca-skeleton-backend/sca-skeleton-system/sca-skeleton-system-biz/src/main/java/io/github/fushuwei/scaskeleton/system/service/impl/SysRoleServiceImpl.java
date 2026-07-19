@@ -65,7 +65,7 @@ public class SysRoleServiceImpl implements SysRoleService {
             .eq(!SecurityUtils.isSuperAdmin(), SysRole::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysRole::getSort));
         // 转换为响应对象列表
-        return roles.stream().map(roleConverter::toRoleResponse).toList();
+        return roleConverter.toRoleResponseList(roles);
     }
 
     /**

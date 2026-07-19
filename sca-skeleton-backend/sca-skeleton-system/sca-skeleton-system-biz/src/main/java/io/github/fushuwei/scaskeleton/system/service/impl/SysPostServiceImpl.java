@@ -55,7 +55,7 @@ public class SysPostServiceImpl implements SysPostService {
             .eq(!SecurityUtils.isSuperAdmin(), SysPost::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysPost::getSort));
         // 转换为响应对象列表
-        return posts.stream().map(postConverter::toPostResponse).toList();
+        return postConverter.toPostResponseList(posts);
     }
 
     /**

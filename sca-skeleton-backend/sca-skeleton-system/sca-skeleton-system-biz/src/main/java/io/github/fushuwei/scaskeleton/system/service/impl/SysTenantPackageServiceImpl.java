@@ -53,7 +53,7 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
         List<SysTenantPackage> packages = packageMapper.selectList(new LambdaQueryWrapper<SysTenantPackage>()
             .orderByAsc(SysTenantPackage::getSort));
         // 转换为响应对象列表
-        return packages.stream().map(packageConverter::toTenantPackageResponse).toList();
+        return packageConverter.toTenantPackageResponseList(packages);
     }
 
     /**

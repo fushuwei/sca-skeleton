@@ -24,6 +24,14 @@ public interface PermissionConverter {
     PermissionResponse toPermissionResponse(SysPermission permission);
 
     /**
+     * 权限实体列表 → 权限响应列表
+     *
+     * @param permissions 权限实体列表
+     * @return 权限响应列表
+     */
+    List<PermissionResponse> toPermissionResponseList(List<SysPermission> permissions);
+
+    /**
      * 权限实体 → 权限分配选项响应
      *
      * @param permission 权限实体
