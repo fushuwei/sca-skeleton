@@ -380,26 +380,26 @@ SELECT t.* FROM (
     -- 三级菜单：套餐管理 (sort = 99102, 一级菜单99 + 二级菜单10 + 三级序号2)
     SELECT '9912', '9910', '套餐管理', 'Packages', 'menu', 'sys:tenant-package:list', '/system/tenant-package', 'TenantPackageListView', 'sym_r_nest_eco_leaf', 99102, 0, 0, 'enabled', '0,9999,9910,9912', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：用户与权限 (sort = 9911, 一级菜单99 + 二级序号11)
-    SELECT '9920', '9999', '用户与权限', 'Users & Permissions', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9911, 1, 0, 'enabled', '0,9999,9920', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 二级菜单：组织架构 (sort = 9911, 一级菜单99 + 二级序号11)
+    SELECT '9920', '9999', '组织架构', 'Organization', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9911, 1, 0, 'enabled', '0,9999,9920', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     -- 三级菜单：用户管理 (sort = 99111, 一级菜单99 + 二级菜单11 + 三级序号1)
     SELECT '9921', '9920', '用户管理', 'Users', 'menu', 'sys:user:list', '/system/user', 'UserListView', 'sym_r_nest_eco_leaf', 99111, 1, 0, 'enabled', '0,9999,9920,9921', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：角色管理 (sort = 99112, 一级菜单99 + 二级菜单11 + 三级序号2)
-    SELECT '9922', '9920', '角色管理', 'Roles', 'menu', 'sys:role:list', '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 99112, 1, 0, 'enabled', '0,9999,9920,9922', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 三级菜单：部门管理 (sort = 99112, 一级菜单99 + 二级菜单11 + 三级序号2)
+    SELECT '9922', '9920', '部门管理', 'Departments', 'menu', 'sys:dept:list', '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 99112, 1, 0, 'enabled', '0,9999,9920,9922', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：菜单管理 (sort = 99113, 一级菜单99 + 二级菜单11 + 三级序号3)
-    SELECT '9923', '9920', '菜单管理', 'Menus', 'menu', 'sys:permission:list', '/system/menu', 'MenuListView', 'sym_r_nest_eco_leaf', 99113, 1, 0, 'enabled', '0,9999,9920,9923', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 三级菜单：岗位管理 (sort = 99113, 一级菜单99 + 二级菜单11 + 三级序号3)
+    SELECT '9923', '9920', '岗位管理', 'Positions', 'menu', 'sys:post:list', '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 99113, 1, 0, 'enabled', '0,9999,9920,9923', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：组织管理 (sort = 9912, 一级菜单99 + 二级序号12)
-    SELECT '9930', '9999', '组织管理', 'Organization', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9912, 1, 0, 'enabled', '0,9999,9930', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 二级菜单：权限管理 (sort = 9912, 一级菜单99 + 二级序号12)
+    SELECT '9930', '9999', '权限管理', 'Permissions', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9912, 1, 0, 'enabled', '0,9999,9930', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：部门管理 (sort = 99121, 一级菜单99 + 二级菜单12 + 三级序号1)
-    SELECT '9931', '9930', '部门管理', 'Departments', 'menu', 'sys:dept:list', '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 99121, 1, 0, 'enabled', '0,9999,9930,9931', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 三级菜单：角色管理 (sort = 99121, 一级菜单99 + 二级菜单12 + 三级序号1)
+    SELECT '9931', '9930', '角色管理', 'Roles', 'menu', 'sys:role:list', '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 99121, 1, 0, 'enabled', '0,9999,9930,9931', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：岗位管理 (sort = 99122, 一级菜单99 + 二级菜单12 + 三级序号2)
-    SELECT '9932', '9930', '岗位管理', 'Positions', 'menu', 'sys:post:list', '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 99122, 1, 0, 'enabled', '0,9999,9930,9932', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 三级菜单：菜单管理 (sort = 99122, 一级菜单99 + 二级菜单12 + 三级序号2)
+    SELECT '9932', '9930', '菜单管理', 'Menus', 'menu', 'sys:permission:list', '/system/menu', 'MenuListView', 'sym_r_nest_eco_leaf', 99122, 1, 0, 'enabled', '0,9999,9930,9932', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     -- 二级菜单：字典管理 (sort = 9913, 一级菜单99 + 二级序号13)
     SELECT '9940', '9999', '字典管理', 'Dictionaries', 'menu', 'sys:dict:list', '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9913, 1, 0, 'enabled', '0,9999,9940', NULL, 0, 'system', NOW(), 'system', NOW(), 0
