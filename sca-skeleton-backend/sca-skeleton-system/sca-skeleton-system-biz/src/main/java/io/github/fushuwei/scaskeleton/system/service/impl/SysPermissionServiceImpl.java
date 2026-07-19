@@ -27,6 +27,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 权限管理 Service 实现类
@@ -246,6 +247,11 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     public void updatePermission(PermissionUpdateRequest request) {
         // 加载权限实体
         SysPermission permission = loadPermissionEntity(request.getId());
+
+        // 乐观锁校验：前端回传的版本号必须与当前数据库版本一致，不一致说明数据已被其他用户修改
+        if (request.getVersion() != null && !Objects.equals(request.getVersion(), permission.getVersion())) {
+            throw new BusinessException(ResultCode.CONFLICT);
+        }
 
         // 保存旧 treePath（用于批量更新子孙节点）
         String oldTreePath = permission.getTreePath();

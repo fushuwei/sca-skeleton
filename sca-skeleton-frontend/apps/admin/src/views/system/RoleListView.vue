@@ -7,6 +7,7 @@ import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysRole, RolePageRequest } from "../../types/auth";
 import {
   getRolePageApi,
+  getRoleByIdApi,
   deleteRoleApi,
   batchDeleteRoleApi
 } from "../../apis/role";
@@ -354,13 +355,23 @@ async function handleBatchDelete() {
 }
 
 // 查看
-function handleView(role: SysRole) {
-  openRoleDrawer("view", role);
+async function handleView(role: SysRole) {
+  const res = await getRoleByIdApi(role.id);
+  if (res.code === 10_000 && res.data) {
+    openRoleDrawer("view", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
 // 编辑
-function handleEdit(role: SysRole) {
-  openRoleDrawer("edit", role);
+async function handleEdit(role: SysRole) {
+  const res = await getRoleByIdApi(role.id);
+  if (res.code === 10_000 && res.data) {
+    openRoleDrawer("edit", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
 // 删除

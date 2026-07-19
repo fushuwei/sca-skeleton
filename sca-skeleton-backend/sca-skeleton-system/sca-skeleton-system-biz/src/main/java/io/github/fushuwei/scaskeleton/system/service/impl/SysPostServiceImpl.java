@@ -141,6 +141,11 @@ public class SysPostServiceImpl implements SysPostService {
         // 加载岗位实体
         SysPost post = loadPostEntity(request.getId());
 
+        // 乐观锁校验：前端回传的版本号必须与当前数据库版本一致，不一致说明数据已被其他用户修改
+        if (request.getVersion() != null && !Objects.equals(request.getVersion(), post.getVersion())) {
+            throw new BusinessException(ResultCode.CONFLICT);
+        }
+
         // 岗位编码在同一个租户内唯一（排除自身）
         if (StringUtils.hasText(request.getCode()) && !request.getCode().equals(post.getCode())) {
             long codeCount = postMapper.selectCount(new LambdaQueryWrapper<SysPost>()

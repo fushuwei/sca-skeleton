@@ -8,6 +8,7 @@ import type { SysDept, DeptTreeNode, DeptPageRequest } from "../../types/auth";
 import {
   getDeptListApi,
   getDeptPageApi,
+  getDeptByIdApi,
   deleteDeptApi,
   batchDeleteDeptApi
 } from "../../apis/dept";
@@ -512,12 +513,22 @@ function handleCreate() {
   openDeptDrawer("add");
 }
 
-function handleView(dept: SysDept) {
-  openDeptDrawer("view", dept);
+async function handleView(dept: SysDept) {
+  const res = await getDeptByIdApi(dept.id);
+  if (res.code === 10_000 && res.data) {
+    openDeptDrawer("view", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
-function handleEdit(dept: SysDept) {
-  openDeptDrawer("edit", dept);
+async function handleEdit(dept: SysDept) {
+  const res = await getDeptByIdApi(dept.id);
+  if (res.code === 10_000 && res.data) {
+    openDeptDrawer("edit", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
 async function handleDelete(dept: SysDept) {

@@ -202,6 +202,11 @@ public class SysUserServiceImpl implements SysUserService {
         // 加载可操作用户实体
         SysUser user = loadOperableUserEntity(request.getId());
 
+        // 乐观锁校验：前端回传的版本号必须与当前数据库版本一致，不一致说明数据已被其他用户修改
+        if (request.getVersion() != null && !Objects.equals(request.getVersion(), user.getVersion())) {
+            throw new BusinessException(ResultCode.CONFLICT);
+        }
+
         // 更新字段
         user.setNickname(request.getNickname());
         user.setRealName(request.getRealName());

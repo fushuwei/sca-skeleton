@@ -51,6 +51,11 @@ public enum ResultCode {
     ALREADY_EXISTS(40900, "资源已存在"),
 
     /**
+     * 数据版本冲突（乐观锁）
+     */
+    CONFLICT(40901, "数据已被他人修改，请刷新后重试"),
+
+    /**
      * 请求过于频繁
      */
     TOO_MANY_REQUESTS(42900, "请求过于频繁，请稍后重试"),

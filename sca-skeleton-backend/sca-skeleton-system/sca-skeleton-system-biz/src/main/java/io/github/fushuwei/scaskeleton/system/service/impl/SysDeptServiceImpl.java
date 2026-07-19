@@ -147,6 +147,11 @@ public class SysDeptServiceImpl implements SysDeptService {
         // 加载部门实体
         SysDept dept = loadDeptEntity(request.getId());
 
+        // 乐观锁校验：前端回传的版本号必须与当前数据库版本一致，不一致说明数据已被其他用户修改
+        if (request.getVersion() != null && !Objects.equals(request.getVersion(), dept.getVersion())) {
+            throw new BusinessException(ResultCode.CONFLICT);
+        }
+
         // 保存旧 treePath（用于批量更新子孙节点）
         String oldTreePath = dept.getTreePath();
 

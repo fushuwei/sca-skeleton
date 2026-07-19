@@ -121,6 +121,7 @@ async function handleSave() {
       result = await createPostApi(data);
     } else {
       data.id = form.id;
+      data.version = props.post?.version;
       result = await updatePostApi(data);
     }
 

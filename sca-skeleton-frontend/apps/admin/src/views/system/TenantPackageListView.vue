@@ -7,6 +7,7 @@ import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysTenantPackage, TenantPackagePageRequest } from "../../types/auth";
 import {
   getTenantPackagePageApi,
+  getTenantPackageByIdApi,
   deleteTenantPackageApi,
   batchDeleteTenantPackageApi
 } from "../../apis/tenant-package";
@@ -355,13 +356,23 @@ async function handleBatchDelete() {
 }
 
 // 查看
-function handleView(pkg: SysTenantPackage) {
-  openPkgDrawer("view", pkg);
+async function handleView(pkg: SysTenantPackage) {
+  const res = await getTenantPackageByIdApi(pkg.id);
+  if (res.code === 10_000 && res.data) {
+    openPkgDrawer("view", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
 // 编辑
-function handleEdit(pkg: SysTenantPackage) {
-  openPkgDrawer("edit", pkg);
+async function handleEdit(pkg: SysTenantPackage) {
+  const res = await getTenantPackageByIdApi(pkg.id);
+  if (res.code === 10_000 && res.data) {
+    openPkgDrawer("edit", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
 // 删除

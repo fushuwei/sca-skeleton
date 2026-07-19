@@ -80,6 +80,8 @@ export interface SysUser {
   /** 数据来源：initial / manual / import / sync / sso */
   sourceType: string;
   remark: string;
+  /** 乐观锁版本号 */
+  version: number;
   createTime: string;
   updateTime: string;
   createBy: string;
@@ -139,6 +141,8 @@ export interface SysDept {
   status: string;
   /** ID 层级路径，逗号分隔 */
   treePath: string;
+  /** 乐观锁版本号 */
+  version: number;
   createTime: string;
   updateTime: string;
 }
@@ -206,6 +210,8 @@ export interface SysRole {
   isBuiltin: number;
   sort: number;
   remark: string;
+  /** 乐观锁版本号 */
+  version: number;
   /** 关联的权限数量 */
   permissionCount: number;
   createTime: string;

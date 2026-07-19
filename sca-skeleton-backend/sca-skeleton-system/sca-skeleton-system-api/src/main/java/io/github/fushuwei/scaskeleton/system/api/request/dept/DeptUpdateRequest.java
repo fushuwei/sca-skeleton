@@ -40,4 +40,7 @@ public class DeptUpdateRequest {
 
     /** 状态 */
     private String status;
+
+    /** 乐观锁版本号 */
+    private Integer version;
 }

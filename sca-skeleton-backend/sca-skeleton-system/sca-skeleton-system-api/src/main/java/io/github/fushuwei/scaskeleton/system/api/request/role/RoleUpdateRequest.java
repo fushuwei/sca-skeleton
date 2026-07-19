@@ -40,4 +40,9 @@ public class RoleUpdateRequest {
 
     /** 权限 ID 列表 */
     private List<String> permissionIds;
+
+    // ==================== 乐观锁 ====================
+
+    /** 乐观锁版本号 */
+    private Integer version;
 }

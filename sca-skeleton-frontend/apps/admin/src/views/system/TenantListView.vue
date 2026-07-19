@@ -7,6 +7,7 @@ import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysTenant, TenantPackageOption, TenantPageRequest } from "../../types/auth";
 import {
   getTenantPageApi,
+  getTenantByIdApi,
   deleteTenantApi,
   batchDeleteTenantApi
 } from "../../apis/tenant";
@@ -396,13 +397,23 @@ async function handleBatchDelete() {
 }
 
 // 查看
-function handleView(tenant: SysTenant) {
-  openTenantDrawer("view", tenant);
+async function handleView(tenant: SysTenant) {
+  const res = await getTenantByIdApi(tenant.id);
+  if (res.code === 10_000 && res.data) {
+    openTenantDrawer("view", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
 // 编辑
-function handleEdit(tenant: SysTenant) {
-  openTenantDrawer("edit", tenant);
+async function handleEdit(tenant: SysTenant) {
+  const res = await getTenantByIdApi(tenant.id);
+  if (res.code === 10_000 && res.data) {
+    openTenantDrawer("edit", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
 // 删除

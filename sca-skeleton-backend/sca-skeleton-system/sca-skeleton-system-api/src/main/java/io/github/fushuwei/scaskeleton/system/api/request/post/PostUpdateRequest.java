@@ -28,4 +28,9 @@ public class PostUpdateRequest {
 
     /** 备注 */
     private String remark;
+
+    // ==================== 乐观锁 ====================
+
+    /** 乐观锁版本号 */
+    private Integer version;
 }

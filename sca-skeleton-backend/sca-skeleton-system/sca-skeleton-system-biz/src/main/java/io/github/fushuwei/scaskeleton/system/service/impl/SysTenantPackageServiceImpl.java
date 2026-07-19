@@ -25,6 +25,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 租户套餐管理 Service 实现类
@@ -148,6 +149,11 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     public void updatePackage(TenantPackageUpdateRequest request) {
         // 加载套餐实体
         SysTenantPackage pkg = loadPackageEntity(request.getId());
+
+        // 乐观锁校验：前端回传的版本号必须与当前数据库版本一致，不一致说明数据已被其他用户修改
+        if (request.getVersion() != null && !Objects.equals(request.getVersion(), pkg.getVersion())) {
+            throw new BusinessException(ResultCode.CONFLICT);
+        }
 
         // 套餐名称唯一（排除自身）
         long nameCount = packageMapper.selectCount(new LambdaQueryWrapper<SysTenantPackage>()

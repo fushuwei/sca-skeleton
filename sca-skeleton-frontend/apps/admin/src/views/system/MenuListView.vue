@@ -7,6 +7,7 @@ import type { SysPermission, PermissionTreeNode, PermissionPageRequest } from ".
 import {
   getPermissionListApi,
   getPermissionPageApi,
+  getPermissionByIdApi,
   deletePermissionApi,
   batchDeletePermissionApi
 } from "../../apis/permission";
@@ -563,12 +564,22 @@ function handleCreate() {
   openMenuDrawer("add");
 }
 
-function handleView(permission: SysPermission) {
-  openMenuDrawer("view", permission);
+async function handleView(permission: SysPermission) {
+  const res = await getPermissionByIdApi(permission.id);
+  if (res.code === 10_000 && res.data) {
+    openMenuDrawer("view", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
-function handleEdit(permission: SysPermission) {
-  openMenuDrawer("edit", permission);
+async function handleEdit(permission: SysPermission) {
+  const res = await getPermissionByIdApi(permission.id);
+  if (res.code === 10_000 && res.data) {
+    openMenuDrawer("edit", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
 async function handleDelete(permission: SysPermission) {

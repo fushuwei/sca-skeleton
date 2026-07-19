@@ -337,6 +337,7 @@ async function handleSave() {
       result = await createRoleApi(data);
     } else {
       data.id = form.id;
+      data.version = props.role?.version;
       result = await updateRoleApi(data);
     }
 

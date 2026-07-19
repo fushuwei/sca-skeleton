@@ -364,6 +364,7 @@ async function handleSave() {
       result = await createTenantPackageApi(data);
     } else {
       data.id = form.id;
+      data.version = props.pkg?.version;
       result = await updateTenantPackageApi(data);
     }
 

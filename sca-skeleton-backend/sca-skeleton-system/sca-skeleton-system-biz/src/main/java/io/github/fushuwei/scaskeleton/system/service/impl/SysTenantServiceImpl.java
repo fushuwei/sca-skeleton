@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 租户管理 Service 实现类
@@ -135,6 +136,11 @@ public class SysTenantServiceImpl implements SysTenantService {
     public void updateTenant(TenantUpdateRequest request) {
         // 加载租户实体
         SysTenant tenant = loadTenantEntity(request.getId());
+
+        // 乐观锁校验：前端回传的版本号必须与当前数据库版本一致，不一致说明数据已被其他用户修改
+        if (request.getVersion() != null && !Objects.equals(request.getVersion(), tenant.getVersion())) {
+            throw new BusinessException(ResultCode.CONFLICT);
+        }
 
         // 租户名称唯一（排除自身）
         long nameCount = tenantMapper.selectCount(new LambdaQueryWrapper<SysTenant>()

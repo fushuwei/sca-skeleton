@@ -7,6 +7,7 @@ import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysPost, PostPageRequest } from "../../types/auth";
 import {
   getPostPageApi,
+  getPostByIdApi,
   deletePostApi,
   batchDeletePostApi
 } from "../../apis/post";
@@ -287,13 +288,23 @@ async function handleBatchDelete() {
 }
 
 // 查看
-function handleView(post: SysPost) {
-  openPostDrawer("view", post);
+async function handleView(post: SysPost) {
+  const res = await getPostByIdApi(post.id);
+  if (res.code === 10_000 && res.data) {
+    openPostDrawer("view", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
 // 编辑
-function handleEdit(post: SysPost) {
-  openPostDrawer("edit", post);
+async function handleEdit(post: SysPost) {
+  const res = await getPostByIdApi(post.id);
+  if (res.code === 10_000 && res.data) {
+    openPostDrawer("edit", res.data);
+  } else {
+    showToast(res.message || t("common.loadFail"), "negative");
+  }
 }
 
 // 删除

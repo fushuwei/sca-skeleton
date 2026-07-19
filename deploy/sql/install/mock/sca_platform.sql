@@ -409,7 +409,7 @@ INSERT INTO `sys_post` (
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
-    '100', NULL, '系统管理员', 'sys_admin', 1,
+    '100', '100', '系统管理员', 'sys_admin', 1,
     '负责系统整体运维管理，包括用户权限配置、系统参数设置、数据备份恢复等核心管理工作', 0,
     'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (
@@ -422,7 +422,7 @@ INSERT INTO `sys_post` (
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
-    '101', NULL, '网络运维工程师', 'net_ops_engineer', 2,
+    '101', '100', '网络运维工程师', 'net_ops_engineer', 2,
     '负责校园网络基础设施的建设、维护和优化，保障网络稳定运行', 0,
     'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (
@@ -435,7 +435,7 @@ INSERT INTO `sys_post` (
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
-    '102', NULL, '数据库管理员', 'dba', 3,
+    '102', '100', '数据库管理员', 'dba', 3,
     '负责各类业务数据库的设计、部署、性能调优和日常运维管理', 0,
     'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (
@@ -448,7 +448,7 @@ INSERT INTO `sys_post` (
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
-    '103', NULL, '信息安全专员', 'info_security_officer', 4,
+    '103', '100', '信息安全专员', 'info_security_officer', 4,
     '负责信息安全策略制定、安全漏洞检测、安全事件响应和安全培训工作', 0,
     'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (
@@ -461,7 +461,7 @@ INSERT INTO `sys_post` (
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
-    '104', NULL, '教务管理员', 'academic_affairs_admin', 5,
+    '104', '100', '教务管理员', 'academic_affairs_admin', 5,
     '负责教学计划管理、排课选课、考试安排、学籍管理等教务工作', 0,
     'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (
@@ -474,7 +474,7 @@ INSERT INTO `sys_post` (
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
-    '105', NULL, '科研秘书', 'research_secretary', 6,
+    '105', '100', '科研秘书', 'research_secretary', 6,
     '负责科研项目申报管理、科研成果统计、学术活动组织等科研管理工作', 0,
     'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (
@@ -487,7 +487,7 @@ INSERT INTO `sys_post` (
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
-    '106', NULL, '学生事务专员', 'student_affairs_officer', 7,
+    '106', '100', '学生事务专员', 'student_affairs_officer', 7,
     '负责学生日常管理、奖助学金评定、心理健康教育、就业指导等工作', 0,
     'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (
@@ -500,7 +500,7 @@ INSERT INTO `sys_post` (
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
-    '107', NULL, '人事管理专员', 'hr_officer', 8,
+    '107', '100', '人事管理专员', 'hr_officer', 8,
     '负责教职工招聘、入职离职办理、薪酬核算、绩效考核等人事管理工作', 0,
     'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (
@@ -513,7 +513,7 @@ INSERT INTO `sys_post` (
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
-    '108', NULL, '财务核算会计', 'financial_accountant', 9,
+    '108', '100', '财务核算会计', 'financial_accountant', 9,
     '负责财务凭证编制、账务处理、财务报表编制、预算执行监控等工作', 0,
     'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (
@@ -526,7 +526,7 @@ INSERT INTO `sys_post` (
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
-    '109', NULL, '资产管理员', 'asset_manager', 10,
+    '109', '100', '资产管理员', 'asset_manager', 10,
     '负责固定资产登记、盘点、调拨、报废等资产全生命周期管理工作', 0,
     'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (

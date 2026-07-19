@@ -70,4 +70,9 @@ public class UserUpdateRequest {
 
     /** 角色 ID 列表 */
     private List<String> roleIds;
+
+    // ==================== 乐观锁 ====================
+
+    /** 乐观锁版本号 */
+    private Integer version;
 }

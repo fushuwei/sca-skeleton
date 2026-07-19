@@ -327,6 +327,7 @@ async function handleSave() {
       result = await createDeptApi(data);
     } else {
       data.id = form.id;
+      data.version = props.dept?.version;
       result = await updateDeptApi(data);
     }
 

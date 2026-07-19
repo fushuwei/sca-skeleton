@@ -354,6 +354,7 @@ async function handleSave() {
       result = await createPermissionApi(data);
     } else {
       data.id = form.id;
+      data.version = props.permission?.version;
       result = await updatePermissionApi(data);
     }
 

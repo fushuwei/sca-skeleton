@@ -428,6 +428,7 @@ async function handleSave() {
       result = await createUserApi(data);
     } else {
       data.id = form.id;
+      data.version = props.user?.version;
       result = await updateUserApi(data);
     }
 
