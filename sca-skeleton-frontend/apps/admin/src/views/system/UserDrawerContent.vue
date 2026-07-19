@@ -86,14 +86,14 @@ const formRules = {
   gender: [],
   phone: [
     (v: string) => {
-      if (!v) return true;
-      return /^1[3-9]\d{9}$/.test(v) || t("user.phonePattern");
+      if (!v?.trim()) return true;
+      return /^1[3-9]\d{9}$/.test(v.trim()) || t("user.phonePattern");
     }
   ],
   email: [
     (v: string) => {
-      if (!v) return true;
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || t("user.emailPattern");
+      if (!v?.trim()) return true;
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) || t("user.emailPattern");
     }
   ],
   status: [],
@@ -394,19 +394,19 @@ async function handleSave() {
   if (drawerReadonly.value) return;
 
   const data: Record<string, unknown> = {
-    username: form.username,
-    nickname: form.nickname,
-    realName: form.realName,
+    username: form.username?.trim(),
+    nickname: form.nickname?.trim(),
+    realName: form.realName?.trim(),
     gender: form.gender || undefined,
-    phone: form.phone || undefined,
-    email: form.email || undefined,
+    phone: form.phone?.trim() || undefined,
+    email: form.email?.trim() || undefined,
     userType: form.userType,
     isSuperadmin: form.isSuperadmin,
     status: form.status,
     mustChangePassword: form.mustChangePassword,
     effectiveStartTime: form.effectiveStartTime || undefined,
     effectiveEndTime: form.effectiveEndTime || undefined,
-    remark: form.remark || undefined,
+    remark: form.remark?.trim() || undefined,
     deptIds: form.deptId ? [form.deptId] : undefined,
     postIds: form.postIds.length ? form.postIds : undefined,
     roleIds: form.roleIds.length ? form.roleIds : undefined

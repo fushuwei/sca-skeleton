@@ -333,18 +333,18 @@ async function handleSave() {
 
   const data: Record<string, unknown> = {
     parentId: form.parentId,
-    name: form.name,
-    nameEn: form.nameEn || undefined,
+    name: form.name?.trim(),
+    nameEn: form.nameEn?.trim() || undefined,
     type: form.type,
-    code: form.code || undefined,
-    path: form.path || undefined,
-    component: form.component || undefined,
-    icon: form.type === "button" ? undefined : (form.icon || undefined),
+    code: form.code?.trim() || undefined,
+    path: form.path?.trim() || undefined,
+    component: form.component?.trim() || undefined,
+    icon: form.type === "button" ? undefined : (form.icon?.trim() || undefined),
     sort: form.sort,
     isVisible: form.isVisible,
     isExternal: form.isExternal,
     status: form.status,
-    remark: form.remark || undefined
+    remark: form.remark?.trim() || undefined
   };
 
   try {

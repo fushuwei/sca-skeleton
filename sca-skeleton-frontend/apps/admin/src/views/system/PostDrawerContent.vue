@@ -103,10 +103,10 @@ async function handleSave() {
   if (drawerReadonly.value) return;
 
   const data: Record<string, unknown> = {
-    name: form.name,
+    name: form.name?.trim(),
     code: `${CODE_PREFIX}${form.code}`,
     sort: form.sort,
-    remark: form.remark || undefined
+    remark: form.remark?.trim() || undefined
   };
 
   // 超管创建时传目标租户 ID

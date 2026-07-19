@@ -45,20 +45,20 @@ const formRules = computed(() => ({
   status: [(v: string) => !!v || t("tenantMgmt.statusRequired")],
   contactPhone: [
     (v: string) => {
-      if (!v) return true;
-      return /^1[3-9]\d{9}$/.test(v) || t("tenantMgmt.phoneInvalid");
+      if (!v?.trim()) return true;
+      return /^1[3-9]\d{9}$/.test(v.trim()) || t("tenantMgmt.phoneInvalid");
     }
   ],
   contactEmail: [
     (v: string) => {
-      if (!v) return true;
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || t("tenantMgmt.emailInvalid");
+      if (!v?.trim()) return true;
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) || t("tenantMgmt.emailInvalid");
     }
   ],
   domainName: [
     (v: string) => {
-      if (!v) return true;
-      return /^([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/.test(v) || t("tenantMgmt.domainInvalid");
+      if (!v?.trim()) return true;
+      return /^(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/.test(v.trim()) || t("tenantMgmt.domainInvalid");
     }
   ]
 }));
@@ -151,17 +151,17 @@ async function handleSave() {
   if (drawerReadonly.value) return;
 
   const data: Record<string, unknown> = {
-    name: form.name,
-    code: form.code,
+    name: form.name?.trim(),
+    code: form.code?.trim(),
     packageId: form.packageId,
     status: form.status,
-    contactName: form.contactName || undefined,
-    contactPhone: form.contactPhone || undefined,
-    contactEmail: form.contactEmail || undefined,
-    domainName: form.domainName || undefined,
+    contactName: form.contactName?.trim() || undefined,
+    contactPhone: form.contactPhone?.trim() || undefined,
+    contactEmail: form.contactEmail?.trim() || undefined,
+    domainName: form.domainName?.trim() || undefined,
     effectiveTime: form.effectiveTime || null,
     expireTime: form.expireTime || null,
-    remark: form.remark || undefined
+    remark: form.remark?.trim() || undefined
   };
 
   try {
