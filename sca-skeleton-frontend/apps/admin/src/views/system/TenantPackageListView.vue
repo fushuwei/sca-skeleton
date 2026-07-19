@@ -133,13 +133,6 @@ const columns = computed<QTableColumn<SysTenantPackage>[]>(() => [
     sortable: true
   },
   {
-    name: "status",
-    field: "status",
-    label: t("tenantPackageMgmt.status"),
-    align: "center",
-    sortable: true
-  },
-  {
     name: "userLimit",
     field: "userLimit",
     label: t("tenantPackageMgmt.userLimit"),
@@ -178,6 +171,13 @@ const columns = computed<QTableColumn<SysTenantPackage>[]>(() => [
     name: "sort",
     field: "sort",
     label: t("tenantPackageMgmt.sort"),
+    align: "center",
+    sortable: true
+  },
+  {
+    name: "status",
+    field: "status",
+    label: t("tenantPackageMgmt.status"),
     align: "center",
     sortable: true
   },

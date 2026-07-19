@@ -42,7 +42,25 @@ const formRules = computed(() => ({
   name: [(v: string) => !!v?.trim() || t("tenantMgmt.nameRequired")],
   code: [(v: string) => !!v?.trim() || t("tenantMgmt.codeRequired")],
   packageId: [(v: string) => !!v || t("tenantMgmt.packageRequired")],
-  status: [(v: string) => !!v || t("tenantMgmt.statusRequired")]
+  status: [(v: string) => !!v || t("tenantMgmt.statusRequired")],
+  contactPhone: [
+    (v: string) => {
+      if (!v) return true;
+      return /^1[3-9]\d{9}$/.test(v) || t("tenantMgmt.phoneInvalid");
+    }
+  ],
+  contactEmail: [
+    (v: string) => {
+      if (!v) return true;
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || t("tenantMgmt.emailInvalid");
+    }
+  ],
+  domainName: [
+    (v: string) => {
+      if (!v) return true;
+      return /^([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/.test(v) || t("tenantMgmt.domainInvalid");
+    }
+  ]
 }));
 
 /** 租户编码输入处理：自动转小写 */
@@ -271,6 +289,7 @@ async function handleSave() {
               :label="t('tenantMgmt.contactPhone')"
               filled
               square
+              :rules="formRules.contactPhone"
               :disable="drawerReadonly"
               :readonly="drawerReadonly"
               hide-bottom-space
@@ -284,6 +303,7 @@ async function handleSave() {
               filled
               square
               type="email"
+              :rules="formRules.contactEmail"
               :disable="drawerReadonly"
               :readonly="drawerReadonly"
               hide-bottom-space
@@ -296,6 +316,7 @@ async function handleSave() {
               :label="t('tenantMgmt.domainName')"
               filled
               square
+              :rules="formRules.domainName"
               :disable="drawerReadonly"
               :readonly="drawerReadonly"
               hide-bottom-space
