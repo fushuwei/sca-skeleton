@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 /**
  * 搜索栏专用日期时间选择器。
@@ -55,6 +55,17 @@ const displayValue = computed({
     errorMessage.value = validate(v ?? "");
   }
 });
+
+/**
+ * 监听外部 modelValue 变化（如父组件点击「重置」按钮清空搜索条件），
+ * 同步重新校验并刷新 errorMessage，避免输入框已清空但错误图标（感叹号）残留。
+ */
+watch(
+  () => props.modelValue,
+  (v) => {
+    errorMessage.value = validate(v ?? "");
+  }
+);
 
 const pickerDisabled = computed(() => props.disable || props.readonly);
 const hasError = computed(() => Boolean(errorMessage.value));
