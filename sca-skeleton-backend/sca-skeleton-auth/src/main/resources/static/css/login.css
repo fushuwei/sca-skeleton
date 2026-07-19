@@ -407,7 +407,7 @@ body {
 }
 
 .error-icon {
-    font-size: 14px;
+    font-size: 18px !important;
     color: var(--md-sys-color-error);
 }
 

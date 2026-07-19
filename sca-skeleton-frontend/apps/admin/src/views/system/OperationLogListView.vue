@@ -1418,9 +1418,8 @@ onMounted(() => {
   vertical-align: middle;
 }
 
-/* 等宽字体（IP 等） */
+/* 等宽字体（IP 等）：继承全局字体栈，首项 JetBrains Mono 已是等宽字体，避免平台差异 */
 .mono-text {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 12px;
 }
 
@@ -1482,7 +1481,6 @@ onMounted(() => {
 }
 
 .detail-field-value--mono {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 12px;
 }
 

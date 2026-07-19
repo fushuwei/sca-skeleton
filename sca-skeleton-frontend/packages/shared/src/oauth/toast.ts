@@ -43,7 +43,7 @@ const BASE_STYLE = `
   font-size: 13px;
   font-weight: 500;
   line-height: 64px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: inherit;
 `;
 
 const ICON_STYLE = `

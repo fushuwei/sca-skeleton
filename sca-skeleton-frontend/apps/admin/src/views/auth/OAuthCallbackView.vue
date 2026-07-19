@@ -151,7 +151,7 @@ onMounted(() => {
   margin: 0;
   font-size: 16px;
   color: #666;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: "JetBrains Mono", "OPPO Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }
 
 .error-box {
