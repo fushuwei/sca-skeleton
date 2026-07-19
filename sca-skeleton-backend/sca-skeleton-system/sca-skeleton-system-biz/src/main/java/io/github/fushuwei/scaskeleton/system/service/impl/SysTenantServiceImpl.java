@@ -15,6 +15,7 @@ import io.github.fushuwei.scaskeleton.system.entity.SysTenantPackage;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantPackageMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysTenantService;
+import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -90,6 +91,11 @@ public class SysTenantServiceImpl implements SysTenantService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createTenant(TenantCreateRequest request) {
+        // 仅超级管理员可创建租户，防止其他用户伪造数据
+        if (!SecurityUtils.isSuperAdmin()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "仅超级管理员可创建租户");
+        }
+
         // 租户名称唯一
         long nameCount = tenantMapper.selectCount(new LambdaQueryWrapper<SysTenant>()
             .eq(SysTenant::getName, request.getName()));
@@ -133,6 +139,11 @@ public class SysTenantServiceImpl implements SysTenantService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateTenant(TenantUpdateRequest request) {
+        // 仅超级管理员可编辑租户，防止其他用户伪造数据
+        if (!SecurityUtils.isSuperAdmin()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "仅超级管理员可编辑租户");
+        }
+
         // 加载租户实体
         SysTenant tenant = loadTenantEntity(request.getId());
 
@@ -184,6 +195,11 @@ public class SysTenantServiceImpl implements SysTenantService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteTenant(String id) {
+        // 仅超级管理员可删除租户，防止其他用户伪造数据
+        if (!SecurityUtils.isSuperAdmin()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "仅超级管理员可删除租户");
+        }
+
         // 加载租户实体并校验内置保护
         SysTenant tenant = loadTenantEntity(id);
         if (DEFAULT_TENANT_CODE.equals(tenant.getCode())) {
@@ -202,6 +218,10 @@ public class SysTenantServiceImpl implements SysTenantService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void batchDeleteTenants(List<String> ids) {
+        // 仅超级管理员可批量删除租户，防止其他用户伪造数据
+        if (!SecurityUtils.isSuperAdmin()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "仅超级管理员可删除租户");
+        }
         if (CollectionUtils.isEmpty(ids)) {
             return;
         }

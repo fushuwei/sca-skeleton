@@ -12,11 +12,14 @@ import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPac
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageResponse;
 import io.github.fushuwei.scaskeleton.system.converter.TenantPackageConverter;
+import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenantPackage;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenantPackagePermission;
+import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantPackageMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantPackagePermissionMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysTenantPackageService;
+import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,6 +42,8 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     private final SysTenantPackageMapper packageMapper;
 
     private final SysTenantPackagePermissionMapper packagePermissionMapper;
+
+    private final SysTenantMapper tenantMapper;
 
     private final TenantPackageConverter packageConverter;
 
@@ -105,6 +110,11 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createPackage(TenantPackageCreateRequest request) {
+        // 仅超级管理员可创建套餐，防止其他用户伪造数据
+        if (!SecurityUtils.isSuperAdmin()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "仅超级管理员可创建套餐");
+        }
+
         // 套餐名称唯一
         long nameCount = packageMapper.selectCount(new LambdaQueryWrapper<SysTenantPackage>()
             .eq(SysTenantPackage::getName, request.getName()));
@@ -146,6 +156,11 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updatePackage(TenantPackageUpdateRequest request) {
+        // 仅超级管理员可编辑套餐，防止其他用户伪造数据
+        if (!SecurityUtils.isSuperAdmin()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "仅超级管理员可编辑套餐");
+        }
+
         // 加载套餐实体
         SysTenantPackage pkg = loadPackageEntity(request.getId());
 
@@ -196,8 +211,19 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deletePackage(String id) {
+        // 仅超级管理员可删除套餐，防止其他用户伪造数据
+        if (!SecurityUtils.isSuperAdmin()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "仅超级管理员可删除套餐");
+        }
+
         // 加载套餐实体
         loadPackageEntity(id);
+
+        // 校验套餐是否已被租户使用，存在关联租户则禁止删除
+        long tenantCount = tenantMapper.selectCount(new LambdaQueryWrapper<SysTenant>().eq(SysTenant::getPackageId, id));
+        if (tenantCount > 0) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "套餐已被租户使用，无法删除");
+        }
 
         // 删除套餐
         packageMapper.deleteById(id);
@@ -214,6 +240,10 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void batchDeletePackages(List<String> ids) {
+        // 仅超级管理员可批量删除套餐，防止其他用户伪造数据
+        if (!SecurityUtils.isSuperAdmin()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "仅超级管理员可删除套餐");
+        }
         if (CollectionUtils.isEmpty(ids)) {
             return;
         }
@@ -251,6 +281,11 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void assignPermissions(TenantPackagePermissionAssignRequest request) {
+        // 仅超级管理员可为套餐分配权限，防止其他用户伪造数据
+        if (!SecurityUtils.isSuperAdmin()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "仅超级管理员可为套餐分配权限");
+        }
+
         // 加载套餐实体
         loadPackageEntity(request.getId());
 
