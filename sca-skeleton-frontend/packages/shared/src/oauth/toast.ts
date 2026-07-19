@@ -33,16 +33,21 @@ const BASE_STYLE = `
   z-index: 10000;
   display: flex;
   align-items: center;
-  height: 64px;
-  padding: 0 12px;
+  min-height: 64px;
+  max-height: 300px;
+  max-width: 600px;
+  box-sizing: border-box;
+  padding: 12px 16px;
   border-radius: 0;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+  overflow: hidden;
   opacity: 0;
   transition: opacity 0.25s ease;
   pointer-events: auto;
   font-size: 13px;
   font-weight: 500;
-  line-height: 64px;
+  line-height: 1.5;
   font-family: inherit;
 `;
 
@@ -70,6 +75,14 @@ const CLOSE_BTN_STYLE = `
   cursor: pointer;
   opacity: 0.7;
   padding: 0;
+`;
+
+const TEXT_STYLE = `
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  word-break: break-word;
+  overflow: hidden;
 `;
 
 const CLOSE_ICON_STYLE = `
@@ -142,6 +155,7 @@ export function showToast(message: string, type: NotificationType = "negative", 
 
   // 文本
   const text = document.createElement("span");
+  text.setAttribute("style", TEXT_STYLE);
   text.textContent = message;
 
   // 右侧关闭按钮
