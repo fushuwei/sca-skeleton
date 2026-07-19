@@ -141,11 +141,6 @@ public class SysPostServiceImpl implements SysPostService {
         // 加载岗位实体
         SysPost post = loadPostEntity(request.getId());
 
-        // 乐观锁校验：前端回传的版本号必须与当前数据库版本一致，不一致说明数据已被其他用户修改
-        if (request.getVersion() != null && !Objects.equals(request.getVersion(), post.getVersion())) {
-            throw new BusinessException(ResultCode.CONFLICT);
-        }
-
         // 岗位编码在同一个租户内唯一（排除自身）
         if (StringUtils.hasText(request.getCode()) && !request.getCode().equals(post.getCode())) {
             long codeCount = postMapper.selectCount(new LambdaQueryWrapper<SysPost>()
@@ -163,8 +158,12 @@ public class SysPostServiceImpl implements SysPostService {
         post.setSort(request.getSort() != null ? request.getSort() : post.getSort());
         post.setRemark(request.getRemark());
 
-        // 更新岗位
-        postMapper.updateById(post);
+        // 乐观锁：使用前端回传的 version 作为 WHERE 条件，若版本不匹配则影响行数为 0，说明数据已被其他用户修改
+        post.setVersion(request.getVersion());
+        int affectedRows = postMapper.updateById(post);
+        if (affectedRows == 0) {
+            throw new BusinessException(ResultCode.VERSION_CONFLICT);
+        }
     }
 
     /**

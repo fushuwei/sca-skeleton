@@ -25,7 +25,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 租户套餐管理 Service 实现类
@@ -150,11 +149,6 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
         // 加载套餐实体
         SysTenantPackage pkg = loadPackageEntity(request.getId());
 
-        // 乐观锁校验：前端回传的版本号必须与当前数据库版本一致，不一致说明数据已被其他用户修改
-        if (request.getVersion() != null && !Objects.equals(request.getVersion(), pkg.getVersion())) {
-            throw new BusinessException(ResultCode.CONFLICT);
-        }
-
         // 套餐名称唯一（排除自身）
         long nameCount = packageMapper.selectCount(new LambdaQueryWrapper<SysTenantPackage>()
             .eq(SysTenantPackage::getName, request.getName())
@@ -182,8 +176,12 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
         pkg.setSort(request.getSort() != null ? request.getSort() : pkg.getSort());
         pkg.setRemark(request.getRemark());
 
-        // 更新套餐
-        packageMapper.updateById(pkg);
+        // 乐观锁：使用前端回传的 version 作为 WHERE 条件，若版本不匹配则影响行数为 0，说明数据已被其他用户修改
+        pkg.setVersion(request.getVersion());
+        int affectedRows = packageMapper.updateById(pkg);
+        if (affectedRows == 0) {
+            throw new BusinessException(ResultCode.VERSION_CONFLICT);
+        }
 
         // 删除旧的关联关系，并保存新的关联关系
         deletePackagePermissions(request.getId());

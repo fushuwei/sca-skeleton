@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 租户管理 Service 实现类
@@ -137,11 +136,6 @@ public class SysTenantServiceImpl implements SysTenantService {
         // 加载租户实体
         SysTenant tenant = loadTenantEntity(request.getId());
 
-        // 乐观锁校验：前端回传的版本号必须与当前数据库版本一致，不一致说明数据已被其他用户修改
-        if (request.getVersion() != null && !Objects.equals(request.getVersion(), tenant.getVersion())) {
-            throw new BusinessException(ResultCode.CONFLICT);
-        }
-
         // 租户名称唯一（排除自身）
         long nameCount = tenantMapper.selectCount(new LambdaQueryWrapper<SysTenant>()
             .eq(SysTenant::getName, request.getName())
@@ -174,8 +168,12 @@ public class SysTenantServiceImpl implements SysTenantService {
         tenant.setStatus(request.getStatus());
         tenant.setRemark(request.getRemark());
 
-        // 更新租户
-        tenantMapper.updateById(tenant);
+        // 乐观锁：使用前端回传的 version 作为 WHERE 条件，若版本不匹配则影响行数为 0，说明数据已被其他用户修改
+        tenant.setVersion(request.getVersion());
+        int affectedRows = tenantMapper.updateById(tenant);
+        if (affectedRows == 0) {
+            throw new BusinessException(ResultCode.VERSION_CONFLICT);
+        }
     }
 
     /**

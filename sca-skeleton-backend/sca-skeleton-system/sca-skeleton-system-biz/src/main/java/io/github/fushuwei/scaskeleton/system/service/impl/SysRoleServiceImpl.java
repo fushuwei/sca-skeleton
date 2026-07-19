@@ -179,19 +179,18 @@ public class SysRoleServiceImpl implements SysRoleService {
         // 加载可操作角色实体
         SysRole role = loadOperableRoleEntity(request.getId());
 
-        // 乐观锁校验：前端回传的版本号必须与当前数据库版本一致，不一致说明数据已被其他用户修改
-        if (request.getVersion() != null && !Objects.equals(request.getVersion(), role.getVersion())) {
-            throw new BusinessException(ResultCode.CONFLICT);
-        }
-
         // 更新字段
         role.setName(request.getName());
         role.setDataScope(request.getDataScope());
         role.setSort(request.getSort() != null ? request.getSort() : role.getSort());
         role.setRemark(request.getRemark());
 
-        // 更新角色
-        roleMapper.updateById(role);
+        // 乐观锁：使用前端回传的 version 作为 WHERE 条件，若版本不匹配则影响行数为 0，说明数据已被其他用户修改
+        role.setVersion(request.getVersion());
+        int affectedRows = roleMapper.updateById(role);
+        if (affectedRows == 0) {
+            throw new BusinessException(ResultCode.VERSION_CONFLICT);
+        }
 
         // 删除旧的关联关系，并保存新的关联关系
         deleteRolePermissions(request.getId());

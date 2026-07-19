@@ -202,11 +202,6 @@ public class SysUserServiceImpl implements SysUserService {
         // 加载可操作用户实体
         SysUser user = loadOperableUserEntity(request.getId());
 
-        // 乐观锁校验：前端回传的版本号必须与当前数据库版本一致，不一致说明数据已被其他用户修改
-        if (request.getVersion() != null && !Objects.equals(request.getVersion(), user.getVersion())) {
-            throw new BusinessException(ResultCode.CONFLICT);
-        }
-
         // 更新字段
         user.setNickname(request.getNickname());
         user.setRealName(request.getRealName());
@@ -225,8 +220,12 @@ public class SysUserServiceImpl implements SysUserService {
             user.setPasswordUpdateTime(LocalDateTime.now());
         }
 
-        // 更新用户
-        userMapper.updateById(user);
+        // 乐观锁：使用前端回传的 version 作为 WHERE 条件，若版本不匹配则影响行数为 0，说明数据已被其他用户修改
+        user.setVersion(request.getVersion());
+        int affectedRows = userMapper.updateById(user);
+        if (affectedRows == 0) {
+            throw new BusinessException(ResultCode.VERSION_CONFLICT);
+        }
 
         // 删除旧的关联关系，并保存新的关联关系
         deleteUserRelations(user.getTenantId(), request.getId());

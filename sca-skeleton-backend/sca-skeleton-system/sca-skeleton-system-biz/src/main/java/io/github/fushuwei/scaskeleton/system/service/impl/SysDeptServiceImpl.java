@@ -147,11 +147,6 @@ public class SysDeptServiceImpl implements SysDeptService {
         // 加载部门实体
         SysDept dept = loadDeptEntity(request.getId());
 
-        // 乐观锁校验：前端回传的版本号必须与当前数据库版本一致，不一致说明数据已被其他用户修改
-        if (request.getVersion() != null && !Objects.equals(request.getVersion(), dept.getVersion())) {
-            throw new BusinessException(ResultCode.CONFLICT);
-        }
-
         // 保存旧 treePath（用于批量更新子孙节点）
         String oldTreePath = dept.getTreePath();
 
@@ -202,8 +197,12 @@ public class SysDeptServiceImpl implements SysDeptService {
             dept.setTreePath(buildTreePath(dept.getParentId(), dept.getId()));
         }
 
-        // 更新部门
-        deptMapper.updateById(dept);
+        // 乐观锁：使用前端回传的 version 作为 WHERE 条件，若版本不匹配则影响行数为 0，说明数据已被其他用户修改
+        dept.setVersion(request.getVersion());
+        int affectedRows = deptMapper.updateById(dept);
+        if (affectedRows == 0) {
+            throw new BusinessException(ResultCode.VERSION_CONFLICT);
+        }
 
         // 上级部门变更后，批量更新所有子孙节点的 tree_path 字段值
         if (parentChanged) {
