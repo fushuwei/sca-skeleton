@@ -45,20 +45,20 @@ const formRules = computed(() => ({
   status: [(v: string) => !!v || t("tenantMgmt.statusRequired")],
   contactPhone: [
     (v: string) => {
-      if (!v?.trim()) return true;
-      return /^1[3-9]\d{9}$/.test(v.trim()) || t("tenantMgmt.phoneInvalid");
+      if (!v) return true;
+      return /^1[3-9]\d{9}$/.test(v) || t("tenantMgmt.phoneInvalid");
     }
   ],
   contactEmail: [
     (v: string) => {
-      if (!v?.trim()) return true;
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) || t("tenantMgmt.emailInvalid");
+      if (!v) return true;
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || t("tenantMgmt.emailInvalid");
     }
   ],
   domainName: [
     (v: string) => {
-      if (!v?.trim()) return true;
-      return /^(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/.test(v.trim()) || t("tenantMgmt.domainInvalid");
+      if (!v) return true;
+      return /^(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/.test(v) || t("tenantMgmt.domainInvalid");
     }
   ]
 }));
@@ -151,17 +151,17 @@ async function handleSave() {
   if (drawerReadonly.value) return;
 
   const data: Record<string, unknown> = {
-    name: form.name?.trim(),
-    code: form.code?.trim(),
+    name: form.name,
+    code: form.code,
     packageId: form.packageId,
     status: form.status,
-    contactName: form.contactName?.trim() || undefined,
-    contactPhone: form.contactPhone?.trim() || undefined,
-    contactEmail: form.contactEmail?.trim() || undefined,
-    domainName: form.domainName?.trim() || undefined,
+    contactName: form.contactName || undefined,
+    contactPhone: form.contactPhone || undefined,
+    contactEmail: form.contactEmail || undefined,
+    domainName: form.domainName || undefined,
     effectiveTime: form.effectiveTime || null,
     expireTime: form.expireTime || null,
-    remark: form.remark?.trim() || undefined
+    remark: form.remark || undefined
   };
 
   try {
@@ -454,6 +454,7 @@ async function handleSave() {
 
 /* 有效期提示文案 */
 .validity-hint {
+  padding-left: 12px;
   font-size: 12px;
   color: rgba(0, 0, 0, 0.45);
   line-height: 1.5;

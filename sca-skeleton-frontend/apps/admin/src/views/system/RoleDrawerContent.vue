@@ -317,11 +317,11 @@ async function handleSave() {
   const fullPermissionIds = collectWithAncestors(form.permissionIds);
 
   const data: Record<string, unknown> = {
-    name: form.name?.trim(),
-    code: `${CODE_PREFIX}${form.code?.trim()}`,
+    name: form.name,
+    code: `${CODE_PREFIX}${form.code}`,
     dataScope: form.dataScope,
     sort: form.sort,
-    remark: form.remark?.trim() || undefined,
+    remark: form.remark || undefined,
     permissionIds: fullPermissionIds.length ? fullPermissionIds : undefined
   };
 

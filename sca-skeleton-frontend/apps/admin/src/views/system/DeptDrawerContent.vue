@@ -301,11 +301,11 @@ async function handleSave() {
   if (drawerReadonly.value) return;
 
   const data: Record<string, unknown> = {
-    name: form.name?.trim(),
-    code: form.code?.trim(),
-    leader: form.leader?.trim() || undefined,
-    phone: form.phone?.trim() || undefined,
-    email: form.email?.trim() || undefined,
+    name: form.name,
+    code: form.code,
+    leader: form.leader || undefined,
+    phone: form.phone || undefined,
+    email: form.email || undefined,
     sort: form.sort,
     status: form.status
   };
