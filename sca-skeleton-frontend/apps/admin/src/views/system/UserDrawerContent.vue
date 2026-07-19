@@ -615,14 +615,14 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-        <!-- 超级管理员（仅超管可操作，其他用户禁用） -->
-        <div class="col-12 col-md-6">
+        <!-- 超级管理员（仅超管可见可操作，非超管完全不渲染，配合后端防护避免越权提权） -->
+        <div v-if="isSuperadmin" class="col-12 col-md-6">
           <q-toggle
             v-model="form.isSuperadmin"
             :label="t('user.isSuperadmin')"
             :true-value="1"
             :false-value="0"
-            :disable="drawerReadonly || !isSuperadmin"
+            :disable="drawerReadonly"
             class="q-mt-sm"
           />
         </div>
