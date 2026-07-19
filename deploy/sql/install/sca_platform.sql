@@ -372,13 +372,13 @@ SELECT t.* FROM (
     UNION ALL
     -- 二级菜单：租户管理 (sort = 9910, 一级菜单99 + 二级序号10)
     -- 多租户能力保留，但当前以单租户模式运行；菜单禁用，恢复时改回 'enabled' 即可
-    SELECT '9910', '9999', '租户管理', 'Tenant Management', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9910, 0, 0, 'disabled', '0,9999,9910', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9910', '9999', '租户管理', 'Tenant Management', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9910, 0, 0, 'enabled', '0,9999,9910', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     -- 三级菜单：租户管理 (sort = 99101, 一级菜单99 + 二级菜单10 + 三级序号1)
-    SELECT '9911', '9910', '租户管理', 'Tenants', 'menu', 'sys:tenant:list', '/system/tenant', 'TenantListView', 'sym_r_nest_eco_leaf', 99101, 0, 0, 'disabled', '0,9999,9910,9911', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9911', '9910', '租户管理', 'Tenants', 'menu', 'sys:tenant:list', '/system/tenant', 'TenantListView', 'sym_r_nest_eco_leaf', 99101, 0, 0, 'enabled', '0,9999,9910,9911', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     -- 三级菜单：套餐管理 (sort = 99102, 一级菜单99 + 二级菜单10 + 三级序号2)
-    SELECT '9912', '9910', '套餐管理', 'Packages', 'menu', 'sys:tenant-package:list', '/system/tenant-package', 'TenantPackageListView', 'sym_r_nest_eco_leaf', 99102, 0, 0, 'disabled', '0,9999,9910,9912', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9912', '9910', '套餐管理', 'Packages', 'menu', 'sys:tenant-package:list', '/system/tenant-package', 'TenantPackageListView', 'sym_r_nest_eco_leaf', 99102, 0, 0, 'enabled', '0,9999,9910,9912', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     -- 二级菜单：用户与权限 (sort = 9911, 一级菜单99 + 二级序号11)
     SELECT '9920', '9999', '用户与权限', 'Users & Permissions', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9911, 1, 0, 'enabled', '0,9999,9920', NULL, 0, 'system', NOW(), 'system', NOW(), 0
@@ -395,38 +395,26 @@ SELECT t.* FROM (
     -- 二级菜单：组织管理 (sort = 9912, 一级菜单99 + 二级序号12)
     SELECT '9930', '9999', '组织管理', 'Organization', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9912, 1, 0, 'enabled', '0,9999,9930', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：校区管理 (sort = 99121, 一级菜单99 + 二级菜单12 + 三级序号1)
-    SELECT '9931', '9930', '校区管理', 'Campuses', 'menu', 'sys:campus:list', '/system/campus', 'CampusListView', 'sym_r_nest_eco_leaf', 99121, 1, 0, 'enabled', '0,9999,9930,9931', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 三级菜单：部门管理 (sort = 99121, 一级菜单99 + 二级菜单12 + 三级序号1)
+    SELECT '9931', '9930', '部门管理', 'Departments', 'menu', 'sys:dept:list', '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 99121, 1, 0, 'enabled', '0,9999,9930,9931', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：部门管理 (sort = 99122, 一级菜单99 + 二级菜单12 + 三级序号2)
-    SELECT '9932', '9930', '部门管理', 'Departments', 'menu', 'sys:dept:list', '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 99122, 1, 0, 'enabled', '0,9999,9930,9932', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 三级菜单：岗位管理 (sort = 99122, 一级菜单99 + 二级菜单12 + 三级序号2)
+    SELECT '9932', '9930', '岗位管理', 'Positions', 'menu', 'sys:post:list', '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 99122, 1, 0, 'enabled', '0,9999,9930,9932', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：岗位管理 (sort = 99123, 一级菜单99 + 二级菜单12 + 三级序号3)
-    SELECT '9933', '9930', '岗位管理', 'Positions', 'menu', 'sys:post:list', '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 99123, 1, 0, 'enabled', '0,9999,9930,9933', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 二级菜单：字典管理 (sort = 9913, 一级菜单99 + 二级序号13)
+    SELECT '9940', '9999', '字典管理', 'Dictionaries', 'menu', 'sys:dict:list', '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9913, 1, 0, 'enabled', '0,9999,9940', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：系统与厂商 (sort = 9913, 一级菜单99 + 二级序号13)
-    SELECT '9940', '9999', '系统与厂商', 'System & Vendors', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9913, 1, 0, 'enabled', '0,9999,9940', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 二级菜单：系统配置 (sort = 9914, 一级菜单99 + 二级序号14)
+    SELECT '9941', '9999', '系统配置', 'System Config', 'menu', 'sys:config:list', '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9914, 1, 0, 'enabled', '0,9999,9941', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：业务系统管理 (sort = 99131, 一级菜单99 + 二级菜单13 + 三级序号1)
-    SELECT '9941', '9940', '业务系统管理', 'Business Systems', 'menu', 'sys:business-system:list', '/system/business-system', 'BusinessSystemListView', 'sym_r_nest_eco_leaf', 99131, 1, 0, 'enabled', '0,9999,9940,9941', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 二级菜单：通知公告 (sort = 9915, 一级菜单99 + 二级序号15)
+    SELECT '9942', '9999', '通知公告', 'Announcements', 'menu', 'sys:notice:list', '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9915, 1, 0, 'enabled', '0,9999,9942', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：厂商管理 (sort = 99132, 一级菜单99 + 二级菜单13 + 三级序号2)
-    SELECT '9942', '9940', '厂商管理', 'Vendors', 'menu', 'sys:vendor:list', '/system/vendor', 'VendorListView', 'sym_r_nest_eco_leaf', 99132, 1, 0, 'enabled', '0,9999,9940,9942', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 二级菜单：操作日志 (sort = 9916, 一级菜单99 + 二级序号16)
+    SELECT '9943', '9999', '操作日志', 'Operation Logs', 'menu', 'sys:operation-log:list', '/system/log/operation', 'OperationLogListView', 'sym_r_nest_eco_leaf', 9916, 1, 0, 'enabled', '0,9999,9943', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：字典管理 (sort = 9914, 一级菜单99 + 二级序号14)
-    SELECT '9950', '9999', '字典管理', 'Dictionaries', 'menu', 'sys:dict:list', '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9914, 1, 0, 'enabled', '0,9999,9950', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 二级菜单：系统配置 (sort = 9915, 一级菜单99 + 二级序号15)
-    SELECT '9951', '9999', '系统配置', 'System Config', 'menu', 'sys:config:list', '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9915, 1, 0, 'enabled', '0,9999,9951', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 二级菜单：通知公告 (sort = 9916, 一级菜单99 + 二级序号16)
-    SELECT '9952', '9999', '通知公告', 'Announcements', 'menu', 'sys:notice:list', '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9916, 1, 0, 'enabled', '0,9999,9952', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 二级菜单：操作日志 (sort = 9917, 一级菜单99 + 二级序号17)
-    SELECT '9953', '9999', '操作日志', 'Operation Logs', 'menu', 'sys:operation-log:list', '/system/log/operation', 'OperationLogListView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9953', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    -- 二级菜单：登录日志 (sort = 9918, 一级菜单99 + 二级序号18)
-    SELECT '9954', '9999', '登录日志', 'Login Logs', 'menu', 'sys:login-log:list', '/system/log/login', 'LoginLogListView', 'sym_r_nest_eco_leaf', 9918, 1, 0, 'enabled', '0,9999,9954', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 二级菜单：登录日志 (sort = 9917, 一级菜单99 + 二级序号17)
+    SELECT '9944', '9999', '登录日志', 'Login Logs', 'menu', 'sys:login-log:list', '/system/log/login', 'LoginLogListView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9944', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
 WHERE NOT EXISTS (
     SELECT 1 FROM `sys_permission` WHERE `id` = '9999' AND `is_deleted` = 0
