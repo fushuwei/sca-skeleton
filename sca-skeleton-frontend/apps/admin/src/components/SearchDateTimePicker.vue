@@ -73,8 +73,17 @@ const hasError = computed(() => Boolean(errorMessage.value));
 /**
  * 暴露校验状态给父组件，便于父组件在触发搜索前拦截非法输入，
  * 避免把已知非法值提交到后端导致类型转换异常。
+ *
+ * clearError() 供父组件在「重置搜索条件」等场景同步清空错误状态：
+ * 重置时父组件先把 modelValue 设为 ""，但组件内的 errorMessage 由
+ * watcher 异步更新，loadTableData 同步读取会拿到陈旧值导致误报。
+ * 父组件在 handleReset 中显式调用 clearError() 即可避免时序问题。
  */
-defineExpose({ hasError, errorMessage });
+function clearError() {
+  errorMessage.value = "";
+}
+
+defineExpose({ hasError, errorMessage, clearError });
 
 function showPicker() {
   popupRef.value?.show();

@@ -244,6 +244,13 @@ async function loadTableData(
 ) {
   if (props && !initialLoadDone) return;
 
+  // 拦截已知非法日期格式，避免任何触发 loadTableData 的操作
+  // （搜索、排序、翻页、改变每页条数等）把非法值提交到后端
+  if (startTimePickerRef.value?.hasError || endTimePickerRef.value?.hasError) {
+    showToast(t("common.searchFormInvalid"), "warning");
+    return;
+  }
+
   const requestId = ++loadRequestId;
   tableLoading.value = true;
 
@@ -299,11 +306,6 @@ async function loadTableData(
 }
 
 function handleSearch() {
-  // 拦截已知非法日期格式，避免提交到后端触发类型转换异常
-  if (startTimePickerRef.value?.hasError || endTimePickerRef.value?.hasError) {
-    showToast(t("common.searchFormInvalid"), "warning");
-    return;
-  }
   tablePagination.value.page = 1;
   curPage.value = 1;
   loadTableData();
@@ -331,6 +333,9 @@ function handleReset() {
   searchForm.isSuccess = undefined;
   searchForm.startTime = "";
   searchForm.endTime = "";
+  // 同步清空时间选择器的错误状态，避免 loadTableData 读到陈旧 hasError 导致误报
+  startTimePickerRef.value?.clearError();
+  endTimePickerRef.value?.clearError();
   // 清空排序状态（与 q-table 的 pagination.sortBy / descending 保持一致）
   sortState.value.sortBy = "";
   sortState.value.descending = false;

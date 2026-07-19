@@ -123,14 +123,22 @@ function dismissToast(): void {
   }
 }
 
+/** 各类型默认自动关闭时长（毫秒）：成功类提示较短，警告/错误类提示需更长时间供用户阅读 */
+const DEFAULT_DURATION: Record<NotificationType, number> = {
+  positive: 5000,
+  info: 5000,
+  warning: 10000,
+  negative: 10000
+};
+
 /**
  * 在浏览器顶部居中显示 Toast 提示，与 auth 登录页的 Toast Tips 布局完全一致。
  *
  * @param message 提示文本
  * @param type 通知类型：negative（红）、positive（绿）、warning（琥珀）、info（蓝），默认 negative
- * @param duration 自动关闭时间（毫秒），默认 5000
+ * @param duration 自动关闭时间（毫秒），不传则按类型取默认值：positive/info=5000ms，warning/negative=10000ms
  */
-export function showToast(message: string, type: NotificationType = "negative", duration = 5000): void {
+export function showToast(message: string, type: NotificationType = "negative", duration?: number): void {
   dismissToast();
 
   // 注入 keyframes（只注入一次）
@@ -142,6 +150,7 @@ export function showToast(message: string, type: NotificationType = "negative", 
   }
 
   const colors = TYPE_COLORS[type] || TYPE_COLORS.negative;
+  const autoCloseMs = duration ?? DEFAULT_DURATION[type];
 
   // 容器
   const toast = document.createElement("div");
@@ -182,5 +191,5 @@ export function showToast(message: string, type: NotificationType = "negative", 
   toast.style.animation = "scaToastFadeIn 0.25s ease forwards";
 
   // 自动关闭
-  toastTimer = setTimeout(() => dismissToast(), duration);
+  toastTimer = setTimeout(() => dismissToast(), autoCloseMs);
 }
