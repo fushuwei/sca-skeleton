@@ -104,7 +104,7 @@ async function handleSave() {
 
   const data: Record<string, unknown> = {
     name: form.name?.trim(),
-    code: `${CODE_PREFIX}${form.code}`,
+    code: `${CODE_PREFIX}${form.code?.trim()}`,
     sort: form.sort,
     remark: form.remark?.trim() || undefined
   };
