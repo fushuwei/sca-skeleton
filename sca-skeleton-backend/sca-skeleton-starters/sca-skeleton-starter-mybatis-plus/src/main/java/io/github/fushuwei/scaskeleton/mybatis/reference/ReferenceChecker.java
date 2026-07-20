@@ -28,6 +28,13 @@ public class ReferenceChecker {
     private final ReferenceCheckMapper referenceCheckMapper;
 
     /**
+     * 批量删除提示中最多展示的被引用实体数量
+     * <p>
+     * 超出此数量时仅展示前 N 项明细，避免提示过长导致前端展示异常
+     */
+    private static final int DISPLAY_LIMIT = 5;
+
+    /**
      * 被删除实体的表名缓存
      * <p>
      * Key: 实体类，Value: 该实体类对应的数据库表名（来自 {@link TableName} 注解）
@@ -75,7 +82,7 @@ public class ReferenceChecker {
             .toList();
 
         if (!blockedMessages.isEmpty()) {
-            throw new BusinessException(ResultCode.DATA_REFERENCED, String.join("；", blockedMessages));
+            throw new BusinessException(ResultCode.DATA_REFERENCED, blockedMessages.getFirst());
         }
     }
 
@@ -112,16 +119,13 @@ public class ReferenceChecker {
             return;
         }
 
-        // 一次性返回所有被引用的 ID 及原因，避免用户反复试
+        // 每个 ID 只提示第一条引用原因，避免多重引用淹没其他 ID 的提示；限制最多展示 DISPLAY_LIMIT 项明细
         String message = blockedMap.values().stream()
             .map(list -> {
-                // 同一 entityId 的所有行 displayName 相同，取第一行即可
-                String displayName = list.getFirst().getDisplayName();
-                String reasons = list.stream()
-                    .map(ReferenceCheckBatchResult::getMessage)
-                    .collect(Collectors.joining("、"));
-                return displayName + "：" + reasons;
+                ReferenceCheckBatchResult first = list.getFirst();
+                return first.getDisplayName() + "：" + first.getMessage();
             })
+            .limit(DISPLAY_LIMIT)
             .collect(Collectors.joining("；"));
 
         throw new BusinessException(ResultCode.DATA_REFERENCED, message);
