@@ -1,0 +1,255 @@
+/**
+ * Quasar Notify 企业级样式覆盖
+ *
+ * 设计目标：大气、美观、企业级专业感
+ * - 顶部居中滑入（Quasar 原生动画，参照 quasar.dev notify#positioning top 按钮）
+ * - 按类型配色（info=蓝 / success=绿 / warning=橙 / error=红），Light 用 Material 700 色阶，Dark 用 400 色阶
+ * - 左侧图标水平+垂直居中（Quasar flexbox 默认布局）
+ * - 右侧 close 图标按钮
+ * - 底部进度条与底边重叠，5 秒进度，鼠标悬停/键盘聚焦时暂停（CSS animation-play-state: paused）
+ * - 适配 Dark 主题
+ * - 字体继承全局字体栈（JetBrains Mono / OPPO Sans）
+ *
+ * 尺寸：min-height 64px / max-height 300px / max-width 600px / padding 12px 16px
+ * 配色：Light 主题由 Quasar bg-{color} class 控制（red-7/green-7/orange-7/blue-7），
+ *       Dark 主题由下方 CSS 覆盖为更亮色阶（red-4/green-4/orange-4/blue-4）
+ *
+ * 进度条实现：Quasar 2.21.4 不支持 pauseOnHover，故禁用 Quasar 原生 progress，
+ *            改用 ::after 伪元素 + CSS animation 自管理，:hover 时 animation-play-state: paused。
+ *            animationend 事件触发 dismiss（见 main.ts），确保进度条与自动关闭同步暂停/恢复。
+ */
+
+/* ═══════════════ 通知列表定位（避开固定 header） ═══════════════ */
+
+/*
+ * Quasar 默认将 top 位置的通知列表固定在 viewport top:0，会与项目的固定 header（高度 65px）重叠，
+ * 导致 toast 覆盖 header、视觉上 header "变高" 等问题。
+ * 将通知列表下移到 header 下方，toast 从 header 底部边缘滑出，不再遮挡 header。
+ */
+body .q-notifications__list.q-notifications__list--top {
+  top: 65px;
+}
+
+/* ═══════════════ 容器基础样式 ═══════════════ */
+
+.sca-notify.q-notification {
+  /* 宽度：自适应内容，最小 300px（避免短消息过窄），最大 600px */
+  width: auto !important;
+  min-width: 300px;
+  max-width: 600px;
+  /* 高度范围 */
+  min-height: 64px;
+  max-height: 300px;
+  /* 内边距 */
+  padding: 12px 16px !important;
+  /* 无圆角（与项目全局直角风格一致，见 quasar-flat.scss） */
+  border-radius: 0 !important;
+  /* 轻微阴影增加层次感，让通知浮于内容之上 */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+  /* 字体继承全局字体栈（html 根节点设置的 JetBrains Mono / OPPO Sans） */
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  /* 为 ::after 伪元素进度条提供定位上下文 */
+  position: relative;
+  /*
+   * 长消息滚动由 .q-notification__message 独立处理（overflow-y: auto），
+   * 容器本身 hidden 裁剪溢出，确保滚动条出现在文本右侧（而非 close 按钮右侧），
+   * 且 icon 与 close 按钮固定不动。
+   */
+  overflow: hidden;
+  /*
+   * 入场/离场动画时长：Quasar 默认 1s 太慢，连续弹出时新旧 toast 同时可见长达 1 秒，不丝滑。
+   * 缩短到 0.3s，旧 toast 快速消失，新 toast 快速进入，替换过程干净利落。
+   */
+  transition: transform 0.3s ease, opacity 0.3s ease !important;
+}
+
+/*
+ * 入场/离场滑动距离：Quasar 默认 translateY(-50px)，在 header 下方 65px 位置时
+ * 会滑入 header 区域造成视觉干扰。缩短到 -20px，动画更克制，不侵入 header。
+ */
+.sca-notify.q-notification.q-notification--top-enter-from,
+.sca-notify.q-notification.q-notification--top-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/*
+ * 离场时必须 position: absolute 脱离 flex 流，否则旧 toast 仍占据列表空间，
+ * 新 toast 会被挤到旧 toast 下方（位置不对、不丝滑）。
+ * 覆盖上方 .sca-notify.q-notification 的 position: relative（为 ::after 进度条提供定位上下文）。
+ */
+.sca-notify.q-notification.q-notification--top-leave-active {
+  position: absolute;
+}
+
+/*
+ * 禁用 Quasar <TransitionGroup> 的 FLIP move 动画（解决晃动问题的核心修复）。
+ *
+ * 连续快速触发 toast（如搜索框按住回车）时，新旧 toast 进出会导致 TransitionGroup 给现有元素
+ * 施加 q-notification--top-move 类，计算位置差并动画化 transform，表现为 toast 左右晃动。
+ *
+ * 仅禁用 move 动画即可解决晃动，保留入场（top-enter）和离场（top-leave）滑入滑出动效，
+ * toast 仍有自然的滑入/滑出过渡，不显单调。
+ */
+.sca-notify.q-notification.q-notification--top-move {
+  transition: none !important;
+}
+
+/* ═══════════════ 消息容器 ═══════════════ */
+
+/*
+ * 长消息独立滚动：滚动条出现在文本右侧（紧邻文本），而非 close 按钮右侧。
+ * icon 与 close 按钮固定不动，仅文本区域可滚动。
+ *
+ * 实现原理：Quasar 的 .q-notification__content 是 flex row + align-items: center，
+ * message 的高度由内容决定（不受父容器 max-height 约束），因此需要给 message
+ * 设置显式 max-height（toast max-height 300px - 上下 padding 24px = 276px），
+ * 配合 overflow-y: auto 实现独立滚动。
+ */
+.sca-notify .q-notification__message {
+  white-space: normal;
+  word-break: break-word;
+  overflow-y: auto;
+  max-height: calc(300px - 24px); /* toast max-height 300px - 上下 padding 12px×2 */
+  /*
+   * 滚动条样式对齐左侧菜单导航 q-scroll-area：细条、无 track 背景、悬停才显现。
+   * 原生 overflow-y: auto 默认带 track（灰白背景长条），与 q-scroll-area 视觉不一致。
+   * - WebKit/Chromium：::-webkit-scrollbar 系列
+   * - Firefox：scrollbar-width: thin + scrollbar-color（thumb transparent → 悬停变黑）
+   */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+/* WebKit 滚动条宽度（与 q-scrollarea__thumb 的 10px 接近，通知框更窄用 8px） */
+.sca-notify .q-notification__message::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* track 透明（移除灰白背景长条） */
+.sca-notify .q-notification__message::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* thumb 默认透明（不悬停时不可见，对齐 q-scrollarea__thumb--invisible） */
+.sca-notify .q-notification__message::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 0;
+}
+
+/* 鼠标悬停在消息区域时 thumb 显现（半透明黑色，对齐 q-scrollarea 悬停效果） */
+.sca-notify .q-notification__message:hover {
+  scrollbar-color: rgba(0, 0, 0, 0.4) transparent;
+}
+
+.sca-notify .q-notification__message:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/*
+ * Dark 主题下 thumb 用白色（深色背景上白色对比度更好），
+ * 对齐 q-scrollarea 在 dark 模式下的行为。
+ */
+.body--dark .sca-notify .q-notification__message:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+}
+
+.body--dark .sca-notify .q-notification__message:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ═══════════════ 左侧图标 ═══════════════ */
+
+/* 图标尺寸 24px（Material Design 标准通知图标尺寸），颜色继承 textColor（白色） */
+.sca-notify .q-notification__icon {
+  font-size: 24px;
+}
+
+/* ═══════════════ 右侧关闭按钮 ═══════════════ */
+
+.sca-notify .q-notification__actions {
+  margin-left: 8px;
+}
+
+.sca-notify .q-notification__actions .q-btn .q-icon {
+  font-size: 18px;
+}
+
+/* ═══════════════ 底部进度条（::after 伪元素，支持 :hover 暂停） ═══════════════ */
+
+/*
+ * Quasar 2.21.4 不支持 pauseOnHover，故禁用 Quasar 原生 progress（progress: false），
+ * 改用 ::after 伪元素 + CSS animation 自管理进度条。
+ *
+ * 工作原理：
+ * 1. ::after 元素渲染后自动开始 animation（从 scaleX(1) 到 scaleX(0)）
+ * 2. duration 由 CSS 变量 --sca-notify-duration 控制（默认 5000ms），由 main.ts 通过 inline style 设置
+ * 3. :hover 时 animation-play-state: paused，进度条暂停（animationend 同步延迟，dismiss 也延迟）
+ * 4. animationend 事件触发 dismiss（见 main.ts），确保进度条与自动关闭同步暂停/恢复
+ */
+
+.sca-notify.q-notification::after {
+  content: "";
+  position: absolute;
+  bottom: 0; /* 与底部边框重叠 */
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.7); /* 半透明白色，与文字颜色一致 */
+  transform-origin: left center; /* 从左侧开始收缩 */
+  animation: sca-notify-progress var(--sca-notify-duration, 5000ms) linear forwards;
+  pointer-events: none; /* 不拦截点击 */
+}
+
+/* 鼠标悬停时暂停进度条 animation（与自动关闭同步暂停，因为 dismiss 由 animationend 触发） */
+.sca-notify.q-notification:hover::after {
+  animation-play-state: paused;
+}
+
+/* 键盘可访问性：Tab 聚焦到关闭按钮时也暂停进度条（与 :hover 行为一致） */
+.sca-notify.q-notification:focus-within::after {
+  animation-play-state: paused;
+}
+
+@keyframes sca-notify-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* ═══════════════ Dark 主题配色覆盖 ═══════════════ */
+
+/*
+ * Light 主题配色由 Quasar bg-{color} class 控制（red-7/green-7/orange-7/blue-7），
+ * 无需 CSS 覆盖。
+ *
+ * Dark 主题下使用更亮的色阶（Material 400），确保在深色背景上仍有足够对比度。
+ * 选择器特异性 .body--dark .sca-notify--{type}.q-notification (0,3,0) 高于 Quasar .bg-{color} (0,1,0)，
+ * 配合 !important 确保覆盖。
+ */
+.body--dark .sca-notify--info.q-notification {
+  background-color: #42a5f5 !important; /* blue-4 */
+}
+
+.body--dark .sca-notify--positive.q-notification {
+  background-color: #66bb6a !important; /* green-4 */
+}
+
+.body--dark .sca-notify--warning.q-notification {
+  background-color: #ffa726 !important; /* orange-4 */
+}
+
+.body--dark .sca-notify--negative.q-notification {
+  background-color: #ef5350 !important; /* red-4 */
+}
+
+/* Dark 主题下阴影加深，增强浮层感 */
+.body--dark .sca-notify.q-notification {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
