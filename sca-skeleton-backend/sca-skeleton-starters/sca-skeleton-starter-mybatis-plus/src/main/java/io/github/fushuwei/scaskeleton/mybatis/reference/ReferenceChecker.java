@@ -28,6 +28,13 @@ public class ReferenceChecker {
     private final ReferenceCheckMapper referenceCheckMapper;
 
     /**
+     * 被删除实体的表名缓存
+     * <p>
+     * Key: 实体类，Value: 该实体类对应的数据库表名（来自 {@link TableName} 注解）
+     */
+    private final Map<Class<?>, String> entityTableNameCache = new ConcurrentHashMap<>();
+
+    /**
      * 注解解析缓存
      * <p>
      * Key: 实体类，Value: 该实体类上 {@link ReferencedBy} 注解解析出的引用关系参数列表
@@ -35,13 +42,6 @@ public class ReferenceChecker {
      * 注解在运行期不变，缓存零风险，同时将注解对象转换为标准 JavaBean，避免 MyBatis 反射访问注解属性时因 JDK 动态代理导致 ReflectionException
      */
     private final Map<Class<?>, List<ReferenceParam>> referenceCache = new ConcurrentHashMap<>();
-
-    /**
-     * 表名缓存
-     * <p>
-     * Key: 实体类，Value: 该实体类对应的数据库表名（来自 {@link TableName} 注解）
-     */
-    private final Map<Class<?>, String> entityTableNameCache = new ConcurrentHashMap<>();
 
     /**
      * 展示字段缓存
@@ -128,9 +128,20 @@ public class ReferenceChecker {
     }
 
     /**
-     * 解析实体类上的 {@link ReferencedBy} 注解，返回引用关系参数列表
-     * <p>
-     * 结果会被缓存，避免每次删除都调用反射
+     * 解析实体类上的 {@link TableName} 注解
+     *
+     * @param entityClass 实体类型
+     * @return 实体类对应的数据库表名，未标注注解时返回 null
+     */
+    private String resolveEntityTableName(Class<?> entityClass) {
+        return entityTableNameCache.computeIfAbsent(entityClass, cls -> {
+            TableName annotation = cls.getAnnotation(TableName.class);
+            return annotation != null ? annotation.value() : null;
+        });
+    }
+
+    /**
+     * 解析实体类上的 {@link ReferencedBy} 注解的 value 值
      *
      * @param entityClass 实体类型
      * @return 引用关系参数列表，未标注注解时返回空列表
@@ -149,32 +160,15 @@ public class ReferenceChecker {
     }
 
     /**
-     * 解析实体类对应的数据库表名
-     * <p>
-     * 通过反射读取 {@link TableName} 注解的 value 属性
+     * 解析实体类上的 {@link ReferencedBy} 注解的 displayColumn 值
      *
      * @param entityClass 实体类型
-     * @return 表名，未标注 {@link TableName} 时返回 null
-     */
-    private String resolveEntityTableName(Class<?> entityClass) {
-        return entityTableNameCache.computeIfAbsent(entityClass, cls -> {
-            TableName annotation = cls.getAnnotation(TableName.class);
-            return annotation != null ? annotation.value() : null;
-        });
-    }
-
-    /**
-     * 解析实体类的展示字段名
-     * <p>
-     * 结果会被缓存；{@code displayColumn} 默认 "id"，未标注 {@link ReferencedBy} 时也返回 "id"
-     *
-     * @param entityClass 实体类型
-     * @return 展示字段名，默认 "id"
+     * @return 被删除实体的展示字段名
      */
     private String resolveDisplayColumn(Class<?> entityClass) {
         return displayColumnCache.computeIfAbsent(entityClass, cls -> {
             ReferencedBy annotation = cls.getAnnotation(ReferencedBy.class);
-            return annotation != null ? annotation.displayColumn() : "id";
+            return annotation != null ? annotation.displayColumn() : "name";
         });
     }
 }
