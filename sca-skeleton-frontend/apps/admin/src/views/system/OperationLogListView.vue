@@ -414,6 +414,8 @@ async function handleBatchDelete() {
       showToast(t("common.deleteSuccess"), "positive");
       selectedRows.value = [];
       // 延迟刷新，等待异步操作日志持久化完成，确保本次"批量删除"操作日志也能在列表中展示
+      // 延迟期间显示 loading 效果，loadTableData 内部会在完成后自动关闭 loading
+      tableLoading.value = true;
       setTimeout(loadTableData, 1000);
     } else {
       showToast(result.message || t("common.deleteFail"), "negative");
@@ -439,6 +441,8 @@ async function handleClearAll() {
       showToast(t("operationLog.clearAllSuccess"), "positive");
       selectedRows.value = [];
       // 延迟刷新，等待异步操作日志持久化完成，确保本次"清空全部"操作日志也能在列表中展示
+      // 延迟期间显示 loading 效果，loadTableData 内部会在完成后自动关闭 loading
+      tableLoading.value = true;
       setTimeout(loadTableData, 1000);
     } else {
       showToast(result.message || t("common.operationFail"), "negative");
