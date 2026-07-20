@@ -174,8 +174,17 @@ body .q-notifications__list.q-notifications__list--top {
   margin-left: 8px;
 }
 
+.sca-notify .q-notification__actions .q-btn {
+  /* 圆形 hover 背景固定 32px（Quasar dense+round 默认约 33.6px，显式约束保持精确 32px） */
+  min-width: 32px;
+  min-height: 32px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
 .sca-notify .q-notification__actions .q-btn .q-icon {
-  font-size: 18px;
+  font-size: 20px;
 }
 
 /* ═══════════════ 底部进度条（::after 伪元素，支持 :hover 暂停） ═══════════════ */
