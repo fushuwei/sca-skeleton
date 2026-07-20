@@ -37,9 +37,9 @@ public @interface ReferencedBy {
     Reference[] value();
 
     /**
-     * 被删除实体的展示字段名（如 "name"），用于校验不通过提示中替代 ID 显示，增强提示信息的可读性
+     * 被删除实体的展示字段名，用于校验不通过提示中替代 ID 显示，增强提示信息的可读性
      *
-     * @return 展示字段名，默认展示 "id" 字段值
+     * @return 展示字段名，默认展示 "name" 字段值
      */
-    String displayColumn() default "id";
+    String displayColumn() default "name";
 }

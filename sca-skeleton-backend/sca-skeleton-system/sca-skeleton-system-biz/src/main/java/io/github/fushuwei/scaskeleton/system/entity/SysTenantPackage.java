@@ -16,12 +16,9 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("sys_tenant_package")
-@ReferencedBy(
-    value = {
-        @Reference(table = "sys_tenant", column = "package_id", message = "套餐已被租户使用，无法删除")
-    },
-    displayColumn = "name"
-)
+@ReferencedBy({
+    @Reference(table = "sys_tenant", column = "package_id", message = "套餐已被租户使用，无法删除")
+})
 public class SysTenantPackage extends BaseEntity {
 
     // ==================== 基本信息 ====================

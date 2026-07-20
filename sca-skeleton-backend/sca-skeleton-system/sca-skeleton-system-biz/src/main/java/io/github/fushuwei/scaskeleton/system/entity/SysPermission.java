@@ -16,14 +16,11 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("sys_permission")
-@ReferencedBy(
-    value = {
-        @Reference(table = "sys_role_permission", column = "permission_id", message = "权限已分配给角色，无法删除"),
-        @Reference(table = "sys_tenant_package_permission", column = "permission_id", message = "权限已分配给套餐，无法删除"),
-        @Reference(table = "sys_permission", column = "parent_id", message = "请先删除子权限")
-    },
-    displayColumn = "name"
-)
+@ReferencedBy({
+    @Reference(table = "sys_role_permission", column = "permission_id", message = "权限已分配给角色，无法删除"),
+    @Reference(table = "sys_tenant_package_permission", column = "permission_id", message = "权限已分配给套餐，无法删除"),
+    @Reference(table = "sys_permission", column = "parent_id", message = "请先删除子权限")
+})
 public class SysPermission extends BaseEntity {
 
     // ==================== 基本信息 ====================

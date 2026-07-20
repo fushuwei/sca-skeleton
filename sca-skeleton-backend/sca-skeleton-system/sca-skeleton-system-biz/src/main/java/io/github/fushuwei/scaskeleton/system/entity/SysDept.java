@@ -16,13 +16,10 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("sys_dept")
-@ReferencedBy(
-    value = {
-        @Reference(table = "sys_user_dept", column = "dept_id", message = "部门下存在用户，无法删除"),
-        @Reference(table = "sys_dept", column = "parent_id", message = "请先删除子部门")
-    },
-    displayColumn = "name"
-)
+@ReferencedBy({
+    @Reference(table = "sys_user_dept", column = "dept_id", message = "部门下存在用户，无法删除"),
+    @Reference(table = "sys_dept", column = "parent_id", message = "请先删除子部门")
+})
 public class SysDept extends BaseEntity {
 
     // ==================== 基本信息 ====================

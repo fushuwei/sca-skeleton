@@ -18,15 +18,12 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("sys_tenant")
-@ReferencedBy(
-    value = {
-        @Reference(table = "sys_user", column = "tenant_id", message = "租户下存在用户，无法删除"),
-        @Reference(table = "sys_role", column = "tenant_id", message = "租户下存在角色，无法删除"),
-        @Reference(table = "sys_dept", column = "tenant_id", message = "租户下存在部门，无法删除"),
-        @Reference(table = "sys_post", column = "tenant_id", message = "租户下存在岗位，无法删除")
-    },
-    displayColumn = "name"
-)
+@ReferencedBy({
+    @Reference(table = "sys_user", column = "tenant_id", message = "租户下存在用户，无法删除"),
+    @Reference(table = "sys_role", column = "tenant_id", message = "租户下存在角色，无法删除"),
+    @Reference(table = "sys_dept", column = "tenant_id", message = "租户下存在部门，无法删除"),
+    @Reference(table = "sys_post", column = "tenant_id", message = "租户下存在岗位，无法删除")
+})
 public class SysTenant extends BaseEntity {
 
     // ==================== 基本信息 ====================
