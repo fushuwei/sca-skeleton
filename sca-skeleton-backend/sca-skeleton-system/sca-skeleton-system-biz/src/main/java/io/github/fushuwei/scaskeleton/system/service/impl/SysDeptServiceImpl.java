@@ -17,6 +17,7 @@ import io.github.fushuwei.scaskeleton.system.entity.SysDept;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.mapper.SysDeptMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
+import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
 import io.github.fushuwei.scaskeleton.system.service.SysDeptService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,8 @@ public class SysDeptServiceImpl implements SysDeptService {
     private final SysTenantMapper tenantMapper;
 
     private final DeptConverter deptConverter;
+
+    private final ReferenceChecker referenceChecker;
 
     /**
      * 查询部门列表
@@ -219,15 +222,10 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteDept(String id) {
         // 加载部门实体
-        SysDept dept = loadDeptEntity(id);
+        loadDeptEntity(id);
 
-        // 存在子部门时不允许删除
-        long childCount = deptMapper.selectCount(new LambdaQueryWrapper<SysDept>()
-            .eq(SysDept::getTenantId, dept.getTenantId())
-            .eq(SysDept::getParentId, id));
-        if (childCount > 0) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "请先删除子部门");
-        }
+        // 引用校验
+        referenceChecker.check(SysDept.class, id);
 
         // 删除部门
         deptMapper.deleteById(id);
@@ -244,9 +242,17 @@ public class SysDeptServiceImpl implements SysDeptService {
         if (CollectionUtils.isEmpty(ids)) {
             return;
         }
+
+        // 加载所有部门实体
         for (String id : ids) {
-            deleteDept(id);
+            loadDeptEntity(id);
         }
+
+        // 引用校验
+        referenceChecker.checkBatch(SysDept.class, ids);
+
+        // 批量删除部门
+        deptMapper.deleteBatchIds(ids);
     }
 
     /**

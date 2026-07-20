@@ -17,6 +17,7 @@ import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.mapper.SysPermissionMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
+import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
 import io.github.fushuwei.scaskeleton.system.service.SysPermissionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,8 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     private final PermissionConverter permissionConverter;
 
     private final SysUserRoleMapper userRoleMapper;
+
+    private final ReferenceChecker referenceChecker;
 
     /**
      * 查询全量权限列表
@@ -314,12 +317,8 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         // 加载权限实体
         loadPermissionEntity(id);
 
-        // 存在子权限时不允许删除
-        long childCount = permissionMapper.selectCount(new LambdaQueryWrapper<SysPermission>()
-            .eq(SysPermission::getParentId, id));
-        if (childCount > 0) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "请先删除子权限");
-        }
+        // 引用校验
+        referenceChecker.check(SysPermission.class, id);
 
         // 删除权限
         permissionMapper.deleteById(id);
@@ -336,9 +335,17 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         if (CollectionUtils.isEmpty(ids)) {
             return;
         }
+
+        // 加载所有权限实体
         for (String id : ids) {
-            deletePermission(id);
+            loadPermissionEntity(id);
         }
+
+        // 引用校验
+        referenceChecker.checkBatch(SysPermission.class, ids);
+
+        // 批量删除权限
+        permissionMapper.deleteBatchIds(ids);
     }
 
     /**

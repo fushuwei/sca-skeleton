@@ -14,6 +14,7 @@ import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenantPackage;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantPackageMapper;
+import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
 import io.github.fushuwei.scaskeleton.system.service.SysTenantService;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -34,13 +35,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SysTenantServiceImpl implements SysTenantService {
 
-    private static final String DEFAULT_TENANT_CODE = "default";
-
     private final SysTenantMapper tenantMapper;
 
     private final SysTenantPackageMapper packageMapper;
 
     private final TenantConverter tenantConverter;
+
+    private final ReferenceChecker referenceChecker;
 
     /**
      * 查询租户列表
@@ -201,10 +202,10 @@ public class SysTenantServiceImpl implements SysTenantService {
         }
 
         // 加载租户实体并校验内置保护
-        SysTenant tenant = loadTenantEntity(id);
-        if (DEFAULT_TENANT_CODE.equals(tenant.getCode())) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置租户不允许删除");
-        }
+        loadTenantEntity(id);
+
+        // 引用校验
+        referenceChecker.check(SysTenant.class, id);
 
         // 删除租户
         tenantMapper.deleteById(id);
@@ -225,9 +226,17 @@ public class SysTenantServiceImpl implements SysTenantService {
         if (CollectionUtils.isEmpty(ids)) {
             return;
         }
+
+        // 校验租户是否存在
         for (String id : ids) {
-            deleteTenant(id);
+            loadTenantEntity(id);
         }
+
+        // 引用校验
+        referenceChecker.checkBatch(SysTenant.class, ids);
+
+        // 批量删除租户
+        tenantMapper.deleteBatchIds(ids);
     }
 
     /**

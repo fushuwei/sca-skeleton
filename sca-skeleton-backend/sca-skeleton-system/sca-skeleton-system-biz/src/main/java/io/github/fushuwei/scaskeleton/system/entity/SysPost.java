@@ -2,6 +2,8 @@ package io.github.fushuwei.scaskeleton.system.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.Version;
+import io.github.fushuwei.scaskeleton.mybatis.reference.annotation.Reference;
+import io.github.fushuwei.scaskeleton.mybatis.reference.annotation.ReferencedBy;
 import io.github.fushuwei.scaskeleton.mybatis.base.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,6 +16,9 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("sys_post")
+@ReferencedBy({
+    @Reference(table = "sys_user_post", column = "post_id", message = "岗位下存在用户，无法删除")
+})
 public class SysPost extends BaseEntity {
 
     /** 租户 ID */

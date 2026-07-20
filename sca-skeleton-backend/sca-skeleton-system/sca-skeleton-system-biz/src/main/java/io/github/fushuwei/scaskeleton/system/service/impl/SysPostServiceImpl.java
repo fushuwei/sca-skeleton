@@ -16,6 +16,7 @@ import io.github.fushuwei.scaskeleton.system.entity.SysPost;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.mapper.SysPostMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
+import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
 import io.github.fushuwei.scaskeleton.system.service.SysPostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,8 @@ public class SysPostServiceImpl implements SysPostService {
     private final SysTenantMapper tenantMapper;
 
     private final PostConverter postConverter;
+
+    private final ReferenceChecker referenceChecker;
 
     /**
      * 查询岗位列表
@@ -177,6 +180,9 @@ public class SysPostServiceImpl implements SysPostService {
         // 加载岗位实体
         loadPostEntity(id);
 
+        // 引用校验
+        referenceChecker.check(SysPost.class, id);
+
         // 删除岗位
         postMapper.deleteById(id);
     }
@@ -192,9 +198,17 @@ public class SysPostServiceImpl implements SysPostService {
         if (CollectionUtils.isEmpty(ids)) {
             return;
         }
+
+        // 加载所有岗位实体
         for (String id : ids) {
-            deletePost(id);
+            loadPostEntity(id);
         }
+
+        // 引用校验
+        referenceChecker.checkBatch(SysPost.class, ids);
+
+        // 批量删除岗位
+        postMapper.deleteBatchIds(ids);
     }
 
     /**

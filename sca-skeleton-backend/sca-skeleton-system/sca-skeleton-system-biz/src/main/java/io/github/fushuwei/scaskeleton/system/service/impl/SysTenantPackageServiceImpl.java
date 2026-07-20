@@ -12,12 +12,11 @@ import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPac
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageResponse;
 import io.github.fushuwei.scaskeleton.system.converter.TenantPackageConverter;
-import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenantPackage;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenantPackagePermission;
-import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantPackageMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantPackagePermissionMapper;
+import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
 import io.github.fushuwei.scaskeleton.system.service.SysTenantPackageService;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -43,9 +42,9 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
 
     private final SysTenantPackagePermissionMapper packagePermissionMapper;
 
-    private final SysTenantMapper tenantMapper;
-
     private final TenantPackageConverter packageConverter;
+
+    private final ReferenceChecker referenceChecker;
 
     /**
      * 查询套餐列表
@@ -219,17 +218,14 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
         // 加载套餐实体
         loadPackageEntity(id);
 
-        // 校验套餐是否已被租户使用，存在关联租户则禁止删除
-        long tenantCount = tenantMapper.selectCount(new LambdaQueryWrapper<SysTenant>().eq(SysTenant::getPackageId, id));
-        if (tenantCount > 0) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "套餐已被租户使用，无法删除");
-        }
-
-        // 删除套餐
-        packageMapper.deleteById(id);
+        // 引用校验
+        referenceChecker.check(SysTenantPackage.class, id);
 
         // 删除关联关系
         deletePackagePermissions(id);
+
+        // 删除套餐
+        packageMapper.deleteById(id);
     }
 
     /**
@@ -247,9 +243,22 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
         if (CollectionUtils.isEmpty(ids)) {
             return;
         }
+
+        // 校验套餐存在
         for (String id : ids) {
-            deletePackage(id);
+            loadPackageEntity(id);
         }
+
+        // 引用校验
+        referenceChecker.checkBatch(SysTenantPackage.class, ids);
+
+        // 删除关联关系
+        for (String id : ids) {
+            deletePackagePermissions(id);
+        }
+
+        // 批量删除套餐
+        packageMapper.deleteBatchIds(ids);
     }
 
     /**

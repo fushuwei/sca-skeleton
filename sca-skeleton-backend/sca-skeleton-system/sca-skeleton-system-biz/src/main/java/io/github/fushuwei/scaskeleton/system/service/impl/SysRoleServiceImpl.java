@@ -21,6 +21,7 @@ import io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRolePermissionMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
+import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
 import io.github.fushuwei.scaskeleton.system.service.SysRoleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +53,8 @@ public class SysRoleServiceImpl implements SysRoleService {
     private final SysUserRoleMapper userRoleMapper;
 
     private final RoleConverter roleConverter;
+
+    private final ReferenceChecker referenceChecker;
 
     /**
      * 查询角色列表
@@ -208,11 +211,14 @@ public class SysRoleServiceImpl implements SysRoleService {
         // 加载可操作角色实体
         SysRole role = loadOperableRoleEntity(id);
 
-        // 删除角色
-        roleMapper.deleteById(role.getId());
+        // 引用校验
+        referenceChecker.check(SysRole.class, id);
 
         // 删除关联关系
         deleteRolePermissions(role.getId());
+
+        // 删除角色
+        roleMapper.deleteById(role.getId());
     }
 
     /**
@@ -226,9 +232,22 @@ public class SysRoleServiceImpl implements SysRoleService {
         if (CollectionUtils.isEmpty(ids)) {
             return;
         }
+
+        // 加载所有角色实体
         for (String id : ids) {
-            deleteRole(id);
+            loadOperableRoleEntity(id);
         }
+
+        // 引用校验
+        referenceChecker.checkBatch(SysRole.class, ids);
+
+        // 删除关联关系
+        for (String id : ids) {
+            deleteRolePermissions(id);
+        }
+
+        // 批量删除角色
+        roleMapper.deleteBatchIds(ids);
     }
 
     /**

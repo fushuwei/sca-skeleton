@@ -9,10 +9,13 @@ import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerIntercept
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.mybatis.handler.MybatisPlusMetaObjectHandler;
 import io.github.fushuwei.scaskeleton.mybatis.incrementer.UuidV7IdentifierGenerator;
+import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
+import io.github.fushuwei.scaskeleton.mybatis.reference.mapper.ReferenceCheckMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.mybatis.spring.annotation.MapperScan;
 
 /**
  * MyBatis-Plus 自动配置类
@@ -20,6 +23,7 @@ import org.springframework.context.annotation.Bean;
  * @author Fu Wei
  */
 @AutoConfiguration
+@MapperScan(basePackageClasses = {ReferenceCheckMapper.class})
 public class MybatisPlusAutoConfiguration {
 
     /**
@@ -64,5 +68,19 @@ public class MybatisPlusAutoConfiguration {
     @ConditionalOnMissingBean
     public MybatisPlusMetaObjectHandler mybatisPlusMetaObjectHandler(@Autowired(required = false) CurrentUserProvider currentUserProvider) {
         return new MybatisPlusMetaObjectHandler(currentUserProvider);
+    }
+
+    /**
+     * 引用检查器
+     * <p>
+     * 统一封装删除前的引用校验逻辑，所有微服务中的删除操作均可直接注入使用
+     *
+     * @param referenceCheckMapper 引用检查 Mapper
+     * @return ReferenceChecker 实例
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public ReferenceChecker referenceChecker(ReferenceCheckMapper referenceCheckMapper) {
+        return new ReferenceChecker(referenceCheckMapper);
     }
 }
