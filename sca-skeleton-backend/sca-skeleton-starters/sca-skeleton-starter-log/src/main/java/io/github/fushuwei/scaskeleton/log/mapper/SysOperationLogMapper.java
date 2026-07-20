@@ -43,4 +43,11 @@ public interface SysOperationLogMapper extends BaseMapper<SysOperationLog> {
      * @return 操作日志对象
      */
     SysOperationLog selectLogById(@Param("id") String id);
+
+    /**
+     * 清空全部操作日志
+     *
+     * @return 受影响行数
+     */
+    int clearAllLogs();
 }

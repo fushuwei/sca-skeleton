@@ -43,4 +43,11 @@ public interface SysLoginLogMapper extends BaseMapper<SysLoginLog> {
      * @return 登录日志对象
      */
     SysLoginLog selectLogById(@Param("id") String id);
+
+    /**
+     * 清空全部登录日志
+     *
+     * @return 受影响行数
+     */
+    int clearAllLogs();
 }

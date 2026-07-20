@@ -51,4 +51,9 @@
         WHERE l.id = #{id}
     </select>
 
+    <!-- 清空全部登录日志 -->
+    <delete id="clearAllLogs">
+        DELETE FROM sys_login_log WHERE 1=1
+    </delete>
+
 </mapper>

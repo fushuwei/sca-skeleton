@@ -100,6 +100,6 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
         if (!SecurityUtils.isSuperAdmin()) {
             throw new BusinessException(ResultCode.FORBIDDEN, "仅超级管理员可清空登录日志");
         }
-        loginLogMapper.delete(null);
+        loginLogMapper.clearAllLogs();
     }
 }

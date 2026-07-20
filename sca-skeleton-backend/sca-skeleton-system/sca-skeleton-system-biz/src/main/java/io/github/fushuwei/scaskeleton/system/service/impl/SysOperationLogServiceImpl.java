@@ -100,6 +100,6 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
         if (!SecurityUtils.isSuperAdmin()) {
             throw new BusinessException(ResultCode.FORBIDDEN, "仅超级管理员可清空操作日志");
         }
-        operationLogMapper.delete(null);
+        operationLogMapper.clearAllLogs();
     }
 }
