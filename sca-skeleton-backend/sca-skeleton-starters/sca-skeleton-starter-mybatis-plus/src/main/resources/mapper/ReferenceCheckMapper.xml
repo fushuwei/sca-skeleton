@@ -5,7 +5,7 @@
 
     <!-- 单个删除校验 -->
     <select id="checkReferences"
-            resultType="io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceCheckResult">
+            resultType="io.github.fushuwei.scaskeleton.mybatis.reference.dto.ReferenceCheckResult">
         <foreach collection="references" item="ref" separator="UNION ALL">
             SELECT
                 #{ref.message} AS message,
@@ -21,7 +21,7 @@
     </select>
 
     <!-- 批量删除校验 -->
-    <select id="checkReferencesBatch" resultType="io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceCheckBatchResult">
+    <select id="checkReferencesBatch" resultType="io.github.fushuwei.scaskeleton.mybatis.reference.dto.ReferenceCheckBatchResult">
         <foreach collection="references" item="ref" separator="UNION ALL">
             SELECT
                 t.id AS id,

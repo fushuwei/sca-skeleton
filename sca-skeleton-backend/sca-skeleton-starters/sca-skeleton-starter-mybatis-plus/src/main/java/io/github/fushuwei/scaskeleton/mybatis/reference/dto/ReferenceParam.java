@@ -1,4 +1,4 @@
-package io.github.fushuwei.scaskeleton.mybatis.reference;
+package io.github.fushuwei.scaskeleton.mybatis.reference.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

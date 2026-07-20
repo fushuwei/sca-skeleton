@@ -1,8 +1,8 @@
 package io.github.fushuwei.scaskeleton.mybatis.reference.mapper;
 
-import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceCheckBatchResult;
-import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceCheckResult;
-import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceParam;
+import io.github.fushuwei.scaskeleton.mybatis.reference.dto.ReferenceCheckBatchResult;
+import io.github.fushuwei.scaskeleton.mybatis.reference.dto.ReferenceCheckResult;
+import io.github.fushuwei.scaskeleton.mybatis.reference.dto.ReferenceParam;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
