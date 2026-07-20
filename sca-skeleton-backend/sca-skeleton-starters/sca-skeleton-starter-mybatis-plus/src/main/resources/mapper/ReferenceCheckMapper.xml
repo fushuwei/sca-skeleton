@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.fushuwei.scaskeleton.mybatis.reference.mapper.ReferenceCheckMapper">
 
-    <!-- 单个删除：UNION ALL 拼接 N 个 EXISTS 子查询，一次 DB 往返完成所有检查 -->
+    <!-- 单个删除校验 -->
     <select id="checkReferences"
             resultType="io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceCheckResult">
         <foreach collection="references" item="ref" separator="UNION ALL">
@@ -20,22 +20,20 @@
         </foreach>
     </select>
 
-    <!-- 批量删除：嵌套 UNION ALL，M 个 ID × N 个引用表，一次 DB 往返完成所有检查 -->
-    <select id="checkReferencesBatch"
-            resultType="io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceCheckBatchResult">
-        <foreach collection="ids" item="id" separator="UNION ALL">
-            <foreach collection="references" item="ref" separator="UNION ALL">
-                SELECT
-                    #{id} AS entityId,
-                    #{ref.message} AS message,
-                    EXISTS(
-                        SELECT 1 FROM ${ref.table}
-                        WHERE ${ref.column} = #{id}
-                        <if test="ref.logicalDelete">
-                          AND is_deleted = 0
-                        </if>
-                    ) AS hasReference
-                FROM dual
+    <!-- 批量删除校验 -->
+    <select id="checkReferencesBatch" resultType="io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceCheckBatchResult">
+        <foreach collection="references" item="ref" separator="UNION ALL">
+            SELECT
+                t.id AS id,
+                t.${displayColumn} AS displayName,
+                #{ref.message} AS message,
+                EXISTS(
+                    SELECT 1 FROM ${ref.table} WHERE ${ref.column} = t.id <if test="ref.logicalDelete"> AND is_deleted = 0</if>
+                ) AS hasReference
+            FROM ${entityTableName} t
+            WHERE t.id IN
+            <foreach collection="ids" item="id" open="(" separator="," close=")">
+                #{id}
             </foreach>
         </foreach>
     </select>

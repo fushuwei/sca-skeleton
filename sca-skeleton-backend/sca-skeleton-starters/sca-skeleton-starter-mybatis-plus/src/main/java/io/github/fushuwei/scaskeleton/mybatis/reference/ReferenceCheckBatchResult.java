@@ -10,8 +10,11 @@ import lombok.Data;
 @Data
 public class ReferenceCheckBatchResult {
 
-    /** 被检查的实体 ID */
-    private String entityId;
+    /** 被删除实体的 ID */
+    private String id;
+
+    /** 被删除实体的展示字段值 */
+    private String displayName;
 
     /** 校验失败时返回给用户的提示信息 */
     private String message;

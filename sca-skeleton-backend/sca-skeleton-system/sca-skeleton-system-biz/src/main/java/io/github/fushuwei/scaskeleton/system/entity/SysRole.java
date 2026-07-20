@@ -16,9 +16,12 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("sys_role")
-@ReferencedBy({
-    @Reference(table = "sys_user_role", column = "role_id", message = "角色已分配给用户，无法删除")
-})
+@ReferencedBy(
+    value = {
+        @Reference(table = "sys_user_role", column = "role_id", message = "角色已分配给用户，无法删除")
+    },
+    displayColumn = "name"
+)
 public class SysRole extends BaseEntity {
 
     // ==================== 基本信息 ====================

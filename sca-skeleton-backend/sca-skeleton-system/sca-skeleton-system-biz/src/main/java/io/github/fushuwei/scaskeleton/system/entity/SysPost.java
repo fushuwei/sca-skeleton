@@ -16,9 +16,12 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("sys_post")
-@ReferencedBy({
-    @Reference(table = "sys_user_post", column = "post_id", message = "岗位下存在用户，无法删除")
-})
+@ReferencedBy(
+    value = {
+        @Reference(table = "sys_user_post", column = "post_id", message = "岗位下存在用户，无法删除")
+    },
+    displayColumn = "name"
+)
 public class SysPost extends BaseEntity {
 
     /** 租户 ID */
