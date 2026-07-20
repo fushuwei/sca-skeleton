@@ -4,7 +4,8 @@
  * 布局与 auth 登录页的 Toast Tips 完全一致：
  * - 无圆角矩形，固定在浏览器顶部居中
  * - 左侧图标 + 文字 + 右侧关闭按钮
- * - 5 秒后自动消失，支持手动关闭
+ * - 默认 5 秒后自动消失，支持手动关闭
+ * - 鼠标悬停时暂停自动关闭计时，移出后继续计时（剩余时间）
  *
  * 支持 4 种类型：negative（红）、positive（绿）、warning（琥珀）、info（蓝）
  */
@@ -110,12 +111,15 @@ const FADE_IN_KEYFRAMES = `
 export type NotificationType = "negative" | "positive" | "warning" | "info";
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
+// 自动关闭计时上下文：记录剩余时间与开始时间戳，支持鼠标悬停暂停 / 移出继续
+let toastTimerContext: { remaining: number; startedAt: number } | null = null;
 
 function dismissToast(): void {
   if (toastTimer) {
     clearTimeout(toastTimer);
     toastTimer = null;
   }
+  toastTimerContext = null;
   const existing = document.querySelector(".sca-toast");
   if (existing) {
     (existing as HTMLElement).style.opacity = "0";
@@ -123,20 +127,36 @@ function dismissToast(): void {
   }
 }
 
-/** 各类型默认自动关闭时长（毫秒）：成功类提示较短，警告/错误类提示需更长时间供用户阅读 */
-const DEFAULT_DURATION: Record<NotificationType, number> = {
-  positive: 5000,
-  info: 5000,
-  warning: 10000,
-  negative: 10000
-};
+/** 默认自动关闭时长（毫秒），所有类型统一 5 秒 */
+const DEFAULT_DURATION = 5000;
+
+/**
+ * 启动或继续自动关闭计时
+ * <p>
+ * 用 remaining + startedAt 记录剩余时间，支持鼠标悬停时暂停（clearTimeout 并保存剩余时间）、
+ * 移出时继续（按剩余时间重启 setTimeout）。
+ */
+function startToastTimer(): void {
+  if (!toastTimerContext) return;
+  toastTimerContext.startedAt = Date.now();
+  toastTimer = setTimeout(() => dismissToast(), toastTimerContext.remaining);
+}
+
+/** 暂停自动关闭计时，保存剩余时间供恢复使用 */
+function pauseToastTimer(): void {
+  if (!toastTimerContext || !toastTimer) return;
+  clearTimeout(toastTimer);
+  toastTimer = null;
+  const elapsed = Date.now() - toastTimerContext.startedAt;
+  toastTimerContext.remaining = Math.max(0, toastTimerContext.remaining - elapsed);
+}
 
 /**
  * 在浏览器顶部居中显示 Toast 提示，与 auth 登录页的 Toast Tips 布局完全一致。
  *
  * @param message 提示文本
  * @param type 通知类型：negative（红）、positive（绿）、warning（琥珀）、info（蓝），默认 negative
- * @param duration 自动关闭时间（毫秒），不传则按类型取默认值：positive/info=5000ms，warning/negative=10000ms
+ * @param duration 自动关闭时间（毫秒），不传默认 5000ms
  */
 export function showToast(message: string, type: NotificationType = "negative", duration?: number): void {
   dismissToast();
@@ -150,7 +170,7 @@ export function showToast(message: string, type: NotificationType = "negative", 
   }
 
   const colors = TYPE_COLORS[type] || TYPE_COLORS.negative;
-  const autoCloseMs = duration ?? DEFAULT_DURATION[type];
+  const autoCloseMs = duration ?? DEFAULT_DURATION;
 
   // 容器
   const toast = document.createElement("div");
@@ -190,6 +210,11 @@ export function showToast(message: string, type: NotificationType = "negative", 
   // 显示动画
   toast.style.animation = "scaToastFadeIn 0.25s ease forwards";
 
+  // 鼠标悬停暂停 / 移出继续计时
+  toast.addEventListener("mouseenter", pauseToastTimer);
+  toast.addEventListener("mouseleave", startToastTimer);
+
   // 自动关闭
-  toastTimer = setTimeout(() => dismissToast(), autoCloseMs);
+  toastTimerContext = { remaining: autoCloseMs, startedAt: 0 };
+  startToastTimer();
 }
