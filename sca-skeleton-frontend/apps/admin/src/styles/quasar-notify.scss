@@ -114,6 +114,7 @@ body .q-notifications__list.q-notifications__list--top {
   word-break: break-word;
   overflow-y: auto;
   max-height: calc(300px - 24px); /* toast max-height 300px - 上下 padding 12px×2 */
+  padding-right: 8px; /* 为右侧 8px 宽滚动条预留空间，避免滚动条遮挡文字 */
   /*
    * 滚动条样式对齐左侧菜单导航 q-scroll-area：细条、无 track 背景、悬停才显现。
    * 原生 overflow-y: auto 默认带 track（灰白背景长条），与 q-scroll-area 视觉不一致。
