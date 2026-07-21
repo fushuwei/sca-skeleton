@@ -83,10 +83,10 @@ const notifyTestCases: NotifyTestCase[] = [
     trigger: () => showToast(LONG_MSG, "positive")
   },
   {
-    label: "自定义时长 3 秒",
+    label: "自定义时长 10 秒",
     color: "deep-purple-7",
     hint: "info 类型，duration=3000ms，验证自定义时长",
-    trigger: () => showToast("这条通知 3 秒后自动关闭", "info", 3000)
+    trigger: () => showToast("这条通知 10 秒后自动关闭", "info", 10000)
   },
   {
     label: "连续弹出替换测试",
