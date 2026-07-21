@@ -91,11 +91,12 @@ const notifyTestCases: NotifyTestCase[] = [
   {
     label: "连续弹出替换测试",
     color: "grey-8",
-    hint: "连续触发 3 次，验证「前一个消失、展示最新」不堆叠",
+    hint: "连续触发 4 次，验证「前一个消失、展示最新」不堆叠",
     trigger: () => {
       showToast("第一条通知", "info");
-      setTimeout(() => showToast("第二条通知", "warning"), 300);
-      setTimeout(() => showToast("第三条通知", "negative"), 600);
+      setTimeout(() => showToast("第二条通知", "positive"), 1000);
+      setTimeout(() => showToast("第三条通知", "warning"), 2000);
+      setTimeout(() => showToast("第四条通知", "negative"), 3000);
     }
   }
 ];
