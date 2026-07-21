@@ -293,6 +293,9 @@ async function loadTableData(
   // （搜索、排序、翻页、改变每页条数等）把非法值提交到后端
   if (startTimePickerRef.value?.hasError || endTimePickerRef.value?.hasError) {
     showToast(t("common.searchFormInvalid"), "warning");
+    // 必须重置 tableLoading，否则 handleClearAll/handleBatchDelete 中
+    // 预先设置的 tableLoading=true 会一直残留，导致表头 loading 条永久卡住
+    tableLoading.value = false;
     return;
   }
 
