@@ -37,7 +37,10 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 用户管理 Service 实现类
@@ -261,9 +264,15 @@ public class SysUserServiceImpl implements SysUserService {
         if (CollectionUtils.isEmpty(ids)) {
             return;
         }
-        for (String id : ids) {
-            deleteUser(id);
-        }
+
+        // 批量加载用户实体并校验存在、租户隔离与内置用户
+        List<SysUser> users = loadOperableUserEntities(ids);
+
+        // 批量删除关联关系
+        deleteUserRelations(users);
+
+        // 批量删除用户
+        userMapper.deleteBatchIds(ids);
     }
 
     /**
@@ -381,6 +390,28 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /**
+     * 批量删除多个用户与角色、部门和岗位的关联关系
+     * <p>
+     * 按 tenantId 分组处理，保证关联表 tenantId 与主表一致（符合多租户硬约束：关联表 tenantId 必须从主实体派生）
+     *
+     * @param users 用户实体列表
+     */
+    private void deleteUserRelations(List<SysUser> users) {
+        if (CollectionUtils.isEmpty(users)) {
+            return;
+        }
+        // 按 tenantId 分组，收集每个租户下的用户 ID 列表
+        Map<String, List<String>> tenantToUserIds = users.stream()
+            .collect(Collectors.groupingBy(SysUser::getTenantId,
+                Collectors.mapping(SysUser::getId, Collectors.toList())));
+        tenantToUserIds.forEach((tenantId, userIds) -> {
+            userRoleMapper.physicalDeleteByUsers(tenantId, userIds);
+            userDeptMapper.physicalDeleteByUsers(tenantId, userIds);
+            userPostMapper.physicalDeleteByUsers(tenantId, userIds);
+        });
+    }
+
+    /**
      * 解析创建时的目标租户 ID
      *
      * @param requestTenantId 创建时传入的目标租户 ID（仅当超管创建时才会使用该参数）
@@ -420,7 +451,7 @@ public class SysUserServiceImpl implements SysUserService {
      * <p>
      * 仅超级管理员可修改超级管理员标志，非超管传入的 isSuperadmin 值会被忽略，保持用户原有的 isSuperadmin 值不变（避免普通用户通过编辑接口提权其他用户）
      *
-     * @param requestIsSuperadmin 请求传入的 isSuperadmin 值
+     * @param requestIsSuperadmin  请求传入的 isSuperadmin 值
      * @param originalIsSuperadmin 用户原有的 isSuperadmin 值
      * @return 实际写入用的 isSuperadmin 值
      */
@@ -461,5 +492,35 @@ public class SysUserServiceImpl implements SysUserService {
             throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许操作");
         }
         return user;
+    }
+
+    /**
+     * 根据 ID 列表批量加载用户实体并校验存在性、租户隔离与内置用户
+     *
+     * @param ids 用户 ID 列表
+     * @return 用户实体列表
+     */
+    private List<SysUser> loadOperableUserEntities(List<String> ids) {
+        List<String> distinctIds = ids.stream().distinct().toList();
+        List<SysUser> entities = userMapper.selectBatchIds(distinctIds);
+        if (entities.size() != distinctIds.size()) {
+            Set<String> foundIds = entities.stream().map(SysUser::getId).collect(Collectors.toSet());
+            List<String> missing = distinctIds.stream().filter(id -> !foundIds.contains(id)).toList();
+            throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在，ID: " + String.join(", ", missing));
+        }
+        if (!SecurityUtils.isSuperAdmin()) {
+            String currentTenantId = SecurityUtils.getTenantId();
+            for (SysUser entity : entities) {
+                if (!Objects.equals(entity.getTenantId(), currentTenantId)) {
+                    throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
+                }
+            }
+        }
+        for (SysUser entity : entities) {
+            if (entity.getIsBuiltin() != null && entity.getIsBuiltin() == 1) {
+                throw new BusinessException(ResultCode.FORBIDDEN, "系统内置用户不允许操作");
+            }
+        }
+        return entities;
     }
 }

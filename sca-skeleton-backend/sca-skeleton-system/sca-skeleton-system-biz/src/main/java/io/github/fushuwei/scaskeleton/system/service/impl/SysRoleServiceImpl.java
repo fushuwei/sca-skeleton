@@ -33,6 +33,8 @@ import org.springframework.util.StringUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 角色管理 Service 实现类
@@ -233,18 +235,14 @@ public class SysRoleServiceImpl implements SysRoleService {
             return;
         }
 
-        // 加载所有角色实体
-        for (String id : ids) {
-            loadOperableRoleEntity(id);
-        }
+        // 批量加载角色实体并校验存在、租户隔离与内置角色
+        loadOperableRoleEntities(ids);
 
         // 引用校验
         referenceChecker.checkBatch(SysRole.class, ids);
 
-        // 删除关联关系
-        for (String id : ids) {
-            deleteRolePermissions(id);
-        }
+        // 批量删除关联关系
+        deleteRolePermissions(ids);
 
         // 批量删除角色
         roleMapper.deleteBatchIds(ids);
@@ -314,8 +312,20 @@ public class SysRoleServiceImpl implements SysRoleService {
      * @param roleId 角色 ID
      */
     private void deleteRolePermissions(String roleId) {
+        deleteRolePermissions(Collections.singletonList(roleId));
+    }
+
+    /**
+     * 批量删除角色与权限的关联关系
+     *
+     * @param roleIds 角色 ID 列表
+     */
+    private void deleteRolePermissions(List<String> roleIds) {
+        if (CollectionUtils.isEmpty(roleIds)) {
+            return;
+        }
         rolePermissionMapper.delete(new LambdaQueryWrapper<SysRolePermission>()
-            .eq(SysRolePermission::getRoleId, roleId));
+            .in(SysRolePermission::getRoleId, roleIds));
     }
 
     /**
@@ -368,5 +378,35 @@ public class SysRoleServiceImpl implements SysRoleService {
             throw new BusinessException(ResultCode.FORBIDDEN, "系统内置角色不允许操作");
         }
         return role;
+    }
+
+    /**
+     * 根据 ID 列表批量加载角色实体并校验存在性、租户隔离与内置角色
+     *
+     * @param ids 角色 ID 列表
+     * @return 角色实体列表
+     */
+    private List<SysRole> loadOperableRoleEntities(List<String> ids) {
+        List<String> distinctIds = ids.stream().distinct().toList();
+        List<SysRole> entities = roleMapper.selectBatchIds(distinctIds);
+        if (entities.size() != distinctIds.size()) {
+            Set<String> foundIds = entities.stream().map(SysRole::getId).collect(Collectors.toSet());
+            List<String> missing = distinctIds.stream().filter(id -> !foundIds.contains(id)).toList();
+            throw new BusinessException(ResultCode.NOT_FOUND, "角色不存在，ID: " + String.join(", ", missing));
+        }
+        if (!SecurityUtils.isSuperAdmin()) {
+            String currentTenantId = SecurityUtils.getTenantId();
+            for (SysRole entity : entities) {
+                if (!Objects.equals(entity.getTenantId(), currentTenantId)) {
+                    throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
+                }
+            }
+        }
+        for (SysRole entity : entities) {
+            if (entity.getIsBuiltin() != null && entity.getIsBuiltin() == 1) {
+                throw new BusinessException(ResultCode.FORBIDDEN, "系统内置角色不允许操作");
+            }
+        }
+        return entities;
     }
 }

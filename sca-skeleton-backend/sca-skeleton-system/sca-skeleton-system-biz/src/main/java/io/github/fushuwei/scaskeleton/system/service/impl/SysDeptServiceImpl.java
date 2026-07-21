@@ -28,6 +28,8 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 部门管理 Service 实现类
@@ -243,10 +245,8 @@ public class SysDeptServiceImpl implements SysDeptService {
             return;
         }
 
-        // 加载所有部门实体
-        for (String id : ids) {
-            loadDeptEntity(id);
-        }
+        // 批量加载部门实体并校验存在与租户隔离
+        loadDeptEntities(ids);
 
         // 引用校验
         referenceChecker.checkBatch(SysDept.class, ids);
@@ -311,5 +311,30 @@ public class SysDeptServiceImpl implements SysDeptService {
             throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
         }
         return dept;
+    }
+
+    /**
+     * 根据 ID 列表批量加载部门实体并校验存在性与租户隔离
+     *
+     * @param ids 部门 ID 列表
+     * @return 部门实体列表
+     */
+    private List<SysDept> loadDeptEntities(List<String> ids) {
+        List<String> distinctIds = ids.stream().distinct().toList();
+        List<SysDept> entities = deptMapper.selectBatchIds(distinctIds);
+        if (entities.size() != distinctIds.size()) {
+            Set<String> foundIds = entities.stream().map(SysDept::getId).collect(Collectors.toSet());
+            List<String> missing = distinctIds.stream().filter(id -> !foundIds.contains(id)).toList();
+            throw new BusinessException(ResultCode.NOT_FOUND, "部门不存在，ID: " + String.join(", ", missing));
+        }
+        if (!SecurityUtils.isSuperAdmin()) {
+            String currentTenantId = SecurityUtils.getTenantId();
+            for (SysDept entity : entities) {
+                if (!Objects.equals(entity.getTenantId(), currentTenantId)) {
+                    throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
+                }
+            }
+        }
+        return entities;
     }
 }

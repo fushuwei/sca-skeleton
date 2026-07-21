@@ -27,6 +27,8 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 租户套餐管理 Service 实现类
@@ -244,18 +246,14 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
             return;
         }
 
-        // 校验套餐存在
-        for (String id : ids) {
-            loadPackageEntity(id);
-        }
+        // 批量加载套餐实体并校验存在
+        loadPackageEntities(ids);
 
         // 引用校验
         referenceChecker.checkBatch(SysTenantPackage.class, ids);
 
-        // 删除关联关系
-        for (String id : ids) {
-            deletePackagePermissions(id);
-        }
+        // 批量删除关联关系
+        deletePackagePermissions(ids);
 
         // 批量删除套餐
         packageMapper.deleteBatchIds(ids);
@@ -329,8 +327,20 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
      * @param packageId 套餐 ID
      */
     private void deletePackagePermissions(String packageId) {
+        deletePackagePermissions(Collections.singletonList(packageId));
+    }
+
+    /**
+     * 批量删除套餐与权限的关联关系
+     *
+     * @param packageIds 套餐 ID 列表
+     */
+    private void deletePackagePermissions(List<String> packageIds) {
+        if (CollectionUtils.isEmpty(packageIds)) {
+            return;
+        }
         packagePermissionMapper.delete(new LambdaQueryWrapper<SysTenantPackagePermission>()
-            .eq(SysTenantPackagePermission::getPackageId, packageId));
+            .in(SysTenantPackagePermission::getPackageId, packageIds));
     }
 
     /**
@@ -345,5 +355,22 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
             throw new BusinessException(ResultCode.NOT_FOUND, "套餐不存在");
         }
         return pkg;
+    }
+
+    /**
+     * 根据 ID 列表批量加载套餐实体并校验存在性
+     *
+     * @param ids 套餐 ID 列表
+     * @return 套餐实体列表
+     */
+    private List<SysTenantPackage> loadPackageEntities(List<String> ids) {
+        List<String> distinctIds = ids.stream().distinct().toList();
+        List<SysTenantPackage> entities = packageMapper.selectBatchIds(distinctIds);
+        if (entities.size() != distinctIds.size()) {
+            Set<String> foundIds = entities.stream().map(SysTenantPackage::getId).collect(Collectors.toSet());
+            List<String> missing = distinctIds.stream().filter(id -> !foundIds.contains(id)).toList();
+            throw new BusinessException(ResultCode.NOT_FOUND, "套餐不存在，ID: " + String.join(", ", missing));
+        }
+        return entities;
     }
 }

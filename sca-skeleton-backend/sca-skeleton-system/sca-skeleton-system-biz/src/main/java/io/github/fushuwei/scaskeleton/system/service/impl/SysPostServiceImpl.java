@@ -27,6 +27,8 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 岗位管理 Service 实现类
@@ -199,10 +201,8 @@ public class SysPostServiceImpl implements SysPostService {
             return;
         }
 
-        // 加载所有岗位实体
-        for (String id : ids) {
-            loadPostEntity(id);
-        }
+        // 批量加载岗位实体并校验存在与租户隔离
+        loadPostEntities(ids);
 
         // 引用校验
         referenceChecker.checkBatch(SysPost.class, ids);
@@ -247,5 +247,30 @@ public class SysPostServiceImpl implements SysPostService {
             throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
         }
         return post;
+    }
+
+    /**
+     * 根据 ID 列表批量加载岗位实体并校验存在性与租户隔离
+     *
+     * @param ids 岗位 ID 列表
+     * @return 岗位实体列表
+     */
+    private List<SysPost> loadPostEntities(List<String> ids) {
+        List<String> distinctIds = ids.stream().distinct().toList();
+        List<SysPost> entities = postMapper.selectBatchIds(distinctIds);
+        if (entities.size() != distinctIds.size()) {
+            Set<String> foundIds = entities.stream().map(SysPost::getId).collect(Collectors.toSet());
+            List<String> missing = distinctIds.stream().filter(id -> !foundIds.contains(id)).toList();
+            throw new BusinessException(ResultCode.NOT_FOUND, "岗位不存在，ID: " + String.join(", ", missing));
+        }
+        if (!SecurityUtils.isSuperAdmin()) {
+            String currentTenantId = SecurityUtils.getTenantId();
+            for (SysPost entity : entities) {
+                if (!Objects.equals(entity.getTenantId(), currentTenantId)) {
+                    throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
+                }
+            }
+        }
+        return entities;
     }
 }

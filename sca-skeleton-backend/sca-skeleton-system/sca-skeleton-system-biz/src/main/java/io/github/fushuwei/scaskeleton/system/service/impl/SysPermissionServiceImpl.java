@@ -28,6 +28,8 @@ import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 权限管理 Service 实现类
@@ -336,10 +338,8 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             return;
         }
 
-        // 加载所有权限实体
-        for (String id : ids) {
-            loadPermissionEntity(id);
-        }
+        // 批量加载权限实体并校验存在
+        loadPermissionEntities(ids);
 
         // 引用校验
         referenceChecker.checkBatch(SysPermission.class, ids);
@@ -380,5 +380,22 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             throw new BusinessException(ResultCode.NOT_FOUND, "权限不存在");
         }
         return permission;
+    }
+
+    /**
+     * 根据 ID 列表批量加载权限实体并校验存在性
+     *
+     * @param ids 权限 ID 列表
+     * @return 权限实体列表
+     */
+    private List<SysPermission> loadPermissionEntities(List<String> ids) {
+        List<String> distinctIds = ids.stream().distinct().toList();
+        List<SysPermission> entities = permissionMapper.selectBatchIds(distinctIds);
+        if (entities.size() != distinctIds.size()) {
+            Set<String> foundIds = entities.stream().map(SysPermission::getId).collect(Collectors.toSet());
+            List<String> missing = distinctIds.stream().filter(id -> !foundIds.contains(id)).toList();
+            throw new BusinessException(ResultCode.NOT_FOUND, "权限不存在，ID: " + String.join(", ", missing));
+        }
+        return entities;
     }
 }

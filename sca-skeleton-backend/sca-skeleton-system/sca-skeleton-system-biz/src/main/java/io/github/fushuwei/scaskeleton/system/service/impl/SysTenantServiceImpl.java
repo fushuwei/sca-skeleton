@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 租户管理 Service 实现类
@@ -227,10 +229,8 @@ public class SysTenantServiceImpl implements SysTenantService {
             return;
         }
 
-        // 校验租户是否存在
-        for (String id : ids) {
-            loadTenantEntity(id);
-        }
+        // 批量加载租户实体并校验存在
+        loadTenantEntities(ids);
 
         // 引用校验
         referenceChecker.checkBatch(SysTenant.class, ids);
@@ -266,5 +266,22 @@ public class SysTenantServiceImpl implements SysTenantService {
             throw new BusinessException(ResultCode.NOT_FOUND, "租户不存在");
         }
         return tenant;
+    }
+
+    /**
+     * 根据 ID 列表批量加载租户实体并校验存在性
+     *
+     * @param ids 租户 ID 列表
+     * @return 租户实体列表
+     */
+    private List<SysTenant> loadTenantEntities(List<String> ids) {
+        List<String> distinctIds = ids.stream().distinct().toList();
+        List<SysTenant> entities = tenantMapper.selectBatchIds(distinctIds);
+        if (entities.size() != distinctIds.size()) {
+            Set<String> foundIds = entities.stream().map(SysTenant::getId).collect(Collectors.toSet());
+            List<String> missing = distinctIds.stream().filter(id -> !foundIds.contains(id)).toList();
+            throw new BusinessException(ResultCode.NOT_FOUND, "租户不存在，ID: " + String.join(", ", missing));
+        }
+        return entities;
     }
 }
