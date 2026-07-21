@@ -394,15 +394,12 @@ public class SysRoleServiceImpl implements SysRoleService {
             List<String> missing = distinctIds.stream().filter(id -> !foundIds.contains(id)).toList();
             throw new BusinessException(ResultCode.NOT_FOUND, "角色不存在，ID: " + String.join(", ", missing));
         }
-        if (!SecurityUtils.isSuperAdmin()) {
-            String currentTenantId = SecurityUtils.getTenantId();
-            for (SysRole entity : entities) {
-                if (!Objects.equals(entity.getTenantId(), currentTenantId)) {
-                    throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
-                }
-            }
-        }
+        boolean isSuperAdmin = SecurityUtils.isSuperAdmin();
+        String currentTenantId = isSuperAdmin ? null : SecurityUtils.getTenantId();
         for (SysRole entity : entities) {
+            if (!isSuperAdmin && !Objects.equals(entity.getTenantId(), currentTenantId)) {
+                throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
+            }
             if (entity.getIsBuiltin() != null && entity.getIsBuiltin() == 1) {
                 throw new BusinessException(ResultCode.FORBIDDEN, "系统内置角色不允许操作");
             }
