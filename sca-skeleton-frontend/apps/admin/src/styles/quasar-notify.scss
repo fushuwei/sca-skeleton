@@ -10,7 +10,7 @@
  * - 适配 Dark 主题
  * - 字体继承全局字体栈（JetBrains Mono / OPPO Sans）
  *
- * 尺寸：min-height 64px / max-height 300px / max-width 600px / padding 12px 16px
+ * 尺寸：min-height 64px / max-height 150px / max-width 500px / padding 12px 16px
  * 配色：Light 主题由 Quasar bg-{color} class 控制（red-7/green-7/orange-7/blue-7），
  *       Dark 主题由下方 CSS 覆盖为更亮色阶（red-4/green-4/orange-4/blue-4）
  *
@@ -33,13 +33,13 @@ body .q-notifications__list.q-notifications__list--top {
 /* ═══════════════ 容器基础样式 ═══════════════ */
 
 .sca-notify.q-notification {
-  /* 宽度：自适应内容，最小 300px（避免短消息过窄），最大 600px */
+  /* 宽度：自适应内容，最小 100px（避免短消息过窄），最大 500px */
   width: auto !important;
-  min-width: 300px;
-  max-width: 600px;
+  min-width: 100px;
+  max-width: 500px;
   /* 高度范围 */
   min-height: 64px;
-  max-height: 300px;
+  max-height: 150px;
   /* 内边距 */
   padding: 12px 16px !important;
   /* 无圆角（与项目全局直角风格一致，见 quasar-flat.scss） */
@@ -106,14 +106,14 @@ body .q-notifications__list.q-notifications__list--top {
  *
  * 实现原理：Quasar 的 .q-notification__content 是 flex row + align-items: center，
  * message 的高度由内容决定（不受父容器 max-height 约束），因此需要给 message
- * 设置显式 max-height（toast max-height 300px - 上下 padding 24px = 276px），
+ * 设置显式 max-height（toast max-height 150px - 上下 padding 24px = 126px），
  * 配合 overflow-y: auto 实现独立滚动。
  */
 .sca-notify .q-notification__message {
   white-space: normal;
   word-break: break-word;
   overflow-y: auto;
-  max-height: calc(300px - 24px); /* toast max-height 300px - 上下 padding 12px×2 */
+  max-height: calc(150px - 24px); /* toast max-height 150px - 上下 padding 12px×2 */
   padding-right: 8px; /* 为右侧 8px 宽滚动条预留空间，避免滚动条遮挡文字 */
   /*
    * 滚动条样式对齐左侧菜单导航 q-scroll-area：细条、无 track 背景、悬停才显现。
