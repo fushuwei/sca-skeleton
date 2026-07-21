@@ -198,6 +198,12 @@ body .q-notifications__list.q-notifications__list--top {
  * 2. duration 由 CSS 变量 --sca-notify-duration 控制（默认 5000ms），由 main.ts 通过 inline style 设置
  * 3. :hover 时 animation-play-state: paused，进度条暂停（animationend 同步延迟，dismiss 也延迟）
  * 4. animationend 事件触发 dismiss（见 main.ts），确保进度条与自动关闭同步暂停/恢复
+ *
+ * 配色策略：
+ * - Light 主题背景为 Material 700 色阶（深色），进度条使用半透明黑色 rgba(0,0,0,0.25)，
+ *   在深色底色上形成明显的深色条纹，确保醒目可见。
+ * - Dark 主题背景为 Material 400 色阶（较亮），进度条保持半透明白色 rgba(255,255,255,0.7)，
+ *   白色在亮色底色上对比度足够，0.7 透明度避免过于刺眼。
  */
 
 .sca-notify.q-notification::after {
@@ -207,10 +213,19 @@ body .q-notifications__list.q-notifications__list--top {
   left: 0;
   right: 0;
   height: 3px;
-  background-color: rgba(255, 255, 255, 0.7); /* 半透明白色，与文字颜色一致 */
+  background-color: rgba(0, 0, 0, 0.25); /* Light 主题：半透明黑色，在 Material 700 底色上形成醒目深色条纹 */
   transform-origin: left center; /* 从左侧开始收缩 */
   animation: sca-notify-progress var(--sca-notify-duration, 5000ms) linear forwards;
   pointer-events: none; /* 不拦截点击 */
+}
+
+/*
+ * Dark 主题进度条保持半透明白色（0.7）：
+ * Dark 背景下背景色为 Material 400 色阶（blue-4/green-4/orange-4/red-4），
+ * 白色半透明条对比度足够，0.7 透明度避免过于刺眼。
+ */
+.body--dark .sca-notify.q-notification::after {
+  background-color: rgba(255, 255, 255, 0.7);
 }
 
 /* 鼠标悬停时暂停进度条 animation（与自动关闭同步暂停，因为 dismiss 由 animationend 触发） */
