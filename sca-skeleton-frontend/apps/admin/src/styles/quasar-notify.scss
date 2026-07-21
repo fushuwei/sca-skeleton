@@ -215,7 +215,7 @@ body .q-notifications__list.q-notifications__list--top {
   height: 3px;
   background-color: rgba(0, 0, 0, 0.25); /* Light 主题：半透明黑色，在 Material 700 底色上形成醒目深色条纹 */
   transform-origin: left center; /* 从左侧开始收缩 */
-  animation: sca-notify-progress var(--sca-notify-duration, 5000ms) linear forwards;
+  animation: sca-notify-progress var(--sca-notify-duration, 3000ms) linear forwards;
   pointer-events: none; /* 不拦截点击 */
 }
 

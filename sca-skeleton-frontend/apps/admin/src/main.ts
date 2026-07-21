@@ -91,7 +91,7 @@ setNotifier((message: string, type: NotificationType, duration?: number) => {
     previousDismiss = null;
   }
 
-  const actualDuration = duration && duration > 0 ? duration : 5000;
+  const actualDuration = duration && duration > 0 ? duration : 3000;
   const notifyId = `sca-notify-${++notifyCounter}`;
 
   const dismiss = Notify.create({
