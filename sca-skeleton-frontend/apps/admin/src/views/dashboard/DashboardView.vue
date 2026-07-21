@@ -65,10 +65,10 @@ const notifyTestCases: NotifyTestCase[] = [
     trigger: () => showToast(LONG_MSG, "warning")
   },
   {
-    label: "错误 · 超长消息",
+    label: "错误 · 超长消息 · 时长 60 秒",
     color: "red-7",
     hint: "negative 类型，超长文本，触发 max-height 300px 滚动",
-    trigger: () => showToast(VERY_LONG_MSG, "negative")
+    trigger: () => showToast(VERY_LONG_MSG, "negative", 60000)
   },
   {
     label: "信息 · 中等消息",
