@@ -193,9 +193,6 @@ function validateCaptchaCode(input, errorElement) {
     if (captchaCode === '') {
         setError(input, errorElement, '验证码不能为空');
         return false;
-    } else if (captchaCode.length !== 4) {
-        setError(input, errorElement, '请输入4位验证码');
-        return false;
     } else {
         clearError(input, errorElement);
         return true;
@@ -383,6 +380,27 @@ function dismissToast() {
     }
 }
 
+// 首次按键自动聚焦用户名框
+function initFirstKeyFocus() {
+    const username = document.getElementById('username');
+    if (!username) return;
+
+    username.addEventListener('focus', function () {
+        this.select();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        const tag = document.activeElement?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        if (e.key.length !== 1 || e.ctrlKey || e.altKey || e.metaKey) return;
+
+        e.preventDefault();
+        username.focus();
+        username.value += e.key;
+        username.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+}
+
 // 页面加载完成后初始化所有功能
 document.addEventListener('DOMContentLoaded', () => {
     // 初始化轮播图
@@ -408,6 +426,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 隐藏 loading
     hidePageLoader();
+
+    // 首次按键自动聚焦用户名框
+    initFirstKeyFocus();
 });
 
 // 页面完全加载后确保 loading 隐藏
