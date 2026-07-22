@@ -252,7 +252,7 @@ function unfavorite(row: FavoriteRow): void {
   height: 100%;
   display: flex;
   overflow: hidden;
-  padding: 8px 24px;
+  padding: 8px 0;
   background: #f5f5f5;
 }
 

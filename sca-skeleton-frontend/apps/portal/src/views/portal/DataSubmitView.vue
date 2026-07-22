@@ -588,7 +588,7 @@ function submitForm(): void {
 
 <style scoped>
 .data-submit-page {
-  padding: 24px;
+  padding: 24px 0;
 }
 
 /* ═══════════════ 页面头部 ═══════════════ */
@@ -912,7 +912,7 @@ function submitForm(): void {
 
 @media (max-width: 768px) {
   .data-submit-page {
-    padding: 16px;
+    padding: 16px 0;
   }
   .submit-form {
     padding: 20px 16px;

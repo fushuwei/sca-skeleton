@@ -154,7 +154,7 @@ const unreadCount = computed(() => 3);
                 class="top-nav-menu"
                 anchor="bottom middle"
                 self="top middle"
-                :offset="[0, 8]"
+                :offset="[0, 1]"
                 transition-show="jump-down"
                 transition-hide="jump-up"
                 :dark="$q.dark.isActive"
@@ -606,6 +606,7 @@ const unreadCount = computed(() => 3);
   overflow-y: auto;
   overscroll-behavior-y: none;
   background: #f5f5f5;
+  padding: 0 150px;
 }
 
 .body--dark .page-content {

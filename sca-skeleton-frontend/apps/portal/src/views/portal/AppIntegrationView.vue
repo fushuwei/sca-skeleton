@@ -3,10 +3,12 @@ import { ref, reactive, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 import type { QTableColumn } from "quasar";
+import { useConfirmDialog } from "@repo/ui";
 import ProfileSidebar from "../../components/ProfileSidebar.vue";
 
 const { t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
+const { confirmDialog } = useConfirmDialog();
 
 type AppStatus = "active" | "revoked" | "expired";
 
@@ -272,21 +274,22 @@ function copyToClipboard(text: string): void {
   });
 }
 
-function revokeApp(row: AppRow): void {
-  $q.dialog({
-    title: t("appIntegration.revoke"),
-    message: t("appIntegration.revokeConfirm", { name: row.name }),
-    cancel: true,
-    persistent: true
-  }).onOk(() => {
-    row.status = "revoked";
-    revealedSecrets.value.delete(row.id);
-    selectedRows.value = selectedRows.value.filter((r) => r.id !== row.id);
-    $q.notify({ type: "positive", message: t("appIntegration.revokeSuccess"), position: "top" });
-  });
+async function revokeApp(row: AppRow): Promise<void> {
+  try {
+    await confirmDialog({
+      title: t("appIntegration.revoke"),
+      message: t("appIntegration.revokeConfirm", { name: row.name })
+    });
+  } catch {
+    return;
+  }
+  row.status = "revoked";
+  revealedSecrets.value.delete(row.id);
+  selectedRows.value = selectedRows.value.filter((r) => r.id !== row.id);
+  $q.notify({ type: "positive", message: t("appIntegration.revokeSuccess"), position: "top" });
 }
 
-function handleBatchRevoke(): void {
+async function handleBatchRevoke(): Promise<void> {
   if (!selectedRows.value.length) {
     $q.notify({ type: "warning", message: t("appIntegration.selectRowsFirst"), position: "top" });
     return;
@@ -298,22 +301,23 @@ function handleBatchRevoke(): void {
     return;
   }
 
-  $q.dialog({
-    title: t("appIntegration.revoke"),
-    message: t("appIntegration.batchRevokeConfirm", { count: activeApps.length }),
-    cancel: true,
-    persistent: true
-  }).onOk(() => {
-    activeApps.forEach((app) => {
-      const row = tableRows.value.find((r) => r.id === app.id);
-      if (row) {
-        row.status = "revoked";
-        revealedSecrets.value.delete(row.id);
-      }
+  try {
+    await confirmDialog({
+      title: t("appIntegration.revoke"),
+      message: t("appIntegration.batchRevokeConfirm", { count: activeApps.length })
     });
-    selectedRows.value = [];
-    $q.notify({ type: "positive", message: t("appIntegration.revokeSuccess"), position: "top" });
+  } catch {
+    return;
+  }
+  activeApps.forEach((app) => {
+    const row = tableRows.value.find((r) => r.id === app.id);
+    if (row) {
+      row.status = "revoked";
+      revealedSecrets.value.delete(row.id);
+    }
   });
+  selectedRows.value = [];
+  $q.notify({ type: "positive", message: t("appIntegration.revokeSuccess"), position: "top" });
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -703,7 +707,7 @@ onMounted(() => {
   height: 100%;
   display: flex;
   overflow: hidden;
-  padding: 8px 24px;
+  padding: 8px 0;
   background: #f5f5f5;
 }
 

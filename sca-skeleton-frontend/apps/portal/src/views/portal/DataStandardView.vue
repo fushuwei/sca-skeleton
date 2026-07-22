@@ -553,7 +553,7 @@ onMounted(() => {
   display: flex;
   height: calc(100vh - 64px - 40px - 24px);
   min-height: 0;
-  padding: 12px 24px;
+  padding: 12px 0;
   box-sizing: border-box;
 }
 

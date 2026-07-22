@@ -235,7 +235,7 @@ function formatDownloads(count: number): string {
 
 <style scoped>
 .home-page {
-  padding: 24px;
+  padding: 24px 0;
 }
 
 /* ═══════════════ Hero ═══════════════ */
@@ -732,7 +732,7 @@ function formatDownloads(count: number): string {
 
 @media (max-width: 768px) {
   .home-page {
-    padding: 16px;
+    padding: 16px 0;
   }
   .hero-section {
     padding: 24px;

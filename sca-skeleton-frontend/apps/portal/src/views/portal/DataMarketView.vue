@@ -334,7 +334,7 @@ function viewDetail(product: DataProduct): void {
 
 <style scoped>
 .data-market-page {
-  padding: 24px;
+  padding: 24px 0;
 }
 
 /* ═══════════════ 页面头部 ═══════════════ */
@@ -697,7 +697,7 @@ function viewDetail(product: DataProduct): void {
 
 @media (max-width: 768px) {
   .data-market-page {
-    padding: 16px;
+    padding: 16px 0;
   }
   .filter-bar {
     flex-direction: column;

@@ -181,7 +181,7 @@ function markAllRead(): void {
 
 <style scoped>
 .notification-page {
-  padding: 24px;
+  padding: 24px 0;
 }
 
 .profile-layout {
@@ -432,7 +432,7 @@ function markAllRead(): void {
 
 @media (max-width: 768px) {
   .notification-page {
-    padding: 16px;
+    padding: 16px 0;
   }
   .notification-item {
     padding: 16px;

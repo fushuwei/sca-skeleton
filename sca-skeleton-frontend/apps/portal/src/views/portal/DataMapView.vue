@@ -138,7 +138,7 @@ function formatNum(n: number): string {
 
 <style scoped>
 .page-data-map {
-  padding: 24px;
+  padding: 24px 0;
 }
 
 /* ═══════════════ 页面头部 ═══════════════ */
@@ -395,7 +395,7 @@ function formatNum(n: number): string {
 
 @media (max-width: 768px) {
   .page-data-map {
-    padding: 16px;
+    padding: 16px 0;
   }
   .summary-grid,
   .domain-grid {

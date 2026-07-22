@@ -2,9 +2,11 @@
 import { computed, nextTick, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
+import { useConfirmDialog } from "@repo/ui";
 
 const { t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
+const { confirmDialog } = useConfirmDialog();
 
 interface TableColumn {
   name: string;
@@ -146,18 +148,18 @@ function pickSample(q: string): void {
   sendMessage(q);
 }
 
-function clearChat(): void {
+async function clearChat(): Promise<void> {
   if (messages.value.length === 0) return;
-  $q.dialog({
-    title: t("aiQuery.clearChat"),
-    message: "确定要清空当前对话吗？",
-    persistent: false,
-    ok: { label: t("common.confirm"), unelevated: true, noCaps: true, color: "teal" },
-    cancel: { label: t("common.cancel"), outline: true, noCaps: true }
-  }).onOk(() => {
-    messages.value = [];
-    isThinking.value = false;
-  });
+  try {
+    await confirmDialog({
+      title: t("aiQuery.clearChat"),
+      message: "确定要清空当前对话吗？"
+    });
+  } catch {
+    return;
+  }
+  messages.value = [];
+  isThinking.value = false;
 }
 
 function exportResult(): void {
@@ -320,7 +322,7 @@ function exportResult(): void {
 
 <style scoped>
 .ai-query-page {
-  padding: 24px;
+  padding: 24px 0;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -791,7 +793,7 @@ function exportResult(): void {
 /* ═══════════════ 响应式 ═══════════════ */
 @media (max-width: 768px) {
   .ai-query-page {
-    padding: 16px;
+    padding: 16px 0;
   }
   .page-header {
     flex-direction: column;

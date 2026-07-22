@@ -283,7 +283,7 @@ function changePassword(): void {
 
 <style scoped>
 .profile-page {
-  padding: 24px;
+  padding: 24px 0;
 }
 
 /* ═══════════════ 布局 ═══════════════ */
@@ -461,7 +461,7 @@ function changePassword(): void {
     grid-template-columns: 1fr;
   }
   .profile-page {
-    padding: 16px;
+    padding: 16px 0;
   }
 }
 </style>
