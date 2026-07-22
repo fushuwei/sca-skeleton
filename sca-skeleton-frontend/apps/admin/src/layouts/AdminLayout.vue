@@ -59,7 +59,7 @@ const realName = computed(() => {
   void locale.value;
   return authStore.profile?.nickname ?? t("layout.defaultRealName");
 });
-const email = computed(() => `${loginName.value}@example.com`);
+const email = computed(() => `${loginName.value}`);
 const avatarInitial = computed(() => {
   const normalizedName = String(username.value ?? "").trim();
   if (!normalizedName) {
