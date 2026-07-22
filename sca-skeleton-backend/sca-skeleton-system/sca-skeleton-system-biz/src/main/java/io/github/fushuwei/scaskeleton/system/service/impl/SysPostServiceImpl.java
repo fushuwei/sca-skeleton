@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -69,10 +70,22 @@ public class SysPostServiceImpl implements SysPostService {
      * @return 岗位选项列表
      */
     @Override
-    public List<PostOptionResponse> listPostOptions() {
-        // 数据隔离：超管看所有租户，非超管只看自己租户
+    public List<PostOptionResponse> listPostOptions(String tenantId) {
+        // 超级管理员：必须指定目标租户，未传则返回空（防止超管在未选租户时看到所有租户数据导致越权分配）
+        if (SecurityUtils.isSuperAdmin()) {
+            if (!StringUtils.hasText(tenantId)) {
+                return Collections.emptyList();
+            }
+            List<SysPost> posts = postMapper.selectList(new LambdaQueryWrapper<SysPost>()
+                .eq(SysPost::getTenantId, tenantId)
+                .orderByAsc(SysPost::getSort));
+            // 转换为响应对象列表
+            return postConverter.toPostOptionResponseList(posts);
+        }
+
+        // 非超级管理员：仅返回当前用户所在租户的岗位（忽略传入的 tenantId，使用自身租户）
         List<SysPost> posts = postMapper.selectList(new LambdaQueryWrapper<SysPost>()
-            .eq(!SecurityUtils.isSuperAdmin(), SysPost::getTenantId, SecurityUtils.getTenantId())
+            .eq(SysPost::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysPost::getSort));
         // 转换为响应对象列表
         return postConverter.toPostOptionResponseList(posts);

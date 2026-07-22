@@ -42,8 +42,8 @@ public class SysPostController {
     @Operation(summary = "查询岗位选项列表", description = "用于用户管理等功能表单下拉选择")
     @GetMapping("/options")
     @RequiresPermission("sys:user:list")
-    public Result<List<PostOptionResponse>> options() {
-        return Result.ok(postService.listPostOptions());
+    public Result<List<PostOptionResponse>> options(@RequestParam(required = false) String tenantId) {
+        return Result.ok(postService.listPostOptions(tenantId));
     }
 
     @Operation(summary = "分页查询岗位列表")

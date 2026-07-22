@@ -9,10 +9,11 @@ export async function getRoleListApi(): Promise<ApiEnvelope<SysRole[]>> {
 /**
  * 查询角色选项列表（用户管理表单下拉选择）
  * 返回最小化字段（id/name/code/sort/realm），后端已剥离 dataScope/tenantId/isBuiltin/审计字段等。
- * @param realm 可选，按角色域过滤（admin/portal）
+ * @param tenantId 目标租户 ID（超管必传，未传返回空；非超管忽略，使用登录人所属的租户）
+ * @param realm    可选，按角色域过滤（admin/portal）
  */
-export async function getRoleOptionsApi(realm?: string): Promise<ApiEnvelope<RoleOption[]>> {
-  return request<RoleOption[]>({ method: "GET", url: "/sys/role/options", params: { realm } });
+export async function getRoleOptionsApi(tenantId?: string, realm?: string): Promise<ApiEnvelope<RoleOption[]>> {
+  return request<RoleOption[]>({ method: "GET", url: "/sys/role/options", params: { tenantId, realm } });
 }
 
 /** 分页查询当前租户下角色列表 */

@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -70,10 +71,22 @@ public class SysDeptServiceImpl implements SysDeptService {
      * @return 部门选项列表
      */
     @Override
-    public List<DeptOptionResponse> listDeptOptions() {
-        // 数据隔离：超管看所有租户，非超管只看自己租户
+    public List<DeptOptionResponse> listDeptOptions(String tenantId) {
+        // 超级管理员：必须指定目标租户，未传则返回空（防止超管在未选租户时看到所有租户数据导致越权分配）
+        if (SecurityUtils.isSuperAdmin()) {
+            if (!StringUtils.hasText(tenantId)) {
+                return Collections.emptyList();
+            }
+            List<SysDept> depts = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
+                .eq(SysDept::getTenantId, tenantId)
+                .orderByAsc(SysDept::getSort));
+            // 转换为响应对象列表
+            return deptConverter.toDeptOptionResponseList(depts);
+        }
+
+        // 非超级管理员：仅返回当前用户所在租户的部门（忽略传入的 tenantId，使用自身租户）
         List<SysDept> depts = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
-            .eq(!SecurityUtils.isSuperAdmin(), SysDept::getTenantId, SecurityUtils.getTenantId())
+            .eq(SysDept::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysDept::getSort));
         // 转换为响应对象列表
         return deptConverter.toDeptOptionResponseList(depts);

@@ -26,9 +26,10 @@ public interface SysPostService {
     /**
      * 查询岗位选项列表
      *
+     * @param tenantId 目标租户 ID（超管必传，未传返回空；非超管忽略，使用登录人所属的租户）
      * @return 岗位选项列表
      */
-    List<PostOptionResponse> listPostOptions();
+    List<PostOptionResponse> listPostOptions(String tenantId);
 
     /**
      * 分页查询岗位列表

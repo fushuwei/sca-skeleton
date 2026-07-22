@@ -22,12 +22,16 @@ import io.github.fushuwei.scaskeleton.system.entity.SysUserPost;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.entity.SysRole;
+import io.github.fushuwei.scaskeleton.system.entity.SysDept;
+import io.github.fushuwei.scaskeleton.system.entity.SysPost;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserDeptMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserPostMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysDeptMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysPostMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +70,10 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysTenantMapper tenantMapper;
 
     private final SysRoleMapper roleMapper;
+
+    private final SysDeptMapper deptMapper;
+
+    private final SysPostMapper postMapper;
 
     private final UserConverter userConverter;
 
@@ -195,8 +203,10 @@ public class SysUserServiceImpl implements SysUserService {
         // 保存用户
         userMapper.insert(user);
 
-        // 校验所选角色与用户域一致（越权防护：防止跨域分配角色）
+        // 越权防护：校验所选角色、部门、岗位均属于目标租户，且角色域与用户域一致
         validateRoleRealm(tenantId, request.getRoleIds(), request.getRealm());
+        validateDeptTenant(tenantId, request.getDeptIds());
+        validatePostTenant(tenantId, request.getPostIds());
 
         // 保存关联关系
         saveUserRelations(tenantId, user.getId(), request.getRoleIds(), request.getDeptIds(), request.getPostIds());
@@ -241,8 +251,10 @@ public class SysUserServiceImpl implements SysUserService {
         // 删除旧的关联关系，并保存新的关联关系
         deleteUserRelations(user.getTenantId(), request.getId());
 
-        // 校验所选角色与用户域一致（越权防护：防止跨域分配角色，用户域不可修改，以加载实体的 realm 为准）
+        // 越权防护：校验所选角色、部门、岗位均属于用户所在租户，且角色域与用户域一致（用户域不可修改，以加载实体的 realm 为准）
         validateRoleRealm(user.getTenantId(), request.getRoleIds(), user.getRealm());
+        validateDeptTenant(user.getTenantId(), request.getDeptIds());
+        validatePostTenant(user.getTenantId(), request.getPostIds());
 
         saveUserRelations(user.getTenantId(), request.getId(), request.getRoleIds(), request.getDeptIds(), request.getPostIds());
     }
@@ -347,7 +359,7 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /**
-     * 校验所选角色与用户域一致，防止跨域分配角色（越权防护）
+     * 校验所选角色属于目标租户且与用户域一致，防止跨租户/跨域分配角色（越权防护）
      *
      * @param tenantId 租户 ID
      * @param roleIds  角色 ID 列表
@@ -363,7 +375,45 @@ public class SysUserServiceImpl implements SysUserService {
             .eq(SysRole::getTenantId, tenantId)
             .eq(SysRole::getRealm, realm));
         if (validCount != roleIdSet.size()) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "所选角色与用户域不一致，不允许跨域分配角色");
+            throw new BusinessException(ResultCode.FORBIDDEN, "所选角色不属于目标租户或与用户域不一致，不允许跨租户/跨域分配角色");
+        }
+    }
+
+    /**
+     * 校验所选部门属于目标租户，防止跨租户分配部门（越权防护）
+     *
+     * @param tenantId 租户 ID
+     * @param deptIds  部门 ID 列表
+     */
+    private void validateDeptTenant(String tenantId, List<String> deptIds) {
+        if (CollectionUtils.isEmpty(deptIds)) {
+            return;
+        }
+        Set<String> deptIdSet = new HashSet<>(deptIds);
+        long validCount = deptMapper.selectCount(new LambdaQueryWrapper<SysDept>()
+            .in(SysDept::getId, deptIdSet)
+            .eq(SysDept::getTenantId, tenantId));
+        if (validCount != deptIdSet.size()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "所选部门不属于目标租户，不允许跨租户分配部门");
+        }
+    }
+
+    /**
+     * 校验所选岗位属于目标租户，防止跨租户分配岗位（越权防护）
+     *
+     * @param tenantId 租户 ID
+     * @param postIds  岗位 ID 列表
+     */
+    private void validatePostTenant(String tenantId, List<String> postIds) {
+        if (CollectionUtils.isEmpty(postIds)) {
+            return;
+        }
+        Set<String> postIdSet = new HashSet<>(postIds);
+        long validCount = postMapper.selectCount(new LambdaQueryWrapper<SysPost>()
+            .in(SysPost::getId, postIdSet)
+            .eq(SysPost::getTenantId, tenantId));
+        if (validCount != postIdSet.size()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "所选岗位不属于目标租户，不允许跨租户分配岗位");
         }
     }
 

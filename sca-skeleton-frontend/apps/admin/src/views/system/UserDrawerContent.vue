@@ -311,10 +311,10 @@ const roleMultiOptions = computed(() =>
   roleOptions.value.map((r) => ({ label: r.name, value: r.id }))
 );
 
-/** 加载角色选项（按用户域过滤，未选域时加载全部） */
-async function loadRoleOptions(realm?: string) {
+/** 加载角色选项（按目标租户和用户域过滤） */
+async function loadRoleOptions(tenantId?: string, realm?: string) {
   try {
-    const result = await getRoleOptionsApi(realm);
+    const result = await getRoleOptionsApi(tenantId, realm);
     if (result.code === 10_000 && result.data) {
       roleOptions.value = result.data;
     }
@@ -323,18 +323,25 @@ async function loadRoleOptions(realm?: string) {
   }
 }
 
-async function loadDropdownData() {
+/** 加载部门选项（按目标租户过滤） */
+async function loadDeptOptions(tenantId?: string) {
   try {
-    const [deptRes, postRes] = await Promise.all([
-      getDeptOptionsApi(),
-      getPostOptionsApi()
-    ]);
-    if (deptRes.code === 10_000 && deptRes.data) {
-      deptOptions.value = deptRes.data;
-      deptTreeNodes.value = buildDeptTree(deptRes.data);
+    const result = await getDeptOptionsApi(tenantId);
+    if (result.code === 10_000 && result.data) {
+      deptOptions.value = result.data;
+      deptTreeNodes.value = buildDeptTree(result.data);
     }
-    if (postRes.code === 10_000 && postRes.data) {
-      postOptions.value = postRes.data;
+  } catch {
+    // 静默失败，下拉为空
+  }
+}
+
+/** 加载岗位选项（按目标租户过滤） */
+async function loadPostOptions(tenantId?: string) {
+  try {
+    const result = await getPostOptionsApi(tenantId);
+    if (result.code === 10_000 && result.data) {
+      postOptions.value = result.data;
     }
   } catch {
     // 静默失败，下拉为空
@@ -384,24 +391,46 @@ function initForm() {
     form.deptId = props.user.deptIds?.[0] ?? "";
     form.postIds = props.user.postIds ? [...props.user.postIds] : [];
     form.roleIds = props.user.roleIds ? [...props.user.roleIds] : [];
-    // 编辑/查看模式按用户域重新加载角色选项（服务端过滤）
-    loadRoleOptions(props.user.realm);
+    // 编辑/查看模式按用户所在租户加载部门、岗位、角色选项
+    const tenantId = props.user.tenantId;
+    loadDeptOptions(tenantId);
+    loadPostOptions(tenantId);
+    loadRoleOptions(tenantId, props.user.realm);
   }
 }
 
 watch(() => props.user, initForm, { immediate: true });
 
-// 切换用户域时重新加载角色选项（服务端按域过滤），并清空已选角色避免跨域分配
+// 新增模式下切换目标租户时，清空已选关联数据并按新租户重新加载选项
+watch(() => form.tenantId, (val) => {
+  if (props.mode === "add") {
+    form.deptId = "";
+    form.postIds = [];
+    form.roleIds = [];
+    const tenantId = val || undefined;
+    loadDeptOptions(tenantId);
+    loadPostOptions(tenantId);
+    loadRoleOptions(tenantId, form.realm || undefined);
+  }
+});
+
+// 切换用户域时重新加载角色选项（按域+租户过滤），并清空已选角色避免跨域分配
 watch(() => form.realm, (val) => {
   if (props.mode === "add") {
     form.roleIds = [];
   }
-  loadRoleOptions(val || undefined);
+  loadRoleOptions(form.tenantId || undefined, val || undefined);
 });
 
 onMounted(() => {
-  loadDropdownData();
   loadTenantOptions();
+  if (props.mode === "add" && !isSuperadmin.value) {
+    // 非超管新增模式：加载部门、岗位（后端按当前用户租户过滤）
+    // 超管新增模式：不加载，等选择目标租户后按租户加载
+    // 编辑/查看模式：initForm 已加载
+    loadDeptOptions();
+    loadPostOptions();
+  }
 });
 
 function handleClose() {

@@ -76,16 +76,21 @@ public class SysRoleServiceImpl implements SysRoleService {
     /**
      * 查询角色选项列表
      *
-     * @param realm 用户域
+     * @param tenantId 目标租户 ID（超管必传，未传返回空；非超管忽略，使用登录人所属的租户）
+     * @param realm    角色域
      * @return 角色选项列表
      */
     @Override
-    public List<RoleOptionResponse> listRoleOptions(String realm) {
+    public List<RoleOptionResponse> listRoleOptions(String tenantId, String realm) {
         List<SysRole> roles;
 
         if (SecurityUtils.isSuperAdmin()) {
-            // 超级管理员：返回所有角色
+            // 超级管理员：必须指定目标租户，未传则返回空（防止超管在未选租户时看到所有租户数据导致越权分配）
+            if (!StringUtils.hasText(tenantId)) {
+                return Collections.emptyList();
+            }
             roles = roleMapper.selectList(new LambdaQueryWrapper<SysRole>()
+                .eq(SysRole::getTenantId, tenantId)
                 .eq(StringUtils.hasText(realm), SysRole::getRealm, realm)
                 .orderByAsc(SysRole::getSort));
         } else {
@@ -100,11 +105,10 @@ public class SysRoleServiceImpl implements SysRoleService {
                 return Collections.emptyList();
             }
             List<String> roleIds = userRoles.stream().map(SysUserRole::getRoleId).toList();
-            // 按当前用户拥有的角色 ID 查询，并按租户隔离过滤（防御性：user_role 应该只含本租户角色，但保持一致性）
-            String tenantId = SecurityUtils.getTenantId();
+            // 按当前用户拥有的角色 ID 查询，并按租户隔离过滤（非超管忽略传入的 tenantId，使用自身租户）
             roles = roleMapper.selectList(new LambdaQueryWrapper<SysRole>()
                 .in(SysRole::getId, roleIds)
-                .eq(SysRole::getTenantId, tenantId)
+                .eq(SysRole::getTenantId, SecurityUtils.getTenantId())
                 .eq(StringUtils.hasText(realm), SysRole::getRealm, realm)
                 .orderByAsc(SysRole::getSort));
         }
