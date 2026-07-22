@@ -1,0 +1,21 @@
+html {
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-y: hidden;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+}
+
+#app {
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+}
+
+.q-layout {
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+}

@@ -1,0 +1,33 @@
+:root {
+  --q-border-radius: 0px;
+}
+
+.q-btn:not(.q-btn--round):not(.btn-shape-exempt),
+.q-field__control,
+.q-card,
+.q-dialog__inner > div,
+.q-menu,
+.q-chip,
+.q-banner,
+.q-list,
+.q-item,
+.q-table__container {
+  border-radius: 0 !important;
+}
+
+.status-select-popup .q-item {
+  min-height: 28px;
+  padding: 4px 16px;
+}
+
+.q-field__native .status-placeholder,
+.status-select:has(.q-select__focus-target[value=""]) .q-field__native > .ellipsis {
+  color: rgba(0, 0, 0, 0.87);
+  opacity: 0.7;
+}
+
+.body--dark .q-field__native .status-placeholder,
+.body--dark .status-select:has(.q-select__focus-target[value=""]) .q-field__native > .ellipsis {
+  color: rgba(255, 255, 255, 0.87);
+  opacity: 0.7;
+}

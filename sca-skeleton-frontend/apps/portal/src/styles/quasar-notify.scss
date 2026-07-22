@@ -1,0 +1,148 @@
+body .q-notifications__list.q-notifications__list--top {
+  top: 65px;
+}
+
+.sca-notify.q-notification {
+  width: auto !important;
+  min-width: 100px;
+  max-width: 500px;
+  min-height: 64px;
+  max-height: 150px;
+  padding: 12px 16px !important;
+  border-radius: 0 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, opacity 0.3s ease !important;
+}
+
+.sca-notify.q-notification.q-notification--top-enter-from,
+.sca-notify.q-notification.q-notification--top-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.sca-notify.q-notification.q-notification--top-leave-active {
+  position: absolute;
+}
+
+.sca-notify.q-notification.q-notification--top-move {
+  transition: none !important;
+}
+
+.sca-notify .q-notification__message {
+  white-space: normal;
+  word-break: break-word;
+  overflow-y: auto;
+  max-height: calc(150px - 24px);
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.sca-notify .q-notification__message::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sca-notify .q-notification__message::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sca-notify .q-notification__message::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 0;
+}
+
+.sca-notify .q-notification__message:hover {
+  scrollbar-color: rgba(0, 0, 0, 0.4) transparent;
+}
+
+.sca-notify .q-notification__message:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.body--dark .sca-notify .q-notification__message:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+}
+
+.body--dark .sca-notify .q-notification__message:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.sca-notify .q-notification__icon {
+  font-size: 24px;
+}
+
+.sca-notify .q-notification__actions {
+  margin-left: 8px;
+}
+
+.sca-notify .q-notification__actions .q-btn {
+  min-width: 32px;
+  min-height: 32px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+.sca-notify .q-notification__actions .q-btn .q-icon {
+  font-size: 20px;
+}
+
+.sca-notify.q-notification::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: rgba(0, 0, 0, 0.25);
+  transform-origin: left center;
+  animation: sca-notify-progress var(--sca-notify-duration, 3000ms) linear forwards;
+  pointer-events: none;
+}
+
+.body--dark .sca-notify.q-notification::after {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.sca-notify.q-notification:hover::after {
+  animation-play-state: paused;
+}
+
+.sca-notify.q-notification:focus-within::after {
+  animation-play-state: paused;
+}
+
+@keyframes sca-notify-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.body--dark .sca-notify--info.q-notification {
+  background-color: #42a5f5 !important;
+}
+
+.body--dark .sca-notify--positive.q-notification {
+  background-color: #66bb6a !important;
+}
+
+.body--dark .sca-notify--warning.q-notification {
+  background-color: #ffa726 !important;
+}
+
+.body--dark .sca-notify--negative.q-notification {
+  background-color: #ef5350 !important;
+}
+
+.body--dark .sca-notify.q-notification {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}

@@ -429,27 +429,27 @@ WHERE NOT EXISTS (
 --   子菜单：ID 直接使用注释中的排序值（如数据地图=21）
 -- ============================================================
 --
--- 菜单树结构：
+-- 前台菜单树结构：
 --
--- 首页 (sort=1)               code: portal:home
+-- 首页 (sort=1)                portal:home:view
 --
--- 数据目录 (sort=2)
---     ├── 数据地图              portal:data:map:view                  (sort=21)
---     ├── 资源目录              portal:data:resource:list             (sort=22)
---     └── 数据标准              portal:data:standard:list             (sort=23)
+-- 数据目录 (sort=2)             (folder)
+--     ├── 数据地图              portal:data-map:view                   (sort=21)
+--     ├── 资源目录              portal:data-resource:list              (sort=22)
+--     └── 数据标准              portal:data-standard:list              (sort=23)
 --
--- 数据服务 (sort=3)
---     ├── 智能问数              portal:service:ai:query               (sort=31)
---     ├── 数据集市              portal:service:data:market            (sort=32)
---     └── 数据填报              portal:service:data:submit            (sort=33)
+-- 数据服务 (sort=3)             (folder)
+--     ├── 智能问数              portal:ai-query:view                   (sort=31)
+--     ├── 数据集市              portal:data-market:list                (sort=32)
+--     └── 数据填报              portal:data-submit:view                (sort=33)
 --
--- 个人中心 (sort=4)
---     ├── 个人信息              portal:profile:view                   (sort=41)
---     ├── 我的申请              portal:my:request:list                (sort=42)
---     ├── 我的下载              portal:my:download:list               (sort=43)
---     ├── 我的收藏              portal:my:favorite:list               (sort=44)
---     ├── 消息通知              portal:profile:notification:list      (sort=45)
---     └── 应用接入              portal:profile:app:integration:list   (sort=46)
+-- 个人中心 (sort=4)             (folder)
+--     ├── 个人信息              portal:profile:view                    (sort=41)
+--     ├── 我的申请              portal:request:list                    (sort=42)
+--     ├── 我的下载              portal:download:list                   (sort=43)
+--     ├── 我的收藏              portal:favorite:list                   (sort=44)
+--     ├── 消息通知              portal:notification:list               (sort=45)
+--     └── 应用接入              portal:app-integration:list            (sort=46)
 -- ------------------------------------------------------------
 INSERT INTO `sys_permission` (
     `id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`,
@@ -458,47 +458,47 @@ INSERT INTO `sys_permission` (
 )
 SELECT t.* FROM (
     -- ==================== 首页 (sort=1, id=1) ====================
-    SELECT '1' AS `id`, '0' AS `parent_id`, '首页' AS `name`, 'Home' AS `name_en`, 'menu' AS `type`, 'portal:home' AS `code`,
+    SELECT '1' AS `id`, '0' AS `parent_id`, '首页' AS `name`, 'Home' AS `name_en`, 'menu' AS `type`, 'portal:home:view' AS `code`,
            '/portal/home' AS `path`, 'HomeView' AS `component`, 'sym_r_home' AS `icon`,
            1 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,1' AS `tree_path`, 'portal' AS `realm`, NULL AS `remark`,
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
-    -- ==================== 数据目录 (sort=2, id=2) ====================
+    -- ==================== 数据目录 (sort=2, id=2, folder) ====================
     UNION ALL
-    SELECT '2', '0', '数据目录', 'Data Catalog', 'folder', 'portal:data',
+    SELECT '2', '0', '数据目录', 'Data Catalog', 'folder', NULL,
            NULL, NULL, 'sym_r_folder',
            2, 1, 0, 'enabled', '0,2', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '21', '2', '数据地图', 'Data Map', 'menu', 'portal:data:map:view',
+    SELECT '21', '2', '数据地图', 'Data Map', 'menu', 'portal:data-map:view',
            '/portal/data/map', 'DataMapView', 'sym_r_map',
            21, 1, 0, 'enabled', '0,2,21', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '22', '2', '资源目录', 'Resource Catalog', 'menu', 'portal:data:resource:list',
+    SELECT '22', '2', '资源目录', 'Resource Catalog', 'menu', 'portal:data-resource:list',
            '/portal/data/resources', 'ResourceCatalogView', 'sym_r_table',
            22, 1, 0, 'enabled', '0,2,22', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '23', '2', '数据标准', 'Data Standards', 'menu', 'portal:data:standard:list',
+    SELECT '23', '2', '数据标准', 'Data Standards', 'menu', 'portal:data-standard:list',
            '/portal/data/standards', 'DataStandardView', 'sym_r_checklist',
            23, 1, 0, 'enabled', '0,2,23', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    -- ==================== 数据服务 (sort=3, id=3) ====================
+    -- ==================== 数据服务 (sort=3, id=3, folder) ====================
     UNION ALL
-    SELECT '3', '0', '数据服务', 'Data Services', 'folder', 'portal:service',
+    SELECT '3', '0', '数据服务', 'Data Services', 'folder', NULL,
            NULL, NULL, 'sym_r_api',
            3, 1, 0, 'enabled', '0,3', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '31', '3', '智能问数', 'AI Query', 'menu', 'portal:service:ai:query',
+    SELECT '31', '3', '智能问数', 'AI Query', 'menu', 'portal:ai-query:view',
            '/portal/service/ai-query', 'AiQueryView', 'sym_r_smart_toy',
            31, 1, 0, 'enabled', '0,3,31', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '32', '3', '数据集市', 'Data Marketplace', 'menu', 'portal:service:data:market',
+    SELECT '32', '3', '数据集市', 'Data Marketplace', 'menu', 'portal:data-market:list',
            '/portal/service/data-market', 'DataMarketView', 'sym_r_store',
            32, 1, 0, 'enabled', '0,3,32', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '33', '3', '数据填报', 'Data Submit', 'menu', 'portal:service:data:submit',
+    SELECT '33', '3', '数据填报', 'Data Submit', 'menu', 'portal:data-submit:view',
            '/portal/service/data-submit', 'DataSubmitView', 'sym_r_edit_note',
            33, 1, 0, 'enabled', '0,3,33', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    -- ==================== 个人中心 (sort=4, id=4) ====================
+    -- ==================== 个人中心 (sort=4, id=4, folder) ====================
     UNION ALL
-    SELECT '4', '0', '个人中心', 'Profile', 'folder', 'portal:profile',
+    SELECT '4', '0', '个人中心', 'Profile', 'folder', NULL,
            NULL, NULL, 'sym_r_account_circle',
            4, 1, 0, 'enabled', '0,4', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
@@ -506,23 +506,23 @@ SELECT t.* FROM (
            '/portal/profile', 'ProfileView', 'sym_r_person',
            41, 1, 0, 'enabled', '0,4,41', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '42', '4', '我的申请', 'My Requests', 'menu', 'portal:my:request:list',
+    SELECT '42', '4', '我的申请', 'My Requests', 'menu', 'portal:request:list',
            '/portal/my/requests', 'MyRequestView', 'sym_r_description',
            42, 1, 0, 'enabled', '0,4,42', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '43', '4', '我的下载', 'My Downloads', 'menu', 'portal:my:download:list',
+    SELECT '43', '4', '我的下载', 'My Downloads', 'menu', 'portal:download:list',
            '/portal/my/downloads', 'MyDownloadView', 'sym_r_download',
            43, 1, 0, 'enabled', '0,4,43', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '44', '4', '我的收藏', 'My Favorites', 'menu', 'portal:my:favorite:list',
+    SELECT '44', '4', '我的收藏', 'My Favorites', 'menu', 'portal:favorite:list',
            '/portal/my/favorites', 'MyFavoriteView', 'sym_r_star',
            44, 1, 0, 'enabled', '0,4,44', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '45', '4', '消息通知', 'Notifications', 'menu', 'portal:profile:notification:list',
+    SELECT '45', '4', '消息通知', 'Notifications', 'menu', 'portal:notification:list',
            '/portal/profile/notifications', 'NotificationView', 'sym_r_notifications',
            45, 1, 0, 'enabled', '0,4,45', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '46', '4', '应用接入', 'App Integration', 'menu', 'portal:profile:app:integration:list',
+    SELECT '46', '4', '应用接入', 'App Integration', 'menu', 'portal:app-integration:list',
            '/portal/profile/app-integrations', 'AppIntegrationView', 'sym_r_link',
            46, 1, 0, 'enabled', '0,4,46', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
