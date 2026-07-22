@@ -117,6 +117,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
                 .eq(SysPermission::getStatus, "enabled")
                 .eq(SysPermission::getIsVisible, 1)
+                .eq(SysPermission::getRealm, "admin")
                 .orderByAsc(SysPermission::getSort));
             return permissionConverter.toPermissionResponseList(permissions);
         }
