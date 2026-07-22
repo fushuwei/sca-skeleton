@@ -21,11 +21,13 @@ import io.github.fushuwei.scaskeleton.system.entity.SysUserDept;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserPost;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
+import io.github.fushuwei.scaskeleton.system.entity.SysRole;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserDeptMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserPostMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -61,6 +64,8 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysUserPostMapper userPostMapper;
 
     private final SysTenantMapper tenantMapper;
+
+    private final SysRoleMapper roleMapper;
 
     private final UserConverter userConverter;
 
@@ -190,6 +195,9 @@ public class SysUserServiceImpl implements SysUserService {
         // 保存用户
         userMapper.insert(user);
 
+        // 校验所选角色与用户域一致（越权防护：防止跨域分配角色）
+        validateRoleRealm(tenantId, request.getRoleIds(), request.getRealm());
+
         // 保存关联关系
         saveUserRelations(tenantId, user.getId(), request.getRoleIds(), request.getDeptIds(), request.getPostIds());
     }
@@ -232,6 +240,10 @@ public class SysUserServiceImpl implements SysUserService {
 
         // 删除旧的关联关系，并保存新的关联关系
         deleteUserRelations(user.getTenantId(), request.getId());
+
+        // 校验所选角色与用户域一致（越权防护：防止跨域分配角色，用户域不可修改，以加载实体的 realm 为准）
+        validateRoleRealm(user.getTenantId(), request.getRoleIds(), user.getRealm());
+
         saveUserRelations(user.getTenantId(), request.getId(), request.getRoleIds(), request.getDeptIds(), request.getPostIds());
     }
 
@@ -331,6 +343,27 @@ public class SysUserServiceImpl implements SysUserService {
             item.setStatus(request.getStatus());
             item.setReason(request.getReason());
             changeStatus(item);
+        }
+    }
+
+    /**
+     * 校验所选角色与用户域一致，防止跨域分配角色（越权防护）
+     *
+     * @param tenantId 租户 ID
+     * @param roleIds  角色 ID 列表
+     * @param realm    用户域
+     */
+    private void validateRoleRealm(String tenantId, List<String> roleIds, String realm) {
+        if (CollectionUtils.isEmpty(roleIds)) {
+            return;
+        }
+        Set<String> roleIdSet = new HashSet<>(roleIds);
+        long validCount = roleMapper.selectCount(new LambdaQueryWrapper<SysRole>()
+            .in(SysRole::getId, roleIdSet)
+            .eq(SysRole::getTenantId, tenantId)
+            .eq(SysRole::getRealm, realm));
+        if (validCount != roleIdSet.size()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "所选角色与用户域不一致，不允许跨域分配角色");
         }
     }
 

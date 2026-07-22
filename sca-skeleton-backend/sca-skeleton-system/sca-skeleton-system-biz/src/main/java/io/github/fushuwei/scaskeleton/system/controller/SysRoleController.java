@@ -43,8 +43,8 @@ public class SysRoleController {
     @Operation(summary = "查询角色选项列表", description = "用于用户管理等功能表单下拉选择")
     @GetMapping("/options")
     @RequiresPermission("sys:user:list")
-    public Result<List<RoleOptionResponse>> options() {
-        return Result.ok(roleService.listRoleOptions());
+    public Result<List<RoleOptionResponse>> options(@RequestParam(required = false) String realm) {
+        return Result.ok(roleService.listRoleOptions(realm));
     }
 
     @Operation(summary = "分页查询角色列表")

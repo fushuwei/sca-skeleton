@@ -76,15 +76,18 @@ public class SysRoleServiceImpl implements SysRoleService {
     /**
      * 查询角色选项列表
      *
+     * @param realm 用户域
      * @return 角色选项列表
      */
     @Override
-    public List<RoleOptionResponse> listRoleOptions() {
+    public List<RoleOptionResponse> listRoleOptions(String realm) {
         List<SysRole> roles;
 
         if (SecurityUtils.isSuperAdmin()) {
             // 超级管理员：返回所有角色
-            roles = roleMapper.selectList(new LambdaQueryWrapper<SysRole>().orderByAsc(SysRole::getSort));
+            roles = roleMapper.selectList(new LambdaQueryWrapper<SysRole>()
+                .eq(StringUtils.hasText(realm), SysRole::getRealm, realm)
+                .orderByAsc(SysRole::getSort));
         } else {
             // 非超级管理员：仅返回当前用户自身拥有的角色（防止越权授予自己不具备的角色）
             String userId = SecurityUtils.getUserId();
@@ -102,6 +105,7 @@ public class SysRoleServiceImpl implements SysRoleService {
             roles = roleMapper.selectList(new LambdaQueryWrapper<SysRole>()
                 .in(SysRole::getId, roleIds)
                 .eq(SysRole::getTenantId, tenantId)
+                .eq(StringUtils.hasText(realm), SysRole::getRealm, realm)
                 .orderByAsc(SysRole::getSort));
         }
 
@@ -162,6 +166,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         role.setName(request.getName());
         role.setCode(request.getCode());
         role.setDataScope(request.getDataScope());
+        role.setRealm(request.getRealm());
         role.setSort(request.getSort() != null ? request.getSort() : 100);
         role.setRemark(request.getRemark());
         role.setIsBuiltin(0);

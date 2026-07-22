@@ -243,6 +243,7 @@ CREATE TABLE IF NOT EXISTS `sys_role` (
     `name`            VARCHAR(100)    NOT NULL                    COMMENT '角色名称',
     `code`            VARCHAR(100)    NOT NULL                    COMMENT '角色编码',
     `data_scope`      VARCHAR(20)     NOT NULL                    COMMENT '数据权限范围（all 全部，tenant 租户，dept_and_sub 本部门及下级，dept 仅本部门，personal 仅本人，custom 自定义）',
+    `realm`           VARCHAR(20)     NOT NULL                    COMMENT '角色域（admin：后台角色；portal：前台角色）',
     `is_builtin`      TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否系统内置（0否 1是）',
     `sort`            INT             NOT NULL DEFAULT 100        COMMENT '排序，数字越小越靠前',
     `remark`          TEXT            DEFAULT NULL                COMMENT '备注',

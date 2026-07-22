@@ -2,6 +2,7 @@ package io.github.fushuwei.scaskeleton.system.api.request.role;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 import java.util.List;
@@ -32,6 +33,11 @@ public class RoleCreateRequest {
     /** 数据权限范围 */
     @NotNull(message = "数据权限范围不能为空")
     private String dataScope;
+
+    /** 角色域 */
+    @NotBlank(message = "角色域不能为空")
+    @Pattern(regexp = "^(admin|portal)$", message = "角色域只能是 admin 或 portal")
+    private String realm;
 
     // ==================== 属性信息 ====================
 

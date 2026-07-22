@@ -33,6 +33,7 @@ const form = reactive({
   name: "",
   code: "",
   dataScope: "",
+  realm: "",
   sort: 100,
   remark: "",
   permissionIds: [] as string[]
@@ -60,7 +61,8 @@ const tenantOptionsFormatted = computed(() =>
 const formRules = computed(() => ({
   name: [(v: string) => !!v?.trim() || t("roleMgmt.nameRequired")],
   code: [(v: string) => !!v?.trim() || t("roleMgmt.codeRequired")],
-  dataScope: [(v: string) => !!v || t("roleMgmt.dataScopeRequired")]
+  dataScope: [(v: string) => !!v || t("roleMgmt.dataScopeRequired")],
+  realm: [(v: string) => !!v || t("roleMgmt.realmRequired")]
 }));
 
 /** 角色编码前缀常量 */
@@ -78,6 +80,11 @@ const dataScopeOptions = computed(() => [
   { label: t("roleMgmt.scopeDept"), value: "dept" },
   { label: t("roleMgmt.scopePersonal"), value: "personal" },
   { label: t("roleMgmt.scopeCustom"), value: "custom" }
+]);
+
+const realmOptions = computed(() => [
+  { label: t("roleMgmt.realmAdmin"), value: "admin" },
+  { label: t("roleMgmt.realmPortal"), value: "portal" }
 ]);
 
 // ── 权限树 ──
@@ -268,6 +275,7 @@ function resetForm() {
   form.name = "";
   form.code = "";
   form.dataScope = "";
+  form.realm = "";
   form.sort = 100;
   form.remark = "";
   form.permissionIds = [];
@@ -284,6 +292,7 @@ function initForm() {
       ? props.role.code.slice(CODE_PREFIX.length)
       : (props.role.code ?? "");
     form.dataScope = props.role.dataScope;
+    form.realm = props.role.realm;
     form.sort = props.role.sort ?? 100;
     form.remark = props.role.remark || "";
     if (props.role.id) {
@@ -320,6 +329,7 @@ async function handleSave() {
     name: form.name,
     code: `${CODE_PREFIX}${form.code}`,
     dataScope: form.dataScope,
+    realm: form.realm,
     sort: form.sort,
     remark: form.remark || undefined,
     permissionIds: fullPermissionIds.length ? fullPermissionIds : undefined
@@ -426,6 +436,24 @@ async function handleSave() {
             map-options
             :rules="formRules.dataScope"
             :disable="drawerReadonly"
+            hide-bottom-space
+            class="required-field"
+          />
+        </div>
+        <!-- 角色域 -->
+        <div class="col-12 col-md-6">
+          <q-select
+            v-model="form.realm"
+            :label="t('roleMgmt.realm')"
+            filled
+            square
+            :options="realmOptions"
+            option-label="label"
+            option-value="value"
+            emit-value
+            map-options
+            :rules="formRules.realm"
+            :disable="drawerReadonly || mode !== 'add'"
             hide-bottom-space
             class="required-field"
           />

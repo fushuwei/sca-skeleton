@@ -21,4 +21,7 @@ public class RoleOptionResponse {
 
     /** 排序号 */
     private Integer sort;
+
+    /** 角色域 */
+    private String realm;
 }

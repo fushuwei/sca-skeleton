@@ -19,6 +19,7 @@ public class RolePageRequest {
         "name", "r.name",
         "code", "r.code",
         "data_scope", "r.data_scope",
+        "realm", "r.realm",
         "sort", "r.sort",
         "create_time", "r.create_time",
         "permission_count", "permission_count"
@@ -42,6 +43,9 @@ public class RolePageRequest {
 
     /** 数据权限范围 */
     private String dataScope;
+
+    /** 角色域 */
+    private String realm;
 
     // ==================== 排序参数 ====================
 

@@ -27,9 +27,10 @@ public interface SysRoleService {
     /**
      * 查询角色选项列表
      *
+     * @param realm 用户域
      * @return 角色选项列表
      */
-    List<RoleOptionResponse> listRoleOptions();
+    List<RoleOptionResponse> listRoleOptions(String realm);
 
     /**
      * 分页查询角色列表

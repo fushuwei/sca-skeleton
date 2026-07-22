@@ -311,12 +311,23 @@ const roleMultiOptions = computed(() =>
   roleOptions.value.map((r) => ({ label: r.name, value: r.id }))
 );
 
+/** 加载角色选项（按用户域过滤，未选域时加载全部） */
+async function loadRoleOptions(realm?: string) {
+  try {
+    const result = await getRoleOptionsApi(realm);
+    if (result.code === 10_000 && result.data) {
+      roleOptions.value = result.data;
+    }
+  } catch {
+    // 静默失败，下拉为空
+  }
+}
+
 async function loadDropdownData() {
   try {
-    const [deptRes, postRes, roleRes] = await Promise.all([
+    const [deptRes, postRes] = await Promise.all([
       getDeptOptionsApi(),
-      getPostOptionsApi(),
-      getRoleOptionsApi()
+      getPostOptionsApi()
     ]);
     if (deptRes.code === 10_000 && deptRes.data) {
       deptOptions.value = deptRes.data;
@@ -324,9 +335,6 @@ async function loadDropdownData() {
     }
     if (postRes.code === 10_000 && postRes.data) {
       postOptions.value = postRes.data;
-    }
-    if (roleRes.code === 10_000 && roleRes.data) {
-      roleOptions.value = roleRes.data;
     }
   } catch {
     // 静默失败，下拉为空
@@ -376,10 +384,20 @@ function initForm() {
     form.deptId = props.user.deptIds?.[0] ?? "";
     form.postIds = props.user.postIds ? [...props.user.postIds] : [];
     form.roleIds = props.user.roleIds ? [...props.user.roleIds] : [];
+    // 编辑/查看模式按用户域重新加载角色选项（服务端过滤）
+    loadRoleOptions(props.user.realm);
   }
 }
 
 watch(() => props.user, initForm, { immediate: true });
+
+// 切换用户域时重新加载角色选项（服务端按域过滤），并清空已选角色避免跨域分配
+watch(() => form.realm, (val) => {
+  if (props.mode === "add") {
+    form.roleIds = [];
+  }
+  loadRoleOptions(val || undefined);
+});
 
 onMounted(() => {
   loadDropdownData();

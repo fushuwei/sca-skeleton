@@ -49,7 +49,7 @@ public class UserResponse {
 
     // ==================== 类型与权限 ====================
 
-    /** 用户域（admin：后台用户；portal：前台用户） */
+    /** 用户域 */
     private String realm;
 
     /** 是否平台超级管理员 */

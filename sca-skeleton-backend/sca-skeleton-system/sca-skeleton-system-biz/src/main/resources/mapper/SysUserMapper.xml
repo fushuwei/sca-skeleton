@@ -37,7 +37,6 @@
             GROUP BY ur.user_id
         ) r ON r.user_id = u.id
         WHERE u.is_deleted = 0
-          AND u.realm = 'admin'
         <if test="tenantId != null">
             AND u.tenant_id = #{tenantId}
         </if>

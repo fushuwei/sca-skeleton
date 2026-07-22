@@ -28,6 +28,9 @@
         <if test="request.dataScope != null and request.dataScope != ''">
             AND r.data_scope = #{request.dataScope}
         </if>
+        <if test="request.realm != null and request.realm != ''">
+            AND r.realm = #{request.realm}
+        </if>
         <choose>
             <when test="request.safeSortField() != null and request.safeSortField() != ''">
                 ORDER BY ${request.safeSortField()} ${request.safeSortOrder()}

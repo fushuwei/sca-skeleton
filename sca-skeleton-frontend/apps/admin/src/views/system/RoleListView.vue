@@ -25,7 +25,8 @@ const searchForm = reactive<RolePageRequest>({
   pageNum: 1,
   pageSize: 10,
   keyword: "",
-  dataScope: ""
+  dataScope: "",
+  realm: ""
 });
 
 const searchExpanded = ref(true);
@@ -59,6 +60,23 @@ const dataScopeColorOf = (s: string): string =>
     personal: "grey-7",
     custom: "purple-7"
   }[s] ?? "grey-5");
+
+const realmOptions = [
+  { label: "roleMgmt.realmAdmin", value: "admin" },
+  { label: "roleMgmt.realmPortal", value: "portal" }
+];
+
+const realmLabelOf = (realm: string): string =>
+  ({
+    admin: t("roleMgmt.realmAdmin"),
+    portal: t("roleMgmt.realmPortal")
+  }[realm] ?? realm);
+
+const realmColorOf = (realm: string): string =>
+  ({
+    admin: "blue-8",
+    portal: "green-8"
+  }[realm] ?? "grey-5");
 
 // ═══════════════════════════════════════════════════════════════
 // 本地抽屉 — 添加 / 编辑 / 查看
@@ -149,6 +167,13 @@ const columns = computed<QTableColumn<SysRole>[]>(() => [
     sortable: true
   },
   {
+    name: "realm",
+    field: "realm",
+    label: t("roleMgmt.realm"),
+    align: "left",
+    sortable: true
+  },
+  {
     name: "permissionCount",
     field: "permissionCount",
     label: t("roleMgmt.permissionCount"),
@@ -193,6 +218,7 @@ const SORT_FIELD_MAP: Record<string, string> = {
   name: "name",
   code: "code",
   dataScope: "data_scope",
+  realm: "realm",
   sort: "sort",
   permissionCount: "permission_count",
   createTime: "create_time"
@@ -239,6 +265,7 @@ async function loadTableData(
     pageSize,
     keyword: searchForm.keyword || undefined,
     dataScope: searchForm.dataScope || undefined,
+    realm: searchForm.realm || undefined,
     sortField,
     sortOrder: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
   };
@@ -296,6 +323,7 @@ function handleJumpToPage() {
 function handleReset() {
   searchForm.keyword = "";
   searchForm.dataScope = "";
+  searchForm.realm = "";
   // 清空排序状态（与 q-table 的 pagination.sortBy / descending 保持一致）
   sortState.value.sortBy = "";
   sortState.value.descending = false;
@@ -477,6 +505,29 @@ onMounted(() => {
               </q-select>
             </div>
             <div class="col-auto">
+              <q-select
+                v-model="searchForm.realm"
+                filled
+                square
+                dense
+                :options="realmOptions"
+                :option-label="(o) => (o ? t(o.label) : '')"
+                option-value="value"
+                emit-value
+                map-options
+                hide-bottom-space
+                clearable
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                class="status-select"
+                popup-content-class="status-select-popup"
+              >
+                <template v-if="!searchForm.realm" v-slot:selected>
+                  <span class="status-placeholder">{{ t('roleMgmt.realmPlaceholder') }}</span>
+                </template>
+              </q-select>
+            </div>
+            <div class="col-auto">
               <div class="row q-gutter-x-sm no-wrap">
                 <q-btn
                   color="primary"
@@ -572,6 +623,20 @@ onMounted(() => {
               v-if="props.value"
               :color="dataScopeColorOf(props.value)"
               :label="dataScopeLabelOf(props.value)"
+              rounded
+              class="role-type-badge"
+            />
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 角色域列 -->
+        <template #body-cell-realm="props">
+          <q-td :props="props">
+            <q-badge
+              v-if="props.value"
+              :color="realmColorOf(props.value)"
+              :label="realmLabelOf(props.value)"
               rounded
               class="role-type-badge"
             />

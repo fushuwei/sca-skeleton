@@ -48,7 +48,7 @@ public class UserPageRequest {
     /** 昵称 */
     private String nickname;
 
-    /** 用户域（admin：后台用户；portal：前台用户） */
+    /** 用户域 */
     private String realm;
 
     /** 用户状态 */

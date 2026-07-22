@@ -207,6 +207,8 @@ export interface SysRole {
   code: string;
   /** 数据权限范围：all / tenant / dept_and_sub / dept / personal / custom */
   dataScope: string;
+  /** 用户域（admin：后台角色；portal：前台角色） */
+  realm: string;
   isBuiltin: number;
   sort: number;
   remark: string;
@@ -226,6 +228,7 @@ export interface RolePageRequest {
   pageSize?: number;
   keyword?: string;
   dataScope?: string;
+  realm?: string;
   sortField?: string;
   sortOrder?: "asc" | "desc";
 }
@@ -482,6 +485,8 @@ export interface RoleOption {
   name: string;
   code: string;
   sort: number;
+  /** 用户域（admin：后台角色；portal：前台角色） */
+  realm: string;
 }
 
 /**

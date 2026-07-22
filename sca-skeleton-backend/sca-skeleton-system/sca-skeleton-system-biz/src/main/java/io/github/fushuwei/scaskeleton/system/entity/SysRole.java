@@ -43,6 +43,9 @@ public class SysRole extends BaseEntity {
     /** 数据权限范围 */
     private String dataScope;
 
+    /** 角色域 */
+    private String realm;
+
     /** 是否系统内置 */
     private Integer isBuiltin;
 
