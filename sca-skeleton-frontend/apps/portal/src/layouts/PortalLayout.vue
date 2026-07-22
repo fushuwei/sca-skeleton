@@ -10,6 +10,13 @@ import { persistDark, persistLocale, quasarLangForLocale } from "../i18n";
 
 const LOGO_URL = import.meta.env.BASE_URL + "images/logo.png";
 
+/** 与 `.top-toolbar` 高度一致，用于用户菜单纵向对齐 */
+const TOP_HEADER_HEIGHT_PX = 64;
+/** 与 `.user-pill` 高度一致 */
+const USER_PILL_HEIGHT_PX = 40;
+/** 菜单锚点在胶囊底边，下移半栏差使菜单顶边与 Header 底边平齐 */
+const userPillMenuOffset = [0, (TOP_HEADER_HEIGHT_PX - USER_PILL_HEIGHT_PX) / 2];
+
 const router = useRouter();
 const route = useRoute();
 const authStore = usePortalAuthStore();
@@ -260,7 +267,9 @@ const unreadCount = computed(() => 3);
           flat
           class="user-pill btn-shape-exempt"
           dropdown-icon="sym_r_arrow_drop_down"
+          content-class="portal-user-q-menu"
           no-caps
+          :menu-offset="userPillMenuOffset"
         >
           <template #label>
             <div class="row items-center no-wrap user-pill-label">
@@ -278,22 +287,12 @@ const unreadCount = computed(() => 3);
           <q-separator />
           <q-list dense class="user-menu-action-list">
             <q-item clickable v-close-popup @click="handleMenuClick('/portal/profile')">
-              <q-item-section avatar>
-                <q-icon name="sym_r_person" size="20px" />
-              </q-item-section>
               <q-item-section>{{ t('layout.personalCenter') }}</q-item-section>
             </q-item>
-            <q-item clickable v-close-popup @click="handleMenuClick('/portal/profile/notifications')">
-              <q-item-section avatar>
-                <q-icon name="sym_r_notifications" size="20px" />
-              </q-item-section>
-              <q-item-section>{{ t('layout.notifications') }}</q-item-section>
+            <q-item clickable v-close-popup @click="handleMenuClick('/portal/profile')">
+              <q-item-section>{{ t('layout.changePassword') }}</q-item-section>
             </q-item>
-            <q-separator />
             <q-item clickable v-close-popup @click="handleLogout">
-              <q-item-section avatar>
-                <q-icon name="sym_r_logout" size="20px" />
-              </q-item-section>
               <q-item-section class="text-negative">{{ t('layout.logout') }}</q-item-section>
             </q-item>
           </q-list>
@@ -316,7 +315,7 @@ const unreadCount = computed(() => 3);
     <q-footer bordered class="bottom-footer">
       <q-toolbar class="bottom-toolbar">
         <div class="bottom-toolbar-meta">
-          <div class="bottom-toolbar-copyright" v-html="$t('layout.footerCopyright')"></div>
+          <div class="bottom-toolbar-copyright" v-html="$t('layout.copyright')"></div>
         </div>
       </q-toolbar>
     </q-footer>
@@ -447,14 +446,14 @@ const unreadCount = computed(() => 3);
   height: 40px;
   min-height: 40px;
   padding: 0 8px 0 4px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.52);
   border-radius: 999px !important;
   color: #fff;
   overflow: hidden;
 }
 
 .user-pill:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(128, 128, 128, 0.28);
 }
 
 .user-pill-label {
@@ -504,7 +503,7 @@ const unreadCount = computed(() => 3);
   flex-direction: row;
   align-items: center;
   gap: 12px;
-  min-width: 240px;
+  min-width: 250px;
 }
 
 .user-menu-meta {
@@ -661,12 +660,13 @@ const unreadCount = computed(() => 3);
 }
 
 .bottom-toolbar-copyright :deep(a) {
-  color: #009688;
-  text-decoration: none;
+  color: inherit;
+  text-decoration: none !important;
+  font-weight: bold;
 }
 
 .bottom-toolbar-copyright :deep(a:hover) {
-  text-decoration: underline;
+  opacity: 0.8;
 }
 </style>
 

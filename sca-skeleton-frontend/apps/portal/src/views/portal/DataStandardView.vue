@@ -569,6 +569,7 @@ onMounted(() => {
 /* ── 搜索区域 ── */
 .search-area {
   flex-shrink: 0;
+  margin-bottom: 8px;
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 0;
@@ -761,21 +762,12 @@ onMounted(() => {
 }
 
 .standard-table--empty :deep(.q-table__middle) {
-  flex: 0 0 auto;
-  overflow: visible;
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 .standard-table--empty :deep(.q-table__bottom) {
-  flex: 1 1 0;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-top: none !important;
-}
-
-.standard-table--empty :deep(.q-table__bottom .q-table__bottom-nodata-icon) {
-  display: none;
+  flex: 0 0 auto;
 }
 
 /* 行悬停 */

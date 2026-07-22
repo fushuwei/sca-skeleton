@@ -22,8 +22,7 @@
     "unreadNotifications": "unread notifications",
     "viewAll": "View All",
     "noNotifications": "No notifications",
-    "footerCopyright": "Copyright © 2026 Donghu University · IT Office. All rights reserved.",
-    "versionLabel": "v1.0.0"
+    "copyright": "Copyright © 2026 <a href=\"https://github.com/fushuwei\" target=\"_blank\" rel=\"noopener noreferrer\">Fu Wei</a>. All rights reserved."
   },
   "error": {
     "notFoundTitle": "Page Not Found",

@@ -247,7 +247,7 @@ function unfavorite(row: FavoriteRow): void {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 8px;
+  padding: 8px 24px;
   background: #f5f5f5;
 }
 
@@ -360,21 +360,12 @@ function unfavorite(row: FavoriteRow): void {
 }
 
 .favorite-table--empty :deep(.q-table__middle) {
-  flex: 0 0 auto;
-  overflow: visible;
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 .favorite-table--empty :deep(.q-table__bottom) {
-  flex: 1 1 0;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-top: none !important;
-}
-
-.favorite-table--empty :deep(.q-table__bottom .q-table__bottom-nodata-icon) {
-  display: none;
+  flex: 0 0 auto;
 }
 
 /* 行悬停 */
