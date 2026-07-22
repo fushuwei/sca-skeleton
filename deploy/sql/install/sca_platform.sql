@@ -424,9 +424,9 @@ WHERE NOT EXISTS (
 
 -- ============================================================
 -- 门户前台菜单权限（portal 域）
--- ID 规则：8000 开头
---   一级菜单（module）：8000 = 首页，8100 = 数据目录，8200 = 数据服务，8900 = 个人中心
---   二级菜单（menu）：前两位是一级 ID 前两位，后两位从 10 开始递增
+-- ID 规则：ID = 排序值
+--   一级菜单：首页=1，数据目录=2，数据服务=3，个人中心=4
+--   子菜单：ID 直接使用注释中的排序值（如数据地图=21）
 -- ============================================================
 --
 -- 菜单树结构：
@@ -457,77 +457,77 @@ INSERT INTO `sys_permission` (
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT t.* FROM (
-    -- ==================== 首页 (sort=10) ====================
-    SELECT '8000' AS `id`, '0' AS `parent_id`, '首页' AS `name`, 'Home' AS `name_en`, 'module' AS `type`, 'portal:home' AS `code`,
+    -- ==================== 首页 (sort=1, id=1) ====================
+    SELECT '1' AS `id`, '0' AS `parent_id`, '首页' AS `name`, 'Home' AS `name_en`, 'module' AS `type`, 'portal:home' AS `code`,
            '/portal/home' AS `path`, 'HomeView' AS `component`, 'sym_r_home' AS `icon`,
-           10 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,8000' AS `tree_path`, 'portal' AS `realm`, NULL AS `remark`,
+           1 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,1' AS `tree_path`, 'portal' AS `realm`, NULL AS `remark`,
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
-    -- ==================== 数据目录 (sort=20) ====================
+    -- ==================== 数据目录 (sort=2, id=2) ====================
     UNION ALL
-    SELECT '8100', '0', '数据目录', 'Data Catalog', 'module', 'portal:data',
+    SELECT '2', '0', '数据目录', 'Data Catalog', 'module', 'portal:data',
            NULL, NULL, 'sym_r_folder',
-           20, 1, 0, 'enabled', '0,8100', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+           2, 1, 0, 'enabled', '0,2', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '8110', '8100', '数据地图', 'Data Map', 'menu', 'portal:data:map:view',
+    SELECT '21', '2', '数据地图', 'Data Map', 'menu', 'portal:data:map:view',
            '/portal/data/map', 'DataMapView', 'sym_r_map',
-           2010, 1, 0, 'enabled', '0,8100,8110', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+           21, 1, 0, 'enabled', '0,2,21', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '8120', '8100', '资源目录', 'Resource Catalog', 'menu', 'portal:data:resource:list',
+    SELECT '22', '2', '资源目录', 'Resource Catalog', 'menu', 'portal:data:resource:list',
            '/portal/data/resources', 'ResourceCatalogView', 'sym_r_table',
-           2020, 1, 0, 'enabled', '0,8100,8120', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+           22, 1, 0, 'enabled', '0,2,22', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '8130', '8100', '数据标准', 'Data Standards', 'menu', 'portal:data:standard:list',
+    SELECT '23', '2', '数据标准', 'Data Standards', 'menu', 'portal:data:standard:list',
            '/portal/data/standards', 'DataStandardView', 'sym_r_checklist',
-           2030, 1, 0, 'enabled', '0,8100,8130', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    -- ==================== 数据服务 (sort=30) ====================
+           23, 1, 0, 'enabled', '0,2,23', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- ==================== 数据服务 (sort=3, id=3) ====================
     UNION ALL
-    SELECT '8200', '0', '数据服务', 'Data Services', 'module', 'portal:service',
+    SELECT '3', '0', '数据服务', 'Data Services', 'module', 'portal:service',
            NULL, NULL, 'sym_r_api',
-           30, 1, 0, 'enabled', '0,8200', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+           3, 1, 0, 'enabled', '0,3', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '8210', '8200', '智能问数', 'AI Query', 'menu', 'portal:service:ai:query',
+    SELECT '31', '3', '智能问数', 'AI Query', 'menu', 'portal:service:ai:query',
            '/portal/service/ai-query', 'AiQueryView', 'sym_r_psychiatry',
-           3010, 1, 0, 'enabled', '0,8200,8210', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+           31, 1, 0, 'enabled', '0,3,31', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '8220', '8200', '数据集市', 'Data Marketplace', 'menu', 'portal:service:data:market',
+    SELECT '32', '3', '数据集市', 'Data Marketplace', 'menu', 'portal:service:data:market',
            '/portal/service/data-market', 'DataMarketView', 'sym_r_store',
-           3020, 1, 0, 'enabled', '0,8200,8220', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+           32, 1, 0, 'enabled', '0,3,32', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '8230', '8200', '数据填报', 'Data Submit', 'menu', 'portal:service:data:submit',
+    SELECT '33', '3', '数据填报', 'Data Submit', 'menu', 'portal:service:data:submit',
            '/portal/service/data-submit', 'DataSubmitView', 'sym_r_edit_note',
-           3030, 1, 0, 'enabled', '0,8200,8230', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    -- ==================== 个人中心 (sort=90) ====================
+           33, 1, 0, 'enabled', '0,3,33', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- ==================== 个人中心 (sort=4, id=4) ====================
     UNION ALL
-    SELECT '8900', '0', '个人中心', 'Profile', 'module', 'portal:profile',
+    SELECT '4', '0', '个人中心', 'Profile', 'module', 'portal:profile',
            NULL, NULL, 'sym_r_account_circle',
-           90, 1, 0, 'enabled', '0,8900', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+           4, 1, 0, 'enabled', '0,4', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '8910', '8900', '个人信息', 'Personal Info', 'menu', 'portal:profile:view',
+    SELECT '41', '4', '个人信息', 'Personal Info', 'menu', 'portal:profile:view',
            '/portal/profile', 'ProfileView', 'sym_r_person',
-           9010, 1, 0, 'enabled', '0,8900,8910', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+           41, 1, 0, 'enabled', '0,4,41', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '8920', '8900', '我的申请', 'My Requests', 'menu', 'portal:my:request:list',
+    SELECT '42', '4', '我的申请', 'My Requests', 'menu', 'portal:my:request:list',
            '/portal/my/requests', 'MyRequestView', 'sym_r_description',
-           9020, 1, 0, 'enabled', '0,8900,8920', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+           42, 1, 0, 'enabled', '0,4,42', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '8930', '8900', '我的下载', 'My Downloads', 'menu', 'portal:my:download:list',
+    SELECT '43', '4', '我的下载', 'My Downloads', 'menu', 'portal:my:download:list',
            '/portal/my/downloads', 'MyDownloadView', 'sym_r_download',
-           9030, 1, 0, 'enabled', '0,8900,8930', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+           43, 1, 0, 'enabled', '0,4,43', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '8940', '8900', '我的收藏', 'My Favorites', 'menu', 'portal:my:favorite:list',
+    SELECT '44', '4', '我的收藏', 'My Favorites', 'menu', 'portal:my:favorite:list',
            '/portal/my/favorites', 'MyFavoriteView', 'sym_r_star',
-           9040, 1, 0, 'enabled', '0,8900,8940', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+           44, 1, 0, 'enabled', '0,4,44', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '8950', '8900', '消息通知', 'Notifications', 'menu', 'portal:profile:notification:list',
+    SELECT '45', '4', '消息通知', 'Notifications', 'menu', 'portal:profile:notification:list',
            '/portal/profile/notifications', 'NotificationView', 'sym_r_notifications',
-           9050, 1, 0, 'enabled', '0,8900,8950', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+           45, 1, 0, 'enabled', '0,4,45', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '8960', '8900', '应用接入', 'App Integration', 'menu', 'portal:profile:app:integration:list',
+    SELECT '46', '4', '应用接入', 'App Integration', 'menu', 'portal:profile:app:integration:list',
            '/portal/profile/app-integrations', 'AppIntegrationView', 'sym_r_link',
-           9060, 1, 0, 'enabled', '0,8900,8960', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+           46, 1, 0, 'enabled', '0,4,46', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
 WHERE NOT EXISTS (
-    SELECT 1 FROM `sys_permission` WHERE `id` = '8000' AND `is_deleted` = 0
+    SELECT 1 FROM `sys_permission` WHERE `id` = '1' AND `is_deleted` = 0
 );
 
 
