@@ -483,3 +483,25 @@ function unfavorite(row: FavoriteRow): void {
 
 /* 单元格元素 */
 .resource-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.resource-name .star-icon {
+  color: #ffa726;
+  flex-shrink: 0;
+}
+
+.body--dark .resource-name .star-icon {
+  color: #ffb74d;
+}
+</style>
+
+<!-- 非 scoped：下拉弹出层 -->
+<style>
+.rows-per-page-popup .q-item {
+  min-height: 36px;
+  padding: 0 16px;
+}
+</style>

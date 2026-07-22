@@ -427,6 +427,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // 隐藏 loading
     hidePageLoader();
 
+    // 登录按钮 Tab 循环回用户名框
+    const loginBtn = document.getElementById('loginBtn');
+    const usernameInput = document.getElementById('username');
+    if (loginBtn && usernameInput) {
+        loginBtn.addEventListener('keydown', function (e) {
+            if (e.key === 'Tab' && !e.shiftKey) {
+                e.preventDefault();
+                usernameInput.focus();
+            }
+        });
+    }
+
     // 首次按键自动聚焦用户名框
     initFirstKeyFocus();
 });
