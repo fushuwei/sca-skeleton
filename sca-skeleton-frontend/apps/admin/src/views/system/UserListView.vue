@@ -235,7 +235,7 @@ const searchForm = reactive<UserPageRequest>({
   keyword: "",
   username: "",
   nickname: "",
-  userType: "",
+  realm: "",
   status: "",
   deptId: ""
 });
@@ -259,10 +259,10 @@ const statusOptions = [
   { label: "user.statusCancelled", value: "cancelled" }
 ];
 
-// ── 用户类型选项 ──
-const userTypeOptions = [
-  { label: "user.categoryBackend", value: "backend" },
-  { label: "user.categoryFrontend", value: "frontend" }
+// ── 用户域选项 ──
+const realmOptions = [
+  { label: "user.categoryAdmin", value: "admin" },
+  { label: "user.categoryPortal", value: "portal" }
 ];
 
 const statusColorOf = (s: string): string =>
@@ -276,16 +276,16 @@ const statusColorOf = (s: string): string =>
     cancelled: "grey-5"
   }[s] ?? "grey-5");
 
-const userTypeLabelOf = (t: string): string =>
+const realmLabelOf = (t: string): string =>
   ({
-    backend: "后台用户",
-    frontend: "前台用户"
+    admin: "后台用户",
+    portal: "前台用户"
   }[t] ?? t);
 
-const userTypeColorOf = (t: string): string =>
+const realmColorOf = (t: string): string =>
   ({
-    backend: "purple-7",
-    frontend: "teal-7"
+    admin: "purple-7",
+    portal: "teal-7"
   }[t] ?? "grey-6");
 
 const genderLabelOf = (g: string): string => (g === "male" ? "男" : g === "female" ? "女" : "-");
@@ -380,9 +380,9 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     sortable: true
   },
   {
-    name: "userType",
-    field: "userType",
-    label: t("user.userType"),
+    name: "realm",
+    field: "realm",
+    label: t("user.realm"),
     align: "left",
     sortable: true
   },
@@ -505,7 +505,7 @@ async function loadTableData(
     username: searchForm.username || undefined,
     nickname: searchForm.nickname || undefined,
     
-    userType: searchForm.userType || undefined,
+    realm: searchForm.realm || undefined,
     status: searchForm.status || undefined,
     deptId: searchForm.deptId || undefined,
     sortField,
@@ -569,7 +569,7 @@ function handleReset() {
   searchForm.keyword = "";
   searchForm.username = "";
   searchForm.nickname = "";
-  searchForm.userType = "";
+  searchForm.realm = "";
   searchForm.status = "";
   searchForm.deptId = "";
   extraSearch.phone = "";
@@ -921,11 +921,11 @@ onMounted(() => {
             </div>
             <div class="col-auto">
               <q-select
-                v-model="searchForm.userType"
+                v-model="searchForm.realm"
                 filled
                 square
                 dense
-                :options="userTypeOptions"
+                :options="realmOptions"
                 :option-label="(o) => (o ? t(o.label) : '')"
                 option-value="value"
                 emit-value
@@ -937,8 +937,8 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.userType" v-slot:selected>
-                  <span class="status-placeholder">{{ t('user.typePlaceholder') }}</span>
+                <template v-if="!searchForm.realm" v-slot:selected>
+                  <span class="status-placeholder">{{ t('user.realmPlaceholder') }}</span>
                 </template>
               </q-select>
             </div>
@@ -1068,15 +1068,15 @@ onMounted(() => {
           </q-td>
         </template>
 
-        <!-- 用户类别列 -->
-        <template #body-cell-userType="props">
+        <!-- 用户域列 -->
+        <template #body-cell-realm="props">
           <q-td :props="props">
             <q-badge
               v-if="props.value"
-              :color="userTypeColorOf(props.value)"
-              :label="userTypeLabelOf(props.value)"
+              :color="realmColorOf(props.value)"
+              :label="realmLabelOf(props.value)"
               rounded
-              class="user-type-badge"
+              class="user-realm-badge"
             />
             <span v-else class="text-grey-5">-</span>
           </q-td>
@@ -1762,7 +1762,7 @@ onMounted(() => {
 }
 
 /* Badge 统一样式 */
-.user-type-badge,
+.user-realm-badge,
 .status-badge {
   font-size: 11px;
   padding: 3px 10px;

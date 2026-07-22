@@ -19,7 +19,7 @@ public class UserPageRequest {
         "username", "u.username",
         "nickname", "u.nickname",
         "real_name", "u.real_name",
-        "user_type", "u.user_type",
+        "realm", "u.realm",
         "is_superadmin", "u.is_superadmin",
         "status", "u.status",
         "create_time", "u.create_time",
@@ -48,8 +48,8 @@ public class UserPageRequest {
     /** 昵称 */
     private String nickname;
 
-    /** 用户类型 */
-    private String userType;
+    /** 用户域（admin：后台用户；portal：前台用户） */
+    private String realm;
 
     /** 用户状态 */
     private String status;

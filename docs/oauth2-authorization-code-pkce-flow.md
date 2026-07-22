@@ -128,14 +128,14 @@ sequenceDiagram
     Auth->>Auth: LoginChannelContext.get() → ADMIN
 
     alt admin 渠道
-        Auth->>MySQL: ScaUserDetailsService.loadUserByUsername("admin")<br/>SELECT * FROM sys_user<br/>WHERE username='admin' AND user_category='backend'
+        Auth->>MySQL: ScaUserDetailsService.loadUserByUsername("admin")<br/>SELECT * FROM sys_user<br/>WHERE username='admin' AND realm='admin'
         MySQL-->>Auth: SysUser { userId, username, password, permissions, ... }
     else portal 渠道
-        Auth->>MySQL: ScaUserDetailsService.loadFrontendUserByUsername("user")<br/>SELECT * FROM sys_user<br/>WHERE username='user' AND user_category='frontend'
+        Auth->>MySQL: ScaUserDetailsService.loadPortalUserByUsername("user")<br/>SELECT * FROM sys_user<br/>WHERE username='user' AND realm='portal'
         MySQL-->>Auth: SysUser { userId, username, password, permissions, ... }
     end
 
-    Auth->>Auth: 构建 ScaUserDetails<br/>(userId, username, password, tenantId, userType, nickname, permissions)
+    Auth->>Auth: 构建 ScaUserDetails<br/>(userId, username, password, tenantId, nickname, permissions)
     Auth->>Auth: PasswordEncoder.matches(rawPassword, encodedPassword)
     Auth->>Auth: 登录成功 → Authentication 写入 SecurityContext
 
@@ -204,7 +204,7 @@ sequenceDiagram
 
     Note over Auth: PKCE 验证：<br/>BASE64URL(SHA256(code_verifier)) == code_challenge ✅<br/><br/>其他校验：<br/>- authorization_code 未过期 ✅<br/>- redirect_uri 完全一致 ✅<br/>- client_id 匹配 ✅<br/>- code 一次性使用 → 消费后删除
 
-    Auth->>Auth: ScaOpaqueAccessTokenClaimsCustomizer.customize()<br/>从 ScaUserDetails 提取业务 claims：<br/>- sub = userId<br/>- preferred_username = username<br/>- tenant_id = tenantId<br/>- user_type = userType<br/>- nickname = nickname<br/>- permissions = [p1, p2, ...]
+    Auth->>Auth: ScaOpaqueAccessTokenClaimsCustomizer.customize()<br/>从 ScaUserDetails 提取业务 claims：<br/>- sub = userId<br/>- preferred_username = username<br/>- tenant_id = tenantId<br/>- nickname = nickname<br/>- permissions = [p1, p2, ...]
 
     Auth->>Auth: 生成 access_token (不透明/REFERENCE 格式)<br/>有效期 900s<br/>metadata 中包含业务 claims
 
@@ -239,7 +239,7 @@ sequenceDiagram
 
     Redis-->>RS: access_token_value, access_token_expires_at,<br/>access_token_metadata (含业务 claims)
 
-    RS->>RS: 校验 token 未过期 ✅<br/>提取 claims：<br/>- sub = {userId}<br/>- preferred_username = {username}<br/>- permissions = [p1, p2, ...]<br/>- tenant_id / user_type / nickname
+    RS->>RS: 校验 token 未过期 ✅<br/>提取 claims：<br/>- sub = {userId}<br/>- preferred_username = {username}<br/>- permissions = [p1, p2, ...]<br/>- tenant_id / nickname
 
     RS->>RS: 构建 RedisOAuth2AuthenticatedPrincipal<br/>(principalName, claims, authorities)<br/>claims.active = true
 
@@ -341,7 +341,7 @@ sequenceDiagram
 
     RS->>RS: 解析 access_token_metadata JSON<br/>提取 CLAIMS_METADATA_NAME → Map&lt;String, Object&gt;
 
-    Note over RS: claims 结构：<br/>{<br/>  "sub": "user-uuid",<br/>  "preferred_username": "admin",<br/>  "tenant_id": "tenant-001",<br/>  "user_type": "backend",<br/>  "nickname": "管理员",<br/>  "permissions": ["user:read", "user:write", ...]<br/>}
+    Note over RS: claims 结构：<br/>{<br/>  "sub": "user-uuid",<br/>  "preferred_username": "admin",<br/>  "tenant_id": "tenant-001",<br/>  "nickname": "管理员",<br/>  "permissions": ["user:read", "user:write", ...]<br/>}
 
     RS->>RS: 补齐 RFC 7662 语义：<br/>ACTIVE = true<br/>principalName = sub ?? preferred_username
 

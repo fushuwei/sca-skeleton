@@ -62,7 +62,6 @@ alwaysApply: true
   - `sub`：用户业务 ID（UUID 去连字符 32 位小写）
   - `preferred_username`：登录用户名
   - `tenant_id`：租户 ID（单租户场景可为空字符串，但字段必须存在）
-  - `user_type`：用户类型枚举
   - `nickname`：用户昵称（仅展示用途，禁止做权限判断）
   - `permissions`：权限编码数组（字符串列表，不带前缀；空集时返回空数组）
 - 资源服务器读取 claim 时必须使用 `OAuth2AccessTokenClaimNames`（`sca-skeleton-starter-security` 常量包）或 `sca.security.*` 配置项，禁止在多个模块各自硬编码字段名。

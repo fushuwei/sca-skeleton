@@ -60,8 +60,8 @@ export interface SysUser {
   avatar: string;
   phone: string;
   email: string;
-  /** 用户类型：backend 后台用户 / frontend 前台用户 */
-  userType: string;
+  /** 用户域：admin 后台用户 / portal 前台用户 */
+  realm: string;
   /** 是否平台超级管理员：0-否，1-是 */
   isSuperadmin: number;
   /** 状态：active / inactive / locked / frozen / expired / disabled / cancelled */
@@ -105,7 +105,7 @@ export interface UserPageRequest {
   keyword?: string;
   username?: string;
   nickname?: string;
-  userType?: string;
+  realm?: string;
   status?: string;
   deptId?: string;
   sortField?: string;

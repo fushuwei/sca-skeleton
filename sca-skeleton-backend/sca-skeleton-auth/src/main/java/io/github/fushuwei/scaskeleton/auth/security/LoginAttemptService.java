@@ -108,12 +108,12 @@ public class LoginAttemptService {
      * 按用户名与登录渠道查询用户。
      */
     private SysUser findUser(String username, LoginChannel channel) {
-        // portal 渠道查 frontend 用户，其余查 backend 用户
-        String userType = LoginChannel.PORTAL == channel ? "frontend" : "backend";
+        // portal 渠道查前台用户（realm=portal），其余查后台用户（realm=admin）
+        String realm = LoginChannel.PORTAL == channel ? "portal" : "admin";
         return sysUserMapper.selectOne(
                 new LambdaQueryWrapper<SysUser>()
                         .eq(SysUser::getUsername, username)
-                        .eq(SysUser::getUserType, userType)
+                        .eq(SysUser::getRealm, realm)
         );
     }
 }

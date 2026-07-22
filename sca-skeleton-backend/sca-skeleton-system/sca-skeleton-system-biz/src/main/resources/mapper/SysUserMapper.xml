@@ -8,7 +8,7 @@
         SELECT
             u.id, u.tenant_id, t.name AS tenant_name, u.username, u.nickname, u.real_name,
             u.gender, u.avatar, u.phone, u.email,
-            u.user_type, u.is_superadmin, u.status,
+            u.realm, u.is_superadmin, u.status,
             u.status_time, u.status_reason, u.login_fail_count,
             u.must_change_password, u.password_update_time,
             u.effective_start_time, u.effective_end_time,
@@ -37,12 +37,12 @@
             GROUP BY ur.user_id
         ) r ON r.user_id = u.id
         WHERE u.is_deleted = 0
-          AND u.user_type = 'backend'
+          AND u.realm = 'admin'
         <if test="tenantId != null">
             AND u.tenant_id = #{tenantId}
         </if>
-        <if test="request.userType != null and request.userType != ''">
-            AND u.user_type = #{request.userType}
+        <if test="request.realm != null and request.realm != ''">
+            AND u.realm = #{request.realm}
         </if>
         <if test="request.deptId != null and request.deptId != ''">
             AND EXISTS (

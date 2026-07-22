@@ -7,10 +7,10 @@ package io.github.fushuwei.scaskeleton.auth.security;
  */
 public enum LoginChannel {
 
-    /** 管理后台：加载 user_type=backend 的用户 */
+    /** 管理后台：加载 realm=admin 的用户 */
     ADMIN("admin"),
 
-    /** 前台门户：加载 user_type=frontend 的用户 */
+    /** 前台门户：加载 realm=portal 的用户 */
     PORTAL("portal");
 
     /** 表单隐藏域 / 请求参数使用的字符串值 */

@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS `sys_user` (
     `avatar`                  VARCHAR(500)    DEFAULT NULL                COMMENT '头像地址',
     `phone`                   VARCHAR(20)     DEFAULT NULL                COMMENT '手机号',
     `email`                   VARCHAR(100)    DEFAULT NULL                COMMENT '邮箱',
-    `user_type`               VARCHAR(20)     NOT NULL                    COMMENT '用户类型（backend 后台用户，frontend 前台用户）',
+    `realm`                   VARCHAR(20)     NOT NULL                    COMMENT '用户域（admin：后台用户；portal：前台用户）',
     `is_superadmin`           TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否平台超级管理员（0否 1是）',
     `status`                  VARCHAR(10)     NOT NULL                    COMMENT '状态（active 正常，inactive 未激活，locked 锁定，frozen 冻结，expired 过期，disabled 禁用，cancelled 注销）',
     `status_time`             DATETIME        DEFAULT NULL                COMMENT '状态变更时间（锁定、冻结、过期、禁用、注销时间）',
@@ -165,7 +165,7 @@ CREATE TABLE IF NOT EXISTS `sys_user` (
 -- 内置超级管理员用户（密码：admin@123）
 INSERT INTO `sys_user` (
     `id`, `tenant_id`, `username`, `password`, `nickname`, `real_name`, `gender`, `avatar`, `phone`, `email`,
-    `user_type`, `is_superadmin`, `status`, `status_time`, `status_reason`, `login_fail_count`, `must_change_password`,
+    `realm`, `is_superadmin`, `status`, `status_time`, `status_reason`, `login_fail_count`, `must_change_password`,
     `password_update_time`, `effective_start_time`, `effective_end_time`, `last_login_ip`, `last_login_time`,
     `is_builtin`, `source_type`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
@@ -173,7 +173,7 @@ SELECT
     '1', NULL, 'admin',
     '{bcrypt}$2b$10$oW8PgdSN8jCUwZoApsRpc.8xhcCNInM8i0iH/6k.G7cmKB/5tb.Pq',
     '超级管理员', '超级管理员', NULL, NULL, NULL, NULL,
-    'backend', 1, 'active', NULL, NULL, 0, 0,
+    'admin', 1, 'active', NULL, NULL, 0, 0,
     NOW(), NOW(), NULL, NULL, NULL,
     1, 'initial', '系统内置管理员账号', 0, 'system', NOW(), 'system', NOW(), 0
 WHERE NOT EXISTS (

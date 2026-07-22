@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * 用户详情服务：从数据库加载用户信息用于 Spring Security 表单登录与 OAuth2 令牌颁发。
  * <p>
- * 管理后台加载 {@code user_type=backend}；前台门户加载 {@code user_type=frontend}。
+ * 管理后台加载 {@code realm=admin}；前台门户加载 {@code realm=portal}。
  * 由 {@link RoutingUserDetailsService} 按 {@link LoginChannel} 路由调用。
  *
  * @author Fu Wei
@@ -34,18 +34,18 @@ public class ScaUserDetailsService {
     private final LoginAttemptService loginAttemptService;
 
     /**
-     * 按用户名加载后台用户（user_type=backend）。
+     * 按用户名加载后台用户（realm=admin）。
      *
      * @param username 登录用户名
      * @return {@link ScaUserDetails}
      * @throws UsernameNotFoundException 用户不存在
      */
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // 查询后台用户类别
+        // 查询后台用户域
         SysUser user = sysUserMapper.selectOne(
             new LambdaQueryWrapper<SysUser>()
                 .eq(SysUser::getUsername, username)
-                .eq(SysUser::getUserType, "backend")
+                .eq(SysUser::getRealm, "admin")
         );
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在：" + username);
@@ -54,18 +54,18 @@ public class ScaUserDetailsService {
     }
 
     /**
-     * 按用户名加载前台门户用户（user_type=frontend）。
+     * 按用户名加载前台门户用户（realm=portal）。
      *
      * @param username 登录用户名
      * @return {@link ScaUserDetails}
      * @throws UsernameNotFoundException 用户不存在
      */
-    public UserDetails loadFrontendUserByUsername(String username) throws UsernameNotFoundException {
-        // 查询前台用户类别
+    public UserDetails loadPortalUserByUsername(String username) throws UsernameNotFoundException {
+        // 查询前台用户域
         SysUser user = sysUserMapper.selectOne(
             new LambdaQueryWrapper<SysUser>()
                 .eq(SysUser::getUsername, username)
-                .eq(SysUser::getUserType, "frontend")
+                .eq(SysUser::getRealm, "portal")
         );
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在：" + username);
@@ -83,12 +83,12 @@ public class ScaUserDetailsService {
      */
     public UserDetails loadUserByUsernameAndTenant(String username, String tenantId)
         throws UsernameNotFoundException {
-        // 多租户场景：用户名 + 租户 ID + 后台用户类别三重约束
+        // 多租户场景：用户名 + 租户 ID + 后台用户域三重约束
         SysUser user = sysUserMapper.selectOne(
             new LambdaQueryWrapper<SysUser>()
                 .eq(SysUser::getUsername, username)
                 .eq(SysUser::getTenantId, tenantId)
-                .eq(SysUser::getUserType, "backend")
+                .eq(SysUser::getRealm, "admin")
         );
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在：" + username);

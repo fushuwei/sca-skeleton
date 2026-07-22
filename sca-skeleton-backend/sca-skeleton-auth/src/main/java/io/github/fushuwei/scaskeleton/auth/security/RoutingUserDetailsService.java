@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 /**
  * 路由式用户详情服务：根据 {@link LoginChannelContext} 将认证请求分发到不同用户类别加载逻辑。
  * <p>
- * admin 渠道加载 {@code user_type=backend}；portal 渠道加载 {@code user_type=frontend}。
+ * admin 渠道加载 {@code realm=admin}；portal 渠道加载 {@code realm=portal}。
  *
  * @author Fu Wei
  */
@@ -29,7 +29,7 @@ public class RoutingUserDetailsService implements UserDetailsService {
         }
         // portal 走前台用户表过滤条件
         if (LoginChannel.PORTAL == channel) {
-            return scaUserDetailsService.loadFrontendUserByUsername(username);
+            return scaUserDetailsService.loadPortalUserByUsername(username);
         }
         // admin：后台用户
         return scaUserDetailsService.loadUserByUsername(username);

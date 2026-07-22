@@ -163,7 +163,7 @@ public class SysUserServiceImpl implements SysUserService {
         long count = userMapper.selectCount(new LambdaQueryWrapper<SysUser>()
             .eq(SysUser::getTenantId, tenantId)
             .eq(SysUser::getUsername, request.getUsername())
-            .eq(SysUser::getUserType, "backend"));
+            .eq(SysUser::getRealm, "admin"));
         if (count > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "用户名已存在");
         }
@@ -178,7 +178,7 @@ public class SysUserServiceImpl implements SysUserService {
         user.setGender(request.getGender());
         user.setPhone(request.getPhone());
         user.setEmail(request.getEmail());
-        user.setUserType("backend");
+        user.setRealm("admin");
         user.setIsSuperadmin(resolveIsSuperadmin(request.getIsSuperadmin()));  // 安全防护：仅超级管理员可创建超级管理员账号，非超管强制为 0（防止垂直越权）
         user.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : "active");
         user.setLoginFailCount(0);

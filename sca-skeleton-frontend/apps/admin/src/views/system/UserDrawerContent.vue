@@ -40,7 +40,7 @@ const form = reactive({
   gender: "",
   phone: "",
   email: "",
-  userType: "",
+  realm: "",
   isSuperadmin: 0,
   status: "active",
   mustChangePassword: 1,
@@ -78,7 +78,7 @@ const formRules = {
     (v: string) => v.length <= 50 || t("user.usernameLengthMax"),
     (v: string) => /^[a-zA-Z0-9_]+$/.test(v) || t("user.usernamePattern")
   ],
-  userType: [(v: string) => !!v || t("user.userTypeRequired")],
+  realm: [(v: string) => !!v || t("user.realmRequired")],
   deptId: [(v: string) => !!v || t("user.deptRequired")],
   roleIds: [(v: string[]) => v?.length > 0 || t("user.roleRequired")],
   nickname: [],
@@ -106,9 +106,9 @@ const genderOptions = computed(() => [
   { label: t("user.genderFemale"), value: "female" }
 ]);
 
-const userTypeOptions = computed(() => [
-  { label: t("user.categoryBackend"), value: "backend" },
-  { label: t("user.categoryFrontend"), value: "frontend" }
+const realmOptions = computed(() => [
+  { label: t("user.categoryAdmin"), value: "admin" },
+  { label: t("user.categoryPortal"), value: "portal" }
 ]);
 
 const statusOptions = computed(() => [
@@ -343,7 +343,7 @@ function resetForm() {
   form.gender = "";
   form.phone = "";
   form.email = "";
-  form.userType = "";
+  form.realm = "";
   form.isSuperadmin = 0;
   form.status = "active";
   form.mustChangePassword = 1;
@@ -365,7 +365,7 @@ function initForm() {
     form.gender = props.user.gender;
     form.phone = props.user.phone;
     form.email = props.user.email;
-    form.userType = props.user.userType;
+    form.realm = props.user.realm;
     form.isSuperadmin = props.user.isSuperadmin ?? 0;
     form.status = props.user.status;
     form.mustChangePassword = props.user.mustChangePassword ?? 1;
@@ -400,7 +400,7 @@ async function handleSave() {
     gender: form.gender || undefined,
     phone: form.phone || undefined,
     email: form.email || undefined,
-    userType: form.userType,
+    realm: form.realm,
     isSuperadmin: form.isSuperadmin,
     status: form.status,
     mustChangePassword: form.mustChangePassword,
@@ -598,19 +598,19 @@ async function handleSave() {
             hide-bottom-space
           />
         </div>
-        <!-- 用户类别 -->
+        <!-- 用户域 -->
         <div class="col-12 col-md-6">
           <q-select
-            v-model="form.userType"
-            :label="t('user.userType')"
+            v-model="form.realm"
+            :label="t('user.realm')"
             filled
             square
-            :options="userTypeOptions"
+            :options="realmOptions"
             option-label="label"
             option-value="value"
             emit-value
             map-options
-            :rules="formRules.userType"
+            :rules="formRules.realm"
             :disable="drawerReadonly"
             hide-bottom-space
             class="required-field"

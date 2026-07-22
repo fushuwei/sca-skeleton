@@ -93,7 +93,7 @@ public class LoginLogPublisher {
     /**
      * 登录失败：采集元数据，username 取登录输入的原始值。
      * <p>
-     * 失败时 SecurityContext 未建立，拿不到 ScaUserDetails，需通过 username + userType 反查 sys_user
+     * 失败时 SecurityContext 未建立，拿不到 ScaUserDetails，需通过 username + realm 反查 sys_user
      * 填充 tenantId/userId。用户不存在时（UsernameNotFoundException）反查自然返回 null，留空即可。
      */
     @EventListener
@@ -177,29 +177,29 @@ public class LoginLogPublisher {
     }
 
     /**
-     * 按 username + userType 反查 sys_user，用于失败时填充 tenantId/userId。
+     * 按 username + realm 反查 sys_user，用于失败时填充 tenantId/userId。
      * <p>
-     * userType 由 {@link LoginChannelContext} 映射：admin → backend，portal → frontend。
-     * 渠道未设置时默认 backend（与 {@link LoginChannel#fromValue} 的默认行为一致）。
+     * realm 与登录渠道一致：admin 渠道 → admin，portal 渠道 → portal。
+     * 渠道未设置时默认 admin（与 {@link LoginChannel#fromValue} 的默认行为一致）。
      */
     private SysUser findUser(String username) {
         if (!StringUtils.hasText(username)) {
             return null;
         }
-        String userType = resolveUserType();
+        String realm = resolveRealm();
         return sysUserMapper.selectOne(
             new LambdaQueryWrapper<SysUser>()
                 .eq(SysUser::getUsername, username)
-                .eq(SysUser::getUserType, userType)
+                .eq(SysUser::getRealm, realm)
         );
     }
 
     /**
-     * 从 {@link LoginChannelContext} 获取当前登录渠道并映射为 user_type。
+     * 从 {@link LoginChannelContext} 获取当前登录渠道并映射为 realm。
      */
-    private String resolveUserType() {
+    private String resolveRealm() {
         LoginChannel channel = LoginChannelContext.get();
-        return channel == LoginChannel.PORTAL ? "frontend" : "backend";
+        return channel == LoginChannel.PORTAL ? "portal" : "admin";
     }
 
     /**
