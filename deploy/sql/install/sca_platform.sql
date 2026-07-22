@@ -431,27 +431,25 @@ WHERE NOT EXISTS (
 --
 -- 菜单树结构：
 --
--- 🏠 首页 (sort=10)
---    （独立页面，无子菜单）
---    code: portal:home
+-- 首页 (sort=1)               code: portal:home
 --
--- 📂 数据目录 (sort=20)
---     ├── 🗺️  数据地图              portal:data:map:view                  (sort=2010)
---     ├── 📄  资源目录              portal:data:resource:list             (sort=2020)
---     └── 📄  数据标准              portal:data:standard:list             (sort=2030)
+-- 数据目录 (sort=2)
+--     ├── 数据地图              portal:data:map:view                  (sort=21)
+--     ├── 资源目录              portal:data:resource:list             (sort=22)
+--     └── 数据标准              portal:data:standard:list             (sort=23)
 --
--- 🔌 数据服务 (sort=30)
---     ├── 🤖  智能问数              portal:service:ai:query               (sort=3010)
---     ├── 🛒  数据集市              portal:service:data:market            (sort=3020)
---     └── 📄  数据填报              portal:service:data:submit            (sort=3030)
+-- 数据服务 (sort=3)
+--     ├── 智能问数              portal:service:ai:query               (sort=31)
+--     ├── 数据集市              portal:service:data:market            (sort=32)
+--     └── 数据填报              portal:service:data:submit            (sort=33)
 --
--- 👤 个人中心 (sort=90)
---     ├── 📄  个人信息              portal:profile:view                   (sort=9010)
---     ├── 📄  我的申请              portal:my:request:list                (sort=9020)
---     ├── 📄  我的下载              portal:my:download:list               (sort=9030)
---     ├── 📄  我的收藏              portal:my:favorite:list               (sort=9040)
---     ├── 📄  消息通知              portal:profile:notification:list      (sort=9050)
---     └── 📄  应用接入              portal:profile:app:integration:list   (sort=9060)
+-- 个人中心 (sort=4)
+--     ├── 个人信息              portal:profile:view                   (sort=41)
+--     ├── 我的申请              portal:my:request:list                (sort=42)
+--     ├── 我的下载              portal:my:download:list               (sort=43)
+--     ├── 我的收藏              portal:my:favorite:list               (sort=44)
+--     ├── 消息通知              portal:profile:notification:list      (sort=45)
+--     └── 应用接入              portal:profile:app:integration:list   (sort=46)
 -- ------------------------------------------------------------
 INSERT INTO `sys_permission` (
     `id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`,
