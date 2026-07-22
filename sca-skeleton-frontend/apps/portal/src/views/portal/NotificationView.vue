@@ -182,8 +182,6 @@ function markAllRead(): void {
 <style scoped>
 .notification-page {
   padding: 24px;
-  max-width: 1600px;
-  margin: 0 auto;
 }
 
 .profile-layout {

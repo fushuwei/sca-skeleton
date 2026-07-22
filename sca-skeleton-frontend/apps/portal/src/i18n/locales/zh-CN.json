@@ -284,7 +284,12 @@
     "scopesLabel": "授权范围",
     "scopesPlaceholder": "选择授权范围",
     "confirmCreate": "创建",
-    "createSuccess": "应用创建成功，请妥善保管凭证"
+    "createSuccess": "应用创建成功，请妥善保管凭证",
+    "keywordPlaceholder": "搜索应用名称、Client ID",
+    "batchRevokeConfirm": "确定要吊销选中的 {count} 个应用吗？",
+    "revokeConfirm": "确定要吊销应用 \"{name}\" 吗？",
+    "revokeSuccess": "应用吊销成功",
+    "selectRowsFirst": "请先选择数据"
   },
   "common": {
     "viewDetail": "查看详情",

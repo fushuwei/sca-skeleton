@@ -139,8 +139,6 @@ function formatNum(n: number): string {
 <style scoped>
 .page-data-map {
   padding: 24px;
-  max-width: 1600px;
-  margin: 0 auto;
 }
 
 /* ═══════════════ 页面头部 ═══════════════ */

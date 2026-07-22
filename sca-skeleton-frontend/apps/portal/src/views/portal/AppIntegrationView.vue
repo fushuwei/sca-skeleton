@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, reactive } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
+import type { QTableColumn } from "quasar";
 import ProfileSidebar from "../../components/ProfileSidebar.vue";
 
 const { t } = useI18n({ useScope: "global" });
@@ -19,7 +20,10 @@ interface AppRow {
   createTime: string;
 }
 
-const apps = ref<AppRow[]>([
+// ═══════════════════════════════════════════════════════════════
+// 本地 Mock 数据（API 就绪后替换为接口调用）
+// ═══════════════════════════════════════════════════════════════
+const mockApps: AppRow[] = [
   {
     id: "APP001",
     name: "教务管理系统",
@@ -56,22 +60,29 @@ const apps = ref<AppRow[]>([
     status: "expired",
     createTime: "2024-12-03"
   }
-]);
+];
 
-const revealedSecrets = ref<Set<string>>(new Set());
-
-function toggleSecret(id: string): void {
-  if (revealedSecrets.value.has(id)) {
-    revealedSecrets.value.delete(id);
-  } else {
-    revealedSecrets.value.add(id);
-  }
+// ═══════════════════════════════════════════════════════════════
+// 搜索条件
+// ═══════════════════════════════════════════════════════════════
+interface SearchForm {
+  keyword: string;
+  status: string;
 }
 
+const searchForm = reactive<SearchForm>({ keyword: "", status: "" });
+const searchExpanded = ref(true);
+
+const statusOptions = computed(() => [
+  { label: t("appIntegration.statusActive"), value: "active" },
+  { label: t("appIntegration.statusRevoked"), value: "revoked" },
+  { label: t("appIntegration.statusExpired"), value: "expired" }
+]);
+
 const statusColorMap: Record<string, string> = {
-  active: "teal",
-  revoked: "red",
-  expired: "orange"
+  active: "teal-7",
+  revoked: "red-7",
+  expired: "orange-7"
 };
 
 function statusLabel(status: AppStatus): string {
@@ -83,6 +94,29 @@ function statusLabel(status: AppStatus): string {
   return map[status];
 }
 
+// ═══════════════════════════════════════════════════════════════
+// Secret 显示/隐藏
+// ═══════════════════════════════════════════════════════════════
+const revealedSecrets = ref<Set<string>>(new Set());
+
+function toggleSecret(id: string): void {
+  if (revealedSecrets.value.has(id)) {
+    revealedSecrets.value.delete(id);
+  } else {
+    revealedSecrets.value.add(id);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 授权范围
+// ═══════════════════════════════════════════════════════════════
+function scopeColor(scope: string): string {
+  if (scope === "all") return "red";
+  if (scope === "data:write") return "orange";
+  if (scope === "data:read") return "blue";
+  return "teal";
+}
+
 const scopeOptions = [
   { label: "profile", value: "profile" },
   { label: "offline_access", value: "offline_access" },
@@ -91,28 +125,145 @@ const scopeOptions = [
   { label: "data:write", value: "data:write" }
 ];
 
-function scopeColor(scope: string): string {
-  if (scope === "all") return "red";
-  if (scope === "data:write") return "orange";
-  if (scope === "data:read") return "blue";
-  return "teal";
-}
+// ═══════════════════════════════════════════════════════════════
+// 表格数据
+// ═══════════════════════════════════════════════════════════════
+const tableRows = ref<AppRow[]>([]);
+const tableTotal = ref(0);
+const tableLoading = ref(false);
+const tablePagination = ref({
+  page: 1,
+  rowsPerPage: 10,
+  rowsNumber: 0,
+  sortBy: "",
+  descending: false
+});
+const selectedRows = ref<AppRow[]>([]);
+const curPage = ref(1);
+const jumpToPage = ref<number | null>(null);
 
-const columns = computed(() => [
-  { name: "name", label: t("appIntegration.colAppName"), field: "name", align: "left" as const, sortable: true },
-  { name: "clientId", label: t("appIntegration.colClientId"), field: "clientId", align: "left" as const },
-  { name: "clientSecret", label: t("appIntegration.colClientSecret"), field: "clientSecret", align: "left" as const },
-  { name: "scopes", label: t("appIntegration.colScopes"), field: "scopes", align: "left" as const },
-  { name: "status", label: t("appIntegration.colStatus"), field: "status", align: "left" as const, sortable: true },
-  { name: "createTime", label: t("appIntegration.colCreateTime"), field: "createTime", align: "left" as const, sortable: true },
-  { name: "actions", label: t("appIntegration.colActions"), field: "actions", align: "right" as const }
+const columns = computed<QTableColumn<AppRow>[]>(() => [
+  { name: "name", field: "name", label: t("appIntegration.colAppName"), align: "left", sortable: true },
+  { name: "clientId", field: "clientId", label: t("appIntegration.colClientId"), align: "left" },
+  { name: "clientSecret", field: "clientSecret", label: t("appIntegration.colClientSecret"), align: "left" },
+  { name: "scopes", field: "scopes", label: t("appIntegration.colScopes"), align: "left" },
+  { name: "status", field: "status", label: t("appIntegration.colStatus"), align: "left", sortable: true },
+  { name: "createTime", field: "createTime", label: t("appIntegration.colCreateTime"), align: "left", sortable: true },
+  { name: "actions", field: "id", label: t("common.actions"), align: "center", sortable: false }
 ]);
 
-const pagination = ref({
-  page: 1,
-  rowsPerPage: 10
-});
+const visibleColumns = ref(columns.value.map((c) => c.name));
 
+function compareValues(av: unknown, bv: unknown, dir: number): number {
+  if (av == null && bv == null) return 0;
+  if (av == null) return -1 * dir;
+  if (bv == null) return 1 * dir;
+  if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
+  return String(av).localeCompare(String(bv)) * dir;
+}
+
+let initialLoadDone = false;
+let loadRequestId = 0;
+
+// ═══════════════════════════════════════════════════════════════
+// 数据加载（模拟接口分页）
+// ═══════════════════════════════════════════════════════════════
+async function loadTableData(
+  props?: {
+    pagination: {
+      page: number;
+      rowsPerPage: number;
+      rowsNumber?: number;
+      sortBy?: string;
+      descending?: boolean;
+    };
+  }
+) {
+  if (props && !initialLoadDone) return;
+
+  const requestId = ++loadRequestId;
+  tableLoading.value = true;
+
+  if (props?.pagination) {
+    tablePagination.value.sortBy = props.pagination.sortBy ?? "";
+    tablePagination.value.descending = props.pagination.descending ?? false;
+  }
+
+  const pageSize = Number(tablePagination.value.rowsPerPage) || 10;
+  const pageNum = curPage.value || 1;
+
+  // 模拟接口延迟
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  if (requestId !== loadRequestId) return;
+
+  // 过滤
+  let rows: AppRow[] = [...mockApps];
+  const kw = searchForm.keyword?.trim().toLowerCase();
+  if (kw) {
+    rows = rows.filter(
+      (r) => r.name.toLowerCase().includes(kw) || r.clientId.toLowerCase().includes(kw)
+    );
+  }
+  if (searchForm.status) {
+    rows = rows.filter((r) => r.status === searchForm.status);
+  }
+
+  // 排序
+  const sortBy = tablePagination.value.sortBy;
+  if (sortBy) {
+    const dir = tablePagination.value.descending ? -1 : 1;
+    rows = [...rows].sort((a, b) =>
+      compareValues(a[sortBy as keyof AppRow], b[sortBy as keyof AppRow], dir)
+    );
+  }
+
+  const total = rows.length;
+  const start = (pageNum - 1) * pageSize;
+  tableRows.value = rows.slice(start, start + pageSize);
+  tableTotal.value = total;
+  tablePagination.value.rowsNumber = total;
+  tablePagination.value.page = pageNum;
+  tablePagination.value.rowsPerPage = pageSize;
+
+  tableLoading.value = false;
+}
+
+function handleSearch() {
+  tablePagination.value.page = 1;
+  curPage.value = 1;
+  loadTableData();
+}
+
+function onPageChange(page: number) {
+  curPage.value = Number(page);
+  tablePagination.value.page = Number(page);
+  loadTableData();
+}
+
+function handleJumpToPage() {
+  const page = Number(jumpToPage.value);
+  const maxPage = Math.ceil(tableTotal.value / tablePagination.value.rowsPerPage);
+  if (page && page >= 1 && page <= maxPage) {
+    curPage.value = page;
+    tablePagination.value.page = page;
+    loadTableData();
+  }
+  jumpToPage.value = null;
+}
+
+function handleReset() {
+  searchForm.keyword = "";
+  searchForm.status = "";
+  tablePagination.value.sortBy = "";
+  tablePagination.value.descending = false;
+  tablePagination.value.page = 1;
+  curPage.value = 1;
+  loadTableData();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 操作
+// ═══════════════════════════════════════════════════════════════
 function copyToClipboard(text: string): void {
   navigator.clipboard.writeText(text).then(() => {
     $q.notify({ type: "positive", message: t("common.copied"), position: "top" });
@@ -122,12 +273,52 @@ function copyToClipboard(text: string): void {
 }
 
 function revokeApp(row: AppRow): void {
-  row.status = "revoked";
-  revealedSecrets.value.delete(row.id);
-  $q.notify({ type: "warning", message: `${t("appIntegration.revoke")}: ${row.name}`, position: "top" });
+  $q.dialog({
+    title: t("appIntegration.revoke"),
+    message: t("appIntegration.revokeConfirm", { name: row.name }),
+    cancel: true,
+    persistent: true
+  }).onOk(() => {
+    row.status = "revoked";
+    revealedSecrets.value.delete(row.id);
+    selectedRows.value = selectedRows.value.filter((r) => r.id !== row.id);
+    $q.notify({ type: "positive", message: t("appIntegration.revokeSuccess"), position: "top" });
+  });
 }
 
+function handleBatchRevoke(): void {
+  if (!selectedRows.value.length) {
+    $q.notify({ type: "warning", message: t("appIntegration.selectRowsFirst"), position: "top" });
+    return;
+  }
+
+  const activeApps = selectedRows.value.filter((r) => r.status === "active");
+  if (!activeApps.length) {
+    $q.notify({ type: "warning", message: t("appIntegration.selectRowsFirst"), position: "top" });
+    return;
+  }
+
+  $q.dialog({
+    title: t("appIntegration.revoke"),
+    message: t("appIntegration.batchRevokeConfirm", { count: activeApps.length }),
+    cancel: true,
+    persistent: true
+  }).onOk(() => {
+    activeApps.forEach((app) => {
+      const row = tableRows.value.find((r) => r.id === app.id);
+      if (row) {
+        row.status = "revoked";
+        revealedSecrets.value.delete(row.id);
+      }
+    });
+    selectedRows.value = [];
+    $q.notify({ type: "positive", message: t("appIntegration.revokeSuccess"), position: "top" });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
 // 创建应用对话框
+// ═══════════════════════════════════════════════════════════════
 const showCreateDialog = ref(false);
 const newApp = reactive<{ name: string; scopes: string[] }>({ name: "", scopes: [] });
 
@@ -142,7 +333,7 @@ function createApp(): void {
     $q.notify({ type: "negative", message: t("appIntegration.appNamePlaceholder"), position: "top" });
     return;
   }
-  const seq = String(apps.value.length + 1).padStart(3, "0");
+  const seq = String(mockApps.length + 1).padStart(3, "0");
   const app: AppRow = {
     id: `APP${seq}`,
     name: newApp.name.trim(),
@@ -150,128 +341,315 @@ function createApp(): void {
     clientSecret: `sk_${Math.random().toString(16).slice(2, 18)}`,
     scopes: newApp.scopes.length ? [...newApp.scopes] : ["profile"],
     status: "active",
-    createTime: "2026-07-22"
+    createTime: "2026-07-23"
   };
-  apps.value.unshift(app);
+  mockApps.unshift(app);
   showCreateDialog.value = false;
   $q.notify({ type: "positive", message: t("appIntegration.createSuccess"), position: "top" });
+  loadTableData();
 }
+
+// ═══════════════════════════════════════════════════════════════
+// 生命周期
+// ═══════════════════════════════════════════════════════════════
+onMounted(() => {
+  loadTableData();
+  initialLoadDone = true;
+});
 </script>
 
 <template>
-  <div class="app-integration-page">
+  <div class="app-integration-page-wrapper">
     <div class="profile-layout">
       <ProfileSidebar />
       <div class="profile-main">
-    <header class="page-header">
-      <div class="header-row">
-        <div>
-          <h1 class="page-title">{{ t("appIntegration.pageTitle") }}</h1>
-          <p class="page-desc">{{ t("appIntegration.pageDesc") }}</p>
-        </div>
-        <q-btn
-          unelevated
-          no-caps
-          :label="t('appIntegration.createApp')"
-          icon="sym_r_add"
-          class="btn-primary"
-          @click="openCreateDialog"
-        />
-      </div>
-    </header>
-
-    <q-card flat class="page-card">
-      <q-table
-        :rows="apps"
-        :columns="columns"
-        row-key="id"
-        flat
-        dense
-        :rows-per-page-options="[10, 20, 50]"
-        v-model:pagination="pagination"
-        class="data-table"
-      >
-        <template #body-cell-clientId="props">
-          <q-td :props="props">
-            <span class="mono-text">{{ props.row.clientId }}</span>
-          </q-td>
-        </template>
-
-        <template #body-cell-clientSecret="props">
-          <q-td :props="props">
-            <div class="secret-cell">
-              <span class="mono-text">
-                {{ revealedSecrets.has(props.row.id) ? props.row.clientSecret : t("appIntegration.secretMasked") }}
-              </span>
+        <div class="app-list-shell">
+          <!-- ── 搜索区域 ── -->
+          <div class="search-area">
+            <div class="search-area-header row items-center no-wrap">
+              <div class="row items-center no-wrap cursor-pointer" @click="searchExpanded = !searchExpanded">
+                <q-icon name="sym_r_search" size="20px" class="q-mr-xs" color="grey-8" />
+                <span class="search-area-title">{{ t("common.searchCondition") }}</span>
+              </div>
+              <q-space />
               <q-btn
                 flat
-                round
                 dense
-                size="sm"
-                :icon="revealedSecrets.has(props.row.id) ? 'sym_r_visibility_off' : 'sym_r_visibility'"
-                :color="revealedSecrets.has(props.row.id) ? 'teal' : 'grey-6'"
-                @click="toggleSecret(props.row.id)"
+                round
+                size="20px"
+                :icon="searchExpanded ? 'sym_r_expand_less' : 'sym_r_expand_more'"
+                class="search-collapse-btn"
+                @click="searchExpanded = !searchExpanded"
               >
-                <q-tooltip>{{ t("appIntegration.revealSecret") }}</q-tooltip>
+                <q-tooltip style="white-space: nowrap">{{
+                  searchExpanded ? t("common.collapseSearch") : t("common.expandSearch")
+                }}</q-tooltip>
               </q-btn>
             </div>
-          </q-td>
-        </template>
 
-        <template #body-cell-scopes="props">
-          <q-td :props="props">
-            <div class="scope-chips">
-              <q-chip
-                v-for="scope in props.row.scopes"
-                :key="scope"
-                dense
-                square
-                :color="scopeColor(scope)"
-                text-color="white"
-                class="scope-chip"
-              >
-                {{ scope }}
-              </q-chip>
+            <div v-show="searchExpanded" class="search-area-body">
+              <div class="row q-col-gutter-sm items-end">
+                <div class="col">
+                  <q-input
+                    v-model="searchForm.keyword"
+                    filled
+                    square
+                    dense
+                    :placeholder="t('appIntegration.keywordPlaceholder')"
+                    hide-bottom-space
+                    clearable
+                    @keyup.enter="handleSearch"
+                  />
+                </div>
+                <div class="col-auto">
+                  <q-select
+                    v-model="searchForm.status"
+                    filled
+                    square
+                    dense
+                    :options="statusOptions"
+                    option-label="label"
+                    option-value="value"
+                    emit-value
+                    map-options
+                    hide-bottom-space
+                    clearable
+                    transition-show="jump-up"
+                    transition-hide="jump-down"
+                    class="status-select"
+                    popup-content-class="status-select-popup"
+                  >
+                    <template v-if="!searchForm.status" v-slot:selected>
+                      <span class="status-placeholder">{{ t('appIntegration.colStatus') }}</span>
+                    </template>
+                  </q-select>
+                </div>
+                <div class="col-auto">
+                  <div class="row q-gutter-x-sm no-wrap">
+                    <q-btn color="primary" unelevated no-caps class="search-btn" @click="handleSearch">
+                      <q-icon name="sym_r_search" size="20px" class="q-mr-xs" />
+                      {{ t("common.search") }}
+                    </q-btn>
+                    <q-btn color="grey-7" outline no-caps class="search-btn" @click="handleReset">
+                      <q-icon name="sym_r_refresh" size="20px" class="q-mr-xs" />
+                      {{ t("common.reset") }}
+                    </q-btn>
+                  </div>
+                </div>
+              </div>
             </div>
-          </q-td>
-        </template>
+          </div>
 
-        <template #body-cell-status="props">
-          <q-td :props="props">
-            <q-chip dense square :color="statusColorMap[props.row.status]" text-color="white">
-              {{ statusLabel(props.row.status) }}
-            </q-chip>
-          </q-td>
-        </template>
+          <!-- ── 工具栏区域 ── -->
+          <div class="toolbar-area row items-center no-wrap">
+            <div class="toolbar-left row items-center no-wrap">
+              <q-btn
+                color="primary"
+                unelevated
+                dense
+                no-caps
+                class="toolbar-btn"
+                @click.stop="openCreateDialog"
+              >
+                <q-icon name="sym_r_add" size="20px" class="q-mr-xs" />
+                {{ t('appIntegration.createApp') }}
+              </q-btn>
+              <q-btn
+                color="white"
+                text-color="negative"
+                outline
+                dense
+                no-caps
+                class="toolbar-btn"
+                :disable="!selectedRows.length"
+                @click.stop="handleBatchRevoke"
+              >
+                <q-icon name="sym_r_block" size="20px" class="q-mr-xs" />
+                {{ t('appIntegration.revoke') }}
+              </q-btn>
+            </div>
+            <q-space />
+          </div>
 
-        <template #body-cell-actions="props">
-          <q-td :props="props" class="action-cell">
-            <q-btn
-              flat
-              no-caps
-              dense
-              :label="t('appIntegration.copySecret')"
-              color="teal"
-              icon="sym_r_content_copy"
-              @click="copyToClipboard(props.row.clientId)"
-            />
-            <q-btn
-              v-if="props.row.status === 'active'"
-              flat
-              no-caps
-              dense
-              :label="t('appIntegration.revoke')"
-              color="red"
-              @click="revokeApp(props.row)"
-            />
-          </q-td>
-        </template>
-      </q-table>
-    </q-card>
+          <!-- ── 表格区域 ── -->
+          <q-table
+            v-model:selected="selectedRows"
+            v-model:pagination="tablePagination"
+            :rows="tableRows"
+            :columns="columns"
+            :visible-columns="visibleColumns"
+            row-key="id"
+            :loading="tableLoading"
+            :rows-per-page-options="[10, 20, 50, 100]"
+            selection="multiple"
+            flat
+            :class="['app-table', { 'app-table--empty': !tableRows.length }]"
+            @request="loadTableData"
+          >
+            <!-- 应用名称列 -->
+            <template #body-cell-name="props">
+              <q-td :props="props">
+                <span>{{ props.row.name }}</span>
+              </q-td>
+            </template>
+
+            <!-- Client ID 列 -->
+            <template #body-cell-clientId="props">
+              <q-td :props="props">
+                <span class="mono-text">{{ props.row.clientId }}</span>
+              </q-td>
+            </template>
+
+            <!-- Client Secret 列 -->
+            <template #body-cell-clientSecret="props">
+              <q-td :props="props">
+                <div class="secret-cell">
+                  <span class="mono-text">
+                    {{ revealedSecrets.has(props.row.id) ? props.row.clientSecret : t("appIntegration.secretMasked") }}
+                  </span>
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    size="sm"
+                    :icon="revealedSecrets.has(props.row.id) ? 'sym_r_visibility_off' : 'sym_r_visibility'"
+                    :color="revealedSecrets.has(props.row.id) ? 'teal' : 'grey-6'"
+                    @click="toggleSecret(props.row.id)"
+                  >
+                    <q-tooltip>{{ t("appIntegration.revealSecret") }}</q-tooltip>
+                  </q-btn>
+                </div>
+              </q-td>
+            </template>
+
+            <!-- 授权范围列 -->
+            <template #body-cell-scopes="props">
+              <q-td :props="props">
+                <div class="scope-chips">
+                  <q-chip
+                    v-for="scope in props.row.scopes"
+                    :key="scope"
+                    dense
+                    square
+                    :color="scopeColor(scope)"
+                    text-color="white"
+                    class="scope-chip"
+                  >
+                    {{ scope }}
+                  </q-chip>
+                </div>
+              </q-td>
+            </template>
+
+            <!-- 状态列 -->
+            <template #body-cell-status="props">
+              <q-td :props="props">
+                <q-badge
+                  :color="statusColorMap[props.row.status]"
+                  :label="statusLabel(props.row.status)"
+                  rounded
+                  class="app-status-badge"
+                />
+              </q-td>
+            </template>
+
+            <!-- 操作列 -->
+            <template #body-cell-actions="props">
+              <q-td :props="props" class="q-gutter-x-xs actions-cell">
+                <q-btn
+                  flat
+                  dense
+                  round
+                  size="sm"
+                  color="teal"
+                  icon="sym_r_content_copy"
+                  @click.stop="copyToClipboard(props.row.clientId)"
+                >
+                  <q-tooltip>{{ t('appIntegration.copySecret') }}</q-tooltip>
+                </q-btn>
+                <q-btn
+                  v-if="props.row.status === 'active'"
+                  flat
+                  dense
+                  round
+                  size="sm"
+                  color="negative"
+                  icon="sym_r_block"
+                  @click.stop="revokeApp(props.row)"
+                >
+                  <q-tooltip>{{ t('appIntegration.revoke') }}</q-tooltip>
+                </q-btn>
+              </q-td>
+            </template>
+
+            <!-- 空数据 -->
+            <template #no-data>
+              <div class="column items-center justify-center q-py-xl text-grey-7 empty-state-content">
+                <q-icon name="sym_r_database_search" size="56px" class="q-mb-sm" />
+                <div class="text-body1 text-weight-medium q-mb-xs">
+                  {{ t("common.noData") }}
+                </div>
+                <div class="text-caption text-grey-6">
+                  {{ t("common.noDataHint") }}
+                </div>
+              </div>
+            </template>
+
+            <!-- 自定义底部分页栏 -->
+            <template #bottom="props">
+              <div class="row items-center full-width table-bottom">
+                <span>
+                  {{ t("common.totalRows", { count: tableTotal }) }}<template v-if="selectedRows.length">，{{ t("common.selectedRows", { count: selectedRows.length }) }}</template>
+                </span>
+                <q-space />
+                <q-pagination
+                  v-model="curPage"
+                  :max="props.pagesNumber"
+                  size="sm"
+                  color="primary"
+                  boundary-links
+                  direction-links
+                  icon-first="keyboard_double_arrow_left"
+                  icon-prev="keyboard_arrow_left"
+                  icon-next="keyboard_arrow_right"
+                  icon-last="keyboard_double_arrow_right"
+                  @update:model-value="onPageChange"
+                />
+                <span class="text-caption text-grey-7 q-ml-md q-mr-sm">{{ t("common.rowsPerPageLabel") }}</span>
+                <q-select
+                  v-model="tablePagination.rowsPerPage"
+                  :options="[10, 20, 50, 100]"
+                  dense
+                  flat
+                  borderless
+                  class="rows-per-page-select"
+                  popup-content-class="rows-per-page-popup"
+                  @update:model-value="handleSearch"
+                >
+                  <template #append>
+                    <span class="text-caption">{{ t("common.rowsPerPageUnit") }}</span>
+                  </template>
+                </q-select>
+                <span class="text-caption text-grey-7 q-ml-md">{{ t("common.jumpToLabel") }}</span>
+                <q-input
+                  v-model.number="jumpToPage"
+                  dense
+                  flat
+                  borderless
+                  class="jump-to-page-input"
+                  input-class="text-center"
+                  :placeholder="String((props.pagesNumber || 1) <= 1 ? 1 : (curPage >= (props.pagesNumber || 1) ? 1 : curPage + 1))"
+                  @keyup.enter="handleJumpToPage"
+                />
+                <span class="text-caption text-grey-7">{{ t("common.jumpToUnit") }}</span>
+              </div>
+            </template>
+          </q-table>
+        </div>
       </div>
     </div>
 
-    <!-- 创建应用对话框 -->
+    <!-- ═══ 创建应用对话框 ═══ -->
     <q-dialog v-model="showCreateDialog">
       <q-card flat class="create-dialog">
         <div class="create-dialog__header">
@@ -320,21 +698,34 @@ function createApp(): void {
 </template>
 
 <style scoped>
-.app-integration-page {
-  padding: 24px;
-  max-width: 1600px;
-  margin: 0 auto;
+/* ═══ 整体壳层 ═══ */
+.app-integration-page-wrapper {
+  height: 100%;
+  display: flex;
+  overflow: hidden;
+  padding: 8px 24px;
+  background: #f5f5f5;
 }
 
+.body--dark .app-integration-page-wrapper {
+  background: #1a1a1a;
+}
+
+/* ═══ 布局 ═══ */
 .profile-layout {
   display: grid;
   grid-template-columns: 220px 1fr;
   gap: 24px;
-  align-items: start;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
 .profile-main {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 @media (max-width: 1024px) {
@@ -343,115 +734,267 @@ function createApp(): void {
   }
 }
 
-.page-header {
-  margin-bottom: 24px;
-}
-
-.header-row {
+/* ═══ 列表壳层 ═══ */
+.app-list-shell {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+  flex-direction: column;
 }
 
-.page-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.87);
-  margin: 0 0 4px 0;
-  line-height: 1.4;
+/* ── 搜索区域 ── */
+.search-area {
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0;
 }
 
-.body--dark .page-title {
-  color: rgba(255, 255, 255, 0.92);
+.body--dark .search-area {
+  background: #1e1e1e;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
-.page-desc {
-  font-size: 13px;
-  color: rgba(0, 0, 0, 0.55);
-  margin: 0;
+.search-area-header {
+  height: 40px;
+  padding: 0 8px 0 12px;
+  background: #fafafa;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  user-select: none;
 }
 
-.body--dark .page-desc {
-  color: rgba(255, 255, 255, 0.55);
+.body--dark .search-area-header {
+  background: #252525;
+  border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
-.btn-primary {
-  background: #009688 !important;
-  color: #fff !important;
-  padding: 0 20px;
-  height: 38px;
+.search-area-title {
   font-size: 14px;
   font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.body--dark .search-area-title {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.search-area-header .cursor-pointer {
+  padding: 4px 0;
+}
+
+.search-area-header .cursor-pointer:hover {
+  opacity: 0.85;
+}
+
+.search-area-body {
+  padding: 8px;
+}
+
+.search-btn {
+  min-width: 72px;
+  height: 40px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.search-collapse-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  color: rgba(0, 0, 0, 0.87);
+  border-radius: 50%;
+}
+
+.body--dark .search-collapse-btn {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.search-collapse-btn :deep(.q-btn__wrapper) {
+  min-height: 32px;
+  padding: 0;
+}
+
+.search-collapse-btn :deep(.q-icon.material-symbols-rounded),
+.search-collapse-btn :deep(.material-symbols-rounded) {
+  font-size: 20px !important;
+}
+
+.search-collapse-btn:hover {
+  background: rgba(128, 128, 128, 0.28);
+}
+
+.status-select :deep(.q-field__native) {
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.body--dark .status-select :deep(.q-field__native) {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.status-select :deep(.q-field__control) {
+  min-height: 40px;
+  min-width: 160px;
+}
+
+/* ── 工具栏区域 ── */
+.toolbar-area {
+  flex-shrink: 0;
+  padding: 8px 1px;
+}
+
+.toolbar-left {
+  gap: 6px;
+}
+
+.toolbar-btn {
+  height: 32px;
+  font-size: 13px;
+  padding: 0 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.toolbar-area :deep(.q-btn) {
+  height: 32px;
+  font-size: 13px;
+}
+
+/* ── 表格 ── */
+.app-table {
+  flex: 1 1 auto;
+  min-height: 0;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0;
+}
+
+.body--dark .app-table {
+  background: #1e1e1e;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.app-table :deep(.q-table__top) {
+  display: none;
+}
+
+.app-table :deep(.q-table__container) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app-table :deep(.q-table__middle) {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overscroll-behavior: none;
+}
+
+.app-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.app-table :deep(.q-table__middle > table) {
+  flex: 0 0 auto;
+}
+
+.app-table :deep(thead tr th) {
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  color: rgba(0, 0, 0, 0.8) !important;
+  background: #fafafa !important;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.body--dark .app-table :deep(thead tr th) {
+  color: rgba(255, 255, 255, 0.8) !important;
+  background: #252525 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.app-table :deep(thead tr:first-child th) {
+  border-top: none;
+}
+
+/* ── 空数据状态 ── */
+.app-table--empty :deep(.q-table__container) {
+  height: 100%;
+}
+
+.app-table--empty :deep(.q-table__middle) {
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.app-table--empty :deep(.q-table__bottom) {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: none !important;
+}
+
+.app-table--empty :deep(.q-table__bottom .q-table__bottom-nodata-icon) {
+  display: none;
+}
+
+/* 行悬停 */
+.app-table :deep(tbody tr:hover td) {
+  background: rgba(0, 121, 107, 0.03) !important;
+}
+
+.app-table :deep(tbody tr.q-tr--selected td) {
+  background: rgba(0, 121, 107, 0.06) !important;
+}
+
+.app-table :deep(tbody td) {
+  font-size: 13px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+.body--dark .app-table :deep(tbody td) {
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Badge 统一样式 */
+.app-status-badge {
+  font-size: 11px;
+  padding: 3px 10px;
+  font-weight: 500;
+}
+
+/* 操作按钮列 */
+.actions-cell {
   white-space: nowrap;
 }
 
-.btn-primary:hover {
-  background: #00796b !important;
+.actions-cell :deep(.q-btn) {
+  width: 32px;
+  height: 32px;
 }
 
-.body--dark .btn-primary {
-  background: #4db6ac !important;
-  color: #002b27 !important;
+.actions-cell :deep(.q-btn .q-icon) {
+  font-size: 20px;
 }
 
-.body--dark .btn-primary:hover {
-  background: #009688 !important;
-  color: #fff !important;
+/* 空数据内容 */
+.empty-state-content {
+  text-align: center;
 }
 
-.page-card {
-  background: #fff !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.body--dark .page-card {
-  background: #2a2a2a !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.data-table :deep(.q-table thead th) {
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.55);
-  background: rgba(0, 0, 0, 0.02);
-  padding: 10px 16px;
-}
-
-.body--dark .data-table :deep(.q-table thead th) {
-  color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.data-table :deep(.q-table tbody td) {
-  font-size: 13px;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.75);
-}
-
-.body--dark .data-table :deep(.q-table tbody td) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.75);
-}
-
-.data-table :deep(.q-table tbody tr:hover td) {
-  background: rgba(0, 150, 136, 0.04);
-}
-
-.body--dark .data-table :deep(.q-table tbody tr:hover td) {
-  background: rgba(77, 182, 172, 0.06);
-}
-
-.data-table :deep(.q-table__bottom) {
-  font-size: 13px;
-  color: rgba(0, 0, 0, 0.55);
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.body--dark .data-table :deep(.q-table__bottom) {
-  color: rgba(255, 255, 255, 0.55);
-  border-top-color: rgba(255, 255, 255, 0.06);
+/* Secret 单元格 */
+.secret-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .mono-text {
@@ -464,12 +1007,7 @@ function createApp(): void {
   color: rgba(255, 255, 255, 0.75);
 }
 
-.secret-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
+/* Scope chips */
 .scope-chips {
   display: flex;
   flex-wrap: wrap;
@@ -480,10 +1018,82 @@ function createApp(): void {
   margin: 0;
 }
 
-.action-cell :deep(.q-btn) {
+/* 分页底栏 */
+.app-table :deep(.q-table__bottom) {
+  padding: 3px 16px 4px;
+  font-size: 13px;
+  min-height: 42px;
+  background: #fff;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.body--dark .app-table :deep(.q-table__bottom) {
+  background: #1e1e1e;
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.table-bottom {
+  min-height: 40px;
+}
+
+.table-bottom :deep(.q-pagination__content .q-btn) {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  font-size: 10px !important;
+}
+
+.table-bottom :deep(.q-pagination__content .q-btn .q-focus-helper) {
+  border-radius: 50%;
+}
+
+.table-bottom :deep(.q-pagination__content .q-btn .q-icon) {
+  font-size: 20px;
+}
+
+.table-bottom :deep(.q-pagination__content .q-btn.q-btn--standard) {
+  font-weight: 700;
+}
+
+.table-bottom :deep(.rows-per-page-select .q-field__control) {
+  min-height: 24px;
+  padding: 0;
+  height: 24px;
+}
+
+.table-bottom :deep(.rows-per-page-select .q-field__native) {
+  min-height: 24px;
   font-size: 12px;
-  font-weight: 500;
-  padding: 0 8px;
+  padding: 0;
+}
+
+.table-bottom :deep(.rows-per-page-select .q-field__marginal) {
+  height: 24px;
+}
+
+.table-bottom :deep(.jump-to-page-input) {
+  width: 40px;
+  font-size: 12px;
+}
+
+.table-bottom :deep(.jump-to-page-input .q-field__control) {
+  min-height: 24px;
+  padding: 0;
+  height: 24px;
+}
+
+.table-bottom :deep(.jump-to-page-input .q-field__native) {
+  min-height: 24px;
+  font-size: 12px;
+  padding: 0;
+}
+
+/* 复选框尺寸 */
+.app-table :deep(.q-checkbox__inner) {
+  font-size: 32px;
 }
 
 /* ═══════════════ 创建应用对话框 ═══════════════ */
@@ -570,6 +1180,30 @@ function createApp(): void {
   border-top-color: rgba(255, 255, 255, 0.08);
 }
 
+.btn-primary {
+  background: #009688 !important;
+  color: #fff !important;
+  padding: 0 20px;
+  height: 38px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  background: #00796b !important;
+}
+
+.body--dark .btn-primary {
+  background: #4db6ac !important;
+  color: #002b27 !important;
+}
+
+.body--dark .btn-primary:hover {
+  background: #009688 !important;
+  color: #fff !important;
+}
+
 .btn-cancel {
   color: rgba(0, 0, 0, 0.65);
   font-size: 14px;
@@ -581,13 +1215,17 @@ function createApp(): void {
 .body--dark .btn-cancel {
   color: rgba(255, 255, 255, 0.65);
 }
+</style>
 
-@media (max-width: 768px) {
-  .app-integration-page {
-    padding: 16px;
-  }
-  .header-row {
-    flex-direction: column;
-  }
+<!-- 非 scoped：状态选择下拉弹出层 -->
+<style>
+.status-select-popup .q-item {
+  min-height: 40px;
+  padding: 0 16px;
+}
+
+.rows-per-page-popup .q-item {
+  min-height: 36px;
+  padding: 0 16px;
 }
 </style>

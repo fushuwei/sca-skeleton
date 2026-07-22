@@ -284,8 +284,6 @@ function changePassword(): void {
 <style scoped>
 .profile-page {
   padding: 24px;
-  max-width: 1600px;
-  margin: 0 auto;
 }
 
 /* ═══════════════ 布局 ═══════════════ */

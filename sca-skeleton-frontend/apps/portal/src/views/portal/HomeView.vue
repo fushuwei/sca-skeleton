@@ -236,8 +236,6 @@ function formatDownloads(count: number): string {
 <style scoped>
 .home-page {
   padding: 24px;
-  max-width: 1600px;
-  margin: 0 auto;
 }
 
 /* ═══════════════ Hero ═══════════════ */

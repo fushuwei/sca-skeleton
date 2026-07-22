@@ -335,8 +335,6 @@ function viewDetail(product: DataProduct): void {
 <style scoped>
 .data-market-page {
   padding: 24px;
-  max-width: 1600px;
-  margin: 0 auto;
 }
 
 /* ═══════════════ 页面头部 ═══════════════ */

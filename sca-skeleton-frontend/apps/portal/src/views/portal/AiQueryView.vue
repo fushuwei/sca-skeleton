@@ -321,8 +321,6 @@ function exportResult(): void {
 <style scoped>
 .ai-query-page {
   padding: 24px;
-  max-width: 1600px;
-  margin: 0 auto;
   height: 100%;
   display: flex;
   flex-direction: column;

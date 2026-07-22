@@ -213,10 +213,10 @@ const unreadCount = computed(() => 3);
           >
             <q-tooltip>{{ t('layout.languageMenuAria') }}</q-tooltip>
             <q-menu
-              class="top-locale-menu"
+              class="portal-locale-q-menu"
               anchor="bottom middle"
               self="top middle"
-              :offset="[0, 8]"
+              :offset="userPillMenuOffset"
               :dark="$q.dark.isActive"
               transition-show="jump-down"
               transition-hide="jump-up"
@@ -228,7 +228,7 @@ const unreadCount = computed(() => 3);
                   class="top-locale-menu-item"
                   @click="applyHeaderLocale('zh-CN')"
                 >
-                  <q-item-section avatar class="top-locale-flag">CN</q-item-section>
+                  <q-item-section avatar class="top-locale-flag">🇨🇳</q-item-section>
                   <q-item-section>{{ t('layout.localeChinese') }}</q-item-section>
                   <q-item-section v-if="locale === 'zh-CN'" side>
                     <q-icon name="sym_r_check" class="top-locale-check" />
@@ -240,7 +240,7 @@ const unreadCount = computed(() => 3);
                   class="top-locale-menu-item"
                   @click="applyHeaderLocale('en-US')"
                 >
-                  <q-item-section avatar class="top-locale-flag">EN</q-item-section>
+                  <q-item-section avatar class="top-locale-flag">🇺🇸</q-item-section>
                   <q-item-section>{{ t('layout.localeEnglish') }}</q-item-section>
                   <q-item-section v-if="locale === 'en-US'" side>
                     <q-icon name="sym_r_check" class="top-locale-check" />
@@ -570,34 +570,26 @@ const unreadCount = computed(() => 3);
 
 /* —— 语言菜单 —— */
 .top-locale-menu-list {
-  min-width: 180px;
+  min-width: 220px;
 }
 
 .top-locale-menu-item {
   box-sizing: border-box;
   min-height: 40px;
   height: 40px;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .top-locale-flag {
   min-width: 32px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: #009688;
-}
-
-.body--dark .top-locale-flag {
-  color: #4db6ac;
+  font-size: 20px;
+  line-height: 1;
+  font-style: normal;
 }
 
 .top-locale-check {
   font-size: 18px !important;
-  color: #009688;
-}
-
-.body--dark .top-locale-check {
-  color: #4db6ac;
 }
 
 /* ═══════════════ 主内容区 ═══════════════ */
@@ -670,9 +662,19 @@ const unreadCount = computed(() => 3);
 }
 </style>
 
-<!-- 非 scoped：tooltip 不换行 -->
+<!-- 非 scoped：tooltip 不换行 & 菜单暗色模式 -->
 <style>
 .q-tooltip {
   white-space: nowrap;
+}
+
+.body--dark .portal-locale-q-menu,
+.body--dark .portal-user-q-menu {
+  background: #2d2d2d;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .portal-locale-q-menu .top-locale-check {
+  color: #80cbc4;
 }
 </style>

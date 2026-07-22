@@ -284,7 +284,12 @@
     "scopesLabel": "Scopes",
     "scopesPlaceholder": "Select scopes",
     "confirmCreate": "Create",
-    "createSuccess": "App created successfully, please keep your credentials safe"
+    "createSuccess": "App created successfully, please keep your credentials safe",
+    "keywordPlaceholder": "Search app name, Client ID",
+    "batchRevokeConfirm": "Are you sure to revoke {count} selected apps?",
+    "revokeConfirm": "Are you sure to revoke app \"{name}\"?",
+    "revokeSuccess": "App revoked successfully",
+    "selectRowsFirst": "Please select rows first"
   },
   "common": {
     "viewDetail": "View Detail",
