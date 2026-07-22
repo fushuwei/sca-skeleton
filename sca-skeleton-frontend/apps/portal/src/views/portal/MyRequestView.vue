@@ -302,7 +302,7 @@ function revoke(row: RequestRow): void {
   height: 100%;
   display: flex;
   overflow: hidden;
-  padding: 8px 0;
+  padding: 24px 0;
   background: #f5f5f5;
 }
 
