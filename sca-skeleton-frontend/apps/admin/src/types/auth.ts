@@ -247,6 +247,8 @@ export interface SysPermission {
   type: string;
   /** 权限标识，如 sys:user:list */
   code: string;
+  /** 权限域（admin：后台权限；portal：前台权限） */
+  realm: string;
   /** 前端路由地址 */
   path: string;
   /** 前端组件路径 */
@@ -276,6 +278,7 @@ export interface PermissionPageRequest {
   parentId?: string;
   keyword?: string;
   type?: string;
+  realm?: string;
   status?: string;
   sortField?: string;
   sortOrder?: "asc" | "desc";
@@ -296,6 +299,8 @@ export interface PermissionAssignOption {
   nameEn?: string;
   /** 类型：module / folder / menu / button */
   type: string;
+  /** 权限域（admin：后台权限；portal：前台权限） */
+  realm: string;
   icon: string;
   sort: number;
 }

@@ -32,6 +32,9 @@ public class PermissionResponse {
     /** 权限标识 */
     private String code;
 
+    /** 权限域 */
+    private String realm;
+
     // ==================== 前端配置 ====================
 
     /** 前端路由地址 */

@@ -29,6 +29,7 @@ const form = reactive({
   nameEn: "",
   type: "",
   code: "",
+  realm: "",
   path: "",
   component: "",
   icon: "",
@@ -44,6 +45,7 @@ const formRules = computed(() => ({
   name: [(v: string) => !!v?.trim() || t("menuMgmt.nameRequired")],
   nameEn: [(v: string) => !!v?.trim() || t("menuMgmt.nameEnRequired")],
   type: [(v: string) => !!v || t("menuMgmt.typeRequired")],
+  realm: [(v: string) => !!v || t("menuMgmt.realmRequired")],
   // 菜单和按钮类型要求权限标识必填（module/folder 类型可选）
   code: (form.type === "menu" || form.type === "button")
     ? [(v: string) => !!v?.trim() || t("menuMgmt.codeRequired")]
@@ -55,6 +57,11 @@ const typeOptions = computed(() => [
   { label: t("menuMgmt.typeFolder"), value: "folder" },
   { label: t("menuMgmt.typeMenu"), value: "menu" },
   { label: t("menuMgmt.typeButton"), value: "button" }
+]);
+
+const realmOptions = computed(() => [
+  { label: t("menuMgmt.realmAdmin"), value: "admin" },
+  { label: t("menuMgmt.realmPortal"), value: "portal" }
 ]);
 
 // ── 类型默认图标 ──
@@ -283,6 +290,7 @@ function resetForm() {
   form.nameEn = "";
   form.type = "";
   form.code = "";
+  form.realm = "";
   form.path = "";
   form.component = "";
   form.icon = "";
@@ -302,6 +310,7 @@ function initForm() {
     form.nameEn = props.permission.nameEn || "";
     form.type = props.permission.type;
     form.code = props.permission.code || "";
+    form.realm = props.permission.realm || "";
     form.path = props.permission.path || "";
     form.component = props.permission.component || "";
     form.icon = props.permission.icon || "";
@@ -337,6 +346,7 @@ async function handleSave() {
     nameEn: form.nameEn || undefined,
     type: form.type,
     code: form.code || undefined,
+    realm: form.realm || undefined,
     path: form.path || undefined,
     component: form.component || undefined,
     icon: form.type === "button" ? undefined : (form.icon || undefined),
@@ -496,6 +506,24 @@ async function handleSave() {
             map-options
             :rules="formRules.type"
             :disable="drawerReadonly"
+            hide-bottom-space
+            class="required-field"
+          />
+        </div>
+        <!-- 权限域（创建后不可修改，编辑/查看模式禁用） -->
+        <div class="col-12 col-md-6">
+          <q-select
+            v-model="form.realm"
+            :label="t('menuMgmt.realm')"
+            filled
+            square
+            :options="realmOptions"
+            option-label="label"
+            option-value="value"
+            emit-value
+            map-options
+            :rules="formRules.realm"
+            :disable="drawerReadonly || mode !== 'add'"
             hide-bottom-space
             class="required-field"
           />

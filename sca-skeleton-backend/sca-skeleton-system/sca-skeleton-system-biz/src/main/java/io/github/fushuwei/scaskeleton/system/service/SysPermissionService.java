@@ -19,16 +19,18 @@ public interface SysPermissionService {
     /**
      * 查询全量权限列表
      *
+     * @param realm 权限域
      * @return 权限列表
      */
-    List<PermissionResponse> listAllPermissions();
+    List<PermissionResponse> listAllPermissions(String realm);
 
     /**
      * 查询可授权权限列表
      *
+     * @param realm 权限域
      * @return 可授权权限列表
      */
-    List<PermissionAssignOptionResponse> listAssignablePermissions();
+    List<PermissionAssignOptionResponse> listAssignablePermissions(String realm);
 
     /**
      * 查询当前用户菜单列表

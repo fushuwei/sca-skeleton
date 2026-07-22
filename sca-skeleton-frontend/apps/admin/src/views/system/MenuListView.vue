@@ -236,6 +236,7 @@ const searchForm = reactive<PermissionPageRequest>({
   parentId: undefined,
   keyword: "",
   type: "",
+  realm: "",
   status: ""
 });
 
@@ -247,6 +248,12 @@ const typeOptions = [
   { label: "menuMgmt.typeFolder", value: "folder" },
   { label: "menuMgmt.typeMenu", value: "menu" },
   { label: "menuMgmt.typeButton", value: "button" }
+];
+
+// ── 权限域选项 ──
+const realmOptions = [
+  { label: "menuMgmt.realmAdmin", value: "admin" },
+  { label: "menuMgmt.realmPortal", value: "portal" }
 ];
 
 // ── 状态选项 ──
@@ -269,6 +276,18 @@ const typeLabelOf = (s: string): string =>
     folder: t("menuMgmt.typeFolder"),
     menu: t("menuMgmt.typeMenu"),
     button: t("menuMgmt.typeButton")
+  }[s] ?? s);
+
+const realmColorOf = (s: string): string =>
+  ({
+    admin: "blue-8",
+    portal: "purple"
+  }[s] ?? "grey-5");
+
+const realmLabelOf = (s: string): string =>
+  ({
+    admin: t("menuMgmt.realmAdmin"),
+    portal: t("menuMgmt.realmPortal")
   }[s] ?? s);
 
 const statusColorOf = (s: string): string =>
@@ -355,6 +374,13 @@ const columns = computed<QTableColumn<SysPermission>[]>(() => [
     sortable: true
   },
   {
+    name: "realm",
+    field: "realm",
+    label: t("menuMgmt.realm"),
+    align: "left",
+    sortable: true
+  },
+  {
     name: "code",
     field: "code",
     label: t("menuMgmt.code"),
@@ -428,6 +454,7 @@ const visibleColumns = ref(columns.value.map((c) => c.name));
 const SORT_FIELD_MAP: Record<string, string> = {
   name: "name",
   type: "type",
+  realm: "realm",
   code: "code",
   sort: "sort",
   status: "status",
@@ -476,6 +503,7 @@ async function loadTableData(
     parentId: searchForm.parentId || undefined,
     keyword: searchForm.keyword || undefined,
     type: searchForm.type || undefined,
+    realm: searchForm.realm || undefined,
     status: searchForm.status || undefined,
     sortField,
     sortOrder: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
@@ -534,6 +562,7 @@ function handleJumpToPage() {
 function handleReset() {
   searchForm.keyword = "";
   searchForm.type = "";
+  searchForm.realm = "";
   searchForm.status = "";
   searchForm.parentId = undefined;
   selectedMenuId.value = "";
@@ -804,6 +833,29 @@ onMounted(() => {
             </div>
             <div class="col-auto">
               <q-select
+                v-model="searchForm.realm"
+                filled
+                square
+                dense
+                :options="realmOptions"
+                :option-label="(o) => (o ? t(o.label) : '')"
+                option-value="value"
+                emit-value
+                map-options
+                hide-bottom-space
+                clearable
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                class="status-select"
+                popup-content-class="status-select-popup"
+              >
+                <template v-if="!searchForm.realm" v-slot:selected>
+                  <span class="status-placeholder">{{ t('menuMgmt.realmPlaceholder') }}</span>
+                </template>
+              </q-select>
+            </div>
+            <div class="col-auto">
+              <q-select
                 v-model="searchForm.status"
                 filled
                 square
@@ -913,6 +965,19 @@ onMounted(() => {
               v-if="props.value"
               :color="typeColorOf(props.value)"
               :label="typeLabelOf(props.value)"
+              rounded
+              class="menu-type-badge"
+            />
+          </q-td>
+        </template>
+
+        <!-- 权限域列 -->
+        <template #body-cell-realm="props">
+          <q-td :props="props">
+            <q-badge
+              v-if="props.value"
+              :color="realmColorOf(props.value)"
+              :label="realmLabelOf(props.value)"
               rounded
               class="menu-type-badge"
             />

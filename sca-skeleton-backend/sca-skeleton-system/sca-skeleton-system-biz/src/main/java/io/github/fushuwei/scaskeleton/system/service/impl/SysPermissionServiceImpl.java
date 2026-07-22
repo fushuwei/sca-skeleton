@@ -52,12 +52,14 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     /**
      * 查询全量权限列表
      *
+     * @param realm 权限域
      * @return 权限列表
      */
     @Override
-    public List<PermissionResponse> listAllPermissions() {
+    public List<PermissionResponse> listAllPermissions(String realm) {
         // 查询全局权限树（不按租户隔离）
         List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
+            .eq(StringUtils.hasText(realm), SysPermission::getRealm, realm)
             .orderByAsc(SysPermission::getSort));
         // 转换为响应对象列表
         return permissionConverter.toPermissionResponseList(permissions);
@@ -66,10 +68,11 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     /**
      * 查询可授权权限列表（用于角色/套餐授权面板）
      *
+     * @param realm 权限域
      * @return 可授权权限列表
      */
     @Override
-    public List<PermissionAssignOptionResponse> listAssignablePermissions() {
+    public List<PermissionAssignOptionResponse> listAssignablePermissions(String realm) {
         List<SysPermission> permissions;
 
         if (SecurityUtils.isSuperAdmin()) {
@@ -77,6 +80,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
                 .eq(SysPermission::getStatus, "enabled")
                 .eq(SysPermission::getIsVisible, 1)
+                .eq(StringUtils.hasText(realm), SysPermission::getRealm, realm)
                 .orderByAsc(SysPermission::getSort));
         } else {
             // 非超级管理员：仅返回当前用户自身拥有的权限（防止越权授予自己不具备的权限）
@@ -91,6 +95,10 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             }
             List<String> roleIds = userRoles.stream().map(SysUserRole::getRoleId).toList();
             permissions = permissionMapper.selectPermissionsByRoleIds(roleIds);
+            // 按权限域过滤（非超管仅能授予与当前角色域一致的权限）
+            if (StringUtils.hasText(realm)) {
+                permissions = permissions.stream().filter(p -> realm.equals(p.getRealm())).toList();
+            }
         }
 
         // 转换为响应对象列表
@@ -155,6 +163,8 @@ public class SysPermissionServiceImpl implements SysPermissionService {
                     .or().like(SysPermission::getCode, request.getKeyword()))
             // 类型筛选
             .eq(StringUtils.hasText(request.getType()), SysPermission::getType, request.getType())
+            // 权限域筛选
+            .eq(StringUtils.hasText(request.getRealm()), SysPermission::getRealm, request.getRealm())
             // 状态筛选
             .eq(StringUtils.hasText(request.getStatus()), SysPermission::getStatus, request.getStatus());
 
@@ -226,6 +236,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         permission.setNameEn(request.getNameEn());
         permission.setType(request.getType());
         permission.setCode(request.getCode());
+        permission.setRealm(request.getRealm());
         permission.setPath(request.getPath());
         permission.setComponent(request.getComponent());
         permission.setIcon(request.getIcon());

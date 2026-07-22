@@ -14,10 +14,12 @@ import io.github.fushuwei.scaskeleton.system.api.response.role.RoleOptionRespons
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
 import io.github.fushuwei.scaskeleton.system.converter.RoleConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysRole;
+import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
 import io.github.fushuwei.scaskeleton.system.entity.SysRolePermission;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysPermissionMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRolePermissionMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
@@ -31,6 +33,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -47,6 +50,8 @@ import java.util.stream.Collectors;
 public class SysRoleServiceImpl implements SysRoleService {
 
     private final SysRoleMapper roleMapper;
+
+    private final SysPermissionMapper permissionMapper;
 
     private final SysRolePermissionMapper rolePermissionMapper;
 
@@ -288,11 +293,33 @@ public class SysRoleServiceImpl implements SysRoleService {
         // 加载可操作角色实体
         SysRole role = loadOperableRoleEntity(request.getId());
 
+        // 越权防护：校验所选权限的域与角色域一致，防止跨域分配权限
+        validatePermissionRealm(role.getRealm(), request.getPermissionIds());
+
         // 先清空该角色下原有权限关联关系
         deleteRolePermissions(request.getId());
 
         // 保存新的角色与权限关联关系
         saveRolePermissions(role.getTenantId(), request.getId(), request.getPermissionIds());
+    }
+
+    /**
+     * 校验所选权限的域与角色域一致，防止跨域分配权限（越权防护）
+     *
+     * @param roleRealm     角色域
+     * @param permissionIds 权限 ID 列表
+     */
+    private void validatePermissionRealm(String roleRealm, List<String> permissionIds) {
+        if (CollectionUtils.isEmpty(permissionIds)) {
+            return;
+        }
+        Set<String> permIdSet = new HashSet<>(permissionIds);
+        long validCount = permissionMapper.selectCount(new LambdaQueryWrapper<SysPermission>()
+            .in(SysPermission::getId, permIdSet)
+            .eq(SysPermission::getRealm, roleRealm));
+        if (validCount != permIdSet.size()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "所选权限与角色域不一致，不允许跨域分配权限");
+        }
     }
 
     /**

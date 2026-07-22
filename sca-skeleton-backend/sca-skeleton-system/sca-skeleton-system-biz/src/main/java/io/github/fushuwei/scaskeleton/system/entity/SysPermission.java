@@ -40,6 +40,9 @@ public class SysPermission extends BaseEntity {
     /** 权限标识 */
     private String code;
 
+    /** 权限域 */
+    private String realm;
+
     // ==================== 前端信息 ====================
 
     /** 前端路由地址 */

@@ -25,6 +25,9 @@ public class PermissionAssignOptionResponse {
     /** 类型 */
     private String type;
 
+    /** 权限域 */
+    private String realm;
+
     /** 图标 */
     private String icon;
 

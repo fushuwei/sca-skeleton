@@ -35,8 +35,8 @@ public class SysPermissionController {
     @Operation(summary = "查询权限列表")
     @GetMapping("/list")
     @RequiresPermission("sys:permission:list")
-    public Result<List<PermissionResponse>> list() {
-        return Result.ok(permissionService.listAllPermissions());
+    public Result<List<PermissionResponse>> list(@RequestParam(required = false) String realm) {
+        return Result.ok(permissionService.listAllPermissions(realm));
     }
 
     @Operation(summary = "查询可授权权限列表", description = "用于租户套餐/角色等功能授权面板")
@@ -45,8 +45,8 @@ public class SysPermissionController {
         "sys:role:list",              // 角色管理授权面板
         "sys:tenant-package:list"     // 租户套餐管理授权面板
     })
-    public Result<List<PermissionAssignOptionResponse>> assignOptions() {
-        return Result.ok(permissionService.listAssignablePermissions());
+    public Result<List<PermissionAssignOptionResponse>> assignOptions(@RequestParam(required = false) String realm) {
+        return Result.ok(permissionService.listAssignablePermissions(realm));
     }
 
     @Operation(summary = "查询当前用户菜单列表")

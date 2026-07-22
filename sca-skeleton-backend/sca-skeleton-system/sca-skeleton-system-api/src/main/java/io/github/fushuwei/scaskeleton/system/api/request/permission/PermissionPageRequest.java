@@ -41,6 +41,9 @@ public class PermissionPageRequest {
     /** 类型 */
     private String type;
 
+    /** 权限域 */
+    private String realm;
+
     /** 状态 */
     private String status;
 

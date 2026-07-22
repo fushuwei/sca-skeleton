@@ -230,7 +230,8 @@ watch(permSearchKey, (val) => {
 async function loadPermTree() {
   permTreeLoading.value = true;
   try {
-    const result = await getPermissionAssignOptionsApi();
+    // 按角色域过滤可分配权限，防止跨域授权
+    const result = await getPermissionAssignOptionsApi(form.realm);
     if (result.code === 10_000 && result.data) {
       allPermissions.value = result.data;
       // 默认展开第一级
@@ -312,6 +313,15 @@ onMounted(() => {
 // 同步 q-tree ticked 到 form.permissionIds
 watch(permTreeTicked, (val) => {
   form.permissionIds = [...val];
+});
+
+// 新增模式下，切换权限域时清空已勾选权限（防止跨域权限残留）并重新加载权限树
+watch(() => form.realm, (newRealm, oldRealm) => {
+  // 仅新增模式且用户主动切换时触发（编辑/查看模式 realm 禁用，initForm 赋值由 onMounted 负责首次加载）
+  if (props.mode !== 'add' || newRealm === oldRealm) return;
+  permTreeTicked.value = [];
+  form.permissionIds = [];
+  loadPermTree();
 });
 
 function handleClose() {

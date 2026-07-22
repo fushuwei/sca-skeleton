@@ -1,6 +1,7 @@
 package io.github.fushuwei.scaskeleton.system.api.request.permission;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 /**
@@ -27,6 +28,11 @@ public class PermissionCreateRequest {
     /** 类型 */
     @NotBlank(message = "权限类型不能为空")
     private String type;
+
+    /** 权限域 */
+    @NotBlank(message = "权限域不能为空")
+    @Pattern(regexp = "^(admin|portal)$", message = "权限域只能是 admin 或 portal")
+    private String realm;
 
     // ==================== 前端配置 ====================
 
