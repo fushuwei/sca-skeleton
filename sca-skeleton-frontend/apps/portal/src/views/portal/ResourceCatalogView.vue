@@ -581,14 +581,6 @@ onMounted(() => {
   min-width: 160px;
 }
 
-.status-placeholder {
-  color: rgba(0, 0, 0, 0.45);
-}
-
-.body--dark .status-placeholder {
-  color: rgba(255, 255, 255, 0.45);
-}
-
 /* ── 工具栏区域 ── */
 .toolbar-area {
   flex-shrink: 0;

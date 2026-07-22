@@ -2,6 +2,7 @@
 import { ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
+import ProfileSidebar from "../../components/ProfileSidebar.vue";
 
 const { t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
@@ -132,6 +133,9 @@ function revoke(row: RequestRow): void {
 
 <template>
   <div class="my-request-page-wrapper">
+    <div class="profile-layout">
+      <ProfileSidebar />
+      <div class="profile-main">
     <header class="page-header">
       <h1 class="page-title">{{ t("myRequest.pageTitle") }}</h1>
       <p class="page-desc">{{ t("myRequest.pageDesc") }}</p>
@@ -144,32 +148,32 @@ function revoke(row: RequestRow): void {
       no-caps
       align="left"
       class="filter-tabs"
-      active-color="primary"
-      indicator-color="primary"
+      active-color="teal"
+      indicator-color="teal"
     >
-      <q-tab name="all" class="filter-tab">
-        <div class="tab-label">
-          <span>{{ t('myRequest.tabAll') }}</span>
-          <span class="tab-count">{{ tabCounts.all }}</span>
-        </div>
+      <q-tab name="all">
+        <span class="tab-label">
+          {{ t('myRequest.tabAll') }}
+          <q-badge v-if="tabCounts.all > 0" color="teal" rounded class="tab-badge" :label="tabCounts.all" />
+        </span>
       </q-tab>
-      <q-tab name="pending" class="filter-tab">
-        <div class="tab-label">
-          <span>{{ t('myRequest.tabPending') }}</span>
-          <span class="tab-count">{{ tabCounts.pending }}</span>
-        </div>
+      <q-tab name="pending">
+        <span class="tab-label">
+          {{ t('myRequest.tabPending') }}
+          <q-badge v-if="tabCounts.pending > 0" color="teal" rounded class="tab-badge" :label="tabCounts.pending" />
+        </span>
       </q-tab>
-      <q-tab name="approved" class="filter-tab">
-        <div class="tab-label">
-          <span>{{ t('myRequest.tabApproved') }}</span>
-          <span class="tab-count">{{ tabCounts.approved }}</span>
-        </div>
+      <q-tab name="approved">
+        <span class="tab-label">
+          {{ t('myRequest.tabApproved') }}
+          <q-badge v-if="tabCounts.approved > 0" color="teal" rounded class="tab-badge" :label="tabCounts.approved" />
+        </span>
       </q-tab>
-      <q-tab name="rejected" class="filter-tab">
-        <div class="tab-label">
-          <span>{{ t('myRequest.tabRejected') }}</span>
-          <span class="tab-count">{{ tabCounts.rejected }}</span>
-        </div>
+      <q-tab name="rejected">
+        <span class="tab-label">
+          {{ t('myRequest.tabRejected') }}
+          <q-badge v-if="tabCounts.rejected > 0" color="teal" rounded class="tab-badge" :label="tabCounts.rejected" />
+        </span>
       </q-tab>
     </q-tabs>
 
@@ -287,6 +291,8 @@ function revoke(row: RequestRow): void {
         </template>
       </q-table>
     </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -295,7 +301,6 @@ function revoke(row: RequestRow): void {
 .my-request-page-wrapper {
   height: 100%;
   display: flex;
-  flex-direction: column;
   overflow: hidden;
   padding: 8px 24px;
   background: #f5f5f5;
@@ -303,6 +308,29 @@ function revoke(row: RequestRow): void {
 
 .body--dark .my-request-page-wrapper {
   background: #1a1a1a;
+}
+
+/* ═══ 布局 ═══ */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.profile-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+@media (max-width: 1024px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ═══ 页面头部 ═══ */
@@ -346,62 +374,27 @@ function revoke(row: RequestRow): void {
   background: #1e1e1e;
 }
 
-.filter-tab {
+.filter-tabs :deep(.q-tab) {
+  min-height: 48px;
   padding: 0 16px;
-  min-height: 40px;
-  text-transform: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
-  opacity: 1 !important;
+  text-transform: none;
 }
 
-.body--dark .filter-tab {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.filter-tab.q-tab--active {
-  color: #009688;
-  font-weight: 600;
-}
-
-.body--dark .filter-tab.q-tab--active {
-  color: #4db6ac;
+.filter-tabs :deep(.q-tab__indicator) {
+  height: 3px;
 }
 
 .tab-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tab-count {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  font-size: 11px;
-  font-weight: 600;
-  font-family: "JetBrains Mono", monospace;
-  background: rgba(0, 0, 0, 0.08);
-  color: rgba(0, 0, 0, 0.55);
+  gap: 6px;
 }
 
-.filter-tab.q-tab--active .tab-count {
-  background: rgba(0, 150, 136, 0.12);
-  color: #009688;
-}
-
-.body--dark .tab-count {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.body--dark .filter-tab.q-tab--active .tab-count {
-  background: rgba(77, 182, 172, 0.16);
-  color: #4db6ac;
+.tab-badge {
+  font-size: 10px;
+  padding: 1px 6px;
 }
 
 /* ═══ 列表壳层 ═══ */

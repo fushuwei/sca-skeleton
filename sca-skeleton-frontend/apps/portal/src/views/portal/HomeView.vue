@@ -77,6 +77,23 @@ const hotData: HotDataItem[] = [
 function goTo(path: string): void {
   router.push(path);
 }
+
+const domainColorMap: Record<string, string> = {
+  "招生域": "teal",
+  "科研域": "blue",
+  "人事域": "purple",
+  "教务域": "orange",
+  "财务域": "red",
+  "图书域": "cyan-9"
+};
+
+function domainColor(domain: string): string {
+  return domainColorMap[domain] ?? "grey";
+}
+
+function formatDownloads(count: number): string {
+  return count.toLocaleString();
+}
 </script>
 
 <template>
@@ -185,22 +202,32 @@ function goTo(path: string): void {
           <h2 class="section-title">{{ t('home.hotDataTitle') }}</h2>
           <q-btn flat no-caps dense :label="t('home.viewAll')" class="view-all-btn" @click="goTo('/portal/data/resources')" />
         </div>
-        <q-table
-          :rows="hotData"
-          :columns="[
-            { name: 'name', label: t('home.hotDataCol'), field: 'name', align: 'left' as const, sortable: true },
-            { name: 'domain', label: t('home.hotDataColDomain'), field: 'domain', align: 'left' as const, sortable: true },
-            { name: 'owner', label: t('home.hotDataColOwner'), field: 'owner', align: 'left' as const },
-            { name: 'downloads', label: t('home.hotDataColDownloads'), field: 'downloads', align: 'right' as const, sortable: true },
-            { name: 'updateTime', label: t('home.hotDataColUpdateTime'), field: 'updateTime', align: 'left' as const, sortable: true }
-          ]"
-          row-key="name"
-          flat
-          dense
-          :rows-per-page-options="[0]"
-          hide-pagination
-          class="hot-table"
-        />
+        <div class="hot-list">
+          <div
+            v-for="(item, idx) in hotData"
+            :key="idx"
+            class="hot-item"
+            @click="goTo('/portal/data/resources')"
+          >
+            <div class="hot-item__rank" :class="{ 'hot-item__rank--top': idx < 3 }">
+              {{ idx + 1 }}
+            </div>
+            <div class="hot-item__body">
+              <div class="hot-item__name">
+                <q-icon name="sym_r_database" size="16px" class="hot-item__icon" />
+                <span>{{ item.name }}</span>
+              </div>
+              <div class="hot-item__meta">
+                <q-badge :color="domainColor(item.domain)" :label="item.domain" rounded class="hot-item__domain" />
+                <span class="hot-item__owner">{{ item.owner }}</span>
+                <span class="hot-item__downloads">
+                  <q-icon name="sym_r_download" size="14px" />
+                  {{ formatDownloads(item.downloads) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </div>
@@ -562,46 +589,131 @@ function goTo(path: string): void {
   color: rgba(255, 255, 255, 0.4);
 }
 
-/* —— 热门数据表 —— */
-.hot-table {
-  background: transparent !important;
+/* —— 热门数据列表 —— */
+.hot-list {
+  display: flex;
+  flex-direction: column;
 }
 
-.hot-table :deep(.q-table) {
-  background: transparent;
-}
-
-.hot-table :deep(.q-table thead th) {
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.55);
-  background: rgba(0, 0, 0, 0.02);
-  padding: 8px 12px;
-}
-
-.body--dark .hot-table :deep(.q-table thead th) {
-  color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.hot-table :deep(.q-table tbody td) {
-  font-size: 13px;
-  padding: 10px 12px;
+.hot-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.75);
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.body--dark .hot-table :deep(.q-table tbody td) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.75);
+.body--dark .hot-item {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
-.hot-table :deep(.q-table tbody tr:hover td) {
+.hot-item:last-child {
+  border-bottom: none;
+}
+
+.hot-item:hover {
   background: rgba(0, 150, 136, 0.04);
 }
 
-.body--dark .hot-table :deep(.q-table tbody tr:hover td) {
+.body--dark .hot-item:hover {
   background: rgba(77, 182, 172, 0.06);
+}
+
+.hot-item__rank {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  color: rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.body--dark .hot-item__rank {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.hot-item__rank--top {
+  color: #fff;
+  background: #009688;
+}
+
+.hot-item:nth-child(1) .hot-item__rank--top {
+  background: #e65100;
+}
+
+.body--dark .hot-item__rank--top {
+  color: #fff;
+}
+
+.hot-item__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hot-item__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+  line-height: 1.4;
+}
+
+.body--dark .hot-item__name {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.hot-item__icon {
+  color: #009688;
+  flex-shrink: 0;
+}
+
+.body--dark .hot-item__icon {
+  color: #4db6ac;
+}
+
+.hot-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hot-item__domain {
+  font-size: 10px;
+  padding: 1px 6px;
+}
+
+.hot-item__owner {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.body--dark .hot-item__owner {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.hot-item__downloads {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.55);
+  font-family: "JetBrains Mono", monospace;
+  margin-left: auto;
+}
+
+.body--dark .hot-item__downloads {
+  color: rgba(255, 255, 255, 0.55);
 }
 
 /* ═══════════════ 响应式 ═══════════════ */

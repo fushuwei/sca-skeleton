@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
+import ProfileSidebar from "../../components/ProfileSidebar.vue";
 
 const { t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
@@ -80,6 +81,9 @@ function markAllRead(): void {
 
 <template>
   <div class="notification-page">
+    <div class="profile-layout">
+      <ProfileSidebar />
+      <div class="profile-main">
     <header class="page-header">
       <h1 class="page-title">{{ t("notification.pageTitle") }}</h1>
       <p class="page-desc">{{ t("notification.pageDesc") }}</p>
@@ -170,6 +174,8 @@ function markAllRead(): void {
         </div>
       </div>
     </q-card>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -178,6 +184,23 @@ function markAllRead(): void {
   padding: 24px;
   max-width: 1600px;
   margin: 0 auto;
+}
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.profile-main {
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 .page-header {

@@ -2,6 +2,7 @@
 import { ref, computed, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
+import ProfileSidebar from "../../components/ProfileSidebar.vue";
 
 const { t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
@@ -159,6 +160,9 @@ function createApp(): void {
 
 <template>
   <div class="app-integration-page">
+    <div class="profile-layout">
+      <ProfileSidebar />
+      <div class="profile-main">
     <header class="page-header">
       <div class="header-row">
         <div>
@@ -264,6 +268,8 @@ function createApp(): void {
         </template>
       </q-table>
     </q-card>
+      </div>
+    </div>
 
     <!-- 创建应用对话框 -->
     <q-dialog v-model="showCreateDialog">
@@ -318,6 +324,23 @@ function createApp(): void {
   padding: 24px;
   max-width: 1600px;
   margin: 0 auto;
+}
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.profile-main {
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 .page-header {

@@ -382,7 +382,7 @@ function dismissToast() {
 
 // 首次按键自动聚焦用户名框
 function initFirstKeyFocus() {
-    const username = document.getElementById('username');
+    var username = document.getElementById('username');
     if (!username) return;
 
     username.addEventListener('focus', function () {
@@ -390,7 +390,7 @@ function initFirstKeyFocus() {
     });
 
     document.addEventListener('keydown', function (e) {
-        const tag = document.activeElement?.tagName;
+        var tag = document.activeElement && document.activeElement.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
         if (e.key.length !== 1 || e.ctrlKey || e.altKey || e.metaKey) return;
 
@@ -401,45 +401,68 @@ function initFirstKeyFocus() {
     });
 }
 
+// 文本框 Tab 循环（不跳出到浏览器地址栏）
+function initTabCycle() {
+    var inputs = [];
+    var username = document.getElementById('username');
+    var password = document.getElementById('password');
+    var captcha = document.getElementById('captchaCode');
+    if (username) inputs.push(username);
+    if (password) inputs.push(password);
+    if (captcha) inputs.push(captcha);
+    if (inputs.length < 2) return;
+
+    var first = inputs[0];
+    var last = inputs[inputs.length - 1];
+
+    last.addEventListener('keydown', function (e) {
+        if (e.key === 'Tab' && !e.shiftKey) {
+            e.preventDefault();
+            first.focus();
+        }
+    });
+
+    first.addEventListener('keydown', function (e) {
+        if (e.key === 'Tab' && e.shiftKey) {
+            e.preventDefault();
+            last.focus();
+        }
+    });
+}
+
+// 全局 Enter 提交表单（焦点不在输入框时）
+function initGlobalEnterSubmit() {
+    var loginForm = document.getElementById('loginForm');
+    if (!loginForm) return;
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var tag = document.activeElement && document.activeElement.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON') return;
+        e.preventDefault();
+        loginForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+}
+
 // 页面加载完成后初始化所有功能
 document.addEventListener('DOMContentLoaded', () => {
-    // 初始化轮播图
     initCarousel();
-
-    // 初始化表单验证
     initFormValidation();
 
-    // 绑定密码可见性切换
-    const togglePwd = document.getElementById('togglePassword');
+    var togglePwd = document.getElementById('togglePassword');
     if (togglePwd) {
         togglePwd.addEventListener('click', togglePasswordVisibility);
     }
 
-    // 绑定验证码刷新
-    const captchaImg = document.getElementById('captchaImg');
+    var captchaImg = document.getElementById('captchaImg');
     if (captchaImg) {
         captchaImg.addEventListener('click', refreshCaptcha);
     }
 
-    // 读取 URL 参数并显示服务端错误（如 ?error 或 ?captcha-error）
     handleServerErrors();
-
-    // 隐藏 loading
     hidePageLoader();
-
-    // 登录按钮 Tab 循环回用户名框
-    const loginBtn = document.getElementById('loginBtn');
-    const usernameInput = document.getElementById('username');
-    if (loginBtn && usernameInput) {
-        loginBtn.addEventListener('keydown', function (e) {
-            if (e.key === 'Tab' && !e.shiftKey) {
-                e.preventDefault();
-                usernameInput.focus();
-            }
-        });
-    }
-
-    // 首次按键自动聚焦用户名框
+    initTabCycle();
+    initGlobalEnterSubmit();
     initFirstKeyFocus();
 });
 

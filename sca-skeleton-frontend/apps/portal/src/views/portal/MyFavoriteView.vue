@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
+import ProfileSidebar from "../../components/ProfileSidebar.vue";
 
 const { t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
@@ -117,6 +118,9 @@ function unfavorite(row: FavoriteRow): void {
 
 <template>
   <div class="my-favorite-page-wrapper">
+    <div class="profile-layout">
+      <ProfileSidebar />
+      <div class="profile-main">
     <header class="page-header">
       <h1 class="page-title">{{ t("myFavorite.pageTitle") }}</h1>
       <p class="page-desc">{{ t("myFavorite.pageDesc") }}</p>
@@ -237,6 +241,8 @@ function unfavorite(row: FavoriteRow): void {
         </template>
       </q-table>
     </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -245,7 +251,6 @@ function unfavorite(row: FavoriteRow): void {
 .my-favorite-page-wrapper {
   height: 100%;
   display: flex;
-  flex-direction: column;
   overflow: hidden;
   padding: 8px 24px;
   background: #f5f5f5;
@@ -253,6 +258,29 @@ function unfavorite(row: FavoriteRow): void {
 
 .body--dark .my-favorite-page-wrapper {
   background: #1a1a1a;
+}
+
+/* ═══ 布局 ═══ */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.profile-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+@media (max-width: 1024px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ═══ 页面头部 ═══ */
