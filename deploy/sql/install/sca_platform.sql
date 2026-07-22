@@ -458,13 +458,13 @@ INSERT INTO `sys_permission` (
 )
 SELECT t.* FROM (
     -- ==================== 首页 (sort=1, id=1) ====================
-    SELECT '1' AS `id`, '0' AS `parent_id`, '首页' AS `name`, 'Home' AS `name_en`, 'module' AS `type`, 'portal:home' AS `code`,
+    SELECT '1' AS `id`, '0' AS `parent_id`, '首页' AS `name`, 'Home' AS `name_en`, 'menu' AS `type`, 'portal:home' AS `code`,
            '/portal/home' AS `path`, 'HomeView' AS `component`, 'sym_r_home' AS `icon`,
            1 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,1' AS `tree_path`, 'portal' AS `realm`, NULL AS `remark`,
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
     -- ==================== 数据目录 (sort=2, id=2) ====================
     UNION ALL
-    SELECT '2', '0', '数据目录', 'Data Catalog', 'module', 'portal:data',
+    SELECT '2', '0', '数据目录', 'Data Catalog', 'folder', 'portal:data',
            NULL, NULL, 'sym_r_folder',
            2, 1, 0, 'enabled', '0,2', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
@@ -481,7 +481,7 @@ SELECT t.* FROM (
            23, 1, 0, 'enabled', '0,2,23', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     -- ==================== 数据服务 (sort=3, id=3) ====================
     UNION ALL
-    SELECT '3', '0', '数据服务', 'Data Services', 'module', 'portal:service',
+    SELECT '3', '0', '数据服务', 'Data Services', 'folder', 'portal:service',
            NULL, NULL, 'sym_r_api',
            3, 1, 0, 'enabled', '0,3', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
@@ -498,7 +498,7 @@ SELECT t.* FROM (
            33, 1, 0, 'enabled', '0,3,33', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     -- ==================== 个人中心 (sort=4, id=4) ====================
     UNION ALL
-    SELECT '4', '0', '个人中心', 'Profile', 'module', 'portal:profile',
+    SELECT '4', '0', '个人中心', 'Profile', 'folder', 'portal:profile',
            NULL, NULL, 'sym_r_account_circle',
            4, 1, 0, 'enabled', '0,4', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
