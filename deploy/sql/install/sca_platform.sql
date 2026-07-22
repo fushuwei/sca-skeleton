@@ -486,7 +486,7 @@ SELECT t.* FROM (
            3, 1, 0, 'enabled', '0,3', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     SELECT '31', '3', '智能问数', 'AI Query', 'menu', 'portal:service:ai:query',
-           '/portal/service/ai-query', 'AiQueryView', 'sym_r_psychiatry',
+           '/portal/service/ai-query', 'AiQueryView', 'sym_r_smart_toy',
            31, 1, 0, 'enabled', '0,3,31', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     SELECT '32', '3', '数据集市', 'Data Marketplace', 'menu', 'portal:service:data:market',
