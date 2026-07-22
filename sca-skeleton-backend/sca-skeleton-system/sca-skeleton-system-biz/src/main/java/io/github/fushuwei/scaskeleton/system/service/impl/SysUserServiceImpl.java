@@ -159,11 +159,11 @@ public class SysUserServiceImpl implements SysUserService {
         // 获取租户 ID（如果是超管创建，该值由前端页面传入，如果是租户内部用户自己创建，则取当前登录人所在租户的 ID）
         String tenantId = resolveTenantId(request.getTenantId());
 
-        // 用户名在同一个租户内唯一
+        // 用户名在同一个租户、同一用户域内唯一
         long count = userMapper.selectCount(new LambdaQueryWrapper<SysUser>()
             .eq(SysUser::getTenantId, tenantId)
             .eq(SysUser::getUsername, request.getUsername())
-            .eq(SysUser::getRealm, "admin"));
+            .eq(SysUser::getRealm, request.getRealm()));
         if (count > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "用户名已存在");
         }
@@ -178,7 +178,7 @@ public class SysUserServiceImpl implements SysUserService {
         user.setGender(request.getGender());
         user.setPhone(request.getPhone());
         user.setEmail(request.getEmail());
-        user.setRealm("admin");
+        user.setRealm(request.getRealm());
         user.setIsSuperadmin(resolveIsSuperadmin(request.getIsSuperadmin()));  // 安全防护：仅超级管理员可创建超级管理员账号，非超管强制为 0（防止垂直越权）
         user.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : "active");
         user.setLoginFailCount(0);

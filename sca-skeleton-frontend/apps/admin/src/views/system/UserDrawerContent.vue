@@ -598,7 +598,7 @@ async function handleSave() {
             hide-bottom-space
           />
         </div>
-        <!-- 用户域 -->
+        <!-- 用户域（仅新增时可选，编辑时禁止修改用户域） -->
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.realm"
@@ -611,7 +611,7 @@ async function handleSave() {
             emit-value
             map-options
             :rules="formRules.realm"
-            :disable="drawerReadonly"
+            :disable="mode !== 'add'"
             hide-bottom-space
             class="required-field"
           />

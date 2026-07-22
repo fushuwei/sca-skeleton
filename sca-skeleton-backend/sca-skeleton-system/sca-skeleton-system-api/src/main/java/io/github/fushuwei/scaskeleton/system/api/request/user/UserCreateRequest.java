@@ -51,6 +51,11 @@ public class UserCreateRequest {
 
     // ==================== 属性信息 ====================
 
+    /** 用户域 */
+    @NotBlank(message = "用户域不能为空")
+    @Pattern(regexp = "^(admin|portal)$", message = "用户域只能是 admin 或 portal")
+    private String realm;
+
     /** 是否平台超级管理员 */
     private Integer isSuperadmin;
 

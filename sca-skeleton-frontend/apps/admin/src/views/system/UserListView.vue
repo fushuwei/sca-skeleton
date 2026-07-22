@@ -276,17 +276,17 @@ const statusColorOf = (s: string): string =>
     cancelled: "grey-5"
   }[s] ?? "grey-5");
 
-const realmLabelOf = (t: string): string =>
+const realmLabelOf = (realm: string): string =>
   ({
-    admin: "后台用户",
-    portal: "前台用户"
-  }[t] ?? t);
+    admin: t("user.categoryAdmin"),
+    portal: t("user.categoryPortal")
+  }[realm] ?? realm);
 
-const realmColorOf = (t: string): string =>
+const realmColorOf = (realm: string): string =>
   ({
     admin: "purple-7",
     portal: "teal-7"
-  }[t] ?? "grey-6");
+  }[realm] ?? "grey-6");
 
 const genderLabelOf = (g: string): string => (g === "male" ? "男" : g === "female" ? "女" : "-");
 
