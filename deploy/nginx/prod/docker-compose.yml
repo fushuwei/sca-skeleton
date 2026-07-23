@@ -1,6 +1,6 @@
 services:
   nginx:
-    image: nginx:1.31.3
+    image: nginx:stable
     container_name: nginx
     restart: no
     ports:
