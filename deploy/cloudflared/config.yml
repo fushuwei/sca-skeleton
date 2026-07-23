@@ -1,0 +1,32 @@
+# ============================================================================
+# Cloudflare Tunnel 配置文件
+#
+# 部署路径：/root/.cloudflared/config.yml
+# 作用：单域名单入口，所有 newease.cloud 流量 → 本机 Nginx:80
+#
+# 关键字段说明：
+#   tunnel            : cloudflared tunnel create 命令返回的 UUID
+#   credentials-file  : tunnel create 自动生成的凭证 JSON（默认在 ~/.cloudflared/）
+#   ingress           : 路由规则，按顺序匹配；最后一条必须是 catch-all
+# ============================================================================
+
+tunnel: <替换为你的 TUNNEL_UUID>
+credentials-file: /root/.cloudflared/<替换为你的 TUNNEL_UUID>.json
+
+# 日志级别调试排查时改为 info / debug
+loglevel: warn
+transport:
+  loglevel: warn
+
+# ----------------------------------------------------------------------------
+# Ingress 规则
+# 单域名单入口架构：newease.cloud 所有路径统一转发到 Nginx:80
+# Nginx 内部再做 /admin/、/、/api/、/auth/ 的二次分流（见 sca-skeleton.conf）
+# ----------------------------------------------------------------------------
+ingress:
+  # 主域名 → Nginx:80
+  - hostname: newease.cloud
+    service: http://localhost:80
+
+  # catch-all：未匹配的域名返回 404，禁止裸跑
+  - service: http_status:404
