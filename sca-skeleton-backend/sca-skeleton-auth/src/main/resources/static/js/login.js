@@ -157,9 +157,6 @@ function validateUsername(input, errorElement) {
     if (username === '') {
         setError(input, errorElement, '用户名不能为空');
         return false;
-    } else if (username.length < 3) {
-        setError(input, errorElement, '用户名长度不能少于3个字符');
-        return false;
     } else {
         clearError(input, errorElement);
         return true;
@@ -174,9 +171,6 @@ function validatePassword(input, errorElement) {
 
     if (password === '') {
         setError(input, errorElement, '密码不能为空');
-        return false;
-    } else if (password.length < 3) {
-        setError(input, errorElement, '密码长度不能少于3个字符');
         return false;
     } else {
         clearError(input, errorElement);
