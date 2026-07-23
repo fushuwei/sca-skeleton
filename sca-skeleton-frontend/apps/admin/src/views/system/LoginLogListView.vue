@@ -248,6 +248,9 @@ async function loadTableData(
   // （搜索、排序、翻页、改变每页条数等）把非法值提交到后端
   if (startTimePickerRef.value?.hasError || endTimePickerRef.value?.hasError) {
     showToast(t("common.searchFormInvalid"), "warning");
+    // 必须重置 tableLoading，否则 handleClearAll/handleBatchDelete 中
+    // 预先设置的 tableLoading=true 会一直残留，导致表头 loading 条永久卡住
+    tableLoading.value = false;
     return;
   }
 
@@ -368,7 +371,11 @@ async function handleBatchDelete() {
     if (result.code === 10_000) {
       showToast(t("common.deleteSuccess"), "positive");
       selectedRows.value = [];
-      loadTableData();
+      // 延迟刷新列表，确保成功 toast 先展示
+      // （showToast 单实例替换设计，loadTableData 内的搜索条件格式校验
+      //   会立即弹 warning 覆盖 positive，延迟让用户先看到成功提示）
+      tableLoading.value = true;
+      setTimeout(loadTableData, 1000);
     } else {
       showToast(result.message || t("common.deleteFail"), "negative");
     }
@@ -392,7 +399,11 @@ async function handleClearAll() {
     if (result.code === 10_000) {
       showToast(t("loginLog.clearAllSuccess"), "positive");
       selectedRows.value = [];
-      loadTableData();
+      // 延迟刷新列表，确保成功 toast 先展示
+      // （showToast 单实例替换设计，loadTableData 内的搜索条件格式校验
+      //   会立即弹 warning 覆盖 positive，延迟让用户先看到成功提示）
+      tableLoading.value = true;
+      setTimeout(loadTableData, 1000);
     } else {
       showToast(result.message || t("common.operationFail"), "negative");
     }
