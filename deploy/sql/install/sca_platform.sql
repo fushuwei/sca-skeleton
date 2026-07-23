@@ -321,7 +321,6 @@ CREATE TABLE IF NOT EXISTS `sys_permission` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='权限表';
 
--- 数据源管理菜单权限（第一个模块，ID 1000 开头）
 INSERT INTO `sys_permission` (
     `id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`,
     `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `realm`, `remark`,
@@ -343,111 +342,61 @@ WHERE NOT EXISTS (
     SELECT 1 FROM `sys_permission` WHERE `id` = '1000' AND `is_deleted` = 0
 );
 
-
--- 系统管理菜单权限（最后一个模块，ID 9999 开头，sort = 99）
 INSERT INTO `sys_permission` (
     `id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`,
     `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `realm`, `remark`,
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT t.* FROM (
-    -- 一级菜单：系统管理 (sort = 99)
     SELECT '9999' AS `id`, '0' AS `parent_id`, '系统管理' AS `name`, 'System' AS `name_en`, 'module' AS `type`, NULL AS `code`,
            NULL AS `path`, NULL AS `component`, 'sym_r_settings' AS `icon`,
            99 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,9999' AS `tree_path`, 'admin' AS `realm`, NULL AS `remark`,
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
     UNION ALL
-    -- 二级菜单：租户管理 (sort = 9910, 一级菜单99 + 二级序号10)
     SELECT '9910', '9999', '租户管理', 'Tenant Management', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9910, 1, 0, 'enabled', '0,9999,9910', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：租户管理 (sort = 99101, 一级菜单99 + 二级菜单10 + 三级序号1)
     SELECT '9911', '9910', '租户管理', 'Tenants', 'menu', 'sys:tenant:list', '/system/tenant', 'TenantListView', 'sym_r_nest_eco_leaf', 99101, 1, 0, 'enabled', '0,9999,9910,9911', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：套餐管理 (sort = 99102, 一级菜单99 + 二级菜单10 + 三级序号2)
     SELECT '9912', '9910', '套餐管理', 'Packages', 'menu', 'sys:tenant-package:list', '/system/tenant-package', 'TenantPackageListView', 'sym_r_nest_eco_leaf', 99102, 1, 0, 'enabled', '0,9999,9910,9912', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：组织架构 (sort = 9911, 一级菜单99 + 二级序号11)
     SELECT '9920', '9999', '组织架构', 'Organization', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9911, 1, 0, 'enabled', '0,9999,9920', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：用户管理 (sort = 99111, 一级菜单99 + 二级菜单11 + 三级序号1)
     SELECT '9921', '9920', '用户管理', 'Users', 'menu', 'sys:user:list', '/system/user', 'UserListView', 'sym_r_nest_eco_leaf', 99111, 1, 0, 'enabled', '0,9999,9920,9921', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：部门管理 (sort = 99112, 一级菜单99 + 二级菜单11 + 三级序号2)
     SELECT '9922', '9920', '部门管理', 'Departments', 'menu', 'sys:dept:list', '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 99112, 1, 0, 'enabled', '0,9999,9920,9922', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：岗位管理 (sort = 99113, 一级菜单99 + 二级菜单11 + 三级序号3)
     SELECT '9923', '9920', '岗位管理', 'Positions', 'menu', 'sys:post:list', '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 99113, 1, 0, 'enabled', '0,9999,9920,9923', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：权限管理 (sort = 9912, 一级菜单99 + 二级序号12)
     SELECT '9930', '9999', '权限管理', 'Permissions', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9912, 1, 0, 'enabled', '0,9999,9930', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：角色管理 (sort = 99121, 一级菜单99 + 二级菜单12 + 三级序号1)
     SELECT '9931', '9930', '角色管理', 'Roles', 'menu', 'sys:role:list', '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 99121, 1, 0, 'enabled', '0,9999,9930,9931', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：权限管理 (sort = 99122, 一级菜单99 + 二级菜单12 + 三级序号2)
     SELECT '9932', '9930', '权限管理', 'Permissions', 'menu', 'sys:permission:list', '/system/permission', 'PermissionListView', 'sym_r_nest_eco_leaf', 99122, 1, 0, 'enabled', '0,9999,9930,9932', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：字典管理 (sort = 9913, 一级菜单99 + 二级序号13)
     SELECT '9940', '9999', '字典管理', 'Dictionaries', 'menu', 'sys:dict:list', '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9913, 1, 0, 'enabled', '0,9999,9940', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：系统配置 (sort = 9914, 一级菜单99 + 二级序号14)
     SELECT '9941', '9999', '系统配置', 'System Config', 'menu', 'sys:config:list', '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9914, 1, 0, 'enabled', '0,9999,9941', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：通知公告 (sort = 9915, 一级菜单99 + 二级序号15)
     SELECT '9942', '9999', '通知公告', 'Announcements', 'menu', 'sys:notice:list', '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9915, 1, 0, 'enabled', '0,9999,9942', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：操作日志 (sort = 9916, 一级菜单99 + 二级序号16)
     SELECT '9943', '9999', '操作日志', 'Operation Logs', 'menu', 'sys:operation-log:list', '/system/log/operation', 'OperationLogListView', 'sym_r_nest_eco_leaf', 9916, 1, 0, 'enabled', '0,9999,9943', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：登录日志 (sort = 9917, 一级菜单99 + 二级序号17)
     SELECT '9944', '9999', '登录日志', 'Login Logs', 'menu', 'sys:login-log:list', '/system/log/login', 'LoginLogListView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9944', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
 WHERE NOT EXISTS (
     SELECT 1 FROM `sys_permission` WHERE `id` = '9999' AND `is_deleted` = 0
 );
 
-
--- ============================================================
--- 门户前台菜单权限（portal 域）
--- ID 规则：ID = 排序值
---   一级菜单：首页=1，数据目录=2，数据服务=3，个人中心=4
---   子菜单：ID 直接使用注释中的排序值（如数据地图=21）
--- ============================================================
---
--- 前台菜单树结构：
---
--- 首页 (sort=1)                portal:home:view
---
--- 数据目录 (sort=2)             (folder)
---     ├── 数据地图              portal:data-map:view                   (sort=21)
---     ├── 资源目录              portal:data-resource:list              (sort=22)
---     └── 数据标准              portal:data-standard:list              (sort=23)
---
--- 数据服务 (sort=3)             (folder)
---     ├── 智能问数              portal:ai-query:view                   (sort=31)
---     ├── 数据集市              portal:data-market:list                (sort=32)
---     └── 数据填报              portal:data-submit:view                (sort=33)
---
--- 个人中心 (sort=4)             (folder)
---     ├── 个人信息              portal:profile:view                    (sort=41)
---     ├── 我的申请              portal:request:list                    (sort=42)
---     ├── 我的下载              portal:download:list                   (sort=43)
---     ├── 我的收藏              portal:favorite:list                   (sort=44)
---     ├── 消息通知              portal:notification:list               (sort=45)
---     └── 应用接入              portal:app-integration:list            (sort=46)
--- ------------------------------------------------------------
 INSERT INTO `sys_permission` (
     `id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`,
     `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `realm`, `remark`,
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT t.* FROM (
-    -- ==================== 首页 (sort=1, id=1) ====================
     SELECT '1' AS `id`, '0' AS `parent_id`, '首页' AS `name`, 'Home' AS `name_en`, 'menu' AS `type`, 'portal:home:view' AS `code`,
            '/portal/home' AS `path`, 'HomeView' AS `component`, 'sym_r_home' AS `icon`,
            1 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,1' AS `tree_path`, 'portal' AS `realm`, NULL AS `remark`,
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
-    -- ==================== 数据目录 (sort=2, id=2, folder) ====================
     UNION ALL
     SELECT '2', '0', '数据目录', 'Data Catalog', 'folder', NULL,
            NULL, NULL, 'sym_r_folder',
@@ -464,7 +413,6 @@ SELECT t.* FROM (
     SELECT '23', '2', '数据标准', 'Data Standards', 'menu', 'portal:data-standard:list',
            '/portal/data/standards', 'DataStandardView', 'sym_r_checklist',
            23, 1, 0, 'enabled', '0,2,23', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    -- ==================== 数据服务 (sort=3, id=3, folder) ====================
     UNION ALL
     SELECT '3', '0', '数据服务', 'Data Services', 'folder', NULL,
            NULL, NULL, 'sym_r_api',
@@ -481,7 +429,6 @@ SELECT t.* FROM (
     SELECT '33', '3', '数据填报', 'Data Submit', 'menu', 'portal:data-submit:view',
            '/portal/service/data-submit', 'DataSubmitView', 'sym_r_edit_note',
            33, 1, 0, 'enabled', '0,3,33', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    -- ==================== 个人中心 (sort=4, id=4, folder) ====================
     UNION ALL
     SELECT '4', '0', '个人中心', 'Profile', 'folder', NULL,
            NULL, NULL, 'sym_r_account_circle',
