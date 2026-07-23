@@ -33,11 +33,11 @@ public interface SysPermissionService {
     List<PermissionAssignOptionResponse> listAssignablePermissions(String realm);
 
     /**
-     * 查询当前用户菜单列表
+     * 查询当前用户权限列表
      *
-     * @return 菜单列表
+     * @return 权限列表
      */
-    List<PermissionResponse> listUserMenus();
+    List<PermissionResponse> listUserPermissions();
 
     /**
      * 分页查询权限列表

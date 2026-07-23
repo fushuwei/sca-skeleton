@@ -49,10 +49,10 @@ public class SysPermissionController {
         return Result.ok(permissionService.listAssignablePermissions(realm));
     }
 
-    @Operation(summary = "查询当前用户菜单列表")
-    @GetMapping("/menus")
-    public Result<List<PermissionResponse>> menus() {
-        return Result.ok(permissionService.listUserMenus());
+    @Operation(summary = "查询当前用户权限列表")
+    @GetMapping("/me")
+    public Result<List<PermissionResponse>> me() {
+        return Result.ok(permissionService.listUserPermissions());
     }
 
     @Operation(summary = "分页查询权限列表")

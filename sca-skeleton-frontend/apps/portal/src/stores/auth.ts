@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import type { Router } from "vue-router";
 import { getPortalOAuthConfig } from "../config/oauth";
-import { getUserProfileApi, getUserMenusApi } from "../apis/user";
+import { getUserProfileApi, getUserPermissionsApi } from "../apis/user";
 import { ensureDynamicRoutes } from "../router/dynamic";
 import {
   MENUS_STORAGE_KEY,
@@ -114,7 +114,7 @@ export const usePortalAuthStore = defineStore("portal-auth", {
       }
       // 从后端获取用户权限
       try {
-        const result = await getUserMenusApi();
+        const result = await getUserPermissionsApi();
         if (result.code === 10_000 && result.data) {
           this.permissions = result.data;
           this.menus = buildMenuTree(result.data);

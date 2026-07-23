@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import type { Router } from "vue-router";
 import { getAdminOAuthConfig } from "../config/oauth";
 import { getUserProfileApi } from "../apis/user";
-import { getUserMenusApi } from "../apis/permission";
+import { getUserPermissionsApi } from "../apis/permission";
 import { ensureDynamicRoutes } from "../router/dynamic";
 import {
   MENUS_STORAGE_KEY,
@@ -116,7 +116,7 @@ export const useAuthStore = defineStore("auth", {
       }
       // 从后端获取用户权限
       try {
-        const result = await getUserMenusApi();
+        const result = await getUserPermissionsApi();
         if (result.code === 10_000 && result.data) {
           this.permissions = result.data;
           this.menus = buildMenuTree(result.data);

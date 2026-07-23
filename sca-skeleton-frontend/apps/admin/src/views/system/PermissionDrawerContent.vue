@@ -54,12 +54,38 @@ const formRules = computed(() => ({
     : []
 }));
 
-const typeOptions = computed(() => [
-  { label: t("permissionMgmt.typeModule"), value: "module" },
-  { label: t("permissionMgmt.typeFolder"), value: "folder" },
-  { label: t("permissionMgmt.typeMenu"), value: "menu" },
-  { label: t("permissionMgmt.typeButton"), value: "button" }
-]);
+// ── 权限类型：根据上级权限类型动态过滤可选项 ──
+// 规则（与后端 ALLOWED_CHILD_TYPES 一致）：
+//   根节点（parentId="0"）→ module / folder / menu
+//   module → folder / menu
+//   folder → menu / button
+//   menu   → button
+//   button → 不能添加子权限
+const ALLOWED_CHILD_TYPES: Record<string, string[]> = {
+  "0": ["module", "folder", "menu"],
+  module: ["folder", "menu"],
+  folder: ["menu", "button"],
+  menu: ["button"],
+  button: []
+};
+
+/** 获取上级权限的类型（根节点返回 "0"） */
+const parentType = computed(() => {
+  if (!form.parentId || form.parentId === "0") return "0";
+  return allPermissions.value.find((p) => p.id === form.parentId)?.type ?? "0";
+});
+
+/** 根据上级权限类型动态过滤可选的权限类型 */
+const typeOptions = computed(() => {
+  const allTypes = [
+    { label: t("permissionMgmt.typeModule"), value: "module" },
+    { label: t("permissionMgmt.typeFolder"), value: "folder" },
+    { label: t("permissionMgmt.typeMenu"), value: "menu" },
+    { label: t("permissionMgmt.typeButton"), value: "button" }
+  ];
+  const allowed = ALLOWED_CHILD_TYPES[parentType.value] ?? [];
+  return allTypes.filter((opt) => allowed.includes(opt.value));
+});
 
 const realmOptions = computed(() => [
   { label: t("permissionMgmt.realmAdmin"), value: "admin" },
@@ -73,6 +99,15 @@ const TYPE_DEFAULT_ICON: Record<string, string> = {
   menu: "sym_r_nest_eco_leaf",
   button: ""
 };
+
+/** 切换上级权限后，若当前类型不在新允许列表中则清空，避免提交不合法数据 */
+watch(parentType, () => {
+  if (drawerReadonly.value) return;
+  const allowed = ALLOWED_CHILD_TYPES[parentType.value] ?? [];
+  if (form.type && !allowed.includes(form.type)) {
+    form.type = "";
+  }
+});
 
 /** 切换类型时自动填充默认图标（仅新增/编辑模式，图标为空或等于上一类型默认值时触发） */
 watch(() => form.type, (newType, oldType) => {

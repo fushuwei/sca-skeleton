@@ -28,6 +28,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -106,12 +107,12 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     }
 
     /**
-     * 查询当前用户菜单列表
+     * 查询当前用户权限列表
      *
-     * @return 菜单列表
+     * @return 权限列表
      */
     @Override
-    public List<PermissionResponse> listUserMenus() {
+    public List<PermissionResponse> listUserPermissions() {
         // 超级管理员直接返回所有权限
         if (SecurityUtils.isSuperAdmin()) {
             List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
@@ -229,6 +230,9 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createPermission(PermissionCreateRequest request) {
+        // 校验父子权限类型兼容性
+        validateParentChildType(request.getParentId(), request.getType());
+
         // 封装权限实体
         SysPermission permission = new SysPermission();
         permission.setId(UuidUtils.nextSimpleStr());
@@ -301,6 +305,9 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         permission.setIsExternal(request.getIsExternal() != null ? request.getIsExternal() : permission.getIsExternal());
         permission.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : permission.getStatus());
         permission.setRemark(request.getRemark());
+
+        // 校验父子权限类型兼容性（用最终 parentId 和 type）
+        validateParentChildType(permission.getParentId(), permission.getType());
 
         // 如果上级权限变更，重新生成 treePath
         if (parentChanged) {
@@ -378,6 +385,43 @@ public class SysPermissionServiceImpl implements SysPermissionService {
             return "0," + currentId;
         }
         return parent.getTreePath() + "," + currentId;
+    }
+
+    /**
+     * 权限类型 -> 允许的子权限类型集合。
+     * 规则：
+     * - module（模块）下只能挂 folder、menu
+     * - folder（目录）下只能挂 menu、button
+     * - menu（菜单）下只能挂 button
+     * - button（按钮）下不能挂任何子权限
+     */
+    private static final Map<String, Set<String>> ALLOWED_CHILD_TYPES = Map.of(
+        "module", Set.of("folder", "menu"),
+        "folder", Set.of("menu", "button"),
+        "menu", Set.of("button"),
+        "button", Set.of()
+    );
+
+    /**
+     * 校验父子权限类型兼容性。
+     * 根节点（parentId 为 "0" 或空）不限制子类型；非根节点须满足 ALLOWED_CHILD_TYPES 规则。
+     *
+     * @param parentId 父权限 ID
+     * @param type     当前权限类型
+     */
+    private void validateParentChildType(String parentId, String type) {
+        if (!StringUtils.hasText(parentId) || "0".equals(parentId)) {
+            return;
+        }
+        SysPermission parent = permissionMapper.selectById(parentId);
+        if (parent == null) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "上级权限不存在");
+        }
+        Set<String> allowed = ALLOWED_CHILD_TYPES.get(parent.getType());
+        if (allowed == null || !allowed.contains(type)) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR,
+                String.format("权限类型「%s」不能挂载到类型「%s」的权限下", type, parent.getType()));
+        }
     }
 
     /**

@@ -9,10 +9,10 @@ export async function getUserProfileApi(): Promise<ApiEnvelope<PortalProfile>> {
   });
 }
 
-/** 查询当前用户菜单列表（扁平列表，前端负责转树形） */
-export async function getUserMenusApi(): Promise<ApiEnvelope<SysPermission[]>> {
+/** 查询当前用户权限列表（扁平列表，前端负责转树形） */
+export async function getUserPermissionsApi(): Promise<ApiEnvelope<SysPermission[]>> {
   return portalRequest<SysPermission[]>({
     method: "GET",
-    url: "/sys/permission/menus"
+    url: "/sys/permission/me"
   });
 }

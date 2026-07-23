@@ -21,9 +21,9 @@ export async function getPermissionAssignOptionsApi(realm?: string): Promise<Api
   return request<PermissionAssignOption[]>({ method: "GET", url: "/sys/permission/assign-options", params: { realm } });
 }
 
-/** 查询当前用户菜单列表（扁平列表，前端负责转树形） */
-export async function getUserMenusApi(): Promise<ApiEnvelope<SysPermission[]>> {
-  return request<SysPermission[]>({ method: "GET", url: "/sys/permission/menus" });
+/** 查询当前用户权限列表（扁平列表，前端负责转树形） */
+export async function getUserPermissionsApi(): Promise<ApiEnvelope<SysPermission[]>> {
+  return request<SysPermission[]>({ method: "GET", url: "/sys/permission/me" });
 }
 
 /** 分页查询指定父节点下的子权限列表 */
