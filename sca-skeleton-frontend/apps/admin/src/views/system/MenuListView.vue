@@ -80,10 +80,8 @@ function buildMenuTree(perms: SysPermission[]): PermissionTreeNode[] {
     for (const n of nodes) {
       if (n.children?.length) {
         cleanEmpty(n.children);
-        n.count = n.children.length;
       } else {
         delete n.children;
-        n.count = 0;
       }
     }
   };
@@ -100,7 +98,6 @@ function buildRealmGroupNode(realm: string, labelKey: string, children: Permissi
     type: "realm-group",
     icon: "",
     realm,
-    count: children.length,
     children
   };
 }
@@ -130,6 +127,40 @@ function findTreeNode(id: string): PermissionTreeNode | null {
     return null;
   };
   return find(menuTreeWithRoot.value);
+}
+
+/**
+ * 构建节点 → 子孙菜单数量映射（含分类节点）。
+ * 借助 treePath 一次性遍历统计，无递归：
+ * treePath 格式为 "0,祖先id,...,自己id"，解析后对每个祖先 id 累加 1。
+ * 分类节点（realm:admin / realm:portal）单独统计其域下全部菜单数。
+ */
+const descendantCountMap = computed<Map<string, number>>(() => {
+  const counts = new Map<string, number>();
+  const filtered = allPermissions.value.filter((p) => p.type !== "button");
+  // 分类节点初始化
+  for (const g of REALM_GROUPS) {
+    counts.set(realmGroupId(g.realm), 0);
+  }
+  for (const p of filtered) {
+    // 该权限计入其所属分类节点
+    const gid = realmGroupId(p.realm);
+    counts.set(gid, (counts.get(gid) || 0) + 1);
+    // 通过 treePath 累加到所有祖先（排除 "0" 和自身）
+    if (p.treePath) {
+      for (const aid of p.treePath.split(",")) {
+        if (aid && aid !== "0" && aid !== p.id) {
+          counts.set(aid, (counts.get(aid) || 0) + 1);
+        }
+      }
+    }
+  }
+  return counts;
+});
+
+/** 获取节点的子孙菜单数量 */
+function getDescendantCount(node: PermissionTreeNode): number {
+  return descendantCountMap.value.get(node.id) ?? 0;
 }
 
 async function loadMenuTree() {
@@ -780,9 +811,7 @@ onMounted(() => {
                     :name="menuNodeIcon(scope.node)"
                     size="20px"
                     class="q-mr-sm cursor-pointer menu-tree-icon"
-                    :color="scope.node.type === 'realm-group'
-                      ? realmColorOf(scope.node.realm || '')
-                      : (selectedMenuId === scope.node.id ? 'primary' : 'grey-7')"
+                    :color="selectedMenuId === scope.node.id ? 'primary' : 'grey-7'"
                     @click.stop="toggleMenuNode(scope.node)"
                   />
                   <span
@@ -790,22 +819,13 @@ onMounted(() => {
                     :class="{ 'text-weight-medium': scope.node.type === 'realm-group' }"
                   >{{ scope.node.label }}</span>
                   <q-space />
-                  <!-- 分类节点：显示 realm 配色徽章 -->
+                  <!-- 子孙菜单数量（含分类节点，借助 treePath 统计） -->
                   <q-badge
-                    v-if="scope.node.type === 'realm-group'"
-                    :color="realmColorOf(scope.node.realm || '')"
-                    :label="realmLabelOf(scope.node.realm || '')"
-                    rounded
-                    class="menu-realm-badge"
-                  />
-                  <!-- 业务节点：显示直接子节点数量 -->
-                  <q-badge
-                    v-else-if="scope.node.count != null && scope.node.count > 0"
-                    color="primary"
+                    :color="scope.node.type === 'realm-group' ? realmColorOf(scope.node.realm || '') : 'primary'"
                     rounded
                     class="menu-count-badge"
                   >
-                    {{ scope.node.count }}
+                    {{ getDescendantCount(scope.node) }}
                   </q-badge>
                 </div>
               </template>
@@ -1678,12 +1698,6 @@ onMounted(() => {
 
 /* 菜单计数徽章 */
 .menu-count-badge {
-  font-size: 11px;
-  padding: 1px 6px;
-}
-
-/* realm 配色徽章（分类节点用） */
-.menu-realm-badge {
   font-size: 11px;
   padding: 1px 6px;
 }
