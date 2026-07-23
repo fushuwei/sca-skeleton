@@ -6,7 +6,7 @@ const MENU_COMPONENT_MAP: Record<MenuComponent, () => Promise<unknown>> = { // �
   DashboardView: () => import("../views/dashboard/DashboardView.vue"), // 将 Dashboard 菜单映射到控制台页面。
   UserCenterView: () => import("../views/system/UserCenterView.vue"), // 将 UserCenter 菜单映射到用户中心页面。
   UserListView: () => import("../views/system/UserListView.vue"), // 将 UserList 菜单映射到用户列表页面。
-  MenuListView: () => import("../views/system/MenuListView.vue"), // 将 MenuList 菜单映射到菜单管理页面。
+  PermissionListView: () => import("../views/system/PermissionListView.vue"), // 将 PermissionList 菜单映射到权限管理页面。
   RoleListView: () => import("../views/system/RoleListView.vue"), // 将 RoleList 菜单映射到角色管理页面。
   PostListView: () => import("../views/system/PostListView.vue"), // 将 PostList 菜单映射到岗位管理页面。
   DeptListView: () => import("../views/system/DeptListView.vue"), // 将 DeptList 菜单映射到部门管理页面。

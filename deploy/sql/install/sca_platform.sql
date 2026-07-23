@@ -321,17 +321,6 @@ CREATE TABLE IF NOT EXISTS `sys_permission` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='权限表';
 
-
--- 初始化菜单权限
--- ID 规则：
---   数据源管理模块：1000 开头（1000～1999）
---   后续业务模块：中间号段按需分配
---   系统管理模块：9999 开头（9900～9999），永远排在最后
--- 排序值规则：
---   一级菜单（module）：10 = 数据源管理，99 = 系统管理，后续模块在 11-98 之间添加
---   二级菜单（folder/menu）：前两位是一级菜单排序值，后两位从 10 开始递增 1（10-99），格式 XXYY
---   三级菜单（menu）：前两位是一级菜单排序值，中间两位是二级菜单排序值，最后一位从 1 开始递增，格式 XXYYZ
-
 -- 数据源管理菜单权限（第一个模块，ID 1000 开头）
 INSERT INTO `sys_permission` (
     `id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`,
@@ -339,19 +328,15 @@ INSERT INTO `sys_permission` (
     `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT t.* FROM (
-    -- 一级菜单：数据源管理 (sort = 10)
     SELECT '1000' AS `id`, '0' AS `parent_id`, '数据源管理' AS `name`, 'Data Source' AS `name_en`, 'module' AS `type`, NULL AS `code`,
            NULL AS `path`, NULL AS `component`, 'sym_r_database' AS `icon`,
            10 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,1000' AS `tree_path`, 'admin' AS `realm`, NULL AS `remark`,
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
     UNION ALL
-    -- 二级菜单：数据源管理 (sort = 1010, 一级菜单10 + 二级序号10)
     SELECT '1100', '1000', '数据源管理', 'Data Sources', 'menu', 'sys:datasource:list', '/datasource/list', 'DataSourceListView', 'sym_r_nest_eco_leaf', 1010, 1, 0, 'enabled', '0,1000,1100', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：数据查询 (sort = 1011, 一级菜单10 + 二级序号11)
     SELECT '1200', '1000', '数据查询', 'SQL Query', 'menu', 'sys:datasource:sql-query', '/datasource/sql-query', 'SqlQueryView', 'sym_r_nest_eco_leaf', 1011, 1, 0, 'enabled', '0,1000,1200', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 二级菜单：驱动管理 (sort = 1012, 一级菜单10 + 二级序号12)
     SELECT '1300', '1000', '驱动管理', 'Drivers', 'menu', 'sys:datasource:driver:list', '/datasource/driver-list', 'DriverListView', 'sym_r_nest_eco_leaf', 1012, 1, 0, 'enabled', '0,1000,1300', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
 WHERE NOT EXISTS (
@@ -399,8 +384,8 @@ SELECT t.* FROM (
     -- 三级菜单：角色管理 (sort = 99121, 一级菜单99 + 二级菜单12 + 三级序号1)
     SELECT '9931', '9930', '角色管理', 'Roles', 'menu', 'sys:role:list', '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 99121, 1, 0, 'enabled', '0,9999,9930,9931', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    -- 三级菜单：菜单管理 (sort = 99122, 一级菜单99 + 二级菜单12 + 三级序号2)
-    SELECT '9932', '9930', '菜单管理', 'Menus', 'menu', 'sys:permission:list', '/system/menu', 'MenuListView', 'sym_r_nest_eco_leaf', 99122, 1, 0, 'enabled', '0,9999,9930,9932', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    -- 三级菜单：权限管理 (sort = 99122, 一级菜单99 + 二级菜单12 + 三级序号2)
+    SELECT '9932', '9930', '权限管理', 'Permissions', 'menu', 'sys:permission:list', '/system/permission', 'PermissionListView', 'sym_r_nest_eco_leaf', 99122, 1, 0, 'enabled', '0,9999,9930,9932', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     -- 二级菜单：字典管理 (sort = 9913, 一级菜单99 + 二级序号13)
     SELECT '9940', '9999', '字典管理', 'Dictionaries', 'menu', 'sys:dict:list', '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9913, 1, 0, 'enabled', '0,9999,9940', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0

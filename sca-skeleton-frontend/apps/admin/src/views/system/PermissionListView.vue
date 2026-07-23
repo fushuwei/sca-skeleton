@@ -12,21 +12,21 @@ import {
   batchDeletePermissionApi
 } from "../../apis/permission";
 import { useConfirmDialog } from "@repo/ui";
-import MenuDrawerContent from "./MenuDrawerContent.vue";
+import PermissionDrawerContent from "./PermissionDrawerContent.vue";
 
 const { t, locale } = useI18n({ useScope: "global" });
 const { confirmDialog } = useConfirmDialog();
 
 // ═══════════════════════════════════════════════════════════════
-// 菜单树 —— 按权限域（realm）分组的两棵子树
+// 权限树 —— 按权限域（realm）分组的两棵子树
 // ═══════════════════════════════════════════════════════════════
 
-/** 分类节点 id 前缀，点击分类节点 = 按 realm 筛选该域全部菜单 */
+/** 分类节点 id 前缀，点击分类节点 = 按 realm 筛选该域全部权限 */
 const REALM_GROUP_PREFIX = "realm:";
 /** 权限域分组定义（顺序即左侧展示顺序） */
 const REALM_GROUPS: { realm: string; labelKey: string }[] = [
-  { realm: "admin", labelKey: "menuMgmt.adminMenuGroup" },
-  { realm: "portal", labelKey: "menuMgmt.portalMenuGroup" }
+  { realm: "admin", labelKey: "permissionMgmt.adminGroup" },
+  { realm: "portal", labelKey: "permissionMgmt.portalGroup" }
 ];
 const realmGroupId = (realm: string) => REALM_GROUP_PREFIX + realm;
 const isRealmGroupId = (id: string) => id.startsWith(REALM_GROUP_PREFIX);
@@ -103,8 +103,8 @@ function buildRealmGroupNode(realm: string, labelKey: string, children: Permissi
 }
 
 /**
- * 按 realm 分组的菜单树（q-tree 渲染用）。
- * 顶层为「后台菜单 / 前台菜单」两个分类节点，各自挂载对应域的菜单子树。
+ * 按权限域分组的权限树（q-tree 渲染用）。
+ * 顶层为「后台权限 / 前台权限」两个分类节点，各自挂载对应域的权限子树。
  */
 const menuTreeWithRoot = computed<PermissionTreeNode[]>(() => {
   const allRoots = buildMenuTree(allPermissions.value);
@@ -130,10 +130,10 @@ function findTreeNode(id: string): PermissionTreeNode | null {
 }
 
 /**
- * 构建节点 → 子孙菜单数量映射（含分类节点）。
+ * 构建节点 → 子孙权限数量映射（含分类节点）。
  * 借助 treePath 一次性遍历统计，无递归：
  * treePath 格式为 "0,祖先id,...,自己id"，解析后对每个祖先 id 累加 1。
- * 分类节点（realm:admin / realm:portal）单独统计其域下全部菜单数。
+ * 分类节点（realm:admin / realm:portal）单独统计其域下全部权限数。
  */
 const descendantCountMap = computed<Map<string, number>>(() => {
   const counts = new Map<string, number>();
@@ -158,7 +158,7 @@ const descendantCountMap = computed<Map<string, number>>(() => {
   return counts;
 });
 
-/** 获取节点的子孙菜单数量 */
+/** 获取节点的子孙权限数量 */
 function getDescendantCount(node: PermissionTreeNode): number {
   return descendantCountMap.value.get(node.id) ?? 0;
 }
@@ -180,7 +180,7 @@ async function loadMenuTree() {
   }
 }
 
-/** 菜单树节点选中回调 */
+/** 权限树节点选中回调 */
 function onMenuTreeSelect(nodeId: string) {
   if (!nodeId) {
     selectedMenuId.value = lastSelectedMenuId;
@@ -193,7 +193,7 @@ function onMenuTreeSelect(nodeId: string) {
   lastSelectedMenuId = nodeId;
   selectedMenuId.value = nodeId;
 
-  // 分类节点：按 realm 筛选该域全部菜单
+  // 分类节点：按 realm 筛选该域全部权限
   if (isRealmGroupId(nodeId)) {
     searchForm.realm = nodeId.slice(REALM_GROUP_PREFIX.length);
     searchForm.parentId = undefined;
@@ -201,7 +201,7 @@ function onMenuTreeSelect(nodeId: string) {
     return;
   }
 
-  // 业务节点：按 parentId 筛选，realm 跟随该节点所属域（子菜单必然同域）
+  // 业务节点：按 parentId 筛选，realm 跟随该节点所属域（子权限必然同域）
   const node = findTreeNode(nodeId);
   searchForm.parentId = nodeId;
   searchForm.realm = node?.realm || "";
@@ -304,22 +304,22 @@ const searchExpanded = ref(true);
 
 // ── 类型选项 ──
 const typeOptions = [
-  { label: "menuMgmt.typeModule", value: "module" },
-  { label: "menuMgmt.typeFolder", value: "folder" },
-  { label: "menuMgmt.typeMenu", value: "menu" },
-  { label: "menuMgmt.typeButton", value: "button" }
+  { label: "permissionMgmt.typeModule", value: "module" },
+  { label: "permissionMgmt.typeFolder", value: "folder" },
+  { label: "permissionMgmt.typeMenu", value: "menu" },
+  { label: "permissionMgmt.typeButton", value: "button" }
 ];
 
 // ── 权限域选项 ──
 const realmOptions = [
-  { label: "menuMgmt.realmAdmin", value: "admin" },
-  { label: "menuMgmt.realmPortal", value: "portal" }
+  { label: "permissionMgmt.realmAdmin", value: "admin" },
+  { label: "permissionMgmt.realmPortal", value: "portal" }
 ];
 
 // ── 状态选项 ──
 const statusOptions = [
-  { label: "menuMgmt.statusEnabled", value: "enabled" },
-  { label: "menuMgmt.statusDisabled", value: "disabled" }
+  { label: "permissionMgmt.statusEnabled", value: "enabled" },
+  { label: "permissionMgmt.statusDisabled", value: "disabled" }
 ];
 
 const typeColorOf = (s: string): string =>
@@ -332,10 +332,10 @@ const typeColorOf = (s: string): string =>
 
 const typeLabelOf = (s: string): string =>
   ({
-    module: t("menuMgmt.typeModule"),
-    folder: t("menuMgmt.typeFolder"),
-    menu: t("menuMgmt.typeMenu"),
-    button: t("menuMgmt.typeButton")
+    module: t("permissionMgmt.typeModule"),
+    folder: t("permissionMgmt.typeFolder"),
+    menu: t("permissionMgmt.typeMenu"),
+    button: t("permissionMgmt.typeButton")
   }[s] ?? s);
 
 const realmColorOf = (s: string): string =>
@@ -346,8 +346,8 @@ const realmColorOf = (s: string): string =>
 
 const realmLabelOf = (s: string): string =>
   ({
-    admin: t("menuMgmt.realmAdmin"),
-    portal: t("menuMgmt.realmPortal")
+    admin: t("permissionMgmt.realmAdmin"),
+    portal: t("permissionMgmt.realmPortal")
   }[s] ?? s);
 
 const statusColorOf = (s: string): string =>
@@ -366,13 +366,13 @@ const drawerOpen = ref(false);
 const drawerMode = ref<DrawerMode>("add");
 const drawerPermission = ref<SysPermission | undefined>(undefined);
 const drawerDefaultParentId = ref<string>("0");
-/** 新建菜单时预设的权限域（跟随当前选中的分类节点/业务节点） */
+/** 新建权限时预设的权限域（跟随当前选中的分类节点/业务节点） */
 const drawerDefaultRealm = ref<string>("");
 
 const drawerTitle = computed(() => {
-  if (drawerMode.value === "add") return t("menuMgmt.addMenu");
-  if (drawerMode.value === "edit") return t("menuMgmt.editMenu");
-  return t("menuMgmt.viewMenu");
+  if (drawerMode.value === "add") return t("permissionMgmt.addPermission");
+  if (drawerMode.value === "edit") return t("permissionMgmt.editPermission");
+  return t("permissionMgmt.viewPermission");
 });
 
 const drawerIcon = computed(() => {
@@ -424,7 +424,7 @@ const columns = computed<QTableColumn<SysPermission>[]>(() => [
   {
     name: "name",
     field: "name",
-    label: t("menuMgmt.nameOnList"),
+    label: t("permissionMgmt.nameOnList"),
     align: "left",
     sortable: true,
     classes: "sticky-col-left",
@@ -433,70 +433,70 @@ const columns = computed<QTableColumn<SysPermission>[]>(() => [
   {
     name: "type",
     field: "type",
-    label: t("menuMgmt.type"),
+    label: t("permissionMgmt.type"),
     align: "left",
     sortable: true
   },
   {
     name: "realm",
     field: "realm",
-    label: t("menuMgmt.realm"),
+    label: t("permissionMgmt.realm"),
     align: "left",
     sortable: true
   },
   {
     name: "code",
     field: "code",
-    label: t("menuMgmt.code"),
+    label: t("permissionMgmt.code"),
     align: "left",
     sortable: true
   },
   {
     name: "path",
     field: "path",
-    label: t("menuMgmt.path"),
+    label: t("permissionMgmt.path"),
     align: "left",
     sortable: false
   },
   {
     name: "component",
     field: "component",
-    label: t("menuMgmt.component"),
+    label: t("permissionMgmt.component"),
     align: "left",
     sortable: false
   },
   {
     name: "icon",
     field: "icon",
-    label: t("menuMgmt.icon"),
+    label: t("permissionMgmt.icon"),
     align: "left",
     sortable: false
   },
   {
     name: "sort",
     field: "sort",
-    label: t("menuMgmt.sort"),
+    label: t("permissionMgmt.sort"),
     align: "left",
     sortable: true
   },
   {
     name: "isVisible",
     field: "isVisible",
-    label: t("menuMgmt.isVisible"),
+    label: t("permissionMgmt.isVisible"),
     align: "left",
     sortable: false
   },
   {
     name: "status",
     field: "status",
-    label: t("menuMgmt.status"),
+    label: t("permissionMgmt.status"),
     align: "left",
     sortable: true
   },
   {
     name: "createTime",
     field: "createTime",
-    label: t("menuMgmt.createTime"),
+    label: t("permissionMgmt.createTime"),
     align: "left",
     sortable: true,
     format: (val: string) => (val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-")
@@ -679,7 +679,7 @@ async function handleEdit(permission: SysPermission) {
 
 async function handleDelete(permission: SysPermission) {
   try {
-    await confirmDialog(t("menuMgmt.deleteConfirm", { name: permission.name }));
+    await confirmDialog(t("permissionMgmt.deleteConfirm", { name: permission.name }));
   } catch {
     return;
   }
@@ -708,7 +708,7 @@ async function handleBatchDelete() {
   }
 
   try {
-    await confirmDialog(t("menuMgmt.batchDeleteConfirm", { count: selectedRows.value.length }));
+    await confirmDialog(t("permissionMgmt.batchDeleteConfirm", { count: selectedRows.value.length }));
   } catch {
     return;
   }
@@ -740,8 +740,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="menu-list-shell">
-    <!-- ═══ 左侧：菜单树 ═══ -->
+  <div class="permission-list-shell">
+    <!-- ═══ 左侧：权限树 ═══ -->
     <div class="left-panel" :class="{ 'left-panel--collapsed': leftPanelCollapsed }">
       <div v-if="leftPanelCollapsed" class="left-panel-collapsed-bar">
         <q-btn
@@ -754,7 +754,7 @@ onMounted(() => {
           @click="leftPanelCollapsed = false"
         >
           <q-tooltip anchor="center right" self="center left">{{
-            t("menuMgmt.expandMenuTree")
+            t("permissionMgmt.expandTree")
           }}</q-tooltip>
         </q-btn>
       </div>
@@ -763,7 +763,7 @@ onMounted(() => {
         <div class="left-panel-header">
           <div class="left-panel-header-title row items-center no-wrap">
             <q-icon name="sym_r_menu" size="20px" class="q-mr-xs" />
-            <span>{{ t("menuMgmt.treeTitle") }}</span>
+            <span>{{ t("permissionMgmt.treeTitle") }}</span>
           </div>
           <q-btn
             flat
@@ -774,14 +774,14 @@ onMounted(() => {
             @click="leftPanelCollapsed = true"
             class="left-panel-collapse-btn"
           >
-            <q-tooltip>{{ t("menuMgmt.collapseMenuTree") }}</q-tooltip>
+            <q-tooltip>{{ t("permissionMgmt.collapseTree") }}</q-tooltip>
           </q-btn>
         </div>
 
         <q-scroll-area class="left-panel-scroll">
           <div class="left-panel-tree">
             <template v-if="menuTreeLoading">
-              <div v-for="i in 6" :key="i" class="menu-skeleton-row">
+              <div v-for="i in 6" :key="i" class="permission-skeleton-row">
                 <q-skeleton type="rect" width="60%" height="16px" class="q-ml-md q-my-sm" />
               </div>
             </template>
@@ -795,35 +795,35 @@ onMounted(() => {
               v-model:expanded="menuTreeExpanded"
               no-connectors
               dense
-              class="menu-tree"
+              class="permission-tree"
               no-nodes-label=" "
             >
               <template #default-header="scope">
                 <div
-                  class="menu-tree-node row items-center no-wrap full-width"
+                  class="permission-tree-node row items-center no-wrap full-width"
                   :class="{
-                    'menu-tree-node--selected': selectedMenuId === scope.node.id,
-                    'menu-tree-node--realm-group': scope.node.type === 'realm-group'
+                    'permission-tree-node--selected': selectedMenuId === scope.node.id,
+                    'permission-tree-node--realm-group': scope.node.type === 'realm-group'
                   }"
                   @click.stop="onNodeHeaderClick(scope.node)"
                 >
                   <q-icon
                     :name="menuNodeIcon(scope.node)"
                     size="20px"
-                    class="q-mr-sm cursor-pointer menu-tree-icon"
+                    class="q-mr-sm cursor-pointer permission-tree-icon"
                     :color="selectedMenuId === scope.node.id ? 'primary' : 'grey-7'"
                     @click.stop="toggleMenuNode(scope.node)"
                   />
                   <span
-                    class="menu-tree-label ellipsis"
+                    class="permission-tree-label ellipsis"
                     :class="{ 'text-weight-medium': scope.node.type === 'realm-group' }"
                   >{{ scope.node.label }}</span>
                   <q-space />
-                  <!-- 子孙菜单数量（含分类节点，借助 treePath 统计） -->
+                  <!-- 子孙权限数量（含分类节点，借助 treePath 统计） -->
                   <q-badge
-                    :color="scope.node.type === 'realm-group' ? realmColorOf(scope.node.realm || '') : 'primary'"
+                    color="primary"
                     rounded
-                    class="menu-count-badge"
+                    class="permission-count-badge"
                   >
                     {{ getDescendantCount(scope.node) }}
                   </q-badge>
@@ -874,7 +874,7 @@ onMounted(() => {
                 filled
                 square
                 dense
-                :placeholder="t('menuMgmt.keywordPlaceholder')"
+                :placeholder="t('permissionMgmt.keywordPlaceholder')"
                 hide-bottom-space
                 clearable
                 @keyup.enter="handleSearch"
@@ -899,7 +899,7 @@ onMounted(() => {
                 popup-content-class="status-select-popup"
               >
                 <template v-if="!searchForm.type" v-slot:selected>
-                  <span class="status-placeholder">{{ t('menuMgmt.typePlaceholder') }}</span>
+                  <span class="status-placeholder">{{ t('permissionMgmt.typePlaceholder') }}</span>
                 </template>
               </q-select>
             </div>
@@ -922,7 +922,7 @@ onMounted(() => {
                 popup-content-class="status-select-popup"
               >
                 <template v-if="!searchForm.realm" v-slot:selected>
-                  <span class="status-placeholder">{{ t('menuMgmt.realmPlaceholder') }}</span>
+                  <span class="status-placeholder">{{ t('permissionMgmt.realmPlaceholder') }}</span>
                 </template>
               </q-select>
             </div>
@@ -945,7 +945,7 @@ onMounted(() => {
                 popup-content-class="status-select-popup"
               >
                 <template v-if="!searchForm.status" v-slot:selected>
-                  <span class="status-placeholder">{{ t('menuMgmt.statusPlaceholder') }}</span>
+                  <span class="status-placeholder">{{ t('permissionMgmt.statusPlaceholder') }}</span>
                 </template>
               </q-select>
             </div>
@@ -989,7 +989,7 @@ onMounted(() => {
             @click.stop="handleCreate"
           >
             <q-icon name="sym_r_add" size="20px" class="q-mr-xs" />
-            {{ t('menuMgmt.createMenu') }}
+            {{ t('permissionMgmt.createPermission') }}
           </q-btn>
           <q-btn
             color="white"
@@ -1020,7 +1020,7 @@ onMounted(() => {
         :rows-per-page-options="[10, 20, 50, 100]"
         selection="multiple"
         flat
-        :class="['menu-table', { 'menu-table--empty': !tableRows.length }]"
+        :class="['permission-table', { 'permission-table--empty': !tableRows.length }]"
         @request="loadTableData"
       >
         <!-- 名称列：中文展示 name，英文展示 nameEn -->
@@ -1038,7 +1038,7 @@ onMounted(() => {
               :color="typeColorOf(props.value)"
               :label="typeLabelOf(props.value)"
               rounded
-              class="menu-type-badge"
+              class="permission-type-badge"
             />
           </q-td>
         </template>
@@ -1051,7 +1051,7 @@ onMounted(() => {
               :color="realmColorOf(props.value)"
               :label="realmLabelOf(props.value)"
               rounded
-              class="menu-type-badge"
+              class="permission-type-badge"
             />
           </q-td>
         </template>
@@ -1095,7 +1095,7 @@ onMounted(() => {
               :color="props.value === 1 ? 'positive' : 'grey-7'"
               :label="props.value === 1 ? t('common.yes') : t('common.no')"
               rounded
-              class="menu-type-badge"
+              class="permission-type-badge"
             />
           </q-td>
         </template>
@@ -1106,7 +1106,7 @@ onMounted(() => {
             <q-badge
               v-if="props.value"
               :color="statusColorOf(props.value)"
-              :label="props.value === 'enabled' ? t('menuMgmt.statusEnabled') : t('menuMgmt.statusDisabled')"
+              :label="props.value === 'enabled' ? t('permissionMgmt.statusEnabled') : t('permissionMgmt.statusDisabled')"
               rounded
               class="status-badge"
             />
@@ -1218,29 +1218,29 @@ onMounted(() => {
     </div>
   </div>
 
-  <!-- ═══ 本地右侧抽屉：添加 / 编辑 / 查看菜单 ═══ -->
+  <!-- ═══ 本地右侧抽屉：添加 / 编辑 / 查看权限 ═══ -->
   <Teleport to="body">
-    <Transition name="menu-drawer-slide">
-      <div v-if="drawerOpen" class="menu-local-drawer-mask" @click.self="closeMenuDrawer">
-        <div class="menu-local-drawer">
-          <div class="menu-drawer-shell">
-            <div class="menu-drawer-header row items-center no-wrap">
+    <Transition name="permission-drawer-slide">
+      <div v-if="drawerOpen" class="permission-local-drawer-mask" @click.self="closeMenuDrawer">
+        <div class="permission-local-drawer">
+          <div class="permission-drawer-shell">
+            <div class="permission-drawer-header row items-center no-wrap">
               <q-icon :name="drawerIcon" size="20px" class="q-mr-sm" />
-              <span class="menu-drawer-title">{{ drawerTitle }}</span>
+              <span class="permission-drawer-title">{{ drawerTitle }}</span>
               <q-space />
               <q-btn
                 flat
                 dense
                 round
                 icon="sym_r_close"
-                class="menu-drawer-close-btn"
+                class="permission-drawer-close-btn"
                 @click="closeMenuDrawer"
               >
                 <q-tooltip>{{ t("common.close") }}</q-tooltip>
               </q-btn>
             </div>
-            <div class="menu-drawer-body">
-              <MenuDrawerContent
+            <div class="permission-drawer-body">
+              <PermissionDrawerContent
                 :mode="drawerMode"
                 :permission="drawerPermission"
                 :default-parent-id="drawerDefaultParentId"
@@ -1258,7 +1258,7 @@ onMounted(() => {
 
 <style scoped>
 /* ═══ 整体壳层 ═══ */
-.menu-list-shell {
+.permission-list-shell {
   display: flex;
   height: calc(100vh - 64px - 40px - 44px - 16px);
   min-height: 0;
@@ -1352,35 +1352,35 @@ onMounted(() => {
   padding: 4px 0;
 }
 
-.menu-skeleton-row {
+.permission-skeleton-row {
   padding: 4px 0;
 }
 
-.menu-tree {
+.permission-tree {
   padding: 0 8px;
 }
 
-:deep(.menu-tree.q-tree--dense .q-tree__node--child) {
+:deep(.permission-tree.q-tree--dense .q-tree__node--child) {
   padding-left: 0 !important;
 }
 
-:deep(.menu-tree.q-tree--dense .q-tree__children) {
+:deep(.permission-tree.q-tree--dense .q-tree__children) {
   padding-left: 16px !important;
 }
 
-:deep(.menu-tree .q-tree__node-toggle) {
+:deep(.permission-tree .q-tree__node-toggle) {
   display: none !important;
 }
 
-:deep(.menu-tree .q-tree__arrow) {
+:deep(.permission-tree .q-tree__arrow) {
   display: none !important;
 }
 
-:deep(.menu-tree .q-tree__node) {
+:deep(.permission-tree .q-tree__node) {
   padding-bottom: 0 !important;
 }
 
-:deep(.menu-tree .q-tree__node-header) {
+:deep(.permission-tree .q-tree__node-header) {
   margin: 1px 0;
   padding: 0;
   min-height: 0;
@@ -1388,7 +1388,7 @@ onMounted(() => {
   box-sizing: border-box;
 }
 
-.menu-tree-node {
+.permission-tree-node {
   min-width: 0;
   padding: 6px 10px;
   min-height: 34px;
@@ -1399,29 +1399,29 @@ onMounted(() => {
   -webkit-user-select: none;
 }
 
-.menu-tree-node:hover {
+.permission-tree-node:hover {
   background: rgba(0, 0, 0, 0.04);
 }
 
-.menu-tree-node--selected {
+.permission-tree-node--selected {
   background: rgba(0, 121, 107, 0.08) !important;
 }
 
-.menu-tree-node--selected .menu-tree-label {
+.permission-tree-node--selected .permission-tree-label {
   color: #00796b;
   font-weight: 600;
 }
 
-/* realm 分类节点（顶级分组：后台菜单/前台菜单），略增内距以突出分组层级 */
-.menu-tree-node--realm-group {
+/* realm 分类节点（顶级分组：后台权限/前台权限），略增内距以突出分组层级 */
+.permission-tree-node--realm-group {
   padding: 8px 10px;
 }
 
-.menu-tree-icon {
+.permission-tree-icon {
   transition: transform 0.15s ease;
 }
 
-.menu-tree-label {
+.permission-tree-label {
   font-size: 13px;
   line-height: 1.4;
   color: rgba(0, 0, 0, 0.82);
@@ -1527,7 +1527,7 @@ onMounted(() => {
 }
 
 /* ── 表格 ── */
-.menu-table {
+.permission-table {
   flex: 1 1 auto;
   min-height: 0;
   background: #fff;
@@ -1535,17 +1535,17 @@ onMounted(() => {
   border-radius: 0;
 }
 
-.menu-table :deep(.q-table__top) {
+.permission-table :deep(.q-table__top) {
   display: none;
 }
 
-.menu-table :deep(.q-table__container) {
+.permission-table :deep(.q-table__container) {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-.menu-table :deep(.q-table__middle) {
+.permission-table :deep(.q-table__middle) {
   flex: 1 1 0;
   min-height: 0;
   overflow: auto;
@@ -1554,17 +1554,17 @@ onMounted(() => {
   overscroll-behavior: none;
 }
 
-.menu-table :deep(thead) {
+.permission-table :deep(thead) {
   position: sticky;
   top: 0;
   z-index: 2;
 }
 
-.menu-table :deep(.q-table__middle > table) {
+.permission-table :deep(.q-table__middle > table) {
   flex: 0 0 auto;
 }
 
-.menu-table :deep(thead tr th) {
+.permission-table :deep(thead tr th) {
   font-weight: 700 !important;
   font-size: 13px !important;
   color: rgba(0, 0, 0, 0.8) !important;
@@ -1573,107 +1573,107 @@ onMounted(() => {
   border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
 }
 
-.menu-table :deep(thead tr:first-child th) {
+.permission-table :deep(thead tr:first-child th) {
   border-top: none;
 }
 
 /* ═══ 固定列（Sticky Columns）═══ */
-.menu-table :deep(th:first-child:not([colspan])),
-.menu-table :deep(td:first-child:not([colspan])) {
+.permission-table :deep(th:first-child:not([colspan])),
+.permission-table :deep(td:first-child:not([colspan])) {
   width: 64px !important;
   min-width: 64px !important;
 }
 
-.menu-table :deep(thead tr th:first-child:not([colspan])) {
+.permission-table :deep(thead tr th:first-child:not([colspan])) {
   position: sticky;
   left: 0;
   z-index: 1;
 }
 
-.menu-table :deep(tbody td:first-child:not([colspan])) {
+.permission-table :deep(tbody td:first-child:not([colspan])) {
   position: sticky;
   left: 0;
   z-index: 1;
   background: #fff;
 }
 
-.menu-table :deep(thead tr th.sticky-col-left) {
+.permission-table :deep(thead tr th.sticky-col-left) {
   position: sticky;
   left: 64px;
   z-index: 1;
 }
 
-.menu-table :deep(tbody td.sticky-col-left) {
+.permission-table :deep(tbody td.sticky-col-left) {
   position: sticky;
   left: 64px;
   z-index: 1;
   background: #fff;
 }
 
-.menu-table :deep(thead tr th.sticky-col-right) {
+.permission-table :deep(thead tr th.sticky-col-right) {
   position: sticky;
   right: 0;
   z-index: 1;
 }
 
-.menu-table :deep(tbody td.sticky-col-right) {
+.permission-table :deep(tbody td.sticky-col-right) {
   position: sticky;
   right: 0;
   z-index: 1;
   background: #fff;
 }
 
-.menu-table :deep(thead tr th.sticky-col-left),
-.menu-table :deep(tbody td.sticky-col-left) {
+.permission-table :deep(thead tr th.sticky-col-left),
+.permission-table :deep(tbody td.sticky-col-left) {
   box-shadow: 4px 0 6px -1px rgba(0, 0, 0, 0.12);
 }
 
-.menu-table :deep(thead tr th.sticky-col-right),
-.menu-table :deep(tbody td.sticky-col-right) {
+.permission-table :deep(thead tr th.sticky-col-right),
+.permission-table :deep(tbody td.sticky-col-right) {
   box-shadow: -4px 0 6px -1px rgba(0, 0, 0, 0.12);
 }
 
-.menu-table :deep(tbody tr:hover td:first-child:not([colspan])),
-.menu-table :deep(tbody tr:hover td.sticky-col-left),
-.menu-table :deep(tbody tr:hover td.sticky-col-right) {
+.permission-table :deep(tbody tr:hover td:first-child:not([colspan])),
+.permission-table :deep(tbody tr:hover td.sticky-col-left),
+.permission-table :deep(tbody tr:hover td.sticky-col-right) {
   background: #f7fbfb !important;
 }
 
-.menu-table :deep(tbody tr.q-tr--selected td:first-child:not([colspan])),
-.menu-table :deep(tbody tr.q-tr--selected td.sticky-col-left),
-.menu-table :deep(tbody tr.q-tr--selected td.sticky-col-right) {
+.permission-table :deep(tbody tr.q-tr--selected td:first-child:not([colspan])),
+.permission-table :deep(tbody tr.q-tr--selected td.sticky-col-left),
+.permission-table :deep(tbody tr.q-tr--selected td.sticky-col-right) {
   background: #f0f6f4 !important;
 }
 
-.body--dark .menu-table :deep(tbody td:first-child:not([colspan])),
-.body--dark .menu-table :deep(tbody td.sticky-col-left),
-.body--dark .menu-table :deep(tbody td.sticky-col-right) {
+.body--dark .permission-table :deep(tbody td:first-child:not([colspan])),
+.body--dark .permission-table :deep(tbody td.sticky-col-left),
+.body--dark .permission-table :deep(tbody td.sticky-col-right) {
   background: #1e1e1e !important;
 }
 
-.body--dark .menu-table :deep(tbody tr:hover td:first-child:not([colspan])),
-.body--dark .menu-table :deep(tbody tr:hover td.sticky-col-left),
-.body--dark .menu-table :deep(tbody tr:hover td.sticky-col-right) {
+.body--dark .permission-table :deep(tbody tr:hover td:first-child:not([colspan])),
+.body--dark .permission-table :deep(tbody tr:hover td.sticky-col-left),
+.body--dark .permission-table :deep(tbody tr:hover td.sticky-col-right) {
   background: #1d2120 !important;
 }
 
-.body--dark .menu-table :deep(tbody tr.q-tr--selected td:first-child:not([colspan])),
-.body--dark .menu-table :deep(tbody tr.q-tr--selected td.sticky-col-left),
-.body--dark .menu-table :deep(tbody tr.q-tr--selected td.sticky-col-right) {
+.body--dark .permission-table :deep(tbody tr.q-tr--selected td:first-child:not([colspan])),
+.body--dark .permission-table :deep(tbody tr.q-tr--selected td.sticky-col-left),
+.body--dark .permission-table :deep(tbody tr.q-tr--selected td.sticky-col-right) {
   background: #1c2323 !important;
 }
 
 /* ── 空数据状态 ── */
-.menu-table--empty :deep(.q-table__container) {
+.permission-table--empty :deep(.q-table__container) {
   height: 100%;
 }
 
-.menu-table--empty :deep(.q-table__middle) {
+.permission-table--empty :deep(.q-table__middle) {
   flex: 0 0 auto;
   overflow: visible;
 }
 
-.menu-table--empty :deep(.q-table__bottom) {
+.permission-table--empty :deep(.q-table__bottom) {
   flex: 1 1 0;
   min-height: 0;
   display: flex;
@@ -1682,33 +1682,33 @@ onMounted(() => {
   border-top: none !important;
 }
 
-.menu-table--empty :deep(.q-table__bottom .q-table__bottom-nodata-icon) {
+.permission-table--empty :deep(.q-table__bottom .q-table__bottom-nodata-icon) {
   display: none;
 }
 
 /* 行悬停 */
-.menu-table :deep(tbody tr:hover td) {
+.permission-table :deep(tbody tr:hover td) {
   background: rgba(0, 121, 107, 0.03) !important;
 }
 
-.menu-table :deep(tbody td) {
+.permission-table :deep(tbody td) {
   font-size: 13px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
 }
 
-/* 菜单计数徽章 */
-.menu-count-badge {
+/* 权限计数徽章 */
+.permission-count-badge {
   font-size: 11px;
   padding: 1px 6px;
 }
 
 /* 复选框尺寸 */
-.menu-table :deep(.q-checkbox__inner) {
+.permission-table :deep(.q-checkbox__inner) {
   font-size: 32px;
 }
 
 /* Badge 统一样式 */
-.menu-type-badge,
+.permission-type-badge,
 .status-badge {
   font-size: 11px;
   padding: 3px 10px;
@@ -1735,7 +1735,7 @@ onMounted(() => {
 }
 
 /* 分页底栏 */
-.menu-table :deep(.q-table__bottom) {
+.permission-table :deep(.q-table__bottom) {
   padding: 3px 16px 4px;
   font-size: 13px;
   min-height: 42px;
@@ -1803,7 +1803,7 @@ onMounted(() => {
 }
 
 /* ═══ 本地右侧抽屉 ═══ */
-.menu-local-drawer-mask {
+.permission-local-drawer-mask {
   position: fixed;
   inset: 0;
   z-index: 5000;
@@ -1812,7 +1812,7 @@ onMounted(() => {
   justify-content: flex-end;
 }
 
-.menu-local-drawer {
+.permission-local-drawer {
   width: 680px;
   max-width: 100vw;
   height: 100%;
@@ -1823,14 +1823,14 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.menu-drawer-shell {
+.permission-drawer-shell {
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
 }
 
-.menu-drawer-header {
+.permission-drawer-header {
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -1840,13 +1840,13 @@ onMounted(() => {
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.menu-drawer-title {
+.permission-drawer-title {
   font-size: 15px;
   font-weight: 600;
   color: rgba(0, 0, 0, 0.87);
 }
 
-.menu-drawer-close-btn {
+.permission-drawer-close-btn {
   width: 32px;
   height: 32px;
   min-width: 32px;
@@ -1857,44 +1857,44 @@ onMounted(() => {
   font-size: 20px;
 }
 
-.menu-drawer-close-btn :deep(.q-btn__wrapper) {
+.permission-drawer-close-btn :deep(.q-btn__wrapper) {
   min-width: 32px;
   min-height: 32px;
   padding: 0;
 }
 
-.menu-drawer-close-btn :deep(.q-icon) {
+.permission-drawer-close-btn :deep(.q-icon) {
   font-size: 20px;
 }
 
-.menu-drawer-close-btn:hover {
+.permission-drawer-close-btn:hover {
   background: rgba(128, 128, 128, 0.2);
 }
 
-.menu-drawer-body {
+.permission-drawer-body {
   flex: 1 1 auto;
   overflow-y: auto;
   padding: 16px;
 }
 
 /* 抽屉滑入/滑出动画 */
-.menu-drawer-slide-enter-active,
-.menu-drawer-slide-leave-active {
+.permission-drawer-slide-enter-active,
+.permission-drawer-slide-leave-active {
   transition: opacity 0.25s ease;
 }
 
-.menu-drawer-slide-enter-active .menu-local-drawer,
-.menu-drawer-slide-leave-active .menu-local-drawer {
+.permission-drawer-slide-enter-active .permission-local-drawer,
+.permission-drawer-slide-leave-active .permission-local-drawer {
   transition: transform 0.25s ease;
 }
 
-.menu-drawer-slide-enter-from,
-.menu-drawer-slide-leave-to {
+.permission-drawer-slide-enter-from,
+.permission-drawer-slide-leave-to {
   opacity: 0;
 }
 
-.menu-drawer-slide-enter-from .menu-local-drawer,
-.menu-drawer-slide-leave-to .menu-local-drawer {
+.permission-drawer-slide-enter-from .permission-local-drawer,
+.permission-drawer-slide-leave-to .permission-local-drawer {
   transform: translateX(100%);
 }
 </style>
@@ -1912,33 +1912,33 @@ onMounted(() => {
 }
 
 /* 抽屉暗色模式 */
-.body--dark .menu-local-drawer {
+.body--dark .permission-local-drawer {
   background: #1e1e1e !important;
   box-shadow: -4px 0 12px rgba(0, 0, 0, 0.4);
 }
 
-.body--dark .menu-drawer-header {
+.body--dark .permission-drawer-header {
   background: #252525 !important;
   border-bottom-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-.body--dark .menu-drawer-title {
+.body--dark .permission-drawer-title {
   color: rgba(255, 255, 255, 0.87) !important;
 }
 
-.body--dark .menu-drawer-close-btn {
+.body--dark .permission-drawer-close-btn {
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
-.body--dark .menu-drawer-close-btn:hover {
+.body--dark .permission-drawer-close-btn:hover {
   background: rgba(255, 255, 255, 0.08) !important;
 }
 
-.body--dark .menu-drawer-body {
+.body--dark .permission-drawer-body {
   color: rgba(255, 255, 255, 0.87) !important;
 }
 
-.body--dark .menu-local-drawer-mask {
+.body--dark .permission-local-drawer-mask {
   background: rgba(0, 0, 0, 0.5);
 }
 </style>

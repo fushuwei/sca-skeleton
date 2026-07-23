@@ -12,7 +12,7 @@ const props = defineProps<{
   permission?: SysPermission;
   /** 新增时预设的父节点 ID */
   defaultParentId?: string;
-  /** 新增时预设的权限域（跟随菜单树当前选中节点） */
+  /** 新增时预设的权限域（跟随权限树当前选中节点） */
   defaultRealm?: string;
 }>();
 
@@ -43,27 +43,27 @@ const form = reactive({
 });
 
 const formRules = computed(() => ({
-  parentId: [(v: string) => !!v || t("menuMgmt.parentIdRequired")],
-  name: [(v: string) => !!v?.trim() || t("menuMgmt.nameRequired")],
-  nameEn: [(v: string) => !!v?.trim() || t("menuMgmt.nameEnRequired")],
-  type: [(v: string) => !!v || t("menuMgmt.typeRequired")],
-  realm: [(v: string) => !!v || t("menuMgmt.realmRequired")],
+  parentId: [(v: string) => !!v || t("permissionMgmt.parentIdRequired")],
+  name: [(v: string) => !!v?.trim() || t("permissionMgmt.nameRequired")],
+  nameEn: [(v: string) => !!v?.trim() || t("permissionMgmt.nameEnRequired")],
+  type: [(v: string) => !!v || t("permissionMgmt.typeRequired")],
+  realm: [(v: string) => !!v || t("permissionMgmt.realmRequired")],
   // 菜单和按钮类型要求权限编码必填（module/folder 类型可选）
   code: (form.type === "menu" || form.type === "button")
-    ? [(v: string) => !!v?.trim() || t("menuMgmt.codeRequired")]
+    ? [(v: string) => !!v?.trim() || t("permissionMgmt.codeRequired")]
     : []
 }));
 
 const typeOptions = computed(() => [
-  { label: t("menuMgmt.typeModule"), value: "module" },
-  { label: t("menuMgmt.typeFolder"), value: "folder" },
-  { label: t("menuMgmt.typeMenu"), value: "menu" },
-  { label: t("menuMgmt.typeButton"), value: "button" }
+  { label: t("permissionMgmt.typeModule"), value: "module" },
+  { label: t("permissionMgmt.typeFolder"), value: "folder" },
+  { label: t("permissionMgmt.typeMenu"), value: "menu" },
+  { label: t("permissionMgmt.typeButton"), value: "button" }
 ]);
 
 const realmOptions = computed(() => [
-  { label: t("menuMgmt.realmAdmin"), value: "admin" },
-  { label: t("menuMgmt.realmPortal"), value: "portal" }
+  { label: t("permissionMgmt.realmAdmin"), value: "admin" },
+  { label: t("permissionMgmt.realmPortal"), value: "portal" }
 ]);
 
 // ── 类型默认图标 ──
@@ -89,8 +89,8 @@ watch(() => form.type, (newType, oldType) => {
 });
 
 const statusOptions = computed(() => [
-  { label: t("menuMgmt.statusEnabled"), value: "enabled" },
-  { label: t("menuMgmt.statusDisabled"), value: "disabled" }
+  { label: t("permissionMgmt.statusEnabled"), value: "enabled" },
+  { label: t("permissionMgmt.statusDisabled"), value: "disabled" }
 ]);
 
 const yesNoOptions = computed(() => [
@@ -98,7 +98,7 @@ const yesNoOptions = computed(() => [
   { label: t("common.no"), value: 0 }
 ]);
 
-// ── 上级菜单树（排除 button 类型） ──
+// ── 上级权限树（排除 button 类型） ──
 const allPermissions = ref<SysPermission[]>([]);
 const menuTreeNodes = computed(() => buildMenuTree(allPermissions.value));
 const menuTreeExpanded = ref<string[]>([]);
@@ -155,7 +155,7 @@ function buildMenuTree(perms: SysPermission[]): PermissionTreeNode[] {
   return roots;
 }
 
-/** 获取当前编辑菜单的所有子孙节点 ID（含自身），用于编辑时排除 */
+/** 获取当前编辑权限的所有子孙节点 ID（含自身），用于编辑时排除 */
 function getSelfAndDescendantIds(): Set<string> {
   const ids = new Set<string>();
   if (props.mode !== "edit" || !props.permission?.id) return ids;
@@ -166,7 +166,7 @@ function getSelfAndDescendantIds(): Set<string> {
       if (n.children?.length) collect(n.children);
     }
   };
-  // 从完整树中找到当前菜单节点并收集其子孙
+  // 从完整树中找到当前权限节点并收集其子孙
   const findAndCollect = (nodes: PermissionTreeNode[]): boolean => {
     for (const n of nodes) {
       if (n.id === props.permission!.id) {
@@ -200,7 +200,7 @@ const menuTreeWithRoot = computed(() => {
     : menuTreeNodes.value;
   return [{
     id: "0",
-    label: t("menuMgmt.allMenus"),
+    label: t("permissionMgmt.allItems"),
     parentId: "",
     type: "root",
     icon: "",
@@ -376,14 +376,14 @@ async function handleSave() {
     }
 
     if (result.code === 10_000) {
-      showToast(t("menuMgmt.saveSuccess"), "positive");
+      showToast(t("permissionMgmt.saveSuccess"), "positive");
       emit("saved");
     } else {
-      showToast(result.message || t("menuMgmt.saveFail"), "negative");
+      showToast(result.message || t("permissionMgmt.saveFail"), "negative");
     }
   } catch (error) {
     if (!isNotificationHandled(error)) {
-      showToast(t("menuMgmt.saveFail"), "negative");
+      showToast(t("permissionMgmt.saveFail"), "negative");
     }
   } finally {
     formLoading.value = false;
@@ -392,14 +392,14 @@ async function handleSave() {
 </script>
 
 <template>
-  <div class="menu-drawer-content">
-    <q-form class="menu-drawer-form" @submit="handleSave">
+  <div class="permission-drawer-content">
+    <q-form class="permission-drawer-form" @submit="handleSave">
       <div class="row q-col-gutter-md">
-        <!-- 上级菜单 -->
+        <!-- 上级权限 -->
         <div class="col-12">
           <q-select
             v-model="form.parentId"
-            :label="t('menuMgmt.parentId')"
+            :label="t('permissionMgmt.parentId')"
             filled
             square
             emit-value
@@ -409,7 +409,7 @@ async function handleSave() {
             :disable="drawerReadonly"
             hide-bottom-space
             dropdown-icon="sym_r_arrow_drop_down"
-            :class="{ 'menu-select--menu-open': menuMenuOpen }"
+            :class="{ 'permission-select--menu-open': menuMenuOpen }"
             class="required-field"
           >
             <q-menu
@@ -429,7 +429,7 @@ async function handleSave() {
                   dense
                   outlined
                   square
-                  :placeholder="t('menuMgmt.searchMenu')"
+                  :placeholder="t('permissionMgmt.searchPermission')"
                   clearable
                   class="q-mb-sm"
                 >
@@ -450,7 +450,7 @@ async function handleSave() {
                   >
                     <template #default-header="scope">
                       <div
-                        class="menu-tree-option row items-center no-wrap full-width"
+                        class="permission-tree-option row items-center no-wrap full-width"
                         @click.stop="onMenuTreeNodeClick(scope.node)"
                       >
                         <q-icon
@@ -470,11 +470,11 @@ async function handleSave() {
             </q-menu>
           </q-select>
         </div>
-        <!-- 菜单名称 -->
+        <!-- 权限名称 -->
         <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.name"
-            :label="t('menuMgmt.name')"
+            :label="t('permissionMgmt.name')"
             filled
             square
             :rules="formRules.name"
@@ -484,11 +484,11 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-        <!-- 英文菜单名称 -->
+        <!-- 英文权限名称 -->
         <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.nameEn"
-            :label="t('menuMgmt.nameEn')"
+            :label="t('permissionMgmt.nameEn')"
             filled
             square
             :rules="formRules.nameEn"
@@ -503,7 +503,7 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.type"
-            :label="t('menuMgmt.type')"
+            :label="t('permissionMgmt.type')"
             filled
             square
             :options="typeOptions"
@@ -521,7 +521,7 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.realm"
-            :label="t('menuMgmt.realm')"
+            :label="t('permissionMgmt.realm')"
             filled
             square
             :options="realmOptions"
@@ -539,7 +539,7 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.code"
-            :label="t('menuMgmt.code')"
+            :label="t('permissionMgmt.code')"
             filled
             square
             :disable="drawerReadonly || (form.type !== 'menu' && form.type !== 'button')"
@@ -554,7 +554,7 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.icon"
-            :label="t('menuMgmt.icon')"
+            :label="t('permissionMgmt.icon')"
             filled
             square
             :disable="drawerReadonly || form.type === 'button'"
@@ -570,7 +570,7 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.path"
-            :label="t('menuMgmt.path')"
+            :label="t('permissionMgmt.path')"
             filled
             square
             :disable="drawerReadonly || form.type !== 'menu'"
@@ -582,7 +582,7 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.component"
-            :label="t('menuMgmt.component')"
+            :label="t('permissionMgmt.component')"
             filled
             square
             :disable="drawerReadonly || form.type !== 'menu'"
@@ -594,7 +594,7 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-input
             v-model.number="form.sort"
-            :label="t('menuMgmt.sort')"
+            :label="t('permissionMgmt.sort')"
             filled
             square
             type="number"
@@ -607,7 +607,7 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.status"
-            :label="t('menuMgmt.status')"
+            :label="t('permissionMgmt.status')"
             filled
             square
             :options="statusOptions"
@@ -623,7 +623,7 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.isVisible"
-            :label="t('menuMgmt.isVisible')"
+            :label="t('permissionMgmt.isVisible')"
             filled
             square
             :options="yesNoOptions"
@@ -639,7 +639,7 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.isExternal"
-            :label="t('menuMgmt.isExternal')"
+            :label="t('permissionMgmt.isExternal')"
             filled
             square
             :options="yesNoOptions"
@@ -655,7 +655,7 @@ async function handleSave() {
         <div class="col-12">
           <q-input
             v-model="form.remark"
-            :label="t('menuMgmt.remark')"
+            :label="t('permissionMgmt.remark')"
             filled
             square
             type="textarea"
@@ -668,7 +668,7 @@ async function handleSave() {
       </div>
 
       <!-- 底部操作按钮 -->
-      <div v-if="!drawerReadonly" class="menu-drawer-footer row justify-end q-gutter-sm">
+      <div v-if="!drawerReadonly" class="permission-drawer-footer row justify-end q-gutter-sm">
         <q-btn
           color="grey-7"
           outline
@@ -694,11 +694,11 @@ async function handleSave() {
 </template>
 
 <style scoped>
-.menu-drawer-content {
+.permission-drawer-content {
   padding: 0;
 }
 
-.menu-drawer-footer {
+.permission-drawer-footer {
   flex-shrink: 0;
   padding: 12px 0 0;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
@@ -709,7 +709,7 @@ async function handleSave() {
   min-width: 72px;
 }
 
-.menu-tree-option {
+.permission-tree-option {
   min-height: 32px;
   padding: 4px 8px;
   border-radius: 4px;
@@ -717,7 +717,7 @@ async function handleSave() {
   transition: background-color 0.15s;
 }
 
-.menu-tree-option:hover {
+.permission-tree-option:hover {
   background: rgba(0, 0, 0, 0.04);
 }
 
@@ -726,7 +726,7 @@ async function handleSave() {
   color: var(--q-negative);
 }
 
-.menu-select--menu-open :deep(.q-field__append > .q-icon:not(.text-negative)) {
+.permission-select--menu-open :deep(.q-field__append > .q-icon:not(.text-negative)) {
   transform: rotate(180deg);
 }
 
@@ -736,39 +736,39 @@ async function handleSave() {
 </style>
 
 <style>
-.body--dark .menu-drawer-form .q-field__control {
+.body--dark .permission-drawer-form .q-field__control {
   background: #2d2d2d;
 }
 
-.body--dark .menu-drawer-form .q-field__native,
-.body--dark .menu-drawer-form .q-field__prefix,
-.body--dark .menu-drawer-form .q-field__suffix {
+.body--dark .permission-drawer-form .q-field__native,
+.body--dark .permission-drawer-form .q-field__prefix,
+.body--dark .permission-drawer-form .q-field__suffix {
   color: rgba(255, 255, 255, 0.87);
 }
 
-.body--dark .menu-drawer-form .q-field__label {
+.body--dark .permission-drawer-form .q-field__label {
   color: rgba(255, 255, 255, 0.55);
 }
 
-.body--dark .menu-drawer-form .q-field--focused .q-field__label {
+.body--dark .permission-drawer-form .q-field--focused .q-field__label {
   color: #80cbc4;
 }
 
-.body--dark .menu-drawer-form .q-field__control::before {
+.body--dark .permission-drawer-form .q-field__control::before {
   border-color: rgba(255, 255, 255, 0.22);
 }
 
-.body--dark .menu-drawer-form .q-field--focused .q-field__control::after {
+.body--dark .permission-drawer-form .q-field--focused .q-field__control::after {
   border-color: #80cbc4;
 }
 
 /* 抽屉底部按钮区域分隔线 */
-.body--dark .menu-drawer-footer {
+.body--dark .permission-drawer-footer {
   border-top-color: rgba(255, 255, 255, 0.08);
 }
 
-/* 上级菜单树下拉选项 */
-.body--dark .menu-tree-option:hover {
+/* 上级权限树下拉选项 */
+.body--dark .permission-tree-option:hover {
   background: rgba(255, 255, 255, 0.06);
 }
 </style>

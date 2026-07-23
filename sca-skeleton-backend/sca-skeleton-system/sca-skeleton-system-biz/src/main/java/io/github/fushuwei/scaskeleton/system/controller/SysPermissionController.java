@@ -79,7 +79,7 @@ public class SysPermissionController {
     @Operation(summary = "创建权限")
     @PostMapping("/create")
     @RequiresPermission("sys:permission:add")
-    @OperationLog(module = "菜单管理", action = "添加菜单")
+    @OperationLog(module = "权限管理", action = "添加权限")
     public Result<Void> create(@Validated @RequestBody PermissionCreateRequest request) {
         permissionService.createPermission(request);
         return Result.ok();
@@ -88,7 +88,7 @@ public class SysPermissionController {
     @Operation(summary = "编辑权限")
     @PostMapping("/update")
     @RequiresPermission("sys:permission:edit")
-    @OperationLog(module = "菜单管理", action = "编辑菜单")
+    @OperationLog(module = "权限管理", action = "编辑权限")
     public Result<Void> update(@Validated @RequestBody PermissionUpdateRequest request) {
         permissionService.updatePermission(request);
         return Result.ok();
@@ -97,7 +97,7 @@ public class SysPermissionController {
     @Operation(summary = "删除权限")
     @PostMapping("/delete")
     @RequiresPermission("sys:permission:delete")
-    @OperationLog(module = "菜单管理", action = "删除菜单")
+    @OperationLog(module = "权限管理", action = "删除权限")
     public Result<Void> delete(@Validated @RequestBody DeleteRequest request) {
         permissionService.deletePermission(request.getId());
         return Result.ok();
@@ -106,7 +106,7 @@ public class SysPermissionController {
     @Operation(summary = "批量删除权限")
     @PostMapping("/batch/delete")
     @RequiresPermission("sys:permission:delete")
-    @OperationLog(module = "菜单管理", action = "批量删除菜单")
+    @OperationLog(module = "权限管理", action = "批量删除权限")
     public Result<Void> batchDelete(@RequestBody List<String> ids) {
         permissionService.batchDeletePermissions(ids);
         return Result.ok();

@@ -1,7 +1,7 @@
 import { request } from "./http";
 import type { ApiEnvelope, SysPermission, PermissionAssignOption, PermissionPageRequest, IPage } from "../types/auth";
 
-/** 查询全部权限列表（菜单管理页面，返回全量数据含 disabled 菜单） */
+/** 查询全部权限列表（权限管理页面，返回全量数据含 disabled 权限） */
 export async function getPermissionListApi(realm?: string): Promise<ApiEnvelope<SysPermission[]>> {
   return request<SysPermission[]>({ method: "GET", url: "/sys/permission/list", params: { realm } });
 }

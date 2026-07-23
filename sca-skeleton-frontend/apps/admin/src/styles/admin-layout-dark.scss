@@ -519,11 +519,11 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
- * MenuListView — 菜单管理页面深色模式
+ * PermissionListView — 权限管理页面深色模式
  * ═══════════════════════════════════════════════════════════════ */
 
-.body--dark .menu-list-shell {
-  /* 左侧菜单面板 */
+.body--dark .permission-list-shell {
+  /* 左侧权限面板 */
   .left-panel {
     background: #1e1e1e;
     border-color: rgba(255, 255, 255, 0.12);
@@ -559,31 +559,31 @@
     color: rgba(255, 255, 255, 0.72) !important;
   }
 
-  .menu-tree-label {
+  .permission-tree-label {
     color: rgba(255, 255, 255, 0.82);
   }
 
-  .menu-tree .q-tree__node-header:hover {
+  .permission-tree .q-tree__node-header:hover {
     background: rgba(255, 255, 255, 0.06) !important;
   }
 
-  .menu-tree-node:hover {
+  .permission-tree-node:hover {
     background: rgba(255, 255, 255, 0.06) !important;
   }
 
-  .menu-tree-node--selected {
+  .permission-tree-node--selected {
     background: rgba(0, 150, 136, 0.18) !important;
   }
 
-  .menu-tree-node--selected .menu-tree-label {
+  .permission-tree-node--selected .permission-tree-label {
     color: #80cbc4;
   }
 
-  .menu-tree .q-icon.text-grey-7 {
+  .permission-tree .q-icon.text-grey-7 {
     color: rgba(255, 255, 255, 0.55) !important;
   }
 
-  .menu-count-badge {
+  .permission-count-badge {
     background: rgba(0, 150, 136, 0.5) !important;
     color: #fff;
   }
@@ -701,51 +701,51 @@
   }
 
   /* 表格 */
-  .menu-table {
+  .permission-table {
     background: #1e1e1e;
     border-color: rgba(255, 255, 255, 0.12);
     color: rgba(255, 255, 255, 0.87);
   }
 
-  .menu-table thead tr th {
+  .permission-table thead tr th {
     background: #252525 !important;
     color: rgba(255, 255, 255, 0.7) !important;
     border-bottom-color: rgba(255, 255, 255, 0.08) !important;
   }
 
-  .menu-table tbody tr {
+  .permission-table tbody tr {
     border-bottom-color: rgba(255, 255, 255, 0.06) !important;
   }
 
-  .menu-table tbody tr:hover td {
+  .permission-table tbody tr:hover td {
     background: rgba(0, 150, 136, 0.08) !important;
   }
 
-  .menu-table tbody tr.q-tr--selected td {
+  .permission-table tbody tr.q-tr--selected td {
     background: rgba(0, 150, 136, 0.14) !important;
   }
 
-  .menu-table tbody td {
+  .permission-table tbody td {
     color: rgba(255, 255, 255, 0.87);
     border-bottom-color: rgba(255, 255, 255, 0.06) !important;
   }
 
-  .menu-table .q-table__bottom {
+  .permission-table .q-table__bottom {
     background: #1e1e1e;
     color: rgba(255, 255, 255, 0.72);
     border-top-color: rgba(255, 255, 255, 0.08) !important;
   }
 
-  .menu-table .q-table__bottom .q-pagination .q-btn:not(.q-btn--flat) {
+  .permission-table .q-table__bottom .q-pagination .q-btn:not(.q-btn--flat) {
     background: rgba(0, 150, 136, 0.85) !important;
     color: white !important;
   }
 
-  .menu-table .q-table__bottom .q-pagination .q-btn.q-btn--flat {
+  .permission-table .q-table__bottom .q-pagination .q-btn.q-btn--flat {
     color: rgba(0, 150, 136, 0.85) !important;
   }
 
-  .menu-table--empty .q-table__bottom {
+  .permission-table--empty .q-table__bottom {
     background: #1e1e1e !important;
     color: rgba(255, 255, 255, 0.55);
   }
@@ -764,7 +764,7 @@
   }
 
   /* 骨架屏 */
-  .menu-skeleton-row .q-skeleton {
+  .permission-skeleton-row .q-skeleton {
     background: rgba(255, 255, 255, 0.08);
   }
 }
