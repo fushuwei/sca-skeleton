@@ -165,8 +165,10 @@ body .q-notifications__list.q-notifications__list--top {
 /* ═══════════════ 左侧图标 ═══════════════ */
 
 /* 图标尺寸 24px（Material Design 标准通知图标尺寸），颜色继承 textColor（白色） */
+/* FILL=1 覆盖全局 material-symbols-axes.scss 中 FILL=0 的线框默认值，通知图标使用实心样式 */
 .sca-notify .q-notification__icon {
   font-size: 24px;
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24 !important;
 }
 
 /* ═══════════════ 右侧关闭按钮 ═══════════════ */
