@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useQuasar } from "quasar";
+import { showToast } from "@repo/shared";
 
 const { t } = useI18n({ useScope: "global" });
-const $q = useQuasar();
 
 type ProductType = "table" | "api" | "report";
 
@@ -187,19 +186,11 @@ function formatUsage(n: number): string {
 }
 
 function applyProduct(product: DataProduct): void {
-  $q.notify({
-    type: "positive",
-    message: `已提交「${product.name}」使用申请，请等待审批`,
-    position: "top"
-  });
+  showToast(`已提交「${product.name}」使用申请，请等待审批`, "positive");
 }
 
 function viewDetail(product: DataProduct): void {
-  $q.notify({
-    type: "info",
-    message: `查看「${product.name}」详情`,
-    position: "top"
-  });
+  showToast(`查看「${product.name}」详情`, "info");
 }
 </script>
 

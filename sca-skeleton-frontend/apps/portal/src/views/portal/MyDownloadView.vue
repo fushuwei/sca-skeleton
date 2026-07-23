@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { useQuasar } from "quasar";
+import { showToast } from "@repo/shared";
 import ProfileSidebar from "../../components/ProfileSidebar.vue";
 
 const { t } = useI18n({ useScope: "global" });
-const $q = useQuasar();
 
 type ResourceType = "table" | "api" | "file" | "report";
 type DownloadStatus = "success" | "failed" | "expired";
@@ -101,18 +100,18 @@ function onRowsPerPageChange(): void {
 
 function reDownload(row: DownloadRow): void {
   if (row.status === "expired") {
-    $q.notify({ type: "warning", message: t("myDownload.statusExpired"), position: "top" });
+    showToast(t("myDownload.statusExpired"), "warning");
     return;
   }
-  $q.notify({ type: "positive", message: `${t("myDownload.reDownload")}: ${row.resource}`, position: "top" });
+  showToast(`${t("myDownload.reDownload")}: ${row.resource}`, "positive");
 }
 
 function copyLink(row: DownloadRow): void {
   const link = `https://data.donghu.edu.cn/dl/${row.resource.replace(/\s/g, "-").toLowerCase()}`;
   navigator.clipboard.writeText(link).then(() => {
-    $q.notify({ type: "positive", message: t("common.copied"), position: "top" });
+    showToast(t("common.copied"), "positive");
   }).catch(() => {
-    $q.notify({ type: "positive", message: t("common.copied"), position: "top" });
+    showToast(t("common.copied"), "positive");
   });
 }
 </script>

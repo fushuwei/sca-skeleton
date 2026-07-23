@@ -36,7 +36,7 @@ public class PermissionCreateRequest {
 
     // ==================== 前端配置 ====================
 
-    /** 权限标识 */
+    /** 权限编码 */
     private String code;
 
     /** 前端路由地址 */

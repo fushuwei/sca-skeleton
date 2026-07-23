@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { useQuasar } from "quasar";
+import { showToast } from "@repo/shared";
 import ProfileSidebar from "../../components/ProfileSidebar.vue";
 
 const { t } = useI18n({ useScope: "global" });
-const $q = useQuasar();
 
 interface ProfileForm {
   username: string;
@@ -59,12 +58,7 @@ const statusLabel = computed(() => {
 });
 
 function saveProfile(): void {
-  $q.notify({
-    type: "positive",
-    message: t("profile.save") + " ✓",
-    position: "top",
-    timeout: 2000
-  });
+  showToast(t("profile.save") + " ✓", "positive", 2000);
 }
 
 const pwdForm = ref({ oldPassword: "", newPassword: "", confirmPassword: "" });
@@ -74,10 +68,10 @@ function changePassword(): void {
     return;
   }
   if (pwdForm.value.newPassword !== pwdForm.value.confirmPassword) {
-    $q.notify({ type: "negative", message: t("profile.passwordMismatch"), position: "top" });
+    showToast(t("profile.passwordMismatch"), "negative");
     return;
   }
-  $q.notify({ type: "positive", message: t("profile.passwordChanged"), position: "top" });
+  showToast(t("profile.passwordChanged"), "positive");
   pwdForm.value = { oldPassword: "", newPassword: "", confirmPassword: "" };
 }
 </script>

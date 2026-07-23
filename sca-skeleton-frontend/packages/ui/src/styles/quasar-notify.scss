@@ -258,6 +258,15 @@ body .q-notifications__list.q-notifications__list--top {
   }
 }
 
+/*
+ * positive 类型使用品牌绿 #21BA45（Light + Dark 统一），
+ * 选择器特异性 .sca-notify--positive.q-notification (0,2,0) 高于 Quasar .bg-green-7 (0,1,0)，
+ * 配合 !important 确保覆盖 Quasar bg-{color} class。
+ */
+.sca-notify--positive.q-notification {
+  background-color: #21ba45 !important;
+}
+
 /* ═══════════════ Dark 主题配色覆盖 ═══════════════ */
 
 /*

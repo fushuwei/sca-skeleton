@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { useQuasar } from "quasar";
+import { showToast } from "@repo/shared";
 import type { QTableColumn } from "quasar";
 import { useConfirmDialog } from "@repo/ui";
 import ProfileSidebar from "../../components/ProfileSidebar.vue";
 
 const { t } = useI18n({ useScope: "global" });
-const $q = useQuasar();
 const { confirmDialog } = useConfirmDialog();
 
 type AppStatus = "active" | "revoked" | "expired";
@@ -268,9 +267,9 @@ function handleReset() {
 // ═══════════════════════════════════════════════════════════════
 function copyToClipboard(text: string): void {
   navigator.clipboard.writeText(text).then(() => {
-    $q.notify({ type: "positive", message: t("common.copied"), position: "top" });
+    showToast(t("common.copied"), "positive");
   }).catch(() => {
-    $q.notify({ type: "positive", message: t("common.copied"), position: "top" });
+    showToast(t("common.copied"), "positive");
   });
 }
 
@@ -286,18 +285,18 @@ async function revokeApp(row: AppRow): Promise<void> {
   row.status = "revoked";
   revealedSecrets.value.delete(row.id);
   selectedRows.value = selectedRows.value.filter((r) => r.id !== row.id);
-  $q.notify({ type: "positive", message: t("appIntegration.revokeSuccess"), position: "top" });
+  showToast(t("appIntegration.revokeSuccess"), "positive");
 }
 
 async function handleBatchRevoke(): Promise<void> {
   if (!selectedRows.value.length) {
-    $q.notify({ type: "warning", message: t("appIntegration.selectRowsFirst"), position: "top" });
+    showToast(t("appIntegration.selectRowsFirst"), "warning");
     return;
   }
 
   const activeApps = selectedRows.value.filter((r) => r.status === "active");
   if (!activeApps.length) {
-    $q.notify({ type: "warning", message: t("appIntegration.selectRowsFirst"), position: "top" });
+    showToast(t("appIntegration.selectRowsFirst"), "warning");
     return;
   }
 
@@ -317,7 +316,7 @@ async function handleBatchRevoke(): Promise<void> {
     }
   });
   selectedRows.value = [];
-  $q.notify({ type: "positive", message: t("appIntegration.revokeSuccess"), position: "top" });
+  showToast(t("appIntegration.revokeSuccess"), "positive");
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -334,7 +333,7 @@ function openCreateDialog(): void {
 
 function createApp(): void {
   if (!newApp.name.trim()) {
-    $q.notify({ type: "negative", message: t("appIntegration.appNamePlaceholder"), position: "top" });
+    showToast(t("appIntegration.appNamePlaceholder"), "negative");
     return;
   }
   const seq = String(mockApps.length + 1).padStart(3, "0");
@@ -349,7 +348,7 @@ function createApp(): void {
   };
   mockApps.unshift(app);
   showCreateDialog.value = false;
-  $q.notify({ type: "positive", message: t("appIntegration.createSuccess"), position: "top" });
+  showToast(t("appIntegration.createSuccess"), "positive");
   loadTableData();
 }
 

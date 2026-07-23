@@ -301,7 +301,7 @@ CREATE TABLE IF NOT EXISTS `sys_permission` (
     `name`            VARCHAR(255)    NOT NULL                    COMMENT '权限名称',
     `name_en`         VARCHAR(255)    DEFAULT NULL                COMMENT '英文权限名称，用于国际化',
     `type`            VARCHAR(10)     NOT NULL                    COMMENT '权限类型（module模块 folder目录 menu菜单 button按钮）',
-    `code`            VARCHAR(255)    DEFAULT NULL                COMMENT '权限标识（如: system:user:list）',
+    `code`            VARCHAR(255)    DEFAULT NULL                COMMENT '权限编码（如: system:user:list）',
     `path`            VARCHAR(255)    DEFAULT NULL                COMMENT '路由地址',
     `component`       VARCHAR(255)    DEFAULT NULL                COMMENT '前端组件路径',
     `icon`            VARCHAR(255)    DEFAULT NULL                COMMENT '图标',

@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { useQuasar } from "quasar";
+import { showToast } from "@repo/shared";
 import ProfileSidebar from "../../components/ProfileSidebar.vue";
 
 const { t } = useI18n({ useScope: "global" });
-const $q = useQuasar();
 
 type NotificationType = "system" | "approval" | "data";
 type NotificationStatus = "unread" | "read";
@@ -68,14 +67,14 @@ function markRead(item: NotificationItem): void {
 
 function deleteNotification(item: NotificationItem): void {
   notifications.value = notifications.value.filter((n) => n.id !== item.id);
-  $q.notify({ type: "info", message: t("notification.delete"), position: "top" });
+  showToast(t("notification.delete"), "info");
 }
 
 function markAllRead(): void {
   notifications.value.forEach((n) => {
     n.status = "read";
   });
-  $q.notify({ type: "positive", message: t("notification.markAllRead"), position: "top" });
+  showToast(t("notification.markAllRead"), "positive");
 }
 </script>
 

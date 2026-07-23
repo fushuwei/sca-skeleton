@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { useQuasar } from "quasar";
+import { showToast } from "@repo/shared";
 import type { QTableColumn } from "quasar";
 
 const { t } = useI18n({ useScope: "global" });
-const $q = useQuasar();
 
 type StandardStatus = "statusPublished" | "statusDraft" | "statusDeprecated";
 type StandardCategory = "dataElement" | "referenceData" | "codeSet";
@@ -292,7 +291,7 @@ function handleRefresh() {
 function viewDetail(row: StandardRow) {
   const label =
     "name" in row ? row.name : "setName" in row ? row.setName : row.code;
-  $q.notify({ type: "info", message: `${t("common.viewDetail")}: ${label}`, position: "top" });
+  showToast(`${t("common.viewDetail")}: ${label}`, "info");
 }
 
 onMounted(() => {

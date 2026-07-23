@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useQuasar } from "quasar";
+import { showToast } from "@repo/shared";
 import ProfileSidebar from "../../components/ProfileSidebar.vue";
 
 const { t } = useI18n({ useScope: "global" });
-const $q = useQuasar();
 
 type RequestType = "access" | "download" | "api";
 type RequestStatus = "pending" | "approved" | "rejected" | "revoked";
@@ -123,11 +122,11 @@ function onRowsPerPageChange(): void {
 }
 
 function viewDetail(row: RequestRow): void {
-  $q.notify({ type: "info", message: `${t("myRequest.viewDetail")}: ${row.requestNo}`, position: "top" });
+  showToast(`${t("myRequest.viewDetail")}: ${row.requestNo}`, "info");
 }
 
 function revoke(row: RequestRow): void {
-  $q.notify({ type: "warning", message: `${t("myRequest.revoke")}: ${row.requestNo}`, position: "top" });
+  showToast(`${t("myRequest.revoke")}: ${row.requestNo}`, "warning");
 }
 </script>
 

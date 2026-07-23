@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { useQuasar } from "quasar";
+import { showToast } from "@repo/shared";
 import ProfileSidebar from "../../components/ProfileSidebar.vue";
 
 const { t } = useI18n({ useScope: "global" });
-const $q = useQuasar();
 
 type ResourceType = "table" | "api" | "file" | "report";
 type Domain = "admission" | "research" | "personnel" | "academic" | "finance" | "library";
@@ -107,12 +106,12 @@ function onRowsPerPageChange(): void {
 }
 
 function viewDetail(row: FavoriteRow): void {
-  $q.notify({ type: "info", message: `${t("myFavorite.viewDetail")}: ${row.name}`, position: "top" });
+  showToast(`${t("myFavorite.viewDetail")}: ${row.name}`, "info");
 }
 
 function unfavorite(row: FavoriteRow): void {
   favorites.value = favorites.value.filter((f) => f.id !== row.id);
-  $q.notify({ type: "positive", message: `${t("myFavorite.unfavorite")}: ${row.name}`, position: "top" });
+  showToast(`${t("myFavorite.unfavorite")}: ${row.name}`, "positive");
 }
 </script>
 

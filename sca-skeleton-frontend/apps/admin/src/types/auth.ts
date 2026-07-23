@@ -245,7 +245,7 @@ export interface SysPermission {
   nameEn?: string;
   /** 类型：folder-目录，menu-菜单，button-按钮 */
   type: string;
-  /** 权限标识，如 sys:user:list */
+  /** 权限编码，如 sys:user:list */
   code: string;
   /** 权限域（admin：后台权限；portal：前台权限） */
   realm: string;

@@ -37,7 +37,7 @@ public class SysPermission extends BaseEntity {
     /** 类型 */
     private String type;
 
-    /** 权限标识 */
+    /** 权限编码 */
     private String code;
 
     /** 权限域 */

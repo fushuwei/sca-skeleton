@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { useQuasar } from "quasar";
+import { showToast } from "@repo/shared";
 import type { QTableColumn } from "quasar";
 
 const { t } = useI18n({ useScope: "global" });
-const $q = useQuasar();
 
 type ResourceType = "typeTable" | "typeApi" | "typeFile" | "typeStream";
 type ResourceStatus = "statusPublished" | "statusDraft" | "statusDeprecated";
@@ -217,11 +216,11 @@ function handleRefresh() {
 }
 
 function applyAccess(row: ResourceRow) {
-  $q.notify({ type: "info", message: `${t("common.applyAccess")}: ${row.name}`, position: "top" });
+  showToast(`${t("common.applyAccess")}: ${row.name}`, "info");
 }
 
 function viewDetail(row: ResourceRow) {
-  $q.notify({ type: "info", message: `${t("common.viewDetail")}: ${row.name}`, position: "top" });
+  showToast(`${t("common.viewDetail")}: ${row.name}`, "info");
 }
 
 onMounted(() => {

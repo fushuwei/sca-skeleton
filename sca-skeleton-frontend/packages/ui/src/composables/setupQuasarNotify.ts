@@ -16,8 +16,8 @@ const NOTIFY_ICONS: Record<NotificationType, string> = {
  * 各类型对应的 Quasar 调色板色阶（Light 主题用 Material 700 色阶，Dark 主题由 quasar-notify.scss 覆盖为 400 色阶）
  */
 const NOTIFY_COLORS: Record<NotificationType, string> = {
-  negative: "red-7", // #d32f2f
-  positive: "green-7", // #388e3c
+  negative: "red-7", // #d32f2f（Light 主题由 Quasar bg-red-7 控制，Dark 主题由 quasar-notify.scss 覆盖为 red-4）
+  positive: "green-7", // #388e3c（Light + Dark 均由 quasar-notify.scss 覆盖为品牌绿 #21BA45）
   warning: "orange-7", // #f57c00
   info: "blue-7" // #1976d2
 };

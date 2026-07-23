@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useQuasar } from "quasar";
+import { showToast } from "@repo/shared";
 
 const { t } = useI18n({ useScope: "global" });
-const $q = useQuasar();
 
 type FieldType = "input" | "select" | "number" | "date";
 
@@ -310,12 +309,12 @@ function buildSelectOptions(opts?: string[]) {
 
 function validate(): boolean {
   if (!formName.value.trim()) {
-    $q.notify({ type: "negative", message: "请填写填报名称", position: "top" });
+    showToast("请填写填报名称", "negative");
     return false;
   }
   for (const field of activeTemplate.value.fields) {
     if (field.required && !formData.value[field.key]) {
-      $q.notify({ type: "negative", message: `请填写「${field.label}」`, position: "top" });
+      showToast(`请填写「${field.label}」`, "negative");
       return false;
     }
   }
@@ -324,13 +323,13 @@ function validate(): boolean {
 
 function saveDraft(): void {
   if (!formName.value.trim()) {
-    $q.notify({ type: "warning", message: "请填写填报名称后再保存草稿", position: "top" });
+    showToast("请填写填报名称后再保存草稿", "warning");
     return;
   }
   submitting.value = true;
   setTimeout(() => {
     submitting.value = false;
-    $q.notify({ type: "positive", message: t("dataSubmit.draftSaved"), position: "top" });
+    showToast(t("dataSubmit.draftSaved"), "positive");
   }, 600);
 }
 
@@ -339,7 +338,7 @@ function submitForm(): void {
   submitting.value = true;
   setTimeout(() => {
     submitting.value = false;
-    $q.notify({ type: "positive", message: t("dataSubmit.submitSuccess"), position: "top" });
+    showToast(t("dataSubmit.submitSuccess"), "positive");
     formName.value = "";
     formData.value = {};
     remark.value = "";

@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useQuasar } from "quasar";
+import { showToast } from "@repo/shared";
 import { useConfirmDialog } from "@repo/ui";
 
 const { t } = useI18n({ useScope: "global" });
-const $q = useQuasar();
 const { confirmDialog } = useConfirmDialog();
 
 interface TableColumn {
@@ -165,10 +164,10 @@ async function clearChat(): Promise<void> {
 function exportResult(): void {
   const hasResult = messages.value.some((m) => m.result);
   if (!hasResult) {
-    $q.notify({ type: "warning", message: "当前无可导出的查询结果", position: "top" });
+    showToast("当前无可导出的查询结果", "warning");
     return;
   }
-  $q.notify({ type: "positive", message: "结果已导出", position: "top" });
+  showToast("结果已导出", "positive");
 }
 </script>
 

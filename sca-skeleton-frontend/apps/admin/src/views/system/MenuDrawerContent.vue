@@ -46,7 +46,7 @@ const formRules = computed(() => ({
   nameEn: [(v: string) => !!v?.trim() || t("menuMgmt.nameEnRequired")],
   type: [(v: string) => !!v || t("menuMgmt.typeRequired")],
   realm: [(v: string) => !!v || t("menuMgmt.realmRequired")],
-  // 菜单和按钮类型要求权限标识必填（module/folder 类型可选）
+  // 菜单和按钮类型要求权限编码必填（module/folder 类型可选）
   code: (form.type === "menu" || form.type === "button")
     ? [(v: string) => !!v?.trim() || t("menuMgmt.codeRequired")]
     : []
@@ -528,7 +528,7 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-        <!-- 权限标识（menu 和 button 类型可填且必填，module/folder 类型禁用） -->
+        <!-- 权限编码（menu 和 button 类型可填且必填，module/folder 类型禁用） -->
         <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.code"

@@ -984,7 +984,7 @@ onMounted(() => {
           </q-td>
         </template>
 
-        <!-- 权限标识列 -->
+        <!-- 权限编码列 -->
         <template #body-cell-code="props">
           <q-td :props="props">
             <span v-if="props.value">{{ props.value }}</span>
