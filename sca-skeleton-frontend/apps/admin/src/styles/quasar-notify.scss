@@ -62,22 +62,22 @@ body .q-notifications__list.q-notifications__list--top {
   /*
    * 入场/离场动画时长与缓动曲线：
    * - Quasar 原生默认 1s ease 太慢。
-   * - 0.4s + cubic-bezier(0.25, 0.8, 0.25, 1)（Material Design 标准 Deceleration 缓动）
+   * - 0.6s + cubic-bezier(0.4, 0, 0.2, 1)（Material Design 标准 Deceleration 缓动）
    *   既有足够时间展示滑入/滑出动效，又不会在连续弹出时新旧重叠太久。
-   * - 相比原来的 0.3s ease（transition: transform 0.3s ease, opacity 0.3s ease !important;）：略增时长配合 -35px 滑动距离，动效更丝滑自然。
+   * - 相比原来的 0.3s ease（transition: transform 0.3s ease, opacity 0.3s ease !important;）：略增时长配合 -45px 滑动距离，动效更丝滑自然。
    */
-  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /*
  * 入场/离场滑动距离：兼顾丝滑感与不侵入 header。
  * - 原生 Quasar 默认 -50px，在 header 下方 65px 位置时会滑入 header 区域造成视觉干扰。
- * - 当前 -20px（transform: translateY(-20px);） 太短导致动效不明显，折中取 -35px，既有明显滑动感又不会侵入 header。
+ * - 当前 -20px（transform: translateY(-20px);） 太短导致动效不明显，折中取 -45px，既有明显滑动感又不会侵入 header。
  */
 .sca-notify.q-notification.q-notification--top-enter-from,
 .sca-notify.q-notification.q-notification--top-leave-to {
   opacity: 0;
-  transform: translateY(-35px);
+  transform: translateY(-45px);
 }
 
 /*
