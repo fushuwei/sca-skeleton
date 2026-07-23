@@ -18,14 +18,14 @@ loglevel: warn
 
 # ----------------------------------------------------------------------------
 # Ingress 规则
-# 单域名单入口：所有 newease.cloud 流量统一转发到本机 Nginx:80
+# 单域名单入口：所有 newease.cloud 流量统一转发到本机 Nginx 容器（端口 8080）
 # ----------------------------------------------------------------------------
 
 ingress:
-  # 主域名 → 本机 Nginx:80
+  # 主域名 → 本机 Nginx 容器
   # cloudflared 进程与 Nginx 同处一台宿主机，直接 127.0.0.1 即可
   - hostname: newease.cloud
-    service: http://localhost:80
+    service: http://localhost:8080
 
   # 必须的 catch-all 兜底规则：未匹配 Host 直接 404，禁止裸跑
   - service: http_status:404
