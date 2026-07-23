@@ -12,6 +12,8 @@ const props = defineProps<{
   permission?: SysPermission;
   /** 新增时预设的父节点 ID */
   defaultParentId?: string;
+  /** 新增时预设的权限域（跟随菜单树当前选中节点） */
+  defaultRealm?: string;
 }>();
 
 const emit = defineEmits<{
@@ -290,7 +292,7 @@ function resetForm() {
   form.nameEn = "";
   form.type = "";
   form.code = "";
-  form.realm = "";
+  form.realm = props.defaultRealm || "";
   form.path = "";
   form.component = "";
   form.icon = "";
@@ -326,6 +328,11 @@ watch(() => props.permission, initForm, { immediate: true });
 watch(() => props.defaultParentId, () => {
   if (props.mode === "add" && !props.permission) {
     form.parentId = props.defaultParentId || "0";
+  }
+});
+watch(() => props.defaultRealm, () => {
+  if (props.mode === "add" && !props.permission) {
+    form.realm = props.defaultRealm || "";
   }
 });
 

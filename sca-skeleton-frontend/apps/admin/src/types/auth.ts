@@ -312,6 +312,8 @@ export interface PermissionTreeNode {
   parentId: string;
   type: string;
   icon: string;
+  /** 权限域（admin/portal），分类节点和业务节点均携带，用于配色徽章与新建菜单默认域 */
+  realm?: string;
   children?: PermissionTreeNode[];
   count?: number;
 }

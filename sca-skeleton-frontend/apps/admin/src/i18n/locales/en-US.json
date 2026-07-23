@@ -181,6 +181,8 @@
     "expandMenuTree": "Expand menu",
     "collapseMenuTree": "Collapse menu",
     "allMenus": "All",
+    "adminMenuGroup": "Admin Menu",
+    "portalMenuGroup": "Portal Menu",
     "createMenu": "Add Menu",
     "addMenu": "Add Menu",
     "editMenu": "Edit Menu",

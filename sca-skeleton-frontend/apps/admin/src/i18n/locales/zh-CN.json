@@ -181,6 +181,8 @@
     "expandMenuTree": "展开菜单",
     "collapseMenuTree": "收起菜单",
     "allMenus": "全部",
+    "adminMenuGroup": "后台菜单",
+    "portalMenuGroup": "前台菜单",
     "createMenu": "添加菜单",
     "addMenu": "添加菜单",
     "editMenu": "编辑菜单",

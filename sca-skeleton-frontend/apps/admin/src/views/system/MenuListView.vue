@@ -18,20 +18,29 @@ const { t, locale } = useI18n({ useScope: "global" });
 const { confirmDialog } = useConfirmDialog();
 
 // ═══════════════════════════════════════════════════════════════
-// 菜单树
+// 菜单树 —— 按权限域（realm）分组的两棵子树
 // ═══════════════════════════════════════════════════════════════
 
-const ROOT_ID = "0";
+/** 分类节点 id 前缀，点击分类节点 = 按 realm 筛选该域全部菜单 */
+const REALM_GROUP_PREFIX = "realm:";
+/** 权限域分组定义（顺序即左侧展示顺序） */
+const REALM_GROUPS: { realm: string; labelKey: string }[] = [
+  { realm: "admin", labelKey: "menuMgmt.adminMenuGroup" },
+  { realm: "portal", labelKey: "menuMgmt.portalMenuGroup" }
+];
+const realmGroupId = (realm: string) => REALM_GROUP_PREFIX + realm;
+const isRealmGroupId = (id: string) => id.startsWith(REALM_GROUP_PREFIX);
+
 const menuTreeLoading = ref(false);
 const allPermissions = ref<SysPermission[]>([]);
-const menuTreeNodes = computed(() => buildMenuTree(allPermissions.value));
 const selectedMenuId = ref<string>("");
 let lastSelectedMenuId = "";
-const menuTreeExpanded = ref<string[]>([ROOT_ID]);
+/** 初始展开所有分类节点 */
+const menuTreeExpanded = ref<string[]>(REALM_GROUPS.map((g) => realmGroupId(g.realm)));
 const leftPanelWidth = ref(260);
 const leftPanelCollapsed = ref(false);
 
-/** 将扁平权限列表转成树结构（排除 button 类型） */
+/** 将扁平权限列表转成树结构（排除 button 类型），保留 realm 字段 */
 function buildMenuTree(perms: SysPermission[]): PermissionTreeNode[] {
   if (!perms.length) return [];
   const filtered = perms.filter((p) => p.type !== "button");
@@ -46,6 +55,7 @@ function buildMenuTree(perms: SysPermission[]): PermissionTreeNode[] {
       parentId: p.parentId,
       type: p.type,
       icon: p.icon || "",
+      realm: p.realm,
       children: []
     });
   }
@@ -81,16 +91,46 @@ function buildMenuTree(perms: SysPermission[]): PermissionTreeNode[] {
   return roots;
 }
 
-/** 带"全部"根节点的树（q-tree 渲染用） */
-const menuTreeWithRoot = computed(() => [{
-  id: ROOT_ID,
-  label: t("menuMgmt.allMenus"),
-  parentId: "",
-  type: "root",
-  icon: "",
-  count: allPermissions.value.filter((p) => p.type !== "button").length,
-  children: menuTreeNodes.value
-}] as PermissionTreeNode[]);
+/** 构造一个 realm 分类虚拟节点 */
+function buildRealmGroupNode(realm: string, labelKey: string, children: PermissionTreeNode[]): PermissionTreeNode {
+  return {
+    id: realmGroupId(realm),
+    label: t(labelKey),
+    parentId: "",
+    type: "realm-group",
+    icon: "",
+    realm,
+    count: children.length,
+    children
+  };
+}
+
+/**
+ * 按 realm 分组的菜单树（q-tree 渲染用）。
+ * 顶层为「后台菜单 / 前台菜单」两个分类节点，各自挂载对应域的菜单子树。
+ */
+const menuTreeWithRoot = computed<PermissionTreeNode[]>(() => {
+  const allRoots = buildMenuTree(allPermissions.value);
+  return REALM_GROUPS.map((g) => {
+    const realmChildren = allRoots.filter((n) => n.realm === g.realm);
+    return buildRealmGroupNode(g.realm, g.labelKey, realmChildren);
+  });
+});
+
+/** 在树中按 id 查找节点（用于业务节点点击时取 realm） */
+function findTreeNode(id: string): PermissionTreeNode | null {
+  const find = (nodes: PermissionTreeNode[]): PermissionTreeNode | null => {
+    for (const n of nodes) {
+      if (n.id === id) return n;
+      if (n.children) {
+        const r = find(n.children);
+        if (r) return r;
+      }
+    }
+    return null;
+  };
+  return find(menuTreeWithRoot.value);
+}
 
 async function loadMenuTree() {
   menuTreeLoading.value = true;
@@ -104,20 +144,15 @@ async function loadMenuTree() {
   } catch {
     allPermissions.value = [];
   } finally {
-    menuTreeExpanded.value = [ROOT_ID];
+    menuTreeExpanded.value = REALM_GROUPS.map((g) => realmGroupId(g.realm));
     menuTreeLoading.value = false;
   }
-}
-
-function handleMenuNodeClick(node: PermissionTreeNode) {
-  searchForm.parentId = node.id === ROOT_ID ? undefined : node.id;
-  handleSearch();
 }
 
 /** 菜单树节点选中回调 */
 function onMenuTreeSelect(nodeId: string) {
   if (!nodeId) {
-    selectedMenuId.value = lastSelectedMenuId || ROOT_ID;
+    selectedMenuId.value = lastSelectedMenuId;
     return;
   }
   if (nodeId === lastSelectedMenuId) {
@@ -125,24 +160,21 @@ function onMenuTreeSelect(nodeId: string) {
     return;
   }
   lastSelectedMenuId = nodeId;
+  selectedMenuId.value = nodeId;
 
-  if (nodeId === ROOT_ID) {
+  // 分类节点：按 realm 筛选该域全部菜单
+  if (isRealmGroupId(nodeId)) {
+    searchForm.realm = nodeId.slice(REALM_GROUP_PREFIX.length);
     searchForm.parentId = undefined;
     handleSearch();
     return;
   }
-  const findNode = (nodes: PermissionTreeNode[]): PermissionTreeNode | null => {
-    for (const n of nodes) {
-      if (n.id === nodeId) return n;
-      if (n.children) {
-        const r = findNode(n.children);
-        if (r) return r;
-      }
-    }
-    return null;
-  };
-  const node = findNode(menuTreeNodes.value);
-  if (node) handleMenuNodeClick(node);
+
+  // 业务节点：按 parentId 筛选，realm 跟随该节点所属域（子菜单必然同域）
+  const node = findTreeNode(nodeId);
+  searchForm.parentId = nodeId;
+  searchForm.realm = node?.realm || "";
+  handleSearch();
 }
 
 /** 双击切换节点展开/收起 */
@@ -155,13 +187,10 @@ function toggleMenuNode(node: PermissionTreeNode) {
   }
 }
 
-/** 树节点图标：root/module/folder 统一使用 folder/folder_open，menu 用 eco_leaf */
+/** 树节点图标：分类节点/module/folder 用 folder/folder_open，menu 用 eco_leaf */
 function menuNodeIcon(node: PermissionTreeNode): string {
-  if (node.type === "root") {
-    return menuTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
-  }
   if (node.type === "menu") return "sym_r_nest_eco_leaf";
-  // module 和 folder 统一使用 folder / folder_open
+  // realm-group / module / folder 统一使用 folder / folder_open
   return menuTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
 }
 
@@ -306,6 +335,8 @@ const drawerOpen = ref(false);
 const drawerMode = ref<DrawerMode>("add");
 const drawerPermission = ref<SysPermission | undefined>(undefined);
 const drawerDefaultParentId = ref<string>("0");
+/** 新建菜单时预设的权限域（跟随当前选中的分类节点/业务节点） */
+const drawerDefaultRealm = ref<string>("");
 
 const drawerTitle = computed(() => {
   if (drawerMode.value === "add") return t("menuMgmt.addMenu");
@@ -323,6 +354,8 @@ function openMenuDrawer(mode: DrawerMode, permission?: SysPermission, defaultPar
   drawerMode.value = mode;
   drawerPermission.value = permission;
   drawerDefaultParentId.value = defaultParentId || searchForm.parentId || "0";
+  // 新建时 realm 默认跟随当前选中节点所属域（分类节点或业务节点）
+  drawerDefaultRealm.value = mode === "add" ? (searchForm.realm || "") : "";
   drawerOpen.value = true;
 }
 
@@ -581,7 +614,9 @@ function handleReset() {
 watch(
   () => searchForm.parentId,
   (v) => {
-    if (!v || v === "0") selectedMenuId.value = "";
+    // parentId 清空时，仅当 realm 也为空（真正的无选中/重置场景）才清除高亮；
+    // 点击分类节点会设 parentId=undefined 但保留 realm，此时不应清除分类节点高亮
+    if ((!v || v === "0") && !searchForm.realm) selectedMenuId.value = "";
   }
 );
 
@@ -735,20 +770,37 @@ onMounted(() => {
               <template #default-header="scope">
                 <div
                   class="menu-tree-node row items-center no-wrap full-width"
-                  :class="{ 'menu-tree-node--selected': selectedMenuId === scope.node.id }"
+                  :class="{
+                    'menu-tree-node--selected': selectedMenuId === scope.node.id,
+                    'menu-tree-node--realm-group': scope.node.type === 'realm-group'
+                  }"
                   @click.stop="onNodeHeaderClick(scope.node)"
                 >
                   <q-icon
                     :name="menuNodeIcon(scope.node)"
                     size="20px"
                     class="q-mr-sm cursor-pointer menu-tree-icon"
-                    :color="selectedMenuId === scope.node.id ? 'primary' : 'grey-7'"
+                    :color="scope.node.type === 'realm-group'
+                      ? realmColorOf(scope.node.realm || '')
+                      : (selectedMenuId === scope.node.id ? 'primary' : 'grey-7')"
                     @click.stop="toggleMenuNode(scope.node)"
                   />
-                  <span class="menu-tree-label ellipsis">{{ scope.node.label }}</span>
+                  <span
+                    class="menu-tree-label ellipsis"
+                    :class="{ 'text-weight-medium': scope.node.type === 'realm-group' }"
+                  >{{ scope.node.label }}</span>
                   <q-space />
+                  <!-- 分类节点：显示 realm 配色徽章 -->
                   <q-badge
-                    v-if="scope.node.count != null && scope.node.count > 0"
+                    v-if="scope.node.type === 'realm-group'"
+                    :color="realmColorOf(scope.node.realm || '')"
+                    :label="realmLabelOf(scope.node.realm || '')"
+                    rounded
+                    class="menu-realm-badge"
+                  />
+                  <!-- 业务节点：显示直接子节点数量 -->
+                  <q-badge
+                    v-else-if="scope.node.count != null && scope.node.count > 0"
                     color="primary"
                     rounded
                     class="menu-count-badge"
@@ -1172,6 +1224,7 @@ onMounted(() => {
                 :mode="drawerMode"
                 :permission="drawerPermission"
                 :default-parent-id="drawerDefaultParentId"
+                :default-realm="drawerDefaultRealm"
                 @close="closeMenuDrawer"
                 @saved="handleDrawerSaved"
               />
@@ -1337,6 +1390,11 @@ onMounted(() => {
 .menu-tree-node--selected .menu-tree-label {
   color: #00796b;
   font-weight: 600;
+}
+
+/* realm 分类节点（顶级分组：后台菜单/前台菜单），略增内距以突出分组层级 */
+.menu-tree-node--realm-group {
+  padding: 8px 10px;
 }
 
 .menu-tree-icon {
@@ -1620,6 +1678,12 @@ onMounted(() => {
 
 /* 菜单计数徽章 */
 .menu-count-badge {
+  font-size: 11px;
+  padding: 1px 6px;
+}
+
+/* realm 配色徽章（分类节点用） */
+.menu-realm-badge {
   font-size: 11px;
   padding: 1px 6px;
 }
