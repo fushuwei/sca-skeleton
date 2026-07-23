@@ -1,5 +1,5 @@
 /**
- * Quasar Notify 企业级样式覆盖
+ * Quasar Notify 企业级样式覆盖（admin / portal 共享）
  *
  * 设计目标：大气、美观、企业级专业感
  * - 顶部居中滑入（Quasar 原生动画，参照 quasar.dev notify#positioning top 按钮）
@@ -16,7 +16,10 @@
  *
  * 进度条实现：Quasar 2.21.4 不支持 pauseOnHover，故禁用 Quasar 原生 progress，
  *            改用 ::after 伪元素 + CSS animation 自管理，:hover 时 animation-play-state: paused。
- *            animationend 事件触发 dismiss（见 main.ts），确保进度条与自动关闭同步暂停/恢复。
+ *            animationend 事件触发 dismiss（见 setupQuasarNotify），确保进度条与自动关闭同步暂停/恢复。
+ *
+ * 使用方式：各 app 在 main.ts 中 `import "@repo/ui/styles/quasar-notify.scss";`
+ *           并调用 `setupQuasarNotify()` 注册 Notifier 实现
  */
 
 /* ═══════════════ 通知列表定位（避开固定 header） ═══════════════ */
@@ -203,9 +206,9 @@ body .q-notifications__list.q-notifications__list--top {
  *
  * 工作原理：
  * 1. ::after 元素渲染后自动开始 animation（从 scaleX(1) 到 scaleX(0)）
- * 2. duration 由 CSS 变量 --sca-notify-duration 控制（默认 5000ms），由 main.ts 通过 inline style 设置
+ * 2. duration 由 CSS 变量 --sca-notify-duration 控制（默认 5000ms），由 setupQuasarNotify 通过 inline style 设置
  * 3. :hover 时 animation-play-state: paused，进度条暂停（animationend 同步延迟，dismiss 也延迟）
- * 4. animationend 事件触发 dismiss（见 main.ts），确保进度条与自动关闭同步暂停/恢复
+ * 4. animationend 事件触发 dismiss（见 setupQuasarNotify），确保进度条与自动关闭同步暂停/恢复
  *
  * 配色策略：
  * - Light 主题背景为 Material 700 色阶（深色），进度条使用半透明黑色 rgba(0,0,0,0.25)，

@@ -17,12 +17,11 @@ import "@quasar/extras/material-icons/material-icons.css";
 import "@quasar/extras/material-symbols-rounded/material-symbols-rounded.css";
 import "./styles/material-symbols-axes.scss";
 import "./styles/quasar-flat.scss";
-import "./styles/quasar-notify.scss";
+import "@repo/ui/styles/quasar-notify.scss";
 import "@repo/ui/styles/quasar-dialog.scss";
 import { registerPortalTokenSync } from "./apis/http";
 import { usePortalAuthStore } from "./stores/auth";
-import { setNotifier } from "@repo/shared";
-import type { NotificationType } from "@repo/shared";
+import { setupQuasarNotify } from "@repo/ui";
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -46,75 +45,8 @@ app.use(Quasar, {
   }
 });
 
-Notify.setDefaults({
-  position: "top",
-  timeout: 0,
-  textColor: "white",
-  progress: false,
-  actions: [{ icon: "sym_r_close", color: "white", round: true, dense: true }]
-});
-
-const NOTIFY_ICONS: Record<NotificationType, string> = {
-  negative: "sym_r_error",
-  positive: "sym_r_check_circle",
-  warning: "sym_r_warning",
-  info: "sym_r_info"
-};
-
-const NOTIFY_COLORS: Record<NotificationType, string> = {
-  negative: "red-7",
-  positive: "green-7",
-  warning: "orange-7",
-  info: "blue-7"
-};
-
-let notifyCounter = 0;
-let previousDismiss: (() => void) | null = null;
-
-setNotifier((message: string, type: NotificationType, duration?: number) => {
-  if (previousDismiss) {
-    previousDismiss();
-    previousDismiss = null;
-  }
-
-  const actualDuration = duration && duration > 0 ? duration : 3000;
-  const notifyId = `sca-notify-${++notifyCounter}`;
-
-  const dismiss = Notify.create({
-    message,
-    icon: NOTIFY_ICONS[type],
-    color: NOTIFY_COLORS[type],
-    textColor: "white",
-    timeout: 0,
-    group: false,
-    classes: `sca-notify sca-notify--${type}`,
-    attrs: {
-      "data-sca-notify-id": notifyId,
-      style: `--sca-notify-duration: ${actualDuration}ms`
-    }
-  });
-
-  previousDismiss = typeof dismiss === "function" ? dismiss : null;
-
-  requestAnimationFrame(() => {
-    const el = document.querySelector(`[data-sca-notify-id="${notifyId}"]`);
-    if (!el) return;
-
-    const closeBtn = el.querySelector<HTMLElement>(".q-notification__actions .q-btn");
-    if (closeBtn) {
-      closeBtn.setAttribute("aria-label", "关闭通知");
-    }
-
-    const onAnimationEnd = ((event: Event) => {
-      const animEvent = event as AnimationEvent;
-      if (animEvent.animationName !== "sca-notify-progress") return;
-      el.removeEventListener("animationend", onAnimationEnd);
-      if (typeof dismiss === "function") dismiss();
-      if (previousDismiss === dismiss) previousDismiss = null;
-    }) as EventListener;
-    el.addEventListener("animationend", onAnimationEnd);
-  });
-});
+// 配置 Quasar Notify 全局默认 + 注入到 @repo/shared 的 showToast（admin/portal 共享实现）
+setupQuasarNotify();
 
 app.mount("#app");
 
