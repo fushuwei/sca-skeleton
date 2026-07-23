@@ -1,0 +1,3 @@
+# Portal 前端打包产物部署目录
+# 将 sca-skeleton-frontend/apps/portal 打包后的 dist/* 内容放到本目录
+# （即本目录下直接能看到 index.html、assets/ 等）
