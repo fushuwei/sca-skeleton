@@ -67,13 +67,16 @@ sca:
       admin:
         id: "100"
         client-id: sca-admin-client
-        redirect-uri: ${AUTH_ADMIN_REDIRECT_URI:http://localhost:8080/oauth/callback}
+        # OAuth2 授权码回调地址列表，支持多个访问入口（如域名 + 内网 IP）
+        # 环境变量用逗号分隔，例如：AUTH_ADMIN_REDIRECT_URIS=https://newease.cloud/admin/oauth/callback,http://192.168.1.105:8080/admin/oauth/callback
+        redirect-uris: ${AUTH_ADMIN_REDIRECT_URIS:http://localhost:8080/oauth/callback}
         access-token-ttl: 900
         refresh-token-ttl: 7200
       portal:
         id: "200"
         client-id: sca-portal-client
-        redirect-uri: ${AUTH_PORTAL_REDIRECT_URI:http://localhost:9090/oauth/callback}
+        # 同 admin.redirect-uris，支持多个访问入口
+        redirect-uris: ${AUTH_PORTAL_REDIRECT_URIS:http://localhost:9090/oauth/callback}
         access-token-ttl: 900
         refresh-token-ttl: 7200
     lock:

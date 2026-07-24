@@ -53,8 +53,8 @@ public class OAuth2AuthorizeLoginSuccessHandler implements AuthenticationSuccess
                 ? oauth2ClientProperties.getPortal().getClientId()
                 : oauth2ClientProperties.getAdmin().getClientId();
         String redirectUri = LoginChannel.PORTAL.getValue().equals(loginChannel)
-                ? oauth2ClientProperties.getPortal().getRedirectUri()
-                : oauth2ClientProperties.getAdmin().getRedirectUri();
+                ? oauth2ClientProperties.getPortal().getFirstRedirectUri()
+                : oauth2ClientProperties.getAdmin().getFirstRedirectUri();
         // 从 redirect_uri 提取 SPA 根路径（如 http://localhost:8080/admin/oauth/callback → http://localhost:8080/admin/）
         String spaRoot = oauth2ClientProperties.extractSpaRootUrl(redirectUri);
         if (StringUtils.hasText(spaRoot)) {

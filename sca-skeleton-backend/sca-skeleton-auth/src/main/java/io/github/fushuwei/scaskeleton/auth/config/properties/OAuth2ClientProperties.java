@@ -5,6 +5,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * OAuth2 公共客户端配置属性类
@@ -79,9 +81,11 @@ public class OAuth2ClientProperties {
         private String clientId;
 
         /**
-         * OAuth2 授权码回调地址，用于前端 SPA 公共客户端接收授权码
+         * OAuth2 授权码回调地址列表，用于前端 SPA 公共客户端接收授权码
+         * <p>
+         * 支持配置多个回调地址，典型场景：同一客户端同时支持域名访问和内网 IP 访问，用逗号分隔
          */
-        private String redirectUri;
+        private List<String> redirectUris = new ArrayList<>();
 
         /**
          * 访问令牌有效期（秒），默认 15 分钟
@@ -92,6 +96,18 @@ public class OAuth2ClientProperties {
          * 刷新令牌有效期（秒），默认 2 小时
          */
         private long refreshTokenTtl = 7200;
+
+        /**
+         * 返回第一个 redirect_uri，用于提取 SPA 根路径
+         * <p>
+         * 同一客户端的多个 redirect_uri 通常只是 origin 不同，path 部分相同
+         * （如 {@code /admin/oauth/callback}），因此取任一个都能正确提取 SPA root
+         *
+         * @return 第一个 redirect_uri；列表为空时返回 null
+         */
+        public String getFirstRedirectUri() {
+            return redirectUris != null && !redirectUris.isEmpty() ? redirectUris.get(0) : null;
+        }
     }
 
     /**

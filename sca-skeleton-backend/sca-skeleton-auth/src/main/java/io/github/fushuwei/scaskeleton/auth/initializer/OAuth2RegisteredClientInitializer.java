@@ -16,6 +16,8 @@ import org.springframework.security.oauth2.server.authorization.settings.TokenSe
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * OAuth2 内置公共客户端初始化程序
@@ -56,7 +58,7 @@ public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
         initPublicClientIfAbsent(oauth2ClientProperties.getAdmin(), "SCA Admin SPA");
         // 初始化前台门户公共客户端
         initPublicClientIfAbsent(oauth2ClientProperties.getPortal(), "SCA Portal SPA");
-        // 若 redirect_uri 发生变更（如 nginx 统一入口改造），自动同步已有客户端
+        // 若 redirect_uris 发生变更（如新增内网 IP 入口、nginx 统一入口改造），自动同步已有客户端
         syncRedirectUriIfChanged(oauth2ClientProperties.getAdmin());
         syncRedirectUriIfChanged(oauth2ClientProperties.getPortal());
         // 将历史客户端访问令牌格式迁移为 REFERENCE（不透明令牌）
@@ -89,7 +91,7 @@ public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
      */
     private void initPublicClientIfAbsent(OAuth2ClientProperties.ClientProperties props, String clientName) {
         // 配置缺失时跳过，避免写入空 client_id
-        if (props.getClientId() == null || props.getRedirectUri() == null) {
+        if (props.getClientId() == null || props.getRedirectUris() == null || props.getRedirectUris().isEmpty()) {
             log.warn("OAuth2 客户端配置不完整，跳过初始化：clientId={}", props.getClientId());
             return;
         }
@@ -107,8 +109,8 @@ public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
             // 授权码 + 刷新令牌
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-            // PKCE 回调地址（必须与 SPA 环境变量一致）
-            .redirectUri(props.getRedirectUri())
+            // PKCE 回调地址列表（必须与 SPA 环境变量一致，支持多个访问入口）
+            .redirectUris(uris -> uris.addAll(props.getRedirectUris()))
             .scope("profile")
             .scope("offline_access")
             .scope("all")
@@ -126,40 +128,40 @@ public class OAuth2RegisteredClientInitializer implements ApplicationRunner {
                 .build())
             .build();
         registeredClientRepository.save(client);
-        log.info("OAuth2 内置客户端 [{}] 初始化完成，id={}，redirect_uri={}",
-                props.getClientId(), props.getId(), props.getRedirectUri());
+        log.info("OAuth2 内置客户端 [{}] 初始化完成，id={}，redirect_uris={}",
+                props.getClientId(), props.getId(), props.getRedirectUris());
     }
 
     /**
-     * 若已存在客户端的 redirect_uri 与当前配置不一致，自动同步更新
+     * 若已存在客户端的 redirect_uris 与当前配置不一致，自动同步更新（集合整体替换）
      * <p>
-     * 解决 nginx 统一入口改造后 backend 配置已更新但 DB 中留存旧 Vite 直连地址的问题
+     * 解决 nginx 统一入口改造、新增内网 IP 入口等场景下 backend 配置已更新但 DB 中留存旧列表的问题。
      *
      * @param props 当前配置中的客户端参数
      */
     private void syncRedirectUriIfChanged(OAuth2ClientProperties.ClientProperties props) {
-        if (props.getClientId() == null || props.getRedirectUri() == null) {
+        if (props.getClientId() == null || props.getRedirectUris() == null || props.getRedirectUris().isEmpty()) {
             return;
         }
         RegisteredClient existing = registeredClientRepository.findByClientId(props.getClientId());
         if (existing == null) {
             return;
         }
-        String configuredUri = props.getRedirectUri();
-        boolean hasUri = existing.getRedirectUris().contains(configuredUri);
-        if (hasUri) {
+        Set<String> configured = new HashSet<>(props.getRedirectUris());
+        Set<String> current = new HashSet<>(existing.getRedirectUris());
+        if (current.equals(configured)) {
             return;
         }
-        log.warn("OAuth2 客户端 [{}] redirect_uri 不一致，当前 DB={}，配置={}，自动同步",
-            props.getClientId(), existing.getRedirectUris(), configuredUri);
+        log.warn("OAuth2 客户端 [{}] redirect_uris 不一致，当前 DB={}，配置={}，自动同步",
+            props.getClientId(), current, configured);
         RegisteredClient updated = RegisteredClient.from(existing)
             .redirectUris(uris -> {
                 uris.clear();
-                uris.add(configuredUri);
+                uris.addAll(configured);
             })
             .build();
         registeredClientRepository.save(updated);
-        log.info("OAuth2 客户端 [{}] redirect_uri 已同步为 {}", props.getClientId(), configuredUri);
+        log.info("OAuth2 客户端 [{}] redirect_uris 已同步为 {}", props.getClientId(), configured);
     }
 
     /**

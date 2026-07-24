@@ -68,7 +68,7 @@ public class LoginPageController {
         // 无 pending authorize → 手动访问登录页 URL → 302 到 SPA，由 SPA 的 token 管理判断登录状态。
         if (!hasPendingAuthorize(request, LoginChannel.ADMIN)) {
             String spaRoot = oauth2ClientProperties.extractSpaRootUrl(
-                    oauth2ClientProperties.getAdmin().getRedirectUri());
+                    oauth2ClientProperties.getAdmin().getFirstRedirectUri());
             if (StringUtils.hasText(spaRoot)) {
                 return "redirect:" + spaRoot;
             }
@@ -115,7 +115,7 @@ public class LoginPageController {
         // 未认证时：检查是否是 OAuth2 authorize 流程内的合法跳转
         if (!hasPendingAuthorize(request, LoginChannel.PORTAL)) {
             String spaRoot = oauth2ClientProperties.extractSpaRootUrl(
-                    oauth2ClientProperties.getPortal().getRedirectUri());
+                    oauth2ClientProperties.getPortal().getFirstRedirectUri());
             if (StringUtils.hasText(spaRoot)) {
                 return "redirect:" + spaRoot;
             }
@@ -184,8 +184,8 @@ public class LoginPageController {
     private String buildSpaAutoRedirectUrl(HttpServletRequest request) {
         boolean isPortal = request.getRequestURI().endsWith("/portal");
         String redirectUri = isPortal
-                ? oauth2ClientProperties.getPortal().getRedirectUri()
-                : oauth2ClientProperties.getAdmin().getRedirectUri();
+                ? oauth2ClientProperties.getPortal().getFirstRedirectUri()
+                : oauth2ClientProperties.getAdmin().getFirstRedirectUri();
         return oauth2ClientProperties.extractSpaRootUrl(redirectUri);
     }
 
