@@ -22,6 +22,8 @@ public class IpRegionProperties {
      * ip2region xdb 数据库文件路径
      * <p>
      * xdb 文件下载地址: <a href="https://github.com/lionsoul2014/ip2region/blob/master/data/ip2region_v4.xdb">ip2region_v4.xdb</a>
+     * <p>
+     * xdb 文件下载地址: <a href="https://raw.githubusercontent.com/lionsoul2014/ip2region/refs/heads/master/data/ip2region_v4.xdb">ip2region_v4.xdb</a>
      */
     @Setter
     private String dbPath = "./ip2region/ip2region_v4.xdb";
