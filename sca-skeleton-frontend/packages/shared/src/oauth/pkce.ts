@@ -327,8 +327,13 @@ export function readOAuthConfigFromEnv(env: ImportMetaEnv): OAuthAppConfig {
     clientId: env.VITE_OAUTH_CLIENT_ID,
     authorizeUrl: `${browserOAuthBase}/auth/oauth2/authorize`,
     tokenUrl: `${apiPrefix}/auth/oauth2/token`,
-    redirectUri: env.VITE_OAUTH_REDIRECT_URI,
-    scope: "profile offline_access all"  // 添加 offline_access 以请求 refresh token
+    // 若 VITE_OAUTH_REDIRECT_URI 已是绝对 URL（http/https 开头）则直接使用；
+    // 否则视为相对路径，基于当前浏览器 origin 拼接。
+    // 这样同一份构建产物无论通过 IP 还是域名访问，OAuth 回调都能回到正确的 origin。
+    redirectUri: /^https?:\/\//.test(env.VITE_OAUTH_REDIRECT_URI)
+      ? env.VITE_OAUTH_REDIRECT_URI
+      : `${browserOAuthBase}${env.VITE_OAUTH_REDIRECT_URI}`,
+    scope: "profile offline_access all"
   };
 }
 
