@@ -178,7 +178,7 @@ function filterByKeyword(rows: StandardRow[], kw: string): StandardRow[] {
   if (!kw) return rows;
   const k = kw.toLowerCase();
   return rows.filter((r) => {
-    const rec = r as Record<string, unknown>;
+    const rec = r as unknown as Record<string, unknown>;
     return Object.values(rec).some((v) => v != null && String(v).toLowerCase().includes(k));
   });
 }
@@ -226,8 +226,8 @@ async function loadTableData(
   if (sortBy) {
     const dir = tablePagination.value.descending ? -1 : 1;
     rows = [...rows].sort((a, b) => {
-      const av = (a as Record<string, unknown>)[sortBy];
-      const bv = (b as Record<string, unknown>)[sortBy];
+      const av = (a as unknown as Record<string, unknown>)[sortBy];
+      const bv = (b as unknown as Record<string, unknown>)[sortBy];
       return compareValues(av, bv, dir);
     });
   }
@@ -290,7 +290,7 @@ function handleRefresh() {
 
 function viewDetail(row: StandardRow) {
   const label =
-    "name" in row ? row.name : "setName" in row ? row.setName : row.code;
+    "name" in row ? row.name : "setName" in row ? row.setName : "";
   showToast(`${t("common.viewDetail")}: ${label}`, "info");
 }
 

@@ -365,7 +365,7 @@ onMounted(() => {
         <template #body-cell-type="props">
           <q-td :props="props">
             <q-badge
-              :color="typeColorMap[props.row.type]"
+              :color="typeColorMap[props.row.type as ResourceType]"
               :label="t(`resourceCatalog.${props.row.type}`)"
               rounded
               class="resource-type-badge"
@@ -377,7 +377,7 @@ onMounted(() => {
         <template #body-cell-status="props">
           <q-td :props="props">
             <q-badge
-              :color="statusColorMap[props.row.status]"
+              :color="statusColorMap[props.row.status as ResourceStatus]"
               :label="t(`resourceCatalog.${props.row.status}`)"
               rounded
               class="resource-type-badge"
