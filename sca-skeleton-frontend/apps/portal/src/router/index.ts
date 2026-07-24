@@ -3,7 +3,7 @@ import { staticRoutes } from "./routes";
 import { setupRouterGuards } from "./guards";
 
 export const router = createRouter({
-  history: createWebHistory("/"),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: staticRoutes
 });
 

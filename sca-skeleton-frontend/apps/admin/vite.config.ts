@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
   const gatewayTarget = env.VITE_GATEWAY_TARGET || "";
 
   return {
+    base: env.VITE_BASE_URL || "/",
     resolve: {
       alias: {
         src: fileURLToPath(new URL("./src", import.meta.url))
