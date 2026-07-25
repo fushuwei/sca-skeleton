@@ -18,11 +18,6 @@ import java.util.List;
 public class OAuth2ClientProperties {
 
     /**
-     * 认证中心对外暴露的请求路径前缀（经网关），与网关路由 predicates 配置保持一致
-     */
-    private String publicPathPrefix = "/auth";
-
-    /**
      * 浏览器可见的 OAuth2 授权服务根 URL（开发环境经 Vite 代理到网关，生产环境经 Nginx/网关对外暴露）
      * 必须与前端访问地址一致，用于生成登录重定向和授权端点地址
      */
