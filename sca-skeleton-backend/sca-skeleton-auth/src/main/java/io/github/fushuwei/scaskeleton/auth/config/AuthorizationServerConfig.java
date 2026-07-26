@@ -193,12 +193,14 @@ public class AuthorizationServerConfig {
      * Token 端点专用 AuthenticationEntryPoint：返回标准 OAuth2 JSON 错误响应
      * <p>
      * 使用 Jackson {@link tools.jackson.databind.json.JsonMapper} 序列化，确保 JSON 转义正确。
+     * 必须显式设置 UTF-8 字符编码，否则中文 error_description 会变成乱码。
      */
     private AuthenticationEntryPoint oauth2TokenEndpointAuthenticationEntryPoint() {
         return (HttpServletRequest request, HttpServletResponse response,
                 org.springframework.security.core.AuthenticationException authException) -> {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding("UTF-8");
             String message = authException.getMessage() != null
                 ? authException.getMessage() : "Unauthorized";
             Map<String, Object> body = new LinkedHashMap<>();

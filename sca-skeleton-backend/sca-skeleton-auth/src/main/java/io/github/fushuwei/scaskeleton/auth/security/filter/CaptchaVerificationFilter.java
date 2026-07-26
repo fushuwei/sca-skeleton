@@ -112,10 +112,14 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
 
     /**
      * 返回标准 OAuth2 JSON 错误响应（使用 Jackson 序列化，确保 JSON 转义正确）。
+     * <p>
+     * 必须显式设置 UTF-8 字符编码，否则 {@code response.getWriter()} 会使用默认编码
+     * （ISO-8859-1），导致中文 error_description 变成乱码（一堆 ?）。
      */
     private void writeOAuth2Error(HttpServletResponse response, String error, String errorDescription) throws IOException {
         response.setStatus(HttpStatus.BAD_REQUEST.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("error", error);
         body.put("error_description", errorDescription);
