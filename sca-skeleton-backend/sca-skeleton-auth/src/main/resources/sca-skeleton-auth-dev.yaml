@@ -1,5 +1,5 @@
 server:
-  # 经网关访问时根据 X-Forwarded-* 还原对外 URL，避免登录成功后 SavedRequest 回跳到内网地址
+  # 经网关访问时根据 X-Forwarded-* 还原对外 URL，确保登录日志记录真实客户端 IP
   forward-headers-strategy: framework
 
 spring:

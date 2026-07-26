@@ -1,10 +1,13 @@
 package io.github.fushuwei.scaskeleton.auth.security;
 
 /**
- * 登录渠道线程上下文：在表单认证链路中传递 admin / portal 标识。
+ * 登录渠道线程上下文：在密码模式认证链路中传递 admin / portal 标识。
  * <p>
- * 由 {@link io.github.fushuwei.scaskeleton.auth.security.filter.LoginChannelFilter} 写入，
- * {@link io.github.fushuwei.scaskeleton.auth.security.RoutingUserDetailsService} 读取。
+ * 由 {@link io.github.fushuwei.scaskeleton.auth.grant.base.OAuth2ResourceOwnerBaseAuthenticationProvider}
+ * 在 {@code authenticate()} 方法中写入，{@link RoutingUserDetailsService} 读取。
+ * <p>
+ * Provider 在认证成功/失败时直接发布事件（仍在 finally 清理 ThreadLocal 之前），
+ * 确保 {@link LoginLogPublisher} 和 {@link LoginAttemptEventListener} 能读取到正确的渠道。
  *
  * @author Fu Wei
  */

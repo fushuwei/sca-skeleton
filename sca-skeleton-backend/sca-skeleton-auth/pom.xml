@@ -54,22 +54,10 @@
             <artifactId>sca-skeleton-starter-log</artifactId>
         </dependency>
 
-        <!-- OAuth 2.1 授权服务器（授权码 + PKCE 认证授权中心） -->
+        <!-- Spring Authorization Server（密码模式认证授权中心） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-oauth2-authorization-server</artifactId>
-        </dependency>
-
-        <!-- Spring Session（基于 Redis 存储会话，支持分布式环境下的登录态共享） -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-session-data-redis</artifactId>
-        </dependency>
-
-        <!-- Thymeleaf 模板引擎（用于渲染登录页等服务端页面） -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
         <!-- Nacos 注册中心客户端（服务注册与发现） -->

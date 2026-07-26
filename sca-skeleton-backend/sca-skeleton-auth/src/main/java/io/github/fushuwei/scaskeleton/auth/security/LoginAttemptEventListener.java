@@ -10,7 +10,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 /**
- * 监听表单登录成功/失败事件，驱动 {@link LoginAttemptService}。
+ * 监听密码模式登录成功/失败事件，驱动 {@link LoginAttemptService}。
+ * <p>
+ * 事件由 {@link io.github.fushuwei.scaskeleton.auth.grant.base.OAuth2ResourceOwnerBaseAuthenticationProvider}
+ * 直接发布（携带原始 {@link UsernamePasswordAuthenticationToken}），在 finally 清理 ThreadLocal 之前触发。
  *
  * @author Fu Wei
  */

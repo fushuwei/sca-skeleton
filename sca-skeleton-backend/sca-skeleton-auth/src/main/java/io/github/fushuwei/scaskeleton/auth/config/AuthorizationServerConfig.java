@@ -1,7 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.config;
 
 import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLockProperties;
-import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLoginProperties;
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
 import io.github.fushuwei.scaskeleton.auth.grant.password.OAuth2ResourceOwnerPasswordAuthenticationConverter;
 import io.github.fushuwei.scaskeleton.auth.grant.password.OAuth2ResourceOwnerPasswordAuthenticationProvider;
@@ -14,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -22,10 +22,10 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
@@ -33,32 +33,35 @@ import org.springframework.security.oauth2.server.authorization.token.Delegating
 import org.springframework.security.oauth2.server.authorization.token.OAuth2AccessTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
-import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2AuthorizationCodeAuthenticationConverter;
 import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2ClientCredentialsAuthenticationConverter;
 import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2RefreshTokenAuthenticationConverter;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
-import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Spring Authorization Server 核心配置（密码模式扩展）
  * <p>
  * 基于 SAS 扩展自定义的 Resource Owner Password Credentials Grant，
- * 保留 SAS 原生的 authorization_code、refresh_token、client_credentials 支持。
+ * 保留 SAS 原生的 refresh_token、client_credentials 支持。
  * <p>
  * 认证流程：
  * <ol>
- *   <li>SPA 发送 {@code POST /oauth2/token} 携带 {@code grant_type=password&username&password&client_id&client_secret}</li>
- *   <li>验证码过滤器校验图形验证码（portal 渠道）</li>
- *   <li>SAS 客户端认证过滤器校验 client_id / client_secret</li>
+ *   <li>SPA 发送 {@code POST /oauth2/token} 携带 {@code grant_type=password&username&password} 和 Basic 认证头</li>
+ *   <li>SAS 客户端认证过滤器校验 client_id / client_secret（client_secret_basic）</li>
+ *   <li>验证码过滤器从 SecurityContext 读取已认证客户端，portal 渠道校验图形验证码</li>
  *   <li>密码模式转换器构建 {@code OAuth2ResourceOwnerPasswordAuthenticationToken}</li>
  *   <li>密码模式提供者委托 {@link AuthenticationManager} 完成用户认证</li>
+ *   <li>认证成功/失败时直接发布 Spring Security 事件（携带原始 UsernamePasswordAuthenticationToken），
+ *       驱动登录日志与账号锁定</li>
  *   <li>生成不透明 access_token + refresh_token 并返回</li>
  * </ol>
  *
@@ -67,7 +70,7 @@ import java.util.List;
 @Slf4j
 @Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
-@EnableConfigurationProperties({OAuth2ClientProperties.class, AuthLockProperties.class, AuthLoginProperties.class})
+@EnableConfigurationProperties({OAuth2ClientProperties.class, AuthLockProperties.class})
 public class AuthorizationServerConfig {
 
     private final OAuth2ClientProperties oauth2ClientProperties;
@@ -76,6 +79,8 @@ public class AuthorizationServerConfig {
     private final PasswordEncoder passwordEncoder;
     private final CaptchaService captchaService;
     private final CaptchaVerificationFilter captchaVerificationFilter;
+    private final ApplicationEventPublisher applicationEventPublisher;
+    private final ObjectMapper objectMapper;
 
     /**
      * SAS 标准端点 + 密码模式扩展过滤链
@@ -107,7 +112,7 @@ public class AuthorizationServerConfig {
                 .defaultAuthenticationEntryPointFor(
                     oauth2TokenEndpointAuthenticationEntryPoint(),
                     request -> "POST".equalsIgnoreCase(request.getMethod())
-                        && "/oauth2/token".equals(request.getRequestURI()))
+                        && "/oauth2/token".equals(request.getServletPath()))
             );
 
         return http.build();
@@ -118,10 +123,11 @@ public class AuthorizationServerConfig {
      * <p>
      * SAS 按列表顺序依次调用每个转换器的 {@code convert()} 方法，
      * 第一个返回非 null 的转换器结果将被用于后续认证。
+     * <p>
+     * 已移除 {@code OAuth2AuthorizationCodeAuthenticationConverter}（密码模式不再需要授权码流程）。
      */
     private AuthenticationConverter accessTokenRequestConverter() {
         List<AuthenticationConverter> converters = List.of(
-            new OAuth2AuthorizationCodeAuthenticationConverter(),
             new OAuth2ClientCredentialsAuthenticationConverter(),
             new OAuth2RefreshTokenAuthenticationConverter(),
             new OAuth2ResourceOwnerPasswordAuthenticationConverter()
@@ -143,13 +149,14 @@ public class AuthorizationServerConfig {
      * <p>
      * 委托 {@link #authenticationManager()} 完成用户名密码认证，
      * 认证成功后生成 access_token 和 refresh_token。
+     * 认证成功/失败时直接发布 Spring Security 事件，驱动登录日志与账号锁定。
      */
-    @SuppressWarnings("deprecation")
     private OAuth2ResourceOwnerPasswordAuthenticationProvider passwordAuthenticationProvider() {
         return new OAuth2ResourceOwnerPasswordAuthenticationProvider(
             authenticationManager(),
             authorizationService,
             tokenGenerator(),
+            applicationEventPublisher,
             oauth2ClientProperties
         );
     }
@@ -160,7 +167,15 @@ public class AuthorizationServerConfig {
      * 供密码模式 Provider 内部调用 {@code authenticationManager.authenticate()} 完成用户认证。
      * {@link DaoAuthenticationProvider} 使用 {@link RoutingUserDetailsService} 按
      * {@link io.github.fushuwei.scaskeleton.auth.security.LoginChannel} 路由加载用户。
+     * <p>
+     * 注意：认证成功/失败事件由 {@link io.github.fushuwei.scaskeleton.auth.grant.base.OAuth2ResourceOwnerBaseAuthenticationProvider}
+     * 直接发布（携带原始 UsernamePasswordAuthenticationToken），因此此处 ProviderManager 无需注入事件发布器。
+     * <p>
+     * {@code DaoAuthenticationProvider} 默认 {@code hideUserNotFoundExceptions=true}，
+     * 会将 {@code UsernameNotFoundException} 转换为 {@code BadCredentialsException}，
+     * 防止用户名枚举攻击。此处保持默认行为，不调用 {@code setHideUserNotFoundExceptions(false)}。
      */
+    @SuppressWarnings("deprecation") // Spring Security 6.x DaoAuthenticationProvider(UserDetailsService) 构造器已废弃，但当前版本尚不支持无参构造 + setUserDetailsService()
     private AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(routingUserDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
@@ -169,25 +184,22 @@ public class AuthorizationServerConfig {
 
     /**
      * Token 端点专用 AuthenticationEntryPoint：返回标准 OAuth2 JSON 错误响应
+     * <p>
+     * 使用 Jackson {@link ObjectMapper} 序列化，确保 JSON 转义正确。
      */
     private AuthenticationEntryPoint oauth2TokenEndpointAuthenticationEntryPoint() {
         return (HttpServletRequest request, HttpServletResponse response,
                 org.springframework.security.core.AuthenticationException authException) -> {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            String rawMessage = authException.getMessage() != null
+            String message = authException.getMessage() != null
                 ? authException.getMessage() : "Unauthorized";
-            String message = rawMessage
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
-            String json = String.format(
-                "{\"error\":\"unauthorized\",\"error_description\":\"%s\",\"timestamp\":%d}",
-                message, Instant.now().toEpochMilli());
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("error", "unauthorized");
+            body.put("error_description", message);
+            body.put("timestamp", System.currentTimeMillis());
             try {
-                response.getWriter().write(json);
+                response.getWriter().write(objectMapper.writeValueAsString(body));
             } catch (IOException e) {
                 log.warn("写入 token 端点错误响应失败", e);
             }

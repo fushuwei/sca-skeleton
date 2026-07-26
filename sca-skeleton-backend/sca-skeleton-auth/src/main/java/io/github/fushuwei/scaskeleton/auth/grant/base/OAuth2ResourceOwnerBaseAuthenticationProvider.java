@@ -4,6 +4,7 @@ import io.github.fushuwei.scaskeleton.auth.security.LoginChannel;
 import io.github.fushuwei.scaskeleton.auth.security.LoginChannelContext;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -11,6 +12,8 @@ import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -57,9 +60,11 @@ import java.util.Set;
  * 相比 pig 项目的改进：
  * <ul>
  *   <li>在 Provider 内部统一管理 {@code LoginChannelContext} 的设置与清理，无需额外 Filter</li>
- *   <li>登录开始时间由 Provider 写入请求属性，移除对 {@code LoginChannelFilter} 的依赖</li>
+ *   <li>登录开始时间由 Provider 写入请求属性，移除对 LoginChannelFilter 的依赖</li>
  *   <li>不依赖 hutool {@code SpringUtil}，使用构造器注入</li>
  *   <li>异常映射使用标准 OAuth2 错误码，不引入自定义错误码扩展</li>
+ *   <li>认证成功/失败事件由 Provider 直接发布（携带原始 UsernamePasswordAuthenticationToken），
+ *       确保 LoginLogPublisher 和 LoginAttemptEventListener 能正确匹配事件类型</li>
  * </ul>
  *
  * @param <T> 子模式对应的 AuthenticationToken 类型
@@ -85,21 +90,26 @@ public abstract class OAuth2ResourceOwnerBaseAuthenticationProvider
     private final AuthenticationManager authenticationManager;
     private final OAuth2AuthorizationService authorizationService;
     private final OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * @param authenticationManager Spring Security 认证管理器（配置了 DaoAuthenticationProvider）
      * @param authorizationService  OAuth2 授权存储服务（Redis + JDBC）
      * @param tokenGenerator        OAuth2 令牌生成器（不透明 access_token + refresh_token）
+     * @param eventPublisher        Spring 事件发布器（发布登录成功/失败事件，驱动登录日志与账号锁定）
      */
     protected OAuth2ResourceOwnerBaseAuthenticationProvider(AuthenticationManager authenticationManager,
                                                              OAuth2AuthorizationService authorizationService,
-                                                             OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator) {
+                                                             OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
+                                                             ApplicationEventPublisher eventPublisher) {
         Assert.notNull(authenticationManager, "authenticationManager cannot be null");
         Assert.notNull(authorizationService, "authorizationService cannot be null");
         Assert.notNull(tokenGenerator, "tokenGenerator cannot be null");
+        Assert.notNull(eventPublisher, "eventPublisher cannot be null");
         this.authenticationManager = authenticationManager;
         this.authorizationService = authorizationService;
         this.tokenGenerator = tokenGenerator;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -127,16 +137,17 @@ public abstract class OAuth2ResourceOwnerBaseAuthenticationProvider
     public abstract void checkClient(RegisteredClient registeredClient);
 
     /**
-     * 从请求参数中解析登录渠道（admin / portal），用于设置 {@link LoginChannelContext}。
+     * 从已认证的客户端解析登录渠道（admin / portal），用于设置 {@link LoginChannelContext}。
      * <p>
-     * 默认实现根据 client_id 判定：若 client_id 与配置的 portal 客户端一致则返回 PORTAL，
-     * 否则返回 ADMIN。子类可覆盖此方法实现自定义渠道判定逻辑。
+     * 默认实现返回 {@link LoginChannel#ADMIN}。子类应根据 {@code registeredClient.getClientId()}
+     * 判定渠道，而非从请求参数中读取 client_id（机密客户端使用 {@code client_secret_basic} 时
+     * client_id 在 Authorization 头中，不在请求体参数中）。
      *
-     * @param reqParameters 附加参数
+     * @param registeredClient 已认证的客户端
      * @return 登录渠道
      */
     @SuppressWarnings("unused")
-    public LoginChannel resolveLoginChannel(Map<String, Object> reqParameters) {
+    public LoginChannel resolveLoginChannel(RegisteredClient registeredClient) {
         return LoginChannel.ADMIN;
     }
 
@@ -156,33 +167,43 @@ public abstract class OAuth2ResourceOwnerBaseAuthenticationProvider
         // 3) 校验并确定授权范围
         Set<String> authorizedScopes = resolveAuthorizedScopes(resourceOwnerAuthentication, registeredClient);
 
-        // 4) 从附加参数中解析登录渠道并写入 ThreadLocal
+        // 4) 从已认证的客户端解析登录渠道并写入 ThreadLocal
         Map<String, Object> reqParameters = resourceOwnerAuthentication.getAdditionalParameters();
-        LoginChannel channel = resolveLoginChannel(reqParameters);
+        LoginChannel channel = resolveLoginChannel(registeredClient);
         LoginChannelContext.set(channel);
 
-        // 5) 记录登录开始时间到请求属性，供 LoginLogPublisher 计算耗时
+        // 5) 记录登录开始时间与渠道到请求属性，供 LoginLogPublisher 使用
         recordLoginStartTime(channel);
 
         log.debug("密码模式认证开始：client_id={}, channel={}, username={}",
                 registeredClient.getClientId(), channel.getValue(),
                 reqParameters.get("username"));
 
+        // 6) 构建 UsernamePasswordAuthenticationToken 并委托 AuthenticationManager 认证
+        UsernamePasswordAuthenticationToken usernamePasswordToken = buildToken(reqParameters);
+
         try {
-            // 6) 构建 UsernamePasswordAuthenticationToken 并委托 AuthenticationManager 认证
-            UsernamePasswordAuthenticationToken usernamePasswordToken = buildToken(reqParameters);
             Authentication usernamePasswordAuthentication = authenticationManager.authenticate(usernamePasswordToken);
 
             log.info("密码模式认证成功：client_id={}, username={}",
                     registeredClient.getClientId(), usernamePasswordAuthentication.getName());
 
-            // 7) 生成令牌并构建 OAuth2Authorization
+            // 7) 直接发布认证成功事件（携带 ScaUserDetails），驱动登录日志与失败计数清零。
+            //    在 finally 清理 LoginChannelContext 之前发布，确保监听器能读取渠道。
+            eventPublisher.publishEvent(new AuthenticationSuccessEvent(usernamePasswordAuthentication));
+
+            // 8) 生成令牌并构建 OAuth2Authorization
             return generateAccessToken(resourceOwnerAuthentication, clientPrincipal, registeredClient,
                     authorizedScopes, usernamePasswordAuthentication);
 
         } catch (AuthenticationException ex) {
             log.warn("密码模式认证失败：client_id={}, username={}, error={}",
                     registeredClient.getClientId(), reqParameters.get("username"), ex.getMessage());
+
+            // 直接发布认证失败事件（携带原始 UsernamePasswordAuthenticationToken），驱动登录日志与失败计数。
+            // 在 finally 清理 LoginChannelContext 之前发布，确保监听器能读取渠道。
+            eventPublisher.publishEvent(new AuthenticationFailureBadCredentialsEvent(usernamePasswordToken, ex));
+
             throw mapToOAuth2AuthenticationException(authentication, ex);
         } catch (Exception e) {
             log.error("密码模式认证异常：client_id={}, username={}", registeredClient.getClientId(),
@@ -320,17 +341,19 @@ public abstract class OAuth2ResourceOwnerBaseAuthenticationProvider
 
     /**
      * 将 Spring Security 认证异常映射为标准 OAuth2 错误响应。
+     * <p>
+     * {@code UsernameNotFoundException} 与 {@code BadCredentialsException} 统一返回
+     * "用户名或密码错误"，防止用户名枚举攻击。
+     * （{@code DaoAuthenticationProvider} 默认 {@code hideUserNotFoundExceptions=true}
+     * 已将 {@code UsernameNotFoundException} 转换为 {@code BadCredentialsException}，
+     * 此处做双重防护，确保即使修改默认配置也不暴露用户是否存在。）
      */
     private OAuth2AuthenticationException mapToOAuth2AuthenticationException(
             Authentication authentication, AuthenticationException ex) {
         if (ex instanceof OAuth2AuthenticationException oauth2Ex) {
             return oauth2Ex;
         }
-        if (ex instanceof UsernameNotFoundException) {
-            return new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST,
-                    "用户 [" + authentication.getName() + "] 不存在", ERROR_URI));
-        }
-        if (ex instanceof BadCredentialsException) {
+        if (ex instanceof UsernameNotFoundException || ex instanceof BadCredentialsException) {
             return new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST,
                     "用户名或密码错误", ERROR_URI));
         }

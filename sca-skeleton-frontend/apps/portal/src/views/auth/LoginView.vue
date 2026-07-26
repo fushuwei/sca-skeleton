@@ -17,7 +17,6 @@ const captchaInput = ref<HTMLInputElement>();
 const username = ref("");
 const password = ref("");
 const passwordVisible = ref(false);
-const rememberMe = ref(false);
 const loading = ref(false);
 
 // ── 验证码状态 ──
@@ -202,11 +201,9 @@ function onFirstKeyFocus(e: KeyboardEvent): void {
   if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
   if (e.key.length !== 1 || e.ctrlKey || e.altKey || e.metaKey) return;
   e.preventDefault();
-  const input = usernameInput.value;
-  if (!input) return;
-  input.focus();
-  input.value += e.key;
-  input.dispatchEvent(new Event("input", { bubbles: true }));
+  // 通过 Vue 响应式更新 username，v-model 自动同步到 DOM
+  username.value += e.key;
+  usernameInput.value?.focus();
   // 触发后移除自身监听，仅生效一次
   window.removeEventListener("keydown", onFirstKeyFocus);
 }
@@ -384,14 +381,10 @@ onUnmounted(() => {
               </button>
             </div>
 
-            <!-- 记住我 / 忘记密码 -->
+            <!-- 忘记密码 -->
             <div class="form-options">
-              <label class="md3-checkbox-container">
-                <input v-model="rememberMe" type="checkbox" tabindex="-1" />
-                <span class="md3-checkbox enhanced"></span>
-                <span class="md3-checkbox-label md3-body-medium">记住我</span>
-              </label>
-              <a href="#" class="md3-link md3-body-medium" tabindex="-1" @click.prevent>忘记密码？</a>
+              <span></span>
+              <a href="#" class="md3-link md3-body-medium" tabindex="-1" title="功能开发中" @click.prevent>忘记密码？</a>
             </div>
 
             <!-- 登录按钮 -->
@@ -409,13 +402,13 @@ onUnmounted(() => {
           <div class="additional-options">
             <p class="md3-body-small">其他登录方式</p>
             <div class="social-login">
-              <button class="social-login-button" type="button" tabindex="-1">
+              <button class="social-login-button" type="button" tabindex="-1" title="功能开发中">
                 <span class="material-symbols-rounded login-icon">smartphone</span>
               </button>
-              <button class="social-login-button" type="button" tabindex="-1">
+              <button class="social-login-button" type="button" tabindex="-1" title="功能开发中">
                 <span class="material-symbols-rounded login-icon">qr_code_scanner</span>
               </button>
-              <button class="social-login-button" type="button" tabindex="-1">
+              <button class="social-login-button" type="button" tabindex="-1" title="功能开发中">
                 <span class="material-symbols-rounded login-icon">fingerprint</span>
               </button>
             </div>

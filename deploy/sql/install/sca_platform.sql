@@ -673,8 +673,8 @@ SELECT
     NULL,
     NULL,
     'profile,all',
-    '{"settings.client.require-authorization-consent":false}',
-    '{"settings.token.reuse-refresh-tokens":false}'
+    '{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2ClientSettings","settings.client.require-authorization-consent":false}',
+    '{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenSettings","settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.core.OAuth2AccessToken$TokenFormat","value":"reference"},"settings.token.access-token-time-to-live":["java.time.Duration",900.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.reuse-refresh-tokens":false}'
 WHERE NOT EXISTS (
     SELECT 1 FROM oauth2_registered_client WHERE client_id = 'sca-admin-client'
 );
@@ -708,8 +708,8 @@ SELECT
     NULL,
     NULL,
     'profile,all',
-    '{"settings.client.require-authorization-consent":false}',
-    '{"settings.token.reuse-refresh-tokens":false}'
+    '{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2ClientSettings","settings.client.require-authorization-consent":false}',
+    '{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenSettings","settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.core.OAuth2AccessToken$TokenFormat","value":"reference"},"settings.token.access-token-time-to-live":["java.time.Duration",900.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.reuse-refresh-tokens":false}'
 WHERE NOT EXISTS (
     SELECT 1 FROM oauth2_registered_client WHERE client_id = 'sca-portal-client'
 );

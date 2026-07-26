@@ -144,6 +144,10 @@ export async function refreshAccessToken(
 
 /**
  * 吊销 access_token 或 refresh_token（RFC 7009）。
+ * <p>
+ * 吊销失败时仅记录控制台警告，不阻断本地令牌清理。
+ * access_token TTL 较短（默认 15 分钟），refresh_token 失效后无法续期，
+ * 实际风险窗口较小。
  */
 export async function revokeOAuthToken(
   config: OAuthAppConfig,
@@ -155,7 +159,7 @@ export async function revokeOAuthToken(
     token_type_hint: tokenTypeHint
   });
   try {
-    await fetch(config.revokeUrl, {
+    const response = await fetch(config.revokeUrl, {
       method: "POST",
       credentials: "omit",
       headers: {
@@ -164,8 +168,11 @@ export async function revokeOAuthToken(
       },
       body: body.toString()
     });
-  } catch {
-    // logout 场景下 revoke 失败不阻断本地清理
+    if (!response.ok) {
+      console.warn(`[OAuth] Token 吊销失败: HTTP ${response.status}，令牌将在 TTL 到期后自动失效`);
+    }
+  } catch (e) {
+    console.warn("[OAuth] Token 吊销请求异常，令牌将在 TTL 到期后自动失效", e);
   }
 }
 
@@ -200,7 +207,7 @@ export function readOAuthConfigFromEnv(env: ImportMetaEnv): OAuthAppConfig {
     clientSecret: env.VITE_OAUTH_CLIENT_SECRET,
     tokenUrl: `${apiPrefix}/auth/oauth2/token`,
     revokeUrl: `${apiPrefix}/auth/oauth2/revoke`,
-    scope: "profile all"
+    scope: env.VITE_OAUTH_SCOPE ?? "profile all"
   };
 }
 
@@ -209,4 +216,6 @@ export interface ImportMetaEnv {
   readonly VITE_API_BASE_URL: string;
   readonly VITE_OAUTH_CLIENT_ID: string;
   readonly VITE_OAUTH_CLIENT_SECRET: string;
+  /** OAuth2 scope（可选，默认 "profile all"） */
+  readonly VITE_OAUTH_SCOPE?: string;
 }

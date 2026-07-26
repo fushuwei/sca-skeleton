@@ -39,8 +39,9 @@ import java.time.LocalDateTime;
  * <p>
  * 与 {@link LoginAttemptEventListener} 各司其职：后者负责失败计数与账号锁定，本类负责审计日志。
  * <p>
- * 所有 ThreadLocal 访问（{@link RequestContextHolder}、{@link LoginChannelContext}）均在本类的同步方法内完成，
- * 确保异步线程不需要访问 ThreadLocal。
+ * 事件由 {@link OAuth2ResourceOwnerBaseAuthenticationProvider} 在认证成功/失败时直接发布
+ * （携带原始 {@link UsernamePasswordAuthenticationToken}），在 finally 清理 ThreadLocal 之前触发，
+ * 因此本类可安全读取 {@link LoginChannelContext} 和 {@link RequestContextHolder}。
  * <p>
  * 设计要点：
  * <ul>
@@ -48,7 +49,7 @@ import java.time.LocalDateTime;
  *   <li>成功路径：从 {@link ScaUserDetails} 直接获取 tenantId/userId，无需额外查询</li>
  *   <li>失败路径：SecurityContext 未建立，需反查 sys_user 填充 tenantId/userId（用户不存在时为空）</li>
  *   <li>real_name 由列表查询时 LEFT JOIN sys_user.real_name 获取，不在本类处理</li>
- * <li>costMs 由 {@link OAuth2ResourceOwnerBaseAuthenticationProvider} 记录开始时间，本类在发布事件时计算差值</li>
+ *   <li>costMs 由 {@link OAuth2ResourceOwnerBaseAuthenticationProvider} 记录开始时间，本类在发布事件时计算差值</li>
  * </ul>
  *
  * @author Fu Wei
@@ -166,7 +167,7 @@ public class LoginLogPublisher {
     }
 
     /**
-     * 计算登录耗时：从请求属性取出 {@link LoginChannelFilter} 记录的开始时间，求差值。
+     * 计算登录耗时：从请求属性取出 {@link OAuth2ResourceOwnerBaseAuthenticationProvider} 记录的开始时间，求差值。
      */
     private Long calculateCostMs(HttpServletRequest request) {
         Object startTime = request.getAttribute(OAuth2ResourceOwnerBaseAuthenticationProvider.ATTR_LOGIN_START_TIME);
@@ -204,12 +205,12 @@ public class LoginLogPublisher {
 
     /**
      * 将常见认证异常映射为友好提示，便于审计查阅。
+     * <p>
+     * {@code UsernameNotFoundException} 与 {@code BadCredentialsException} 统一返回
+     * "用户名或密码错误"，防止用户名枚举攻击。
      */
     private String buildFailureMessage(String username, AuthenticationException ex) {
-        if (ex instanceof UsernameNotFoundException) {
-            return "登录失败：用户 [" + username + "] 不存在";
-        }
-        if (ex instanceof BadCredentialsException) {
+        if (ex instanceof UsernameNotFoundException || ex instanceof BadCredentialsException) {
             return "登录失败：用户名或密码错误";
         }
         if (ex instanceof LockedException) {
