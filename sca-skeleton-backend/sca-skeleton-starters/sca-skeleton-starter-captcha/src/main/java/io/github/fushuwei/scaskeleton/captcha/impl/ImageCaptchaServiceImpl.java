@@ -73,7 +73,7 @@ public class ImageCaptchaServiceImpl implements CaptchaService {
         try {
             captcha.out(response.getOutputStream());
         } catch (IOException e) {
-            log.error("[验证码] 无法将验证码图片写入响应流. captchaKey={}", captchaKey, e);
+            log.warn("[验证码] 无法将验证码图片写入响应流. captchaKey={}", captchaKey, e);
         }
     }
 
