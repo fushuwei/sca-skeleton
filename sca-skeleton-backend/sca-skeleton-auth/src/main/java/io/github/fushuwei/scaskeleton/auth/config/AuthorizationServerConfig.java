@@ -40,7 +40,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -80,7 +80,14 @@ public class AuthorizationServerConfig {
     private final CaptchaService captchaService;
     private final CaptchaVerificationFilter captchaVerificationFilter;
     private final ApplicationEventPublisher applicationEventPublisher;
-    private final ObjectMapper objectMapper;
+
+    /**
+     * JSON 序列化器（注入容器中的全局 {@link JsonMapper} Bean）。
+     * <p>
+     * 由 {@code sca-skeleton-starter-core} 的 {@code JacksonAutoConfiguration} 注册，
+     * 已配置统一的时区、JavaTimeModule 等序列化策略。
+     */
+    private final JsonMapper jsonMapper;
 
     /**
      * SAS 标准端点 + 密码模式扩展过滤链
@@ -199,7 +206,7 @@ public class AuthorizationServerConfig {
             body.put("error_description", message);
             body.put("timestamp", System.currentTimeMillis());
             try {
-                response.getWriter().write(objectMapper.writeValueAsString(body));
+                response.getWriter().write(jsonMapper.writeValueAsString(body));
             } catch (IOException e) {
                 log.warn("写入 token 端点错误响应失败", e);
             }

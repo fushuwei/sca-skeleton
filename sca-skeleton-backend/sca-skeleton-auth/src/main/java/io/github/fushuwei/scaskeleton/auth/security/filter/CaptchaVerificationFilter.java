@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -58,8 +58,13 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
     /** 请求参数名：用户输入的验证码文本 */
     private static final String PARAM_CAPTCHA_CODE = "captcha_code";
 
-    /** JSON 序列化器（Spring 容器中已存在的 ObjectMapper Bean） */
-    private final ObjectMapper objectMapper;
+    /**
+     * JSON 序列化器（注入容器中的全局 {@link JsonMapper} Bean）。
+     * <p>
+     * 由 {@code sca-skeleton-starter-core} 的 {@code JacksonAutoConfiguration} 注册，
+     * 已配置统一的时区、JavaTimeModule 等序列化策略。
+     */
+    private final JsonMapper jsonMapper;
 
     private final CaptchaService captchaService;
 
@@ -165,6 +170,6 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
         body.put("error", error);
         body.put("error_description", errorDescription);
         body.put("timestamp", System.currentTimeMillis());
-        response.getWriter().write(objectMapper.writeValueAsString(body));
+        response.getWriter().write(jsonMapper.writeValueAsString(body));
     }
 }
