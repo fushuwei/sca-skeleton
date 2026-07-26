@@ -62,8 +62,8 @@
     --md-state-pressed-opacity: 0.12;
     --md-state-dragged-opacity: 0.16;
 
-    --md-ref-typeface-brand: "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "AlibabaPuHuiTi-3-55-Regular", Tahoma, Consolas, Arial, "Microsoft YaHei", "微软雅黑", "sans-serif" !important;
-    --md-ref-typeface-plain: "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "AlibabaPuHuiTi-3-55-Regular", Tahoma, Consolas, Arial, "Microsoft YaHei", "微软雅黑", "sans-serif" !important;
+    --md-ref-typeface-brand: "JetBrains Mono", "OPPO Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    --md-ref-typeface-plain: "JetBrains Mono", "OPPO Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 
     --md-spacing-unit: 8px;
 }
@@ -333,7 +333,9 @@
     z-index: 2;
 }
 
-.md3-text-field:focus {
+.md3-text-field:focus,
+.md3-text-field:focus-visible {
+    outline: none;
     background-color: var(--md-sys-color-surface);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 0 0 2px var(--md-sys-color-primary);
 }
@@ -703,54 +705,37 @@
     transform: none;
 }
 
-.form-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: calc(var(--md-spacing-unit) * 2) 5px;
+/* SSO 统一身份认证按钮 — Material Design 3 Outlined Button */
+.md3-outlined-button {
+    background-color: transparent;
+    color: var(--md-sys-color-primary);
+    border: 2px solid var(--md-sys-color-outline);
 }
 
-.additional-options {
-    margin-top: calc(var(--md-spacing-unit) * 5);
-    text-align: center;
+.md3-outlined-button:hover {
+    background-color: rgba(0, 100, 148, 0.08);
+    border-color: var(--md-sys-color-primary);
 }
 
-.additional-options p {
-    margin-bottom: calc(var(--md-spacing-unit) * 2);
-    color: var(--md-sys-color-on-surface-variant);
+.md3-outlined-button:active {
+    background-color: rgba(0, 100, 148, 0.12);
 }
 
-.social-login {
-    display: flex;
-    justify-content: center;
-    gap: calc(var(--md-spacing-unit) * 3);
+.md3-outlined-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
-.social-login-button {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background-color: var(--md-sys-color-surface-variant);
-    color: var(--md-sys-color-on-surface-variant);
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    box-shadow: var(--md-shadow-1);
-}
-
-.social-login-button:hover {
-    background-color: var(--md-sys-color-primary-container);
-    color: var(--md-sys-color-on-primary-container);
-    box-shadow: var(--md-shadow-2);
-    transform: translateY(-2px);
-}
-
-.social-login-button:active {
-    transform: translateY(0);
-    box-shadow: var(--md-shadow-1);
+.sso-button {
+    width: 100%;
+    margin-top: calc(var(--md-spacing-unit) * 2);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    height: 52px;
+    text-transform: none;
+    border-radius: 26px;
+    transition: all 0.3s ease;
 }
 
 /* 登录中按钮状态 */
@@ -799,7 +784,7 @@
 }
 
 /* =================================================================
- * loading 遮罩 + 验证码行 + 版权信息 + Toast
+ * loading 遮罩 + 验证码行 + 版权信息
  * ================================================================= */
 
 /* 页面加载 Loading 遮罩 */
@@ -933,77 +918,6 @@
     font-size: 12px;
     color: var(--md-sys-color-on-surface-variant);
     opacity: 0.6;
-}
-
-/* 错误提示 Toast */
-.login-toast {
-    position: fixed;
-    top: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    height: 64px;
-    padding: 0 12px;
-    background-color: #000;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 64px;
-    border-radius: 0;
-    opacity: 0;
-    transition: opacity 0.25s ease;
-    pointer-events: auto;
-    white-space: nowrap;
-}
-
-.login-toast .toast-icon {
-    font-size: 18px !important;
-    flex-shrink: 0;
-    margin-right: 8px;
-    width: 18px;
-    height: 18px;
-    color: #ef4444;
-}
-
-.login-toast .toast-close-btn {
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    margin-left: 12px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    border: none;
-    color: #fff;
-    cursor: pointer;
-    opacity: 0.7;
-    padding: 0;
-}
-
-.login-toast .toast-close-btn:hover {
-    opacity: 1;
-}
-
-.login-toast .toast-close-btn .login-icon {
-    font-size: 18px;
-}
-
-.login-toast.visible {
-    opacity: 1;
-}
-
-@keyframes toastFadeIn {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-12px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
 }
 
 /* =================================================================

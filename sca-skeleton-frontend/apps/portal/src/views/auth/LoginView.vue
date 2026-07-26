@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import "../../styles/login.scss";
 import { usePortalAuthStore } from "../../stores/auth";
+import { showToast } from "@repo/shared";
 
 const route = useRoute();
 const router = useRouter();
@@ -95,28 +96,6 @@ function validateCaptcha(): boolean {
   return true;
 }
 
-// ── Toast 提示 ──
-const toastVisible = ref(false);
-const toastMessage = ref("");
-let toastTimer: ReturnType<typeof setTimeout> | null = null;
-
-function showToast(message: string): void {
-  toastMessage.value = message;
-  toastVisible.value = true;
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    toastVisible.value = false;
-  }, 5000);
-}
-
-function dismissToast(): void {
-  toastVisible.value = false;
-  if (toastTimer) {
-    clearTimeout(toastTimer);
-    toastTimer = null;
-  }
-}
-
 // ── 轮播图 ──
 const slides = [
   { src: "/images/login/carousel1.jpg", title: "欢迎使用我们的系统", subtitle: "现代化的解决方案" },
@@ -161,7 +140,6 @@ async function handleLogin(): Promise<void> {
   if (!isUsernameValid || !isPasswordValid || !isCaptchaValid) return;
 
   loading.value = true;
-  dismissToast();
 
   try {
     await authStore.login(username.value, password.value, captchaKey.value, captchaCode.value);
@@ -172,12 +150,17 @@ async function handleLogin(): Promise<void> {
     await router.push(redirect || "/");
   } catch (error) {
     const message = error instanceof Error ? error.message : "登录失败，请重试";
-    showToast(message);
+    showToast(message, "negative");
     // 登录失败后刷新验证码
     void fetchCaptcha();
   } finally {
     loading.value = false;
   }
+}
+
+// ── 统一身份认证登录 ──
+function handleSsoLogin(): void {
+  showToast("统一身份认证功能开发中", "info");
 }
 
 // ── 密码可见性切换 ──
@@ -235,25 +218,11 @@ onUnmounted(() => {
   window.removeEventListener("keydown", onKeydown);
   window.removeEventListener("keydown", onFirstKeyFocus);
   window.removeEventListener("keydown", onTabCycle);
-  if (toastTimer) clearTimeout(toastTimer);
 });
 </script>
 
 <template>
   <div class="login-page-root">
-    <!-- Toast 提示 -->
-    <div
-      class="login-toast"
-      :class="{ visible: toastVisible }"
-      :style="toastVisible ? { animation: 'toastFadeIn 0.25s ease forwards' } : {}"
-    >
-      <span class="material-symbols-rounded login-icon toast-icon">error</span>
-      <span>{{ toastMessage }}</span>
-      <button class="toast-close-btn" type="button" @click="dismissToast">
-        <span class="material-symbols-rounded login-icon">close</span>
-      </button>
-    </div>
-
     <div class="fullscreen-login md3">
       <!-- 轮播图背景 -->
       <div class="fullscreen-carousel">
@@ -377,12 +346,6 @@ onUnmounted(() => {
               </button>
             </div>
 
-            <!-- 忘记密码 -->
-            <div class="form-options">
-              <span></span>
-              <a href="#" class="md3-link md3-body-medium" tabindex="-1" title="功能开发中" @click.prevent>忘记密码？</a>
-            </div>
-
             <!-- 登录按钮 -->
             <button
               type="submit"
@@ -392,23 +355,17 @@ onUnmounted(() => {
             >
               {{ loading ? '登录中...' : '登录' }}
             </button>
-          </form>
 
-          <!-- 其他登录方式 -->
-          <div class="additional-options">
-            <p class="md3-body-small">其他登录方式</p>
-            <div class="social-login">
-              <button class="social-login-button" type="button" tabindex="-1" title="功能开发中">
-                <span class="material-symbols-rounded login-icon">smartphone</span>
-              </button>
-              <button class="social-login-button" type="button" tabindex="-1" title="功能开发中">
-                <span class="material-symbols-rounded login-icon">qr_code_scanner</span>
-              </button>
-              <button class="social-login-button" type="button" tabindex="-1" title="功能开发中">
-                <span class="material-symbols-rounded login-icon">fingerprint</span>
-              </button>
-            </div>
-          </div>
+            <!-- 统一身份认证登录 -->
+            <button
+              type="button"
+              class="md3-button md3-outlined-button sso-button"
+              :disabled="loading"
+              @click="handleSsoLogin"
+            >
+              统一身份认证登录
+            </button>
+          </form>
         </div>
       </div>
     </div>

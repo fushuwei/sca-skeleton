@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import "../../styles/login.scss";
 import { useAuthStore } from "../../stores/auth";
+import { showToast } from "@repo/shared";
 
 const route = useRoute();
 const router = useRouter();
@@ -11,6 +12,7 @@ const authStore = useAuthStore();
 // ── DOM 引用 ──
 const usernameInput = ref<HTMLInputElement>();
 const passwordInput = ref<HTMLInputElement>();
+const captchaInput = ref<HTMLInputElement>();
 
 // ── 表单状态 ──
 const username = ref("");
@@ -18,11 +20,51 @@ const password = ref("");
 const passwordVisible = ref(false);
 const loading = ref(false);
 
+// ── 验证码状态 ──
+const captchaKey = ref("");
+const captchaImage = ref("");
+const captchaCode = ref("");
+const captchaLoading = ref(false);
+
+/** 生成 UUID（兼容 crypto.randomUUID 和降级方案） */
+function generateUuid(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
+/** 拉取验证码图片（通过网关白名单 /auth/captcha/**） */
+async function fetchCaptcha(): Promise<void> {
+  captchaLoading.value = true;
+  const newKey = generateUuid();
+  captchaKey.value = newKey;
+  captchaCode.value = "";
+  try {
+    const response = await fetch(`/auth/captcha/generate?key=${newKey}`, {
+      headers: { Accept: "application/json" }
+    });
+    if (response.ok) {
+      const data = (await response.json()) as { captchaKey: string; imageBase64: string };
+      captchaImage.value = data.imageBase64;
+    }
+  } catch {
+    // 网络错误时保持空白图片，不阻断登录
+  } finally {
+    captchaLoading.value = false;
+  }
+}
+
 // ── 表单验证 ──
 const usernameError = ref("");
 const passwordError = ref("");
+const captchaError = ref("");
 const usernameErrorVisible = ref(false);
 const passwordErrorVisible = ref(false);
+const captchaErrorVisible = ref(false);
 
 function validateUsername(): boolean {
   if (!username.value.trim()) {
@@ -44,26 +86,14 @@ function validatePassword(): boolean {
   return true;
 }
 
-// ── Toast 提示 ──
-const toastVisible = ref(false);
-const toastMessage = ref("");
-let toastTimer: ReturnType<typeof setTimeout> | null = null;
-
-function showToast(message: string): void {
-  toastMessage.value = message;
-  toastVisible.value = true;
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    toastVisible.value = false;
-  }, 5000);
-}
-
-function dismissToast(): void {
-  toastVisible.value = false;
-  if (toastTimer) {
-    clearTimeout(toastTimer);
-    toastTimer = null;
+function validateCaptcha(): boolean {
+  if (!captchaCode.value.trim()) {
+    captchaError.value = "验证码不能为空";
+    captchaErrorVisible.value = true;
+    return false;
   }
+  captchaErrorVisible.value = false;
+  return true;
 }
 
 // ── 轮播图 ──
@@ -106,13 +136,13 @@ async function handleLogin(): Promise<void> {
 
   const isUsernameValid = validateUsername();
   const isPasswordValid = validatePassword();
-  if (!isUsernameValid || !isPasswordValid) return;
+  const isCaptchaValid = validateCaptcha();
+  if (!isUsernameValid || !isPasswordValid || !isCaptchaValid) return;
 
   loading.value = true;
-  dismissToast();
 
   try {
-    await authStore.login(username.value, password.value);
+    await authStore.login(username.value, password.value, captchaKey.value, captchaCode.value);
     authStore.ensureRoutes(router);
     await authStore.fetchProfile();
 
@@ -121,10 +151,17 @@ async function handleLogin(): Promise<void> {
     await router.push(redirect || "/dashboard");
   } catch (error) {
     const message = error instanceof Error ? error.message : "登录失败，请重试";
-    showToast(message);
+    showToast(message, "negative");
+    // 登录失败后刷新验证码
+    void fetchCaptcha();
   } finally {
     loading.value = false;
   }
+}
+
+// ── 统一身份认证登录 ──
+function handleSsoLogin(): void {
+  showToast("统一身份认证功能开发中", "info");
 }
 
 // ── 密码可见性切换 ──
@@ -153,10 +190,10 @@ function onFirstKeyFocus(e: KeyboardEvent): void {
   usernameInput.value?.focus();
 }
 
-/** Tab 循环：在用户名框和密码框之间循环，不跳出至浏览器地址栏 */
+/** Tab 循环：在用户名框、密码框、验证码框之间循环，不跳出至浏览器地址栏 */
 function onTabCycle(e: KeyboardEvent): void {
   if (e.key !== "Tab") return;
-  const inputs = [usernameInput.value, passwordInput.value].filter(Boolean) as HTMLInputElement[];
+  const inputs = [usernameInput.value, passwordInput.value, captchaInput.value].filter(Boolean) as HTMLInputElement[];
   if (inputs.length < 2) return;
   const first = inputs[0];
   const last = inputs[inputs.length - 1];
@@ -171,6 +208,7 @@ function onTabCycle(e: KeyboardEvent): void {
 
 onMounted(() => {
   startCarousel();
+  void fetchCaptcha();
   window.addEventListener("keydown", onKeydown);
   window.addEventListener("keydown", onFirstKeyFocus);
   window.addEventListener("keydown", onTabCycle);
@@ -181,25 +219,11 @@ onUnmounted(() => {
   window.removeEventListener("keydown", onKeydown);
   window.removeEventListener("keydown", onFirstKeyFocus);
   window.removeEventListener("keydown", onTabCycle);
-  if (toastTimer) clearTimeout(toastTimer);
 });
 </script>
 
 <template>
   <div class="login-page-root">
-    <!-- Toast 提示 -->
-    <div
-      class="login-toast"
-      :class="{ visible: toastVisible }"
-      :style="toastVisible ? { animation: 'toastFadeIn 0.25s ease forwards' } : {}"
-    >
-      <span class="material-symbols-rounded login-icon toast-icon">error</span>
-      <span>{{ toastMessage }}</span>
-      <button class="toast-close-btn" type="button" @click="dismissToast">
-        <span class="material-symbols-rounded login-icon">close</span>
-      </button>
-    </div>
-
     <div class="fullscreen-login md3">
       <!-- 轮播图背景 -->
       <div class="fullscreen-carousel">
@@ -292,10 +316,35 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <!-- 忘记密码 -->
-            <div class="form-options">
-              <span></span>
-              <a href="#" class="md3-link md3-body-medium" tabindex="-1" title="功能开发中" @click.prevent>忘记密码？</a>
+            <!-- 图形验证码 -->
+            <div class="md3-text-field-container captcha-row">
+              <div class="md3-text-field-wrapper">
+                <span class="material-symbols-rounded login-icon field-icon">verified_user</span>
+                <input
+                  v-model="captchaCode"
+                  ref="captchaInput"
+                  class="md3-text-field with-icon captcha-input"
+                  :class="{ error: captchaErrorVisible }"
+                  type="text"
+                  placeholder="请输入验证码"
+                  maxlength="6"
+                  autocomplete="off"
+                  @input="validateCaptcha"
+                />
+                <div class="error-message" :style="{ display: captchaErrorVisible ? 'flex' : 'none' }">
+                  <span class="material-symbols-rounded login-icon error-icon">error</span>
+                  <span class="error-text">{{ captchaError }}</span>
+                </div>
+              </div>
+              <button
+                class="captcha-img-wrapper"
+                type="button"
+                :disabled="captchaLoading"
+                @click="fetchCaptcha"
+              >
+                <img v-if="captchaImage" :src="captchaImage" alt="验证码" />
+                <span v-else class="captcha-loading-placeholder"></span>
+              </button>
             </div>
 
             <!-- 登录按钮 -->
@@ -307,23 +356,17 @@ onUnmounted(() => {
             >
               {{ loading ? '登录中...' : '登录' }}
             </button>
-          </form>
 
-          <!-- 其他登录方式 -->
-          <div class="additional-options">
-            <p class="md3-body-small">其他登录方式</p>
-            <div class="social-login">
-              <button class="social-login-button" type="button" tabindex="-1" title="功能开发中">
-                <span class="material-symbols-rounded login-icon">smartphone</span>
-              </button>
-              <button class="social-login-button" type="button" tabindex="-1" title="功能开发中">
-                <span class="material-symbols-rounded login-icon">qr_code_scanner</span>
-              </button>
-              <button class="social-login-button" type="button" tabindex="-1" title="功能开发中">
-                <span class="material-symbols-rounded login-icon">fingerprint</span>
-              </button>
-            </div>
-          </div>
+            <!-- 统一身份认证登录 -->
+            <button
+              type="button"
+              class="md3-button md3-outlined-button sso-button"
+              :disabled="loading"
+              @click="handleSsoLogin"
+            >
+              统一身份认证登录
+            </button>
+          </form>
         </div>
       </div>
     </div>

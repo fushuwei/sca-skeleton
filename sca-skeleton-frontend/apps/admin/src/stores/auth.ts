@@ -104,13 +104,15 @@ export const useAuthStore = defineStore("auth", {
     /**
      * 密码模式登录：调用 /oauth2/token 获取令牌，然后加载用户权限。
      *
-     * @param username 用户名
-     * @param password 密码
+     * @param username    用户名
+     * @param password    密码
+     * @param captchaKey  验证码 key
+     * @param captchaCode 验证码文本
      * @returns 登录成功返回 true，失败抛出异常
      */
-    async login(username: string, password: string): Promise<void> {
+    async login(username: string, password: string, captchaKey: string, captchaCode: string): Promise<void> {
       const config = getAdminOAuthConfig();
-      const tokenResponse = await loginWithPassword(config, username, password);
+      const tokenResponse = await loginWithPassword(config, username, password, captchaKey, captchaCode);
 
       this.token = tokenResponse.access_token;
       this.refreshToken = tokenResponse.refresh_token ?? "";
