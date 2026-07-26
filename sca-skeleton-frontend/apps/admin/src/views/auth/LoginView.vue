@@ -26,29 +26,18 @@ const captchaImage = ref("");
 const captchaCode = ref("");
 const captchaLoading = ref(false);
 
-/** 生成 UUID（兼容 crypto.randomUUID 和降级方案） */
-function generateUuid(): string {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
-  });
-}
-
-/** 拉取验证码图片（走 /api 前缀，经网关白名单 /auth/captcha/** 转发到 auth 服务） */
+/** 拉取验证码图片（走 /api 前缀，经网关白名单 /auth/captcha/** 转发到 auth 服务）
+ *  captchaKey 由后端生成并返回，前端无需（也不应）自行指定。 */
 async function fetchCaptcha(): Promise<void> {
   captchaLoading.value = true;
-  const newKey = generateUuid();
-  captchaKey.value = newKey;
   captchaCode.value = "";
   try {
-    const response = await fetch(`/api/auth/captcha/generate?key=${newKey}`, {
+    const response = await fetch(`/api/auth/captcha/generate`, {
       headers: { Accept: "application/json" }
     });
     if (response.ok) {
       const data = (await response.json()) as { captchaKey: string; imageBase64: string };
+      captchaKey.value = data.captchaKey;
       captchaImage.value = data.imageBase64;
     }
   } catch {
