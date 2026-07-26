@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.auth.security.filter;
 
+import io.github.fushuwei.scaskeleton.auth.security.LoginLogPublisher;
 import io.github.fushuwei.scaskeleton.captcha.CaptchaService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -28,7 +29,8 @@ import java.util.Map;
  * <p>
  * 校验时读取 {@code captcha_key} 与 {@code captcha_code} 参数，
  * 调用 {@link CaptchaService#verify} 进行校验。
- * 校验失败时返回标准 OAuth2 JSON 错误响应（不重定向，适配 SPA AJAX 调用）。
+ * 校验失败时返回标准 OAuth2 JSON 错误响应（不重定向，适配 SPA AJAX 调用），
+ * 同时通过 {@link LoginLogPublisher} 记录登录失败日志，确保验证码错误也留有审计痕迹。
  *
  * @author Fu Wei
  */
@@ -42,6 +44,9 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
 
     /** 请求参数名：grant_type */
     private static final String PARAM_GRANT_TYPE = "grant_type";
+
+    /** 请求参数名：username */
+    private static final String PARAM_USERNAME = "username";
 
     /** 请求参数名：验证码唯一标识 */
     private static final String PARAM_CAPTCHA_KEY = "captcha_key";
@@ -58,6 +63,9 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
     private final JsonMapper jsonMapper;
 
     private final CaptchaService captchaService;
+
+    /** 登录日志发布器：验证码校验失败时记录登录失败日志 */
+    private final LoginLogPublisher loginLogPublisher;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -83,6 +91,7 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
         // 未提交验证码时返回错误
         if (!StringUtils.hasText(captchaKey) || !StringUtils.hasText(captchaCode)) {
             log.warn("密码模式验证码校验失败：验证码参数缺失");
+            recordCaptchaFailure(request, "登录失败：验证码不能为空");
             writeOAuth2Error(response, "invalid_request", "验证码不能为空");
             return;
         }
@@ -91,12 +100,25 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
         boolean verified = captchaService.verify(captchaKey, captchaCode);
         if (!verified) {
             log.warn("密码模式验证码校验失败：captcha_key={}", captchaKey);
+            recordCaptchaFailure(request, "登录失败：验证码错误");
             writeOAuth2Error(response, "invalid_request", "验证码错误，请重新输入");
             return;
         }
 
         // 验证通过，继续后续认证流程
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * 记录验证码校验失败日志（登录前置校验失败，需留有审计痕迹）。
+     * <p>
+     * 此时 LoginChannelContext 尚未设置（渠道由认证 Provider 根据已认证客户端判定），
+     * findUser() 反查会按默认 admin realm，portal 用户可能查不到而留空 tenantId/userId，
+     * 但 username/clientIp/errorMessage 等核心审计字段仍然正确记录。
+     */
+    private void recordCaptchaFailure(HttpServletRequest request, String errorMessage) {
+        String username = request.getParameter(PARAM_USERNAME);
+        loginLogPublisher.publishFailureLog(username, errorMessage);
     }
 
     /**

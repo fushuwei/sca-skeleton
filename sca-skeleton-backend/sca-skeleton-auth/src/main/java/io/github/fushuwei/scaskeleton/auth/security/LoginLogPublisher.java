@@ -106,7 +106,19 @@ public class LoginLogPublisher {
             return;
         }
         String username = authentication.getName();
+        String errorMessage = buildFailureMessage(username, event.getException());
+        publishFailureLog(username, errorMessage);
+    }
 
+    /**
+     * 发布登录失败日志（供认证流程外的预校验失败场景调用，如验证码校验失败）。
+     * <p>
+     * 与 {@link #onAuthenticationFailure} 共用采集与反查逻辑，区别在于错误消息由调用方提供。
+     *
+     * @param username     登录输入的用户名（可能为空或不真实，仅用于审计记录）
+     * @param errorMessage 失败原因（友好提示）
+     */
+    public void publishFailureLog(String username, String errorMessage) {
         RequestMeta meta = collectRequestMeta();
 
         // SecurityContext 未建立，需反查 sys_user 填充 tenantId/userId
@@ -121,7 +133,7 @@ public class LoginLogPublisher {
         loginLogEvent.setBrowser(meta.browser());
         loginLogEvent.setOs(meta.os());
         loginLogEvent.setIsSuccess(0);
-        loginLogEvent.setErrorMessage(buildFailureMessage(username, event.getException()));
+        loginLogEvent.setErrorMessage(errorMessage);
         loginLogEvent.setCostMs(meta.costMs());
         loginLogEvent.setLoginTime(LocalDateTime.now());
         eventPublisher.publishEvent(loginLogEvent);
