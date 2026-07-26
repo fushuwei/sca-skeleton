@@ -27,6 +27,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
@@ -95,7 +96,7 @@ public class AuthorizationServerConfig {
     /**
      * SAS 标准端点 + 密码模式扩展过滤链
      * <p>
-     * Order=1：仅匹配 OAuth2 标准端点（token / revoke / introspect / jwk / well-known）
+     * Order=1：仅匹配 OAuth2 标准端点（token / revoke / introspect / jwk）
      */
     @Bean
     @Order(1)
@@ -104,8 +105,8 @@ public class AuthorizationServerConfig {
             new OAuth2AuthorizationServerConfigurer();
 
         http
-            .securityMatcher("/oauth2/**", "/.well-known/**")
-            .csrf(csrf -> csrf.disable())
+            .securityMatcher("/oauth2/**")
+            .csrf(AbstractHttpConfigurer::disable)
             .with(authorizationServerConfigurer, configurer -> configurer
                 .tokenEndpoint(tokenEndpoint -> tokenEndpoint
                     // 注册密码模式转换器（与 SAS 原生转换器组合为委托模式）

@@ -42,8 +42,8 @@ sca:
     resource-server:
       enabled: false
   auth:
-    # OAuth2 授权服务 issuer URL（经网关对外暴露，开发环境经 Vite 代理）
-    issuer: ${AUTH_ISSUER:http://localhost:8080/auth}
+    # OAuth2 授权服务 issuer URL，必须与浏览器实际可达路径一致：前端走 /api 前缀，经 Vite/Nginx 代理 → 网关 /auth/** → auth 服务
+    issuer: ${AUTH_ISSUER:http://localhost:8080/api/auth}
     clients:
       admin:
         id: "100"

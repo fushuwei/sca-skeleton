@@ -136,7 +136,6 @@ gateway:
       # OAuth2 令牌端点（密码模式登录、刷新令牌、吊销令牌）
       - /auth/oauth2/token
       - /auth/oauth2/revoke
-      - /auth/.well-known/**
       # 验证码生成接口
       - /auth/captcha/**
       # Spring Doc 文档路径

@@ -19,8 +19,13 @@ public class OAuth2ClientProperties {
     /**
      * OAuth2 授权服务 issuer URL
      * <p>
-     * 用于 SAS 的 {@code AuthorizationServerSettings.issuer} 配置，
-     * 对应 {@code /.well-known/openid-configuration} 中的 issuer 字段。
+     * 用于 SAS 的 {@code AuthorizationServerSettings.issuer} 配置。
+     * <p>
+     * 必须与浏览器实际可达路径一致：开发环境 {@code http://localhost:8080/api/auth}，
+     * 生产环境 {@code https://newease.cloud/api/auth}。前端走 /api 前缀，经 Vite/Nginx 代理 →
+     * 网关 /auth/** → auth 服务。
+     * <p>
+     * 密码模式下 issuer 仅作为 SAS 内部元数据标识符，前端不调用 discovery 端点。
      */
     private String issuer;
 
