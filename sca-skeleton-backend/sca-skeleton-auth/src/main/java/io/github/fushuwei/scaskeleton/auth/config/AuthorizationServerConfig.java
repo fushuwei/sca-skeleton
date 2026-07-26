@@ -97,6 +97,11 @@ public class AuthorizationServerConfig {
      * SAS 标准端点 + 密码模式扩展过滤链
      * <p>
      * Order=1：仅匹配 OAuth2 标准端点（token / revoke / introspect / jwk）
+     * <p>
+     * 不匹配 {@code /.well-known/**}：项目使用不透明令牌 + Redis 自省，无 JWT 验签 / OIDC discovery 需求，
+     * discovery 端点不对外暴露。securityMatcher 不匹配 → {@code OAuth2AuthorizationServerMetadataEndpointFilter}
+     * 不运行 → discovery 文档不生成 → 请求落入 Order=2 链被拦截（经网关 401，直连 403），
+     * 比仅移除网关白名单更彻底（白名单只挡外部访问，securityMatcher 连内部 filter 也不注册）。
      */
     @Bean
     @Order(1)
