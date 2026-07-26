@@ -48,7 +48,7 @@ public class CaptchaController {
     public void generate(@RequestHeader(value = "Accept", defaultValue = "") String accept,
                          HttpServletResponse response) throws IOException {
         // 服务端生成 captchaKey
-        String captchaKey = UuidUtils.v4SimpleStr();
+        String captchaKey = UuidUtils.nextSimpleStr();
 
         // JSON 响应：返回 Base64 编码的验证码图片
         if (accept.contains(MediaType.APPLICATION_JSON_VALUE)) {
