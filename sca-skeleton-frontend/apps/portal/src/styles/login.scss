@@ -1,9 +1,12 @@
 /**
- * 登录页样式 — Material Design 3
+ * portal 登录页样式 — Material Design 3
  *
- * 从 auth 服务 Thymeleaf 模板的 login.css 迁移至 SPA 共享样式。
+ * 从 auth 服务 Thymeleaf 模板的 login.css 迁移至 portal SPA。
  * 图标渲染从 SVG mask-image 改为 Material Symbols Rounded 字体，
- * 其余样式（变量、排版、按钮、文本框、轮播、验证码等）保持原样不变。
+ * 其余样式（变量、排版、按钮、文本框、轮播、验证码、Toast 等）保持原样不变。
+ *
+ * 注意：本文件为 portal 登录页专用样式，与 admin 登录页样式相互独立，
+ * 后续两个端可以独立扩展与优化，互不影响。
  */
 
 /* Material Design 3 变量 */
@@ -308,7 +311,7 @@
     padding-right: 56px;
 }
 
-.field-icon {
+.login-page-root .field-icon {
     position: absolute;
     left: 16px;
     color: var(--md-sys-color-on-surface-variant);
@@ -612,12 +615,13 @@
     padding: calc(var(--md-spacing-unit) * 4);
     padding-right: calc(var(--md-spacing-unit) * 15);
     z-index: 2;
+    box-sizing: border-box;
     pointer-events: none;
 }
 
 .login-box {
     width: 100%;
-    max-width: 420px;
+    max-width: 480px;
     padding: calc(var(--md-spacing-unit) * 5);
     border-radius: var(--md-sys-shape-corner-large);
     backdrop-filter: blur(16px);
@@ -1006,7 +1010,7 @@
  * 登录页 Icons — 使用 Material Symbols Rounded 字体
  * ================================================================= */
 
-.login-icon {
+.login-page-root .login-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1019,6 +1023,6 @@
     overflow: hidden;
 }
 
-.logo-icon {
+.login-page-root .logo-icon {
     font-size: 42px;
 }

@@ -8,7 +8,6 @@
     ".": "./src/index.ts",
     "./styles/quasar-dialog.scss": "./src/styles/quasar-dialog.scss",
     "./styles/quasar-notify.scss": "./src/styles/quasar-notify.scss",
-    "./styles/login.scss": "./src/styles/login.scss",
     "./vite-plugin": "./src/vite-plugin-dev-landing.ts"
   },
   "peerDependencies": {

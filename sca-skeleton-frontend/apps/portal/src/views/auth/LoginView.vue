@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import "@repo/ui/styles/login.scss";
+import "../../styles/login.scss";
 import { usePortalAuthStore } from "../../stores/auth";
 
 const route = useRoute();
@@ -195,7 +195,7 @@ function onKeydown(e: KeyboardEvent): void {
   void handleLogin();
 }
 
-/** 首次按键自动聚焦用户名框：页面加载后按任意字母键直接聚焦并输入 */
+/** 按键自动聚焦用户名框：焦点不在输入框时，按任意字母键直接聚焦并输入 */
 function onFirstKeyFocus(e: KeyboardEvent): void {
   const tag = document.activeElement?.tagName;
   if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
@@ -204,8 +204,6 @@ function onFirstKeyFocus(e: KeyboardEvent): void {
   // 通过 Vue 响应式更新 username，v-model 自动同步到 DOM
   username.value += e.key;
   usernameInput.value?.focus();
-  // 触发后移除自身监听，仅生效一次
-  window.removeEventListener("keydown", onFirstKeyFocus);
 }
 
 /** Tab 循环：在用户名框、密码框、验证码框之间循环，不跳出至浏览器地址栏 */
@@ -230,8 +228,6 @@ onMounted(() => {
   window.addEventListener("keydown", onKeydown);
   window.addEventListener("keydown", onFirstKeyFocus);
   window.addEventListener("keydown", onTabCycle);
-  // 自动聚焦用户名框
-  nextTick(() => usernameInput.value?.focus());
 });
 
 onUnmounted(() => {

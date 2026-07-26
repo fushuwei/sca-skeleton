@@ -17,7 +17,7 @@ import java.util.Locale;
  * 全局 java.time 类型请求参数格式化自动配置。
  * <p>
  * Spring MVC GET 请求的查询参数绑定使用的是 {@link FormatterRegistry} 中的
- * {@link Formatter}，而非 Jackson 的 {@link tools.jackson.databind.ObjectMapper}。
+ * {@link Formatter}，而非 Jackson 的 {@link tools.jackson.databind.json.JsonMapper}。
  * Jackson 配置（如 {@code JavaTimeModule}）仅对 <em>JSON 请求体</em>（{@code @RequestBody}）的反序列化生效，
  * 对 URL 查询参数（{@code ?startTime=xxx}）不生效。
  * <p>

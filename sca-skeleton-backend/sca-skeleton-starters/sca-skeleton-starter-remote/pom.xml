@@ -28,11 +28,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
         </dependency>
-        <!-- Jackson：ObjectMapper（响应体反序列化 Result&lt;T&gt;） -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
         <!-- Servlet API：RequestContextHolder 关联的 HttpServletRequest 类型 -->
         <dependency>
             <groupId>jakarta.servlet</groupId>

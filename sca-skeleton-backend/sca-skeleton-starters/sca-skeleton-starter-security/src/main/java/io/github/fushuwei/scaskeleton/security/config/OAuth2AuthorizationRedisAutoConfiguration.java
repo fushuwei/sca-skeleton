@@ -39,8 +39,15 @@ public class OAuth2AuthorizationRedisAutoConfiguration {
     @ConditionalOnMissingBean(name = "securityJsonMapper")
     public JsonMapper securityJsonMapper() {
         // 多态类型验证器：只允许指定包下的子类型进行多态反序列化，防止恶意类注入
+        // - io.github.fushuwei.scaskeleton.security.user：自定义 ScaUserDetails
+        // - java.util.：JDK 标准集合类型（ArrayList / LinkedHashMap / ImmutableCollections$ListN 等），
+        //   OAuth2 token metadata.claims 中的 authorities 等 claim 值会被序列化为不可变集合
+        //   （如 List.of() 产生的 ImmutableCollections$ListN），反序列化时需要放行
+        // - java.lang.：JDK 基础类型（String / Integer 等），claim 值的基础类型
         BasicPolymorphicTypeValidator.Builder typeValidatorBuilder = BasicPolymorphicTypeValidator.builder()
-            .allowIfSubType("io.github.fushuwei.scaskeleton.security.user");
+            .allowIfSubType("io.github.fushuwei.scaskeleton.security.user")
+            .allowIfSubType("java.util.")
+            .allowIfSubType("java.lang.");
 
         // 构建 JsonMapper
         return JsonMapper.builder()

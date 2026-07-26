@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.remote.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.fushuwei.scaskeleton.remote.interceptor.RemoteHeaderInterceptor;
 import io.github.fushuwei.scaskeleton.remote.interceptor.RemoteResponseInterceptor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,13 +60,13 @@ public class RemoteClientAutoConfiguration {
     /**
      * 注册统一响应解码拦截器，自动解包 {@code Result<T>} 并处理错误。
      *
-     * @param objectMapper Jackson ObjectMapper，由 Spring Boot 自动装配
+     * @param jsonMapper Jackson 3 JsonMapper，由 sca-skeleton-starter-core 的 JacksonAutoConfiguration 注册
      * @return RemoteResponseInterceptor 实例
      */
     @Bean
     @ConditionalOnMissingBean
-    public RemoteResponseInterceptor remoteResponseInterceptor(ObjectMapper objectMapper) {
-        return new RemoteResponseInterceptor(objectMapper);
+    public RemoteResponseInterceptor remoteResponseInterceptor(JsonMapper jsonMapper) {
+        return new RemoteResponseInterceptor(jsonMapper);
     }
 
     /**

@@ -1,6 +1,6 @@
 package io.github.fushuwei.scaskeleton.remote.interceptor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
@@ -41,15 +41,15 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class RemoteResponseInterceptor implements ClientHttpRequestInterceptor {
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     /**
      * 构造方法。
      *
-     * @param objectMapper Jackson ObjectMapper，用于解析 {@code Result<T>} 响应体
+     * @param jsonMapper Jackson 3 JsonMapper，用于解析 {@code Result<T>} 响应体
      */
-    public RemoteResponseInterceptor(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public RemoteResponseInterceptor(JsonMapper jsonMapper) {
+        this.jsonMapper = jsonMapper;
     }
 
     /**
@@ -89,7 +89,7 @@ public class RemoteResponseInterceptor implements ClientHttpRequestInterceptor {
      */
     private ClientHttpResponse unwrapResultResponse(ClientHttpResponse response, byte[] responseBody) {
         try {
-            Result<?> result = objectMapper.readValue(responseBody, Result.class);
+            Result<?> result = jsonMapper.readValue(responseBody, Result.class);
             if (result == null) {
                 return new BufferedResponse(response, responseBody);
             }
@@ -106,7 +106,7 @@ public class RemoteResponseInterceptor implements ClientHttpRequestInterceptor {
             if (result.data() == null) {
                 dataBytes = new byte[0];
             } else {
-                dataBytes = objectMapper.writeValueAsBytes(result.data());
+                dataBytes = jsonMapper.writeValueAsBytes(result.data());
             }
             return new BufferedResponse(response, dataBytes);
         } catch (BusinessException e) {
@@ -133,7 +133,7 @@ public class RemoteResponseInterceptor implements ClientHttpRequestInterceptor {
 
         // 尝试从响应体中解析 Result 获取下游业务错误详情
         try {
-            Result<?> result = objectMapper.readValue(responseBody, Result.class);
+            Result<?> result = jsonMapper.readValue(responseBody, Result.class);
             if (result != null && result.code() != null) {
                 log.error("[Remote] downstream business error. method={} status={} code={} message={}",
                         request.getURI(), statusCode.value(), result.code(), result.message());
