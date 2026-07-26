@@ -6,8 +6,12 @@ import io.github.fushuwei.scaskeleton.auth.grant.password.OAuth2ResourceOwnerPas
 import io.github.fushuwei.scaskeleton.auth.grant.password.OAuth2ResourceOwnerPasswordAuthenticationProvider;
 import io.github.fushuwei.scaskeleton.auth.security.RoutingUserDetailsService;
 import io.github.fushuwei.scaskeleton.auth.security.filter.CaptchaVerificationFilter;
+import io.github.fushuwei.scaskeleton.auth.security.handler.OAuth2TokenEndpointFailureHandler;
 import io.github.fushuwei.scaskeleton.auth.token.ScaOpaqueAccessTokenClaimsCustomizer;
 import io.github.fushuwei.scaskeleton.captcha.CaptchaService;
+import io.github.fushuwei.scaskeleton.core.result.Result;
+import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.core.result.ResultType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -43,9 +47,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Spring Authorization Server 核心配置（密码模式扩展）
@@ -79,6 +81,7 @@ public class AuthorizationServerConfig {
     private final PasswordEncoder passwordEncoder;
     private final CaptchaService captchaService;
     private final CaptchaVerificationFilter captchaVerificationFilter;
+    private final OAuth2TokenEndpointFailureHandler oauth2TokenEndpointFailureHandler;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
@@ -107,6 +110,9 @@ public class AuthorizationServerConfig {
                 .tokenEndpoint(tokenEndpoint -> tokenEndpoint
                     // 注册密码模式转换器（与 SAS 原生转换器组合为委托模式）
                     .accessTokenRequestConverter(accessTokenRequestConverter())
+                    // 自定义认证失败处理器：返回统一 Result 格式（HTTP 200），替代 SAS 默认的
+                    // OAuth2ErrorAuthenticationFailureHandler（HTTP 400 + error/error_description）
+                    .errorResponseHandler(oauth2TokenEndpointFailureHandler)
                 )
             )
             .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
@@ -190,25 +196,23 @@ public class AuthorizationServerConfig {
     }
 
     /**
-     * Token 端点专用 AuthenticationEntryPoint：返回标准 OAuth2 JSON 错误响应
+     * Token 端点专用 AuthenticationEntryPoint：返回统一的 {@link Result} 格式响应（HTTP 200）
      * <p>
+     * 处理 token 端点的客户端认证失败（如 client_id/client_secret 错误）。
      * 使用 Jackson {@link tools.jackson.databind.json.JsonMapper} 序列化，确保 JSON 转义正确。
-     * 必须显式设置 UTF-8 字符编码，否则中文 error_description 会变成乱码。
+     * 必须显式设置 UTF-8 字符编码，否则中文 message 会变成乱码。
      */
     private AuthenticationEntryPoint oauth2TokenEndpointAuthenticationEntryPoint() {
         return (HttpServletRequest request, HttpServletResponse response,
                 org.springframework.security.core.AuthenticationException authException) -> {
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            String message = authException.getMessage() != null
+                ? authException.getMessage() : "认证失败";
+            Result<Void> result = Result.of(ResultCode.FAILURE.getCode(), message, null, ResultType.FAILURE);
+            response.setStatus(HttpStatus.OK.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
-            String message = authException.getMessage() != null
-                ? authException.getMessage() : "Unauthorized";
-            Map<String, Object> body = new LinkedHashMap<>();
-            body.put("error", "unauthorized");
-            body.put("error_description", message);
-            body.put("timestamp", System.currentTimeMillis());
             try {
-                response.getWriter().write(jsonMapper.writeValueAsString(body));
+                response.getWriter().write(jsonMapper.writeValueAsString(result));
             } catch (IOException e) {
                 log.warn("写入 token 端点错误响应失败", e);
             }

@@ -16,5 +16,5 @@ export {
 export type {
   OAuthAppConfig,
   OAuthTokenResponse,
-  OAuthTokenError
+  ApiResult
 } from "./oauth/password-grant";

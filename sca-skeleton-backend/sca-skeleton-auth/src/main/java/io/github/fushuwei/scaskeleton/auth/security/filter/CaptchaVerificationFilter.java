@@ -1,7 +1,11 @@
 package io.github.fushuwei.scaskeleton.auth.security.filter;
 
+import io.github.fushuwei.scaskeleton.auth.grant.base.OAuth2ResourceOwnerBaseAuthenticationProvider;
 import io.github.fushuwei.scaskeleton.auth.security.LoginLogPublisher;
 import io.github.fushuwei.scaskeleton.captcha.CaptchaService;
+import io.github.fushuwei.scaskeleton.core.result.Result;
+import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.core.result.ResultType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,8 +22,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * 验证码校验过滤器：在密码模式令牌请求认证前验证图形验证码。
@@ -27,10 +29,8 @@ import java.util.Map;
  * 拦截 {@code POST /oauth2/token} 且 {@code grant_type=password} 的请求，对所有渠道
  * （admin / portal）均强制校验图形验证码。
  * <p>
- * 校验时读取 {@code captcha_key} 与 {@code captcha_code} 参数，
- * 调用 {@link CaptchaService#verify} 进行校验。
- * 校验失败时返回标准 OAuth2 JSON 错误响应（不重定向，适配 SPA AJAX 调用），
- * 同时通过 {@link LoginLogPublisher} 记录登录失败日志，确保验证码错误也留有审计痕迹。
+ * 校验失败时返回统一的 {@link Result} 格式响应（HTTP 200），同时通过 {@link LoginLogPublisher}
+ * 记录登录失败日志，确保验证码错误也留有审计痕迹。
  *
  * @author Fu Wei
  */
@@ -54,12 +54,6 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
     /** 请求参数名：用户输入的验证码文本 */
     private static final String PARAM_CAPTCHA_CODE = "captcha_code";
 
-    /**
-     * JSON 序列化器（注入容器中的全局 {@link JsonMapper} Bean）。
-     * <p>
-     * 由 {@code sca-skeleton-starter-core} 的 {@code JacksonAutoConfiguration} 注册，
-     * 已配置统一的时区、JavaTimeModule 等序列化策略。
-     */
     private final JsonMapper jsonMapper;
 
     private final CaptchaService captchaService;
@@ -84,6 +78,10 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // 记录登录开始时间，供 LoginLogPublisher 计算 costMs（与认证 Provider 一致）
+        request.setAttribute(OAuth2ResourceOwnerBaseAuthenticationProvider.ATTR_LOGIN_START_TIME,
+            System.currentTimeMillis());
+
         // 读取验证码参数
         String captchaKey = request.getParameter(PARAM_CAPTCHA_KEY);
         String captchaCode = request.getParameter(PARAM_CAPTCHA_CODE);
@@ -92,7 +90,7 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
         if (!StringUtils.hasText(captchaKey) || !StringUtils.hasText(captchaCode)) {
             log.warn("密码模式验证码校验失败：验证码参数缺失");
             recordCaptchaFailure(request, "登录失败：验证码不能为空");
-            writeOAuth2Error(response, "invalid_request", "验证码不能为空");
+            writeResult(response, "验证码不能为空");
             return;
         }
 
@@ -101,7 +99,7 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
         if (!verified) {
             log.warn("密码模式验证码校验失败：captcha_key={}", captchaKey);
             recordCaptchaFailure(request, "登录失败：验证码错误");
-            writeOAuth2Error(response, "invalid_request", "验证码错误，请重新输入");
+            writeResult(response, "验证码错误，请重新输入");
             return;
         }
 
@@ -123,9 +121,6 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
 
     /**
      * 判断是否为 token 端点 POST 请求。
-     * <p>
-     * 使用 {@code getServletPath()} 而非 {@code getRequestURI()}，
-     * 以在配置了 context-path 的部署环境中正确匹配。
      */
     private boolean isTokenEndpointPost(HttpServletRequest request) {
         return "POST".equalsIgnoreCase(request.getMethod())
@@ -133,19 +128,16 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 返回标准 OAuth2 JSON 错误响应（使用 Jackson 序列化，确保 JSON 转义正确）。
+     * 写入统一的 {@link Result} 格式错误响应（HTTP 200，业务码 FAILURE）。
      * <p>
-     * 必须显式设置 UTF-8 字符编码，否则 {@code response.getWriter()} 会使用默认编码
-     * （ISO-8859-1），导致中文 error_description 变成乱码（一堆 ?）。
+     * 登录失败（验证码错误、用户名密码错误等）属于业务校验失败，不是 HTTP 协议层错误，
+     * 返回 200 + Result 业务码更友好，前端统一通过 {@code code} 判断成功/失败。
      */
-    private void writeOAuth2Error(HttpServletResponse response, String error, String errorDescription) throws IOException {
-        response.setStatus(HttpStatus.BAD_REQUEST.value());
+    private void writeResult(HttpServletResponse response, String message) throws IOException {
+        Result<Void> result = Result.of(ResultCode.FAILURE.getCode(), message, null, ResultType.FAILURE);
+        response.setStatus(HttpStatus.OK.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("error", error);
-        body.put("error_description", errorDescription);
-        body.put("timestamp", System.currentTimeMillis());
-        response.getWriter().write(jsonMapper.writeValueAsString(body));
+        response.getWriter().write(jsonMapper.writeValueAsString(result));
     }
 }

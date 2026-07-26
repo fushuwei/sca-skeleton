@@ -33,11 +33,12 @@ export interface OAuthTokenResponse {
   scope?: string;
 }
 
-/** OAuth2 错误响应体 */
-export interface OAuthTokenError {
-  error: string;
-  error_description?: string;
-  timestamp?: number;
+/** 后端统一响应 Result 格式（登录失败时返回）。 */
+export interface ApiResult {
+  code: number;
+  message: string;
+  data?: unknown;
+  type?: string;
 }
 
 /**
@@ -49,21 +50,26 @@ function buildBasicAuthHeader(config: OAuthAppConfig): string {
 }
 
 /**
- * 解析 OAuth2 token 端点的错误响应。
+ * 解析 token 端点响应。
+ * <p>
+ * 后端登录失败（验证码错误、用户名密码错误等）返回 HTTP 200 + Result 格式（code/message），
+ * 成功返回 OAuth2 标准格式（access_token/refresh_token）。
+ * 通过判断响应体是否包含 access_token 字段区分成功/失败。
  */
-async function parseTokenError(response: Response): Promise<string> {
+async function parseTokenResponse(response: Response): Promise<OAuthTokenResponse> {
+  let body: unknown;
   try {
-    const errorBody = (await response.json()) as OAuthTokenError;
-    if (errorBody.error_description) {
-      return errorBody.error_description;
-    }
-    if (errorBody.error) {
-      return errorBody.error;
-    }
+    body = await response.json();
   } catch {
-    // 响应体非 JSON，忽略
+    throw new Error(`认证请求失败 (${response.status})`);
   }
-  return `认证请求失败 (${response.status})`;
+  // 成功响应：OAuth2 标准格式包含 access_token 字段
+  if (body && typeof (body as OAuthTokenResponse).access_token === "string") {
+    return body as OAuthTokenResponse;
+  }
+  // 失败响应：Result 格式，提取 message
+  const message = (body as ApiResult)?.message ?? `认证请求失败 (${response.status})`;
+  throw new Error(message);
 }
 
 /**
@@ -105,11 +111,7 @@ export async function loginWithPassword(
     body: body.toString()
   });
 
-  if (!response.ok) {
-    const message = await parseTokenError(response);
-    throw new Error(message);
-  }
-  return (await response.json()) as OAuthTokenResponse;
+  return parseTokenResponse(response);
 }
 
 /**
@@ -135,11 +137,7 @@ export async function refreshAccessToken(
     body: body.toString()
   });
 
-  if (!response.ok) {
-    const message = await parseTokenError(response);
-    throw new Error(message);
-  }
-  return (await response.json()) as OAuthTokenResponse;
+  return parseTokenResponse(response);
 }
 
 /**
