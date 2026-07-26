@@ -5,7 +5,7 @@
 #   （注意：执行 `cloudflared service install` 之前，文件必须先放在这个位置）
 #
 # 单域名单入口架构：newease.cloud 所有路径 → 本机 Nginx:80
-# Nginx 内部再做 /admin/、/、/api/、/auth/ 二次分流（见 sca-skeleton.conf）
+# Nginx 内部再做 /admin/、/、/api/ 二次分流（见 sca-skeleton.conf）
 # ============================================================================
 
 # 隧道 UUID（cloudflared tunnel create 命令返回的 UUID，不是隧道名字）
