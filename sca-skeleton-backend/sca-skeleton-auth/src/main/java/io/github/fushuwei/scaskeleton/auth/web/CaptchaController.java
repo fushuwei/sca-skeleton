@@ -23,7 +23,6 @@ import java.util.Map;
  *   <li>JSON：Accept 头包含 {@code application/json} 时返回 Base64（适合 AJAX）</li>
  * </ul>
  * <p>
- * 前端统一通过网关访问：{@code /api/auth/captcha/generate} → 网关 StripPrefix=1 → {@code /captcha/generate}
  *
  * @author Fu Wei
  */
@@ -46,8 +45,8 @@ public class CaptchaController {
      * captchaKey 在服务端生成，确保客户端无法预测或控制验证码标识
      */
     @GetMapping("/captcha/generate")
-    public void generate(HttpServletResponse response,
-                         @RequestHeader(value = "Accept", defaultValue = "") String accept) throws IOException {
+    public void generate(@RequestHeader(value = "Accept", defaultValue = "") String accept,
+                         HttpServletResponse response) throws IOException {
         // 服务端生成 captchaKey
         String captchaKey = UuidUtils.v4SimpleStr();
 
@@ -62,8 +61,7 @@ public class CaptchaController {
             return;
         }
 
-        // 默认响应：直接输出 PNG 图片流
-        // 通过响应头返回 captchaKey，供 AJAX 调用方读取（<img src> 标签无法读取响应头，应改用 JSON 模式）
+        // 默认响应：直接输出 PNG 图片流，通过响应头返回 captchaKey
         response.setHeader(HEADER_CAPTCHA_KEY, captchaKey);
         captchaService.generate(captchaKey, response);
     }
