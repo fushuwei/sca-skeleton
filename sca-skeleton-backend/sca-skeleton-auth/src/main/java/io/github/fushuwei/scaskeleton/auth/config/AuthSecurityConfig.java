@@ -38,8 +38,8 @@ public class AuthSecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 // 健康检查无需认证
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                // 验证码生成接口放行
-                .requestMatchers("/captcha/**", "/auth/captcha/**").permitAll()
+                // 验证码生成接口放行（前端经网关访问，到达 auth 服务时路径为 /captcha/**）
+                .requestMatchers("/captcha/**").permitAll()
                 // API 文档放行
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/webjars/**").permitAll()
                 // 其余请求需认证

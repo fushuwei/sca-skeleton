@@ -23,7 +23,7 @@ import java.util.Map;
  *   <li>JSON：Accept 头包含 {@code application/json} 时返回 Base64（适合 AJAX）</li>
  * </ul>
  * <p>
- * 同时兼容网关 StripPrefix 后的路径 {@code /captcha/generate} 和直连路径 {@code /auth/captcha/generate}。
+ * 前端统一通过网关访问：{@code /api/auth/captcha/generate} → 网关 StripPrefix=1 → {@code /captcha/generate}。
  *
  * @author Fu Wei
  */
@@ -38,7 +38,7 @@ public class CaptchaController {
     /**
      * 生成图形验证码（接受 Accept 头自动切换响应格式）。
      */
-    @GetMapping({"/captcha/generate", "/auth/captcha/generate"})
+    @GetMapping("/captcha/generate")
     public void generate(@RequestParam("key") String captchaKey,
                          HttpServletResponse response,
                          @RequestHeader(value = "Accept", defaultValue = "") String accept) throws IOException {

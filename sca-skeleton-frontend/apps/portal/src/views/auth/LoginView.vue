@@ -37,14 +37,14 @@ function generateUuid(): string {
   });
 }
 
-/** 拉取验证码图片（通过网关白名单 /auth/captcha/**） */
+/** 拉取验证码图片（走 /api 前缀，经网关白名单 /auth/captcha/** 转发到 auth 服务） */
 async function fetchCaptcha(): Promise<void> {
   captchaLoading.value = true;
   const newKey = generateUuid();
   captchaKey.value = newKey;
   captchaCode.value = "";
   try {
-    const response = await fetch(`/auth/captcha/generate?key=${newKey}`, {
+    const response = await fetch(`/api/auth/captcha/generate?key=${newKey}`, {
       headers: { Accept: "application/json" }
     });
     if (response.ok) {

@@ -36,9 +36,9 @@ sca-skeleton-frontend/
 
 ## 开发环境网关代理
 
-本地 `pnpm dev` 搭配 Nginx 联调时，所有 `/api`、`/auth` 请求由 Nginx 直接转发到网关，Vite 仅开发 SPA + HMR，不配代理。
+本地 `pnpm dev` 调试时，前端所有后端请求统一走 `/api` 前缀，由 Vite dev server 代理转发到网关（`VITE_GATEWAY_TARGET`），网关再按 `Path=/auth/**`、`/sys/**` 路由到 auth / system 服务。
 
-OAuth **authorize 整页跳转**与 token 换票均走 Nginx 同域路径（`/auth/oauth2/authorize`），登录页与 SPA 始终同域。
+密码模式下登录由前端 SPA 自渲染，OAuth2 token / revoke / 验证码均通过 AJAX 调用 `/api/auth/...`，无整页跳转、无跨域。
 
 ## 启动命令
 
@@ -51,9 +51,9 @@ OAuth **authorize 整页跳转**与 token 换票均走 Nginx 同域路径（`/au
 
 | 变量 | development | test / production |
 |------|-------------|-------------------|
-| `VITE_API_BASE_URL` | `/api` | `/api` |
-| OAuth 授权跳转 | `window.location.origin + "/auth/oauth2/authorize"`（同域经 Nginx 反代） | `window.location.origin + "/auth/oauth2/authorize"`（同域经 Nginx 反代） |
-| OAuth token / API | `/api`（Nginx 反代） | `/api`（Nginx 反代） |
+| `VITE_API_BASE_URL` | `/api`（Vite 代理转发到网关） | `/api`（Nginx 反代到网关） |
+| `VITE_GATEWAY_TARGET` | 网关地址（如 `http://192.168.1.105:9999`） | 不需要（Nginx 直接反代） |
+| OAuth token / revoke / 验证码 / 业务 API | 统一走 `/api` 前缀 | 统一走 `/api` 前缀 |
 - 项目构建：`pnpm build`
 - 代码检查：`pnpm lint`
 - 单元测试：`pnpm test`

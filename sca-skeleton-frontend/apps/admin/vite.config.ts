@@ -41,11 +41,6 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path: string) => path.replace(/^\/api/, ""),
           configure: configureProxy
-        },
-        "/auth": {
-          target: gatewayTarget,
-          changeOrigin: true,
-          configure: configureProxy
         }
       }
     },
