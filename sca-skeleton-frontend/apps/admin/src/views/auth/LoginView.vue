@@ -27,10 +27,10 @@ const captchaCode = ref("");
 const captchaLoading = ref(false);
 
 /** 拉取验证码图片（走 /api 前缀，经网关白名单 /auth/captcha/** 转发到 auth 服务）
- *  captchaKey 由后端生成并返回，前端无需（也不应）自行指定。 */
-async function fetchCaptcha(): Promise<void> {
+ *  captchaKey 由后端生成并返回，前端无需（也不应）自行指定。
+ *  focusInput 为 true 时（点击验证码图片刷新），刷新成功后清空输入框并自动聚焦。 */
+async function fetchCaptcha(focusInput = false): Promise<void> {
   captchaLoading.value = true;
-  captchaCode.value = "";
   try {
     const response = await fetch(`/api/auth/captcha/generate`, {
       headers: { Accept: "application/json" }
@@ -39,6 +39,12 @@ async function fetchCaptcha(): Promise<void> {
       const data = (await response.json()) as { captchaKey: string; imageBase64: string };
       captchaKey.value = data.captchaKey;
       captchaImage.value = data.imageBase64;
+      // 刷新成功后清空验证码输入框
+      captchaCode.value = "";
+      captchaErrorVisible.value = false;
+      if (focusInput) {
+        captchaInput.value?.focus();
+      }
     }
   } catch {
     // 网络错误时保持空白图片，不阻断登录
@@ -329,7 +335,7 @@ onUnmounted(() => {
                 class="captcha-img-wrapper"
                 type="button"
                 :disabled="captchaLoading"
-                @click="fetchCaptcha"
+                @click="fetchCaptcha(true)"
               >
                 <img v-if="captchaImage" :src="captchaImage" alt="验证码" />
                 <span v-else class="captcha-loading-placeholder"></span>
