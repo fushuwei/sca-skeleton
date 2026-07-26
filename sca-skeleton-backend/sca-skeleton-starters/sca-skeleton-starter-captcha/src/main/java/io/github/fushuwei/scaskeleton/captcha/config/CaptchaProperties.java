@@ -35,5 +35,5 @@ public class CaptchaProperties {
     /**
      * Redis Key 前缀
      */
-    private String redisKeyPrefix = "captcha:";
+    private String redisKeyPrefix = "captcha";
 }
