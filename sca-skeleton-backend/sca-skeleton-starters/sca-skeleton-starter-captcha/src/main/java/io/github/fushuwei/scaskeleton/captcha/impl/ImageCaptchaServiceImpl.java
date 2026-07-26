@@ -108,7 +108,7 @@ public class ImageCaptchaServiceImpl implements CaptchaService {
         }
 
         // 从 Redis 中获取存储的验证码
-        String redisKey = redisKeyPrefix + ":key:" + captchaKey;
+        String redisKey = redisKeyPrefix + ":" + captchaKey;
         String storedCode = stringRedisTemplate.opsForValue().get(redisKey);
 
         // 删除 Redis Key，确保验证码一次性使用
@@ -140,7 +140,7 @@ public class ImageCaptchaServiceImpl implements CaptchaService {
      * @param code       验证码明文（统一转小写，校验时不区分大小写）
      */
     private void storeToRedis(String captchaKey, String code) {
-        String redisKey = redisKeyPrefix + ":key:" + captchaKey;
+        String redisKey = redisKeyPrefix + ":" + captchaKey;
         stringRedisTemplate.opsForValue().set(
             redisKey,
             code.toLowerCase(),
