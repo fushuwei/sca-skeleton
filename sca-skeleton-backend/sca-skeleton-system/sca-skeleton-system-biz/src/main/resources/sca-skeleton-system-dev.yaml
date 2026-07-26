@@ -1,7 +1,3 @@
-server:
-  # 经网关访问时根据 X-Forwarded-* 还原对外 URL，确保操作日志记录真实客户端 IP
-  forward-headers-strategy: framework
-
 spring:
   datasource:
     url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/sca_platform?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
