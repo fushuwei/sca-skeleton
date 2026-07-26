@@ -644,7 +644,8 @@ CREATE TABLE IF NOT EXISTS oauth2_registered_client (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='OAuth2 注册客户端表：存储接入授权服务器的客户端应用配置信息';
 
 
--- 内置 OAuth2 客户端：管理后台（公共客户端 + PKCE）
+-- 内置 OAuth2 客户端：管理后台（机密客户端 + 密码模式）
+-- 注意：client_secret 在应用启动时由 OAuth2RegisteredClientInitializer 从配置中读取并加密写入
 INSERT INTO oauth2_registered_client (
     id,
     client_id,
@@ -667,18 +668,19 @@ SELECT
     NULL,
     NULL,
     'SCA Admin SPA',
-    'none',
-    'authorization_code,refresh_token',
+    'client_secret_basic',
+    'password,refresh_token',
     NULL,
     NULL,
-    'profile,offline_access,all',
-    '{"settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
+    'profile,all',
+    '{"settings.client.require-authorization-consent":false}',
     '{"settings.token.reuse-refresh-tokens":false}'
 WHERE NOT EXISTS (
     SELECT 1 FROM oauth2_registered_client WHERE client_id = 'sca-admin-client'
 );
 
--- 内置 OAuth2 客户端：前台门户（公共客户端 + PKCE）
+-- 内置 OAuth2 客户端：前台门户（机密客户端 + 密码模式）
+-- 注意：client_secret 在应用启动时由 OAuth2RegisteredClientInitializer 从配置中读取并加密写入
 INSERT INTO oauth2_registered_client (
     id,
     client_id,
@@ -701,12 +703,12 @@ SELECT
     NULL,
     NULL,
     'SCA Portal SPA',
-    'none',
-    'authorization_code,refresh_token',
+    'client_secret_basic',
+    'password,refresh_token',
     NULL,
     NULL,
-    'profile,offline_access,all',
-    '{"settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
+    'profile,all',
+    '{"settings.client.require-authorization-consent":false}',
     '{"settings.token.reuse-refresh-tokens":false}'
 WHERE NOT EXISTS (
     SELECT 1 FROM oauth2_registered_client WHERE client_id = 'sca-portal-client'

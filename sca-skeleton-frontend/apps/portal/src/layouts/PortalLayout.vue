@@ -101,7 +101,7 @@ function applyHeaderLocale(code: "zh-CN" | "en-US"): void {
 }
 
 async function handleLogout(): Promise<void> {
-  await authStore.logout();
+  await authStore.logout(router);
 }
 
 // 模拟未读通知数量（演示用，后续接入真实接口）

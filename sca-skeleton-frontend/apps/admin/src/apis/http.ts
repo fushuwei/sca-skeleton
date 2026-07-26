@@ -35,6 +35,12 @@ const oauthAxiosOptions = {
   onTokensUpdated: (accessToken: string, refreshToken?: string) => {
     onTokensUpdated?.(accessToken, refreshToken);
   },
+  redirectToLogin: () => {
+    // 令牌失效且刷新失败时，整页跳转到登录页
+    const basePath = import.meta.env.BASE_URL;
+    const loginPath = basePath.endsWith("/") ? basePath + "login" : basePath + "/login";
+    window.location.href = loginPath;
+  },
   showNotification: (type: "positive" | "negative" | "warning", message: string) => {
     showToast(message, type);
   }

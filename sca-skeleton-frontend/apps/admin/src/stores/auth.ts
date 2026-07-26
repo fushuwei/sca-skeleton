@@ -10,6 +10,7 @@ import {
   TOKEN_STORAGE_KEY
 } from "../constants/auth-storage";
 import type { MenuItem, UserProfile, SysPermission } from "../types/auth";
+import { loginWithPassword, revokeOAuthToken } from "@repo/shared";
 
 function readCachedMenus(): MenuItem[] {
   const raw = localStorage.getItem(MENUS_STORAGE_KEY);
@@ -28,13 +29,9 @@ function readCachedMenus(): MenuItem[] {
 function buildMenuTree(permissions: SysPermission[]): MenuItem[] {
   if (!permissions.length) return [];
 
-  // 按 type 过滤：只保留 module、folder、menu（按钮权限不参与菜单树构建）
   const filtered = permissions.filter(p => ["module", "folder", "menu"].includes(p.type));
-
-  // 按 sort 排序
   const sorted = [...filtered].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
 
-  // 构建 map
   const map = new Map<string, MenuItem>();
   for (const p of sorted) {
     map.set(p.id, {
@@ -48,7 +45,6 @@ function buildMenuTree(permissions: SysPermission[]): MenuItem[] {
     });
   }
 
-  // 构建树
   const roots: MenuItem[] = [];
   for (const p of sorted) {
     const node = map.get(p.id)!;
@@ -65,7 +61,6 @@ function buildMenuTree(permissions: SysPermission[]): MenuItem[] {
     }
   }
 
-  // 清理空 children
   const cleanEmpty = (nodes: MenuItem[]) => {
     for (const n of nodes) {
       if (n.children?.length) {
@@ -106,15 +101,25 @@ export const useAuthStore = defineStore("auth", {
     isSuperadmin: (state): boolean => state.profile?.isSuperadmin === 1
   },
   actions: {
-    /** OAuth2 PKCE 回调成功后写入令牌并加载菜单。 */
-    async applyOAuthTokens(accessToken: string, refreshToken?: string): Promise<void> {
-      this.token = accessToken;
-      this.refreshToken = refreshToken ?? "";
+    /**
+     * 密码模式登录：调用 /oauth2/token 获取令牌，然后加载用户权限。
+     *
+     * @param username 用户名
+     * @param password 密码
+     * @returns 登录成功返回 true，失败抛出异常
+     */
+    async login(username: string, password: string): Promise<void> {
+      const config = getAdminOAuthConfig();
+      const tokenResponse = await loginWithPassword(config, username, password);
+
+      this.token = tokenResponse.access_token;
+      this.refreshToken = tokenResponse.refresh_token ?? "";
       localStorage.setItem(TOKEN_STORAGE_KEY, this.token);
-      if (refreshToken) {
-        localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, refreshToken);
+      if (tokenResponse.refresh_token) {
+        localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, tokenResponse.refresh_token);
       }
-      // 从后端获取用户权限
+
+      // 获取用户权限并构建菜单树
       try {
         const result = await getUserPermissionsApi();
         if (result.code === 10_000 && result.data) {
@@ -131,8 +136,8 @@ export const useAuthStore = defineStore("auth", {
       localStorage.setItem(MENUS_STORAGE_KEY, JSON.stringify(this.menus));
       this.dynamicReady = false;
     },
-    /** Axios 静默 refresh 成功后同步 Pinia 内存态。
-     *  refreshToken 为空时也需重置，确保 clearTokens 后 Pinia 与 localStorage 一致。 */
+
+    /** Axios 静默 refresh 成功后同步 Pinia 内存态。 */
     syncOAuthTokens(accessToken: string, refreshToken?: string): void {
       this.token = accessToken;
       this.refreshToken = refreshToken ?? "";
@@ -152,39 +157,38 @@ export const useAuthStore = defineStore("auth", {
       ensureDynamicRoutes(router, this.menus);
       this.dynamicReady = true;
     },
-    /** 退出：前端仅调用统一退出端点，认证服务完成会话与令牌清理。 */
+    /**
+     * 退出登录：吊销令牌并清除本地状态。
+     *
+     * 密码模式下为无状态认证，仅需吊销 access_token / refresh_token 并清理本地存储，
+     * 不再需要后端表单提交跳转。
+     */
     async logout(router: Router): Promise<void> {
-      const oauthConfig = getAdminOAuthConfig();
+      const config = getAdminOAuthConfig();
       const accessToken = this.token;
       const refreshToken = this.refreshToken;
 
-      // 仅清除持久化状态，不清内存（form.submit 会触发浏览器导航，页面销毁后内存自然释放；
-      // 提前清空 menus / profile 会导致侧栏和头部在跳转前闪现空白/回退文案）
+      // 异步吊销令牌（失败不阻断本地清理）
+      if (accessToken) {
+        void revokeOAuthToken(config, accessToken, "access_token");
+      }
+      if (refreshToken) {
+        void revokeOAuthToken(config, refreshToken, "refresh_token");
+      }
+
+      // 清除本地存储与内存状态
       localStorage.removeItem(TOKEN_STORAGE_KEY);
       localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
       localStorage.removeItem(MENUS_STORAGE_KEY);
+      this.token = "";
+      this.refreshToken = "";
+      this.permissions = [];
+      this.menus = [];
+      this.profile = null;
+      this.dynamicReady = false;
 
-      const logoutUrl = oauthConfig.authorizeUrl.replace("/oauth2/authorize", "/logout");
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = logoutUrl;
-      form.style.display = "none";
-      const appendInput = (name: string, value: string) => {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = name;
-        input.value = value;
-        form.appendChild(input);
-      };
-      appendInput("channel", "admin");
-      if (accessToken) {
-        appendInput("access_token", accessToken);
-      }
-      if (refreshToken) {
-        appendInput("refresh_token", refreshToken);
-      }
-      document.body.appendChild(form);
-      form.submit();
+      // 导航到登录页
+      await router.push({ name: "Login" });
     }
   }
 });

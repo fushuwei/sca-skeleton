@@ -3,8 +3,8 @@ import {
   API_SUCCESS_CODE,
   API_UNAUTHORIZED_CODE
 } from "./constants";
-import type { OAuthAppConfig, OAuthLoginOptions } from "./pkce";
-import { refreshAccessToken, startOAuthLogin } from "./pkce";
+import type { OAuthAppConfig } from "./password-grant";
+import { refreshAccessToken } from "./password-grant";
 
 /** 通知类型，与各 UI 框架的语义对齐。 */
 export type NotificationType = "positive" | "negative" | "warning";
@@ -18,6 +18,8 @@ export interface OAuthAxiosOptions {
   getOAuthConfig: () => OAuthAppConfig;
   /** refresh 成功后同步 Pinia 等内存态（可选）。 */
   onTokensUpdated?: (accessToken: string, refreshToken?: string) => void;
+  /** 令牌失效且刷新失败时，由 SPA 导航到登录页（可选）。 */
+  redirectToLogin?: () => void;
   unauthorizedCode?: number;
   /** 全局通知回调，用于在 HTTP 错误时弹出提示（可选）。 */
   showNotification?: (type: NotificationType, message: string) => void;
@@ -54,6 +56,9 @@ async function refreshAccessTokenOnce(options: OAuthAxiosOptions): Promise<strin
 
 /**
  * 创建带 Bearer 注入、401 静默 refresh、业务码未认证跳转的 Axios 实例。
+ *
+ * 密码模式下，令牌失效且刷新失败时调用 {@link OAuthAxiosOptions.redirectToLogin}
+ * 导航到 SPA 登录页（由各 SPA 提供具体实现）。
  */
 export function createOAuthAxiosInstance(
   options: OAuthAxiosOptions,
@@ -69,21 +74,8 @@ export function createOAuthAxiosInstance(
     return config;
   });
 
-  async function redirectToLogin(returnUrl?: string, loginOptions?: OAuthLoginOptions): Promise<void> {
-    options.clearTokens();
-    // 同步 Pinia store 内存态，确保 isLoggedIn 立即变为 false，
-    // 避免路由守卫在页面跳转前因残留的 isLoggedIn=true 状态而错误放行
-    options.onTokensUpdated?.("", undefined);
-    await startOAuthLogin(
-      options.getOAuthConfig(),
-      returnUrl ?? window.location.pathname,
-      loginOptions ?? { prompt: "login" }
-    );
-  }
-
   async function handleUnauthorized(
-    config: RetryableRequestConfig | undefined,
-    returnUrl: string
+    config: RetryableRequestConfig | undefined
   ): Promise<unknown> {
     if (config && !config._oauthRetried) {
       const newAccessToken = await refreshAccessTokenOnce(options);
@@ -93,7 +85,10 @@ export function createOAuthAxiosInstance(
         return instance.request(config);
       }
     }
-    await redirectToLogin(returnUrl);
+    // 令牌刷新失败：清除本地令牌并导航到登录页
+    options.clearTokens();
+    options.onTokensUpdated?.("", undefined);
+    options.redirectToLogin?.();
     return Promise.reject(new Error("登录已过期，请重新登录"));
   }
 
@@ -102,7 +97,7 @@ export function createOAuthAxiosInstance(
     async (error: AxiosError) => {
       const config = error.config as RetryableRequestConfig | undefined;
       if (error.response?.status === 401) {
-        return handleUnauthorized(config, window.location.pathname);
+        return handleUnauthorized(config);
       }
       if (error.response?.status === 403) {
         options.showNotification?.("negative", "权限不足，无法访问该功能");
@@ -155,7 +150,8 @@ export async function oauthRequest<T>(
       return oauthRequest(instance, options, retriedConfig);
     }
     options.clearTokens();
-    await startOAuthLogin(options.getOAuthConfig(), window.location.pathname, { prompt: "login" });
+    options.onTokensUpdated?.("", undefined);
+    options.redirectToLogin?.();
     throw new Error(payload.message || "登录已过期，请重新登录");
   }
   return payload;

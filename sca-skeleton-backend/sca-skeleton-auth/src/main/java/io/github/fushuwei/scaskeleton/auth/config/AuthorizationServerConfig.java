@@ -3,181 +3,180 @@ package io.github.fushuwei.scaskeleton.auth.config;
 import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLockProperties;
 import io.github.fushuwei.scaskeleton.auth.config.properties.AuthLoginProperties;
 import io.github.fushuwei.scaskeleton.auth.config.properties.OAuth2ClientProperties;
-import io.github.fushuwei.scaskeleton.auth.security.filter.AuthorizeChannelIsolationFilter;
-import io.github.fushuwei.scaskeleton.auth.security.filter.PublicClientRefreshTokenAuthenticationFilter;
+import io.github.fushuwei.scaskeleton.auth.grant.password.OAuth2ResourceOwnerPasswordAuthenticationConverter;
+import io.github.fushuwei.scaskeleton.auth.grant.password.OAuth2ResourceOwnerPasswordAuthenticationProvider;
+import io.github.fushuwei.scaskeleton.auth.security.RoutingUserDetailsService;
+import io.github.fushuwei.scaskeleton.auth.security.filter.CaptchaVerificationFilter;
 import io.github.fushuwei.scaskeleton.auth.token.ScaOpaqueAccessTokenClaimsCustomizer;
-import io.github.fushuwei.scaskeleton.auth.token.ScaRefreshTokenGenerator;
-import io.github.fushuwei.scaskeleton.auth.security.handler.ClientAwareLoginUrlAuthenticationEntryPoint;
-import io.github.fushuwei.scaskeleton.auth.security.OAuth2PendingAuthorizeStore;
+import io.github.fushuwei.scaskeleton.captcha.CaptchaService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2AccessTokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2AuthorizationCodeAuthenticationConverter;
+import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2ClientCredentialsAuthenticationConverter;
+import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2RefreshTokenAuthenticationConverter;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
-import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.security.web.authentication.AuthenticationConverter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
 
 /**
- * Spring Authorization Server 核心配置（基于 OAuth 2.1 实现 Authorization Code + PKCE）
+ * Spring Authorization Server 核心配置（密码模式扩展）
+ * <p>
+ * 基于 SAS 扩展自定义的 Resource Owner Password Credentials Grant，
+ * 保留 SAS 原生的 authorization_code、refresh_token、client_credentials 支持。
+ * <p>
+ * 认证流程：
+ * <ol>
+ *   <li>SPA 发送 {@code POST /oauth2/token} 携带 {@code grant_type=password&username&password&client_id&client_secret}</li>
+ *   <li>验证码过滤器校验图形验证码（portal 渠道）</li>
+ *   <li>SAS 客户端认证过滤器校验 client_id / client_secret</li>
+ *   <li>密码模式转换器构建 {@code OAuth2ResourceOwnerPasswordAuthenticationToken}</li>
+ *   <li>密码模式提供者委托 {@link AuthenticationManager} 完成用户认证</li>
+ *   <li>生成不透明 access_token + refresh_token 并返回</li>
+ * </ol>
  *
  * @author Fu Wei
  */
+@Slf4j
 @Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
 @EnableConfigurationProperties({OAuth2ClientProperties.class, AuthLockProperties.class, AuthLoginProperties.class})
 public class AuthorizationServerConfig {
 
-    /**
-     * OAuth2 客户端与 issuer 等对外 URL 配置（issuer 默认值见 {@code sca-skeleton-auth-*.yaml}）
-     */
     private final OAuth2ClientProperties oauth2ClientProperties;
+    private final OAuth2AuthorizationService authorizationService;
+    private final RoutingUserDetailsService routingUserDetailsService;
+    private final PasswordEncoder passwordEncoder;
+    private final CaptchaService captchaService;
+    private final CaptchaVerificationFilter captchaVerificationFilter;
 
     /**
-     * 与表单登录链共享的 SavedRequest 缓存
-     */
-    private final HttpSessionRequestCache httpSessionRequestCache;
-
-    /**
-     * pending authorize Session 存储
-     */
-    private final OAuth2PendingAuthorizeStore pendingAuthorizeStore;
-    /**
-     * 授权端点渠道隔离过滤器（阻断 admin/portal 静默串登）
-     */
-    private final AuthorizeChannelIsolationFilter authorizeChannelIsolationFilter;
-
-    /**
-     * 注册客户端仓库（JDBC + Redis 缓存），供公共客户端 refresh_token 认证过滤器使用
-     */
-    private final RegisteredClientRepository registeredClientRepository;
-
-    /**
-     * 公共客户端 refresh_token 认证过滤器：
-     * SAS 7.1.x 的 PublicClientAuthenticationConverter 仅匹配 PKCE 请求
-     * （grant_type=authorization_code + code_verifier），对 refresh_token grant
-     * 返回 null → 客户端认证失败 → OAuth2RefreshTokenAuthenticationConverter
-     * 从 SecurityContext 读取不到 clientPrincipal → 401。
+     * SAS 标准端点 + 密码模式扩展过滤链
      * <p>
-     * 本过滤器在 SAS 默认认证之前将公共客户端身份写入 SecurityContext。
-     */
-    @Bean
-    public PublicClientRefreshTokenAuthenticationFilter publicClientRefreshTokenAuthenticationFilter() {
-        return new PublicClientRefreshTokenAuthenticationFilter(registeredClientRepository);
-    }
-
-    /**
-     * 未登录访问 authorize 时的登录入口（按 client_id 分流 admin / portal 登录页）
-     */
-    @Bean
-    public ClientAwareLoginUrlAuthenticationEntryPoint clientAwareLoginUrlAuthenticationEntryPoint() {
-        return new ClientAwareLoginUrlAuthenticationEntryPoint(
-            oauth2ClientProperties,
-            pendingAuthorizeStore,
-            oauth2ClientProperties.resolveExternalLoginUrl(
-                oauth2ClientProperties.getAdmin().getClientId()));
-    }
-
-    /**
-     * SAS 标准端点过滤链：applyDefaultSecurity 负责 token 端点等默认放行规则
+     * Order=1：仅匹配 OAuth2 标准端点（token / revoke / introspect / jwk / well-known）
      */
     @Bean
     @Order(1)
-    public SecurityFilterChain authorizationServerSecurityFilterChain(
-        HttpSecurity http,
-        ClientAwareLoginUrlAuthenticationEntryPoint clientAwareLoginUrlAuthenticationEntryPoint,
-        PublicClientRefreshTokenAuthenticationFilter publicClientRefreshTokenAuthenticationFilter) throws Exception {
-
-        // Spring Authorization Server 端点配置器（Boot 4 / Security 7 新写法，替代 applyDefaultSecurity）
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
             new OAuth2AuthorizationServerConfigurer();
 
         http
-            // 仅匹配 OAuth2 标准端点（显式 pattern，避免 configurer 未初始化时 matcher 为空）
             .securityMatcher("/oauth2/**", "/.well-known/**")
-            // 显式禁用 CSRF：token / introspection / revocation 等机器端点不应要求 CSRF Token
             .csrf(csrf -> csrf.disable())
-            .with(authorizationServerConfigurer, Customizer.withDefaults())
+            .with(authorizationServerConfigurer, configurer -> configurer
+                .tokenEndpoint(tokenEndpoint -> tokenEndpoint
+                    // 注册密码模式转换器（与 SAS 原生转换器组合为委托模式）
+                    .accessTokenRequestConverter(accessTokenRequestConverter())
+                )
+            )
             .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
-            // 在匿名认证前执行：
-            // ① 公共客户端 refresh_token 认证（补偿 SAS 7.1.x PublicClientAuthenticationConverter 不匹配 refresh_token grant）
-            // ② 渠道隔离校验（已登录但渠道不匹配时清空会话并触发重新登录）
-            .addFilterBefore(publicClientRefreshTokenAuthenticationFilter, AnonymousAuthenticationFilter.class)
-            .addFilterBefore(authorizeChannelIsolationFilter, AnonymousAuthenticationFilter.class)
-            .requestCache(cache -> cache.requestCache(httpSessionRequestCache))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+            // 验证码校验：在用户名密码认证前拦截 token 端点的密码模式请求
+            .addFilterBefore(captchaVerificationFilter, UsernamePasswordAuthenticationFilter.class)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // 注册密码模式认证提供者
+            .authenticationProvider(passwordAuthenticationProvider())
             .exceptionHandling(exceptions -> exceptions
-                // 仅 authorize 端点跳转登录页
-                .defaultAuthenticationEntryPointFor(
-                    clientAwareLoginUrlAuthenticationEntryPoint,
-                    oauth2AuthorizeEndpointMatcher())
-                // token / revocation 等机器端点返回标准 OAuth2 JSON 错误（含 error/error_description），
-                // 避免 SAS 默认的 Http403ForbiddenEntryPoint 返回空 body 401/403
                 .defaultAuthenticationEntryPointFor(
                     oauth2TokenEndpointAuthenticationEntryPoint(),
-                    oauth2TokenEndpointMatcher())
+                    request -> "POST".equalsIgnoreCase(request.getMethod())
+                        && "/oauth2/token".equals(request.getRequestURI()))
             );
 
         return http.build();
     }
 
     /**
-     * 仅匹配浏览器授权端点（GET 发起授权、POST 提交 consent），不含 token 等机器端点
-     */
-    private static RequestMatcher oauth2AuthorizeEndpointMatcher() {
-        return new OrRequestMatcher(
-            PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, "/oauth2/authorize"),
-            PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/oauth2/authorize"));
-    }
-
-    /**
-     * 匹配机器端点（token / revocation），需返回 OAuth2 JSON 错误而非空 body 401
-     */
-    private static RequestMatcher oauth2TokenEndpointMatcher() {
-        return new OrRequestMatcher(
-            PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/oauth2/token"),
-            PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/oauth2/revoke"),
-            PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/oauth2/introspect"));
-    }
-
-    /**
-     * Token 端点专用 AuthenticationEntryPoint：返回标准 OAuth2 JSON 错误响应，
-     * 包含 {@code error} 和 {@code error_description} 字段，便于调用方解析。
+     * token 端点请求转换器：SAS 原生转换器 + 密码模式转换器的委托组合
      * <p>
-     * 解决 SAS 默认 {@code Http403ForbiddenEntryPoint} 对 token/revoke 端点
-     * 只返回空 body 401/403 的问题——这对 SPA 的静默 refresh 是不可调试的。
+     * SAS 按列表顺序依次调用每个转换器的 {@code convert()} 方法，
+     * 第一个返回非 null 的转换器结果将被用于后续认证。
+     */
+    private AuthenticationConverter accessTokenRequestConverter() {
+        List<AuthenticationConverter> converters = List.of(
+            new OAuth2AuthorizationCodeAuthenticationConverter(),
+            new OAuth2ClientCredentialsAuthenticationConverter(),
+            new OAuth2RefreshTokenAuthenticationConverter(),
+            new OAuth2ResourceOwnerPasswordAuthenticationConverter()
+        );
+        // 委托模式：按顺序调用每个转换器，返回第一个非 null 结果
+        return request -> {
+            for (AuthenticationConverter converter : converters) {
+                Authentication authentication = converter.convert(request);
+                if (authentication != null) {
+                    return authentication;
+                }
+            }
+            return null;
+        };
+    }
+
+    /**
+     * 密码模式认证提供者
+     * <p>
+     * 委托 {@link #authenticationManager()} 完成用户名密码认证，
+     * 认证成功后生成 access_token 和 refresh_token。
+     */
+    @SuppressWarnings("deprecation")
+    private OAuth2ResourceOwnerPasswordAuthenticationProvider passwordAuthenticationProvider() {
+        return new OAuth2ResourceOwnerPasswordAuthenticationProvider(
+            authenticationManager(),
+            authorizationService,
+            tokenGenerator(),
+            oauth2ClientProperties
+        );
+    }
+
+    /**
+     * 用户认证管理器：基于 DaoAuthenticationProvider + RoutingUserDetailsService
+     * <p>
+     * 供密码模式 Provider 内部调用 {@code authenticationManager.authenticate()} 完成用户认证。
+     * {@link DaoAuthenticationProvider} 使用 {@link RoutingUserDetailsService} 按
+     * {@link io.github.fushuwei.scaskeleton.auth.security.LoginChannel} 路由加载用户。
+     */
+    private AuthenticationManager authenticationManager() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(routingUserDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return new ProviderManager(provider);
+    }
+
+    /**
+     * Token 端点专用 AuthenticationEntryPoint：返回标准 OAuth2 JSON 错误响应
      */
     private AuthenticationEntryPoint oauth2TokenEndpointAuthenticationEntryPoint() {
         return (HttpServletRequest request, HttpServletResponse response,
-                AuthenticationException authException) -> {
+                org.springframework.security.core.AuthenticationException authException) -> {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            // 手工构造 JSON，完整转义特殊字符
             String rawMessage = authException.getMessage() != null
-                ? authException.getMessage()
-                : "Unauthorized";
+                ? authException.getMessage() : "Unauthorized";
             String message = rawMessage
                 .replace("\\", "\\\\")
                 .replace("\"", "\\\"")
@@ -190,25 +189,30 @@ public class AuthorizationServerConfig {
             try {
                 response.getWriter().write(json);
             } catch (IOException e) {
-                // 写入失败时仅结束响应
+                log.warn("写入 token 端点错误响应失败", e);
             }
         };
     }
 
+    /**
+     * OAuth2 令牌生成器
+     * <p>
+     * 1) 不透明 access_token 生成器（REFERENCE 格式），挂载业务 claims 扩展
+     * 2) SAS 内置 refresh_token 生成器（机密客户端可直接使用，无需自定义实现）
+     * 3) 委托生成器：按 RegisteredClient 的 token 格式选择具体生成器
+     */
     @Bean
     public OAuth2TokenGenerator<?> tokenGenerator() {
-        // 1) 不透明 access_token 生成器，挂载业务 claims 扩展
         OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
         accessTokenGenerator.setAccessTokenCustomizer(new ScaOpaqueAccessTokenClaimsCustomizer());
-        // 2) refresh_token 生成器：使用自定义实现，允许向公共客户端签发 refresh_token（SAS 7.0 默认会拒绝）
-        // 3) 委托生成器：按 RegisteredClient 的 token 格式选择具体生成器（不透明令牌 + 刷新令牌）
-        return new DelegatingOAuth2TokenGenerator(
-            accessTokenGenerator, new ScaRefreshTokenGenerator());
+        // SAS 内置 refresh_token 生成器对机密客户端正常工作
+        OAuth2RefreshTokenGenerator refreshTokenGenerator = new OAuth2RefreshTokenGenerator();
+        return new DelegatingOAuth2TokenGenerator(accessTokenGenerator, refreshTokenGenerator);
     }
 
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
-        // issuer 与登录重定向同源，均来自 sca.auth.issuer（YAML / AUTH_ISSUER）
+        log.info("AuthorizationServer 初始化完成：issuer={}", oauth2ClientProperties.getIssuer());
         return AuthorizationServerSettings.builder()
             .issuer(oauth2ClientProperties.getIssuer())
             .build();

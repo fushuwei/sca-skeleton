@@ -1,6 +1,13 @@
+/**
+ * 登录页样式 — Material Design 3
+ *
+ * 从 auth 服务 Thymeleaf 模板的 login.css 迁移至 SPA 共享样式。
+ * 图标渲染从 SVG mask-image 改为 Material Symbols Rounded 字体，
+ * 其余样式（变量、排版、按钮、文本框、轮播、验证码等）保持原样不变。
+ */
+
 /* Material Design 3 变量 */
 :root {
-    /* 调色板 */
     --md-sys-color-primary: #006494;
     --md-sys-color-on-primary: #ffffff;
     --md-sys-color-primary-container: #c8e6ff;
@@ -36,37 +43,30 @@
     --md-sys-color-outline: #72777f;
     --md-sys-color-outline-variant: #c2c7cf;
 
-    /* 阴影 */
     --md-shadow-1: 0px 1px 3px 0px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
     --md-shadow-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
     --md-shadow-3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.3);
     --md-shadow-4: 0px 6px 10px 4px rgba(0, 0, 0, 0.15), 0px 2px 3px 0px rgba(0, 0, 0, 0.3);
     --md-shadow-5: 0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px 0px rgba(0, 0, 0, 0.3);
 
-    /* 形状 */
     --md-sys-shape-corner-small: 4px;
     --md-sys-shape-corner-medium: 8px;
     --md-sys-shape-corner-large: 16px;
     --md-sys-shape-corner-extra-large: 28px;
 
-    /* 状态 */
     --md-state-hover-opacity: 0.08;
     --md-state-focus-opacity: 0.12;
     --md-state-pressed-opacity: 0.12;
     --md-state-dragged-opacity: 0.16;
 
-    /* 排版 */
-    /* --md-ref-typeface-brand: 'Roboto', sans-serif; */
-    /* --md-ref-typeface-plain: 'Roboto', sans-serif; */
     --md-ref-typeface-brand: "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "AlibabaPuHuiTi-3-55-Regular", Tahoma, Consolas, Arial, "Microsoft YaHei", "微软雅黑", "sans-serif" !important;
     --md-ref-typeface-plain: "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "AlibabaPuHuiTi-3-55-Regular", Tahoma, Consolas, Arial, "Microsoft YaHei", "微软雅黑", "sans-serif" !important;
 
-    /* 间距 */
     --md-spacing-unit: 8px;
 }
 
 /* 通用样式 */
-body {
+.login-page-root {
     margin: 0;
     padding: 0;
     font-family: var(--md-ref-typeface-plain);
@@ -243,58 +243,6 @@ body {
     background-color: var(--md-sys-color-primary);
     opacity: 0.85;
     box-shadow: var(--md-shadow-1);
-}
-
-.md3-filled-tonal-button {
-    background-color: var(--md-sys-color-secondary-container);
-    color: var(--md-sys-color-on-secondary-container);
-    font-size: 16px;
-    font-weight: 500;
-    text-transform: none;
-    box-shadow: var(--md-shadow-1);
-    letter-spacing: 0.5px;
-}
-
-.md3-filled-tonal-button:hover {
-    background-color: var(--md-sys-color-secondary-container);
-    opacity: 0.92;
-    box-shadow: var(--md-shadow-2);
-    transform: translateY(-1px);
-}
-
-.md3-filled-tonal-button:active {
-    background-color: var(--md-sys-color-secondary-container);
-    opacity: 0.85;
-    box-shadow: var(--md-shadow-1);
-    transform: translateY(0);
-}
-
-.md3-outlined-button {
-    background-color: transparent;
-    color: var(--md-sys-color-primary);
-    border: 1px solid var(--md-sys-color-outline);
-}
-
-.md3-outlined-button:hover {
-    background-color: rgba(0, 100, 148, var(--md-state-hover-opacity));
-}
-
-.md3-outlined-button:active {
-    background-color: rgba(0, 100, 148, var(--md-state-pressed-opacity));
-}
-
-.md3-text-button {
-    background-color: transparent;
-    color: var(--md-sys-color-primary);
-    padding: 0 12px;
-}
-
-.md3-text-button:hover {
-    background-color: rgba(0, 100, 148, var(--md-state-hover-opacity));
-}
-
-.md3-text-button:active {
-    background-color: rgba(0, 100, 148, var(--md-state-pressed-opacity));
 }
 
 .md3-icon-button {
@@ -664,7 +612,6 @@ body {
     padding: calc(var(--md-spacing-unit) * 4);
     padding-right: calc(var(--md-spacing-unit) * 15);
     z-index: 2;
-    box-sizing: border-box;
     pointer-events: none;
 }
 
@@ -749,6 +696,7 @@ body {
 .login-button:disabled {
     opacity: 0.65;
     cursor: not-allowed;
+    transform: none;
 }
 
 .form-options {
@@ -847,11 +795,10 @@ body {
 }
 
 /* =================================================================
- * 以下为追加样式：loading 遮罩 + 验证码行 + 版权信息
- * 原始 CSS 内容以上一字未改
+ * loading 遮罩 + 验证码行 + 版权信息 + Toast
  * ================================================================= */
 
-/* 页面加载 Loading 遮罩 - 与模板 loading.html 一致 */
+/* 页面加载 Loading 遮罩 */
 .page-loader {
     position: fixed;
     top: 0;
@@ -897,7 +844,7 @@ body {
     }
 }
 
-/* 验证码行 - 与输入框样式完全一致 */
+/* 验证码行 */
 .captcha-row {
     display: flex;
     align-items: center;
@@ -984,7 +931,7 @@ body {
     opacity: 0.6;
 }
 
-/* 错误提示 Toast Tips —— 固定在浏览器中间顶部，黑色无圆角长方形 */
+/* 错误提示 Toast */
 .login-toast {
     position: fixed;
     top: 24px;
@@ -1055,9 +1002,8 @@ body {
     }
 }
 
-
 /* =================================================================
- * 登录页 Icons — 使用本地 SVG 文件作为 mask，通过 currentColor 继承颜色
+ * 登录页 Icons — 使用 Material Symbols Rounded 字体
  * ================================================================= */
 
 .login-icon {
@@ -1068,81 +1014,11 @@ body {
     height: 1em;
     font-size: 24px;
     flex-shrink: 0;
-    background-color: currentColor;
-    mask-size: contain;
-    -webkit-mask-size: contain;
-    mask-repeat: no-repeat;
-    -webkit-mask-repeat: no-repeat;
-    mask-position: center;
-    -webkit-mask-position: center;
     vertical-align: middle;
+    line-height: 1;
+    overflow: hidden;
 }
 
 .logo-icon {
     font-size: 42px;
-}
-
-.login-icon-person {
-    mask-image: url("../images/person.svg");
-    -webkit-mask-image: url("../images/person.svg");
-}
-
-.login-icon-lock {
-    mask-image: url("../images/lock.svg");
-    -webkit-mask-image: url("../images/lock.svg");
-}
-
-.login-icon-visibility {
-    mask-image: url("../images/visibility.svg");
-    -webkit-mask-image: url("../images/visibility.svg");
-}
-
-.login-icon-visibility_off {
-    mask-image: url("../images/visibility_off.svg");
-    -webkit-mask-image: url("../images/visibility_off.svg");
-}
-
-.login-icon-error {
-    mask-image: url("../images/error.svg");
-    -webkit-mask-image: url("../images/error.svg");
-}
-
-.login-icon-close {
-    mask-image: url("../images/close.svg");
-    -webkit-mask-image: url("../images/close.svg");
-}
-
-.login-icon-chevron_left {
-    mask-image: url("../images/chevron_left.svg");
-    -webkit-mask-image: url("../images/chevron_left.svg");
-}
-
-.login-icon-chevron_right {
-    mask-image: url("../images/chevron_right.svg");
-    -webkit-mask-image: url("../images/chevron_right.svg");
-}
-
-.login-icon-admin_panel_settings {
-    mask-image: url("../images/admin_panel_settings.svg");
-    -webkit-mask-image: url("../images/admin_panel_settings.svg");
-}
-
-.login-icon-smartphone {
-    mask-image: url("../images/mobile.svg");
-    -webkit-mask-image: url("../images/mobile.svg");
-}
-
-.login-icon-qr_code_scanner {
-    mask-image: url("../images/qr_code_scanner.svg");
-    -webkit-mask-image: url("../images/qr_code_scanner.svg");
-}
-
-.login-icon-fingerprint {
-    mask-image: url("../images/fingerprint.svg");
-    -webkit-mask-image: url("../images/fingerprint.svg");
-}
-
-.login-icon-verified_user {
-    mask-image: url("../images/verified_user.svg");
-    -webkit-mask-image: url("../images/verified_user.svg");
 }

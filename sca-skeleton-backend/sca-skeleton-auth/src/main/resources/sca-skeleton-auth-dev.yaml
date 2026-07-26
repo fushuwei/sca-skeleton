@@ -27,18 +27,6 @@ spring:
           min-idle: 2
           max-active: 8
 
-  # Thymeleaf 登录页模板
-  thymeleaf:
-    cache: false
-
-  # Spring Session：分布式集群共享 Session（替代单机内存 HttpSession）
-  # Spring Boot 4.0 移除了 spring.session.store-type，自动按 classpath 推断（Redis 优先）
-  session:
-    data:
-      redis:
-        namespace: spring:session
-    timeout: 30m
-
 # MyBatis-Plus 配置
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
@@ -58,40 +46,26 @@ sca:
     resource-server:
       enabled: false
   auth:
-    # 浏览器可见的 OAuth2 授权服务根 URL（开发环境经 Vite 代理，生产环境经 Nginx/网关对外暴露）
-    # 必须与前端访问地址一致，用于生成登录重定向和授权端点地址
+    # OAuth2 授权服务 issuer URL（经网关对外暴露，开发环境经 Vite 代理）
     issuer: ${AUTH_ISSUER:http://localhost:8080/auth}
     clients:
       admin:
         id: "100"
         client-id: sca-admin-client
-        # OAuth2 授权码回调地址列表，支持多个访问入口（如域名 + 内网 IP）
-        # 例如：https://newease.cloud/admin/oauth/callback,http://192.168.1.105:8080/admin/oauth/callback
-        redirect-uris: ${AUTH_ADMIN_REDIRECT_URIS:http://localhost:8080/oauth/callback}
+        # 机密客户端密钥（明文配置，初始化时由 PasswordEncoder 加密后写入 DB）
+        # 生产环境通过环境变量注入：AUTH_ADMIN_CLIENT_SECRET
+        client-secret: ${AUTH_ADMIN_CLIENT_SECRET:admin-secret}
         access-token-ttl: 900
         refresh-token-ttl: 7200
       portal:
         id: "200"
         client-id: sca-portal-client
-        # 同 admin.redirect-uris，支持多个访问入口
-        redirect-uris: ${AUTH_PORTAL_REDIRECT_URIS:http://localhost:9090/oauth/callback}
+        client-secret: ${AUTH_PORTAL_CLIENT_SECRET:portal-secret}
         access-token-ttl: 900
         refresh-token-ttl: 7200
     lock:
       max-fail-count: 5
       lock-duration-seconds: 1800
-    # 登录页动态配置（通过 Thymeleaf 注入；未来可扩展为数据库驱动）
-    login:
-      system-name: "SCA Skeleton"
-      logo-url: ""
-      copyright: "© 2025 SCA Skeleton. All rights reserved."
-      # 表单提交 URL：网关模式下使用 /auth/login/authenticate（浏览器经网关 POST），
-      # 直连模式下使用 /login/authenticate
-      login-processing-url: "/auth/login/authenticate"
-      carousel-images:
-        - "/auth/images/carousel1.jpg"
-        - "/auth/images/carousel2.jpg"
-        - "/auth/images/carousel3.jpg"
 
   # 验证码配置
   captcha:

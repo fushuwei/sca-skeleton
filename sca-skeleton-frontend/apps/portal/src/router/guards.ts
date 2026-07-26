@@ -1,5 +1,5 @@
 import type { Router } from "vue-router";
-import { refreshAccessToken, startOAuthLogin } from "@repo/shared";
+import { refreshAccessToken } from "@repo/shared";
 import { getPortalOAuthConfig } from "../config/oauth";
 import { WHITE_LIST_ROUTE_NAMES } from "./routes";
 import { usePortalAuthStore } from "../stores/auth";
@@ -13,6 +13,8 @@ import {
 /**
  * 使用已保存的 refresh_token 静默续期 access_token。
  * 成功时更新 localStorage 与 Pinia store，失败时清除全部令牌与菜单缓存。
+ *
+ * @returns true 表示续期成功，调用方可继续导航
  */
 async function trySilentRefresh(): Promise<boolean> {
   const refreshToken = localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
@@ -42,14 +44,6 @@ async function trySilentRefresh(): Promise<boolean> {
   }
 }
 
-/**
- * 静默续期失败或无 token 时启动 OAuth2 PKCE 授权 redirect。
- */
-function redirectToOAuthLogin(returnUrl: string, hadRefreshToken: boolean): void {
-  const oauthConfig = getPortalOAuthConfig();
-  void startOAuthLogin(oauthConfig, returnUrl, hadRefreshToken ? { prompt: "login" } : undefined);
-}
-
 export function setupRouterGuards(router: Router): void {
   router.beforeEach(async (to, _from) => {
     const authStore = usePortalAuthStore();
@@ -60,24 +54,24 @@ export function setupRouterGuards(router: Router): void {
 
     // ── 未登录：先尝试静默 refresh_token 续期 ──
     if (!authStore.isLoggedIn && !isWhiteRoute) {
-      const hadRefreshToken = Boolean(localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY));
       const refreshed = await trySilentRefresh();
       if (!refreshed) {
-        redirectToOAuthLogin(to.fullPath, hadRefreshToken);
-        return false;
+        return { name: "Login", query: { redirect: to.fullPath } };
       }
-      // 静默续期成功，继续执行下方的"已登录"逻辑
+    }
+
+    // ── 已登录但访问登录页：重定向到首页 ──
+    if (authStore.isLoggedIn && routeName === "Login") {
+      return { name: "Root" };
     }
 
     // ── 已登录 ──
     if (authStore.isLoggedIn) {
       authStore.ensureRoutes(router);
-      // profile 为空或缺少 isSuperadmin 字段（兼容旧版 profile 缓存）时重新拉取
       if (!authStore.profile || authStore.profile.isSuperadmin === undefined) {
         try {
           await authStore.fetchProfile();
         } catch {
-          // profile 拉取失败视为登录态失效（此时用户曾持有 token，故强制 prompt=login 重登）
           authStore.token = "";
           authStore.refreshToken = "";
           authStore.profile = null;
@@ -85,8 +79,7 @@ export function setupRouterGuards(router: Router): void {
           localStorage.removeItem(TOKEN_STORAGE_KEY);
           localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
           localStorage.removeItem(MENUS_STORAGE_KEY);
-          redirectToOAuthLogin(to.fullPath, true);
-          return false;
+          return { name: "Login", query: { redirect: to.fullPath } };
         }
       }
       if (routeName === "NotFound" && mayBeDynamicPath) {

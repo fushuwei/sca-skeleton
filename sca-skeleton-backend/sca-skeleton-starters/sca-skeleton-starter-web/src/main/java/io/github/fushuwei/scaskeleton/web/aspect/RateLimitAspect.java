@@ -10,12 +10,13 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.redisson.api.RRateLimiter;
-import org.redisson.api.RateIntervalUnit;
 import org.redisson.api.RateType;
 import org.redisson.api.RedissonClient;
 import org.jspecify.annotations.Nullable;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.time.Duration;
 
 /**
  * 限流切面。
@@ -64,8 +65,8 @@ public class RateLimitAspect {
         rateLimiter.trySetRate(
                 RateType.OVERALL,
                 annotation.rate(),
-                annotation.rateInterval(),
-                toRedissonUnit(annotation.rateIntervalUnit())
+                Duration.of(annotation.rateInterval(),
+                        annotation.rateIntervalUnit().toChronoUnit())
         );
 
         // 尝试立即获取一个令牌，无令牌可用时立即返回 false（不阻塞）
@@ -125,16 +126,4 @@ public class RateLimitAspect {
         return request.getRemoteAddr();
     }
 
-    /**
-     * 将标准 TimeUnit 转换为 Redisson 的 RateIntervalUnit。
-     */
-    private RateIntervalUnit toRedissonUnit(java.util.concurrent.TimeUnit unit) {
-        return switch (unit) {
-            case MILLISECONDS -> RateIntervalUnit.MILLISECONDS;
-            case HOURS -> RateIntervalUnit.HOURS;
-            case DAYS -> RateIntervalUnit.DAYS;
-            // MINUTES / SECONDS 均映射到秒（最常用场景），分钟场景转换为等效秒数由调用方控制
-            default -> RateIntervalUnit.SECONDS;
-        };
-    }
 }

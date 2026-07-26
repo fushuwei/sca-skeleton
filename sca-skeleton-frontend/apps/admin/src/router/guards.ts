@@ -1,5 +1,5 @@
 import type { Router } from "vue-router";
-import { refreshAccessToken, startOAuthLogin } from "@repo/shared";
+import { refreshAccessToken } from "@repo/shared";
 import { getAdminOAuthConfig } from "../config/oauth";
 import { WHITE_LIST_ROUTE_NAMES } from "./routes";
 import { useAuthStore } from "../stores/auth";
@@ -24,17 +24,14 @@ async function trySilentRefresh(): Promise<boolean> {
   try {
     const oauthConfig = getAdminOAuthConfig();
     const tokenResponse = await refreshAccessToken(oauthConfig, refreshToken);
-    // 持久化新令牌
     localStorage.setItem(TOKEN_STORAGE_KEY, tokenResponse.access_token);
     if (tokenResponse.refresh_token) {
       localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, tokenResponse.refresh_token);
     }
-    // 同步 Pinia 内存态，确保 isLoggedIn 立即变为 true
     const authStore = useAuthStore();
     authStore.syncOAuthTokens(tokenResponse.access_token, tokenResponse.refresh_token);
     return true;
   } catch {
-    // 续期失败：清除全部令牌与菜单，后续将由 redirectToOAuthLogin 发起完整 PKCE 登录
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(MENUS_STORAGE_KEY);
@@ -47,21 +44,6 @@ async function trySilentRefresh(): Promise<boolean> {
   }
 }
 
-/**
- * 静默续期失败或无 token 时启动 OAuth2 PKCE 授权 redirect。
- *
- * @param returnUrl       登录成功后返回的 SPA 路径
- * @param hadRefreshToken 本次导航前 localStorage 中是否曾存在 refresh_token。
- *                        只有当 hadRefreshToken=true 时才传递 prompt=login 强制重新认证，
- *                        防止 Auth 服务端残留的 JSESSIONID 跳过登录页。
- *                        冷启动（无任何 token）时不设 prompt，避免额外的登录页重定向
- *                        导致浏览器 sessionStorage 被清空。
- */
-function redirectToOAuthLogin(returnUrl: string, hadRefreshToken: boolean): void {
-  const oauthConfig = getAdminOAuthConfig();
-  void startOAuthLogin(oauthConfig, returnUrl, hadRefreshToken ? { prompt: "login" } : undefined);
-}
-
 export function setupRouterGuards(router: Router): void {
   router.beforeEach(async (to, _from) => {
     const authStore = useAuthStore();
@@ -72,14 +54,17 @@ export function setupRouterGuards(router: Router): void {
 
     // ── 未登录：先尝试静默 refresh_token 续期 ──
     if (!authStore.isLoggedIn && !isWhiteRoute) {
-      // 在尝试续期前读取 refresh_token，因为 trySilentRefresh 失败时会清除 localStorage
-      const hadRefreshToken = Boolean(localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY));
       const refreshed = await trySilentRefresh();
       if (!refreshed) {
-        redirectToOAuthLogin(to.fullPath, hadRefreshToken);
-        return false;
+        // 续期失败：重定向到登录页，携带回跳地址
+        return { name: "Login", query: { redirect: to.fullPath } };
       }
       // 静默续期成功，继续执行下方的"已登录"逻辑
+    }
+
+    // ── 已登录但访问登录页：重定向到首页 ──
+    if (authStore.isLoggedIn && routeName === "Login") {
+      return { name: "Root" };
     }
 
     // ── 已登录 ──
@@ -90,7 +75,7 @@ export function setupRouterGuards(router: Router): void {
         try {
           await authStore.fetchProfile();
         } catch {
-          // profile 拉取失败视为登录态失效（此时用户曾持有 token，故强制 prompt=login 重登）
+          // profile 拉取失败视为登录态失效
           authStore.token = "";
           authStore.refreshToken = "";
           authStore.profile = null;
@@ -98,8 +83,7 @@ export function setupRouterGuards(router: Router): void {
           localStorage.removeItem(TOKEN_STORAGE_KEY);
           localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
           localStorage.removeItem(MENUS_STORAGE_KEY);
-          redirectToOAuthLogin(to.fullPath, true);
-          return false;
+          return { name: "Login", query: { redirect: to.fullPath } };
         }
       }
       if (routeName === "NotFound" && mayBeDynamicPath) {

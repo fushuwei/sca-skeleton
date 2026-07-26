@@ -44,19 +44,6 @@ spring:
                 redis-rate-limiter.replenishRate: 15
                 redis-rate-limiter.burstCapacity: 30
 
-        # Authorize 端点限流（防批量构造授权请求压垮 Session/Redis）
-        - id: sca-skeleton-auth-authorize
-          uri: lb://sca-skeleton-auth
-          predicates:
-            - Path=/auth/oauth2/authorize
-          filters:
-            - StripPrefix=1
-            - name: RequestRateLimiter
-              args:
-                key-resolver: "#{@userKeyResolver}"
-                redis-rate-limiter.replenishRate: 15
-                redis-rate-limiter.burstCapacity: 30
-
         # 认证服务路由
         - id: sca-skeleton-auth
           uri: lb://sca-skeleton-auth
@@ -84,8 +71,7 @@ spring:
         - AddResponseHeader=Referrer-Policy, no-referrer
         # CSP：限制资源加载来源，降低 XSS 风险
         - "AddResponseHeader=Content-Security-Policy, default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none';"
-        # 禁止全局剥离 Cookie：/auth/login/** 与 /auth/oauth2/authorize 依赖 Session 完成授权码登录
-        # - RemoveRequestHeader=Cookie
+        # 密码模式为无状态认证，不需要 Cookie / Session
 
       # 全局 CORS 配置
       globalcors:
@@ -147,16 +133,12 @@ gateway:
   security:
     # 白名单路径，白名单内的请求免认证直接放行
     permit-paths:
-      - /auth/oauth2/authorize
+      # OAuth2 令牌端点（密码模式登录、刷新令牌、吊销令牌）
       - /auth/oauth2/token
       - /auth/oauth2/revoke
       - /auth/.well-known/**
-      - /auth/login/**
-      - /auth/logout
+      # 验证码生成接口
       - /auth/captcha/**
-      - /auth/css/**
-      - /auth/js/**
-      - /auth/images/**
       # Spring Doc 文档路径
       - /v3/api-docs/**
       - /swagger-ui/**

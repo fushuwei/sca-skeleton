@@ -1,0 +1,212 @@
+/**
+ * OAuth2 密码模式（Resource Owner Password Credentials Grant）客户端工具。
+ *
+ * 替代原 PKCE 模块，提供：
+ * - 密码模式登录（POST /oauth2/token + grant_type=password）
+ * - 刷新令牌（POST /oauth2/token + grant_type=refresh_token）
+ * - 吊销令牌（POST /oauth2/revoke）
+ * - 从 Vite 环境变量读取机密客户端配置
+ */
+
+/** OAuth2 机密客户端应用配置（来自 Vite 环境变量）。 */
+export interface OAuthAppConfig {
+  /** 客户端 ID */
+  clientId: string;
+  /** 客户端密钥（机密客户端，用于 Basic 认证） */
+  clientSecret: string;
+  /** Token 端点 URL（POST /oauth2/token） */
+  tokenUrl: string;
+  /** Revoke 端点 URL（POST /oauth2/revoke） */
+  revokeUrl: string;
+  /** 申请的权限范围 */
+  scope: string;
+  /** SPA HTML base 路径，如 {@code "/admin/"} */
+  basePath?: string;
+}
+
+/** /oauth2/token 成功响应体（Spring Authorization Server 标准字段）。 */
+export interface OAuthTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in?: number;
+  token_type?: string;
+  scope?: string;
+}
+
+/** OAuth2 错误响应体 */
+export interface OAuthTokenError {
+  error: string;
+  error_description?: string;
+  timestamp?: number;
+}
+
+/**
+ * 构造 Basic 认证头值（Base64(client_id:client_secret)）。
+ */
+function buildBasicAuthHeader(config: OAuthAppConfig): string {
+  const credentials = `${config.clientId}:${config.clientSecret}`;
+  return `Basic ${btoa(credentials)}`;
+}
+
+/**
+ * 解析 OAuth2 token 端点的错误响应。
+ */
+async function parseTokenError(response: Response): Promise<string> {
+  try {
+    const errorBody = (await response.json()) as OAuthTokenError;
+    if (errorBody.error_description) {
+      return errorBody.error_description;
+    }
+    if (errorBody.error) {
+      return errorBody.error;
+    }
+  } catch {
+    // 响应体非 JSON，忽略
+  }
+  return `认证请求失败 (${response.status})`;
+}
+
+/**
+ * 使用密码模式获取 access_token 和 refresh_token。
+ *
+ * @param config      OAuth 客户端配置
+ * @param username    用户名
+ * @param password    密码
+ * @param captchaKey  验证码 key（portal 渠道必填）
+ * @param captchaCode 验证码文本（portal 渠道必填）
+ */
+export async function loginWithPassword(
+  config: OAuthAppConfig,
+  username: string,
+  password: string,
+  captchaKey?: string,
+  captchaCode?: string
+): Promise<OAuthTokenResponse> {
+  const body = new URLSearchParams({
+    grant_type: "password",
+    username,
+    password,
+    scope: config.scope
+  });
+  if (captchaKey) {
+    body.set("captcha_key", captchaKey);
+  }
+  if (captchaCode) {
+    body.set("captcha_code", captchaCode);
+  }
+
+  const response = await fetch(config.tokenUrl, {
+    method: "POST",
+    credentials: "omit",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: buildBasicAuthHeader(config)
+    },
+    body: body.toString()
+  });
+
+  if (!response.ok) {
+    const message = await parseTokenError(response);
+    throw new Error(message);
+  }
+  return (await response.json()) as OAuthTokenResponse;
+}
+
+/**
+ * 使用 refresh_token 静默续期 access_token。
+ */
+export async function refreshAccessToken(
+  config: OAuthAppConfig,
+  refreshToken: string
+): Promise<OAuthTokenResponse> {
+  const body = new URLSearchParams({
+    grant_type: "refresh_token",
+    refresh_token: refreshToken,
+    scope: config.scope
+  });
+
+  const response = await fetch(config.tokenUrl, {
+    method: "POST",
+    credentials: "omit",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: buildBasicAuthHeader(config)
+    },
+    body: body.toString()
+  });
+
+  if (!response.ok) {
+    const message = await parseTokenError(response);
+    throw new Error(message);
+  }
+  return (await response.json()) as OAuthTokenResponse;
+}
+
+/**
+ * 吊销 access_token 或 refresh_token（RFC 7009）。
+ */
+export async function revokeOAuthToken(
+  config: OAuthAppConfig,
+  token: string,
+  tokenTypeHint: "access_token" | "refresh_token" = "access_token"
+): Promise<void> {
+  const body = new URLSearchParams({
+    token,
+    token_type_hint: tokenTypeHint
+  });
+  try {
+    await fetch(config.revokeUrl, {
+      method: "POST",
+      credentials: "omit",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: buildBasicAuthHeader(config)
+      },
+      body: body.toString()
+    });
+  } catch {
+    // logout 场景下 revoke 失败不阻断本地清理
+  }
+}
+
+/**
+ * 将 API 基地址规范为可用于拼接 OAuth 端点的绝对前缀。
+ * 相对路径（如 /api）在浏览器中取当前站点 origin。
+ */
+function resolveApiBasePrefix(apiBase: string): string {
+  const trimmed = apiBase.trim().replace(/\/$/, "");
+  if (!trimmed) {
+    return "";
+  }
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  const path = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  return `${origin}${path}`;
+}
+
+/**
+ * 从 Vite 环境变量读取机密客户端配置。
+ *
+ * token / revoke 端点走同域路径，经 Nginx/Vite 代理到网关。
+ *
+ * @param env ImportMeta.env
+ */
+export function readOAuthConfigFromEnv(env: ImportMetaEnv): OAuthAppConfig {
+  const apiPrefix = resolveApiBasePrefix(env.VITE_API_BASE_URL ?? "");
+  return {
+    clientId: env.VITE_OAUTH_CLIENT_ID,
+    clientSecret: env.VITE_OAUTH_CLIENT_SECRET,
+    tokenUrl: `${apiPrefix}/auth/oauth2/token`,
+    revokeUrl: `${apiPrefix}/auth/oauth2/revoke`,
+    scope: "profile all"
+  };
+}
+
+/** Vite 环境变量扩展（各 SPA 的 env.d.ts 应引用相同字段）。 */
+export interface ImportMetaEnv {
+  readonly VITE_API_BASE_URL: string;
+  readonly VITE_OAUTH_CLIENT_ID: string;
+  readonly VITE_OAUTH_CLIENT_SECRET: string;
+}

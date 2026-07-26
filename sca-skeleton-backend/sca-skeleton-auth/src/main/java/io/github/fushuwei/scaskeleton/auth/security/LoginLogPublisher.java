@@ -3,7 +3,7 @@ package io.github.fushuwei.scaskeleton.auth.security;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.github.fushuwei.scaskeleton.auth.infrastructure.entity.SysUser;
 import io.github.fushuwei.scaskeleton.auth.infrastructure.mapper.SysUserMapper;
-import io.github.fushuwei.scaskeleton.auth.security.filter.LoginChannelFilter;
+import io.github.fushuwei.scaskeleton.auth.grant.base.OAuth2ResourceOwnerBaseAuthenticationProvider;
 import io.github.fushuwei.scaskeleton.log.event.LoginLogEvent;
 import io.github.fushuwei.scaskeleton.log.support.UserAgentParser;
 import io.github.fushuwei.scaskeleton.security.user.ScaUserDetails;
@@ -48,7 +48,7 @@ import java.time.LocalDateTime;
  *   <li>成功路径：从 {@link ScaUserDetails} 直接获取 tenantId/userId，无需额外查询</li>
  *   <li>失败路径：SecurityContext 未建立，需反查 sys_user 填充 tenantId/userId（用户不存在时为空）</li>
  *   <li>real_name 由列表查询时 LEFT JOIN sys_user.real_name 获取，不在本类处理</li>
- *   <li>costMs 由 {@link LoginChannelFilter} 记录开始时间，本类在发布事件时计算差值</li>
+ * <li>costMs 由 {@link OAuth2ResourceOwnerBaseAuthenticationProvider} 记录开始时间，本类在发布事件时计算差值</li>
  * </ul>
  *
  * @author Fu Wei
@@ -169,7 +169,7 @@ public class LoginLogPublisher {
      * 计算登录耗时：从请求属性取出 {@link LoginChannelFilter} 记录的开始时间，求差值。
      */
     private Long calculateCostMs(HttpServletRequest request) {
-        Object startTime = request.getAttribute(LoginChannelFilter.ATTR_LOGIN_START_TIME);
+        Object startTime = request.getAttribute(OAuth2ResourceOwnerBaseAuthenticationProvider.ATTR_LOGIN_START_TIME);
         if (startTime instanceof Long start) {
             return System.currentTimeMillis() - start;
         }

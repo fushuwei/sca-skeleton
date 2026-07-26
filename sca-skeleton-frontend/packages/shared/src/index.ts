@@ -7,23 +7,14 @@ export { showToast, setNotifier } from "./oauth/toast";
 export type { NotificationType, Notifier } from "./oauth/toast";
 
 export {
-  buildAuthorizeUrl,
-  consumePkceSession,
-  exchangeAuthorizationCode,
-  generateCodeChallenge,
-  generateCodeVerifier,
-  generateRandomString,
-  generateState,
-  readOAuthConfigFromEnv,
+  loginWithPassword,
   refreshAccessToken,
   revokeOAuthToken,
-  savePkceSession,
-  startOAuthLogin
-} from "./oauth/pkce";
+  readOAuthConfigFromEnv
+} from "./oauth/password-grant";
 
 export type {
   OAuthAppConfig,
-  OAuthLoginOptions,
   OAuthTokenResponse,
-  PkceSession
-} from "./oauth/pkce";
+  OAuthTokenError
+} from "./oauth/password-grant";

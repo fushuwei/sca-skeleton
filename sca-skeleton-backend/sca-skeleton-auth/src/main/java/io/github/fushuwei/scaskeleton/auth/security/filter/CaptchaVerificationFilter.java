@@ -8,44 +8,48 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Instant;
 
 /**
- * 验证码校验过滤器：在表单认证前验证图形验证码。
+ * 验证码校验过滤器：在密码模式令牌请求认证前验证图形验证码。
  * <p>
- * 仅拦截 {@code POST /login/authenticate} 且当前登录渠道为 {@link LoginChannel#PORTAL} 时生效；
- * admin 渠道不要求验证码（管理后台运维场景，简化登录流程）。校验时读取 {@code captchaKey} 与
- * {@code captchaCode} 表单字段，调用 {@link CaptchaService#verify} 进行校验。
- * 校验失败时根据 {@code loginChannel} 参数回跳对应登录页并携带
- * {@code captcha-error} 标记；校验通过后继续过滤器链。
+ * 仅拦截 {@code POST /oauth2/token} 且 {@code grant_type=password} 且当前客户端为 portal 渠道时生效；
+ * admin 渠道不要求验证码（管理后台运维场景，简化登录流程）。
  * <p>
- * 需注册在 {@link LoginChannelFilter} 之后、{@code UsernamePasswordAuthenticationFilter} 之前。
+ * 校验时读取 {@code captcha_key} 与 {@code captcha_code} 参数，
+ * 调用 {@link CaptchaService#verify} 进行校验。
+ * 校验失败时返回标准 OAuth2 JSON 错误响应（不重定向，适配 SPA AJAX 调用）。
  *
  * @author Fu Wei
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CaptchaVerificationFilter extends OncePerRequestFilter {
 
-    /** 统一登录表单处理 URL */
-    private static final String LOGIN_PROCESSING_URI = "/login/authenticate";
+    /** SAS token 端点 URI */
+    private static final String TOKEN_URI = "/oauth2/token";
 
-    /** 表单字段名：验证码唯一标识 */
-    private static final String PARAM_CAPTCHA_KEY = "captchaKey";
+    /** 请求参数名：grant_type */
+    private static final String PARAM_GRANT_TYPE = "grant_type";
 
-    /** 表单字段名：用户输入的验证码文本 */
-    private static final String PARAM_CAPTCHA_CODE = "captchaCode";
+    /** 请求参数名：client_id */
+    private static final String PARAM_CLIENT_ID = "client_id";
 
-    /** 表单字段名：登录渠道（admin / portal） */
-    private static final String PARAM_LOGIN_CHANNEL = "loginChannel";
+    /** 请求参数名：验证码唯一标识 */
+    private static final String PARAM_CAPTCHA_KEY = "captcha_key";
 
-    /** 验证码校验失败时的查询参数名 */
-    private static final String CAPTCHA_ERROR_PARAM = "captcha-error";
+    /** 请求参数名：用户输入的验证码文本 */
+    private static final String PARAM_CAPTCHA_CODE = "captcha_code";
 
     private final CaptchaService captchaService;
 
@@ -55,33 +59,42 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
-        // 仅处理登录表单 POST
-        if (!isLoginAuthenticatePost(request)) {
+        // 仅处理 token 端点 POST 请求
+        if (!isTokenEndpointPost(request)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 仅 portal 渠道强制校验图形验证码：admin 登录页不展示验证码，无需校验。
-        String loginChannel = request.getParameter(PARAM_LOGIN_CHANNEL);
-        if (!LoginChannel.PORTAL.getValue().equals(loginChannel)) {
+        // 仅处理密码模式请求
+        String grantType = request.getParameter(PARAM_GRANT_TYPE);
+        if (!"password".equals(grantType)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 读取表单中的验证码字段
+        // 仅 portal 渠道强制校验图形验证码
+        String clientId = request.getParameter(PARAM_CLIENT_ID);
+        if (!isPortalClient(clientId)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 读取验证码参数
         String captchaKey = request.getParameter(PARAM_CAPTCHA_KEY);
         String captchaCode = request.getParameter(PARAM_CAPTCHA_CODE);
 
-        // portal 渠道未提交验证码时回跳登录页并携带 captcha-error 标记
+        // portal 渠道未提交验证码时返回错误
         if (!StringUtils.hasText(captchaKey) || !StringUtils.hasText(captchaCode)) {
-            redirectWithCaptchaError(request, response, loginChannel);
+            log.warn("密码模式验证码校验失败：client_id={}, 原因=验证码参数缺失", clientId);
+            writeCaptchaError(response, "验证码不能为空");
             return;
         }
 
         // 调用验证码服务校验（内部校验后立即删除 Redis key，一次性使用）
         boolean verified = captchaService.verify(captchaKey, captchaCode);
         if (!verified) {
-            redirectWithCaptchaError(request, response, loginChannel);
+            log.warn("密码模式验证码校验失败：client_id={}, captcha_key={}", clientId, captchaKey);
+            writeCaptchaError(response, "验证码错误，请重新输入");
             return;
         }
 
@@ -90,34 +103,30 @@ public class CaptchaVerificationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 判断是否为登录表单提交请求。
+     * 判断是否为 token 端点 POST 请求。
      */
-    private boolean isLoginAuthenticatePost(HttpServletRequest request) {
+    private boolean isTokenEndpointPost(HttpServletRequest request) {
         return "POST".equalsIgnoreCase(request.getMethod())
-                && LOGIN_PROCESSING_URI.equals(request.getRequestURI());
+                && TOKEN_URI.equals(request.getRequestURI());
     }
 
     /**
-     * 验证码校验失败时，302 重定向回登录页并仅携带 {@code captcha-error} 标记。
-     * <p>
-     * 不使用 {@code resolveExternalLoginFailureUrl}（该方法固定携带 {@code ?error}），
-     * 否则会导致登录页同时展示“用户名密码错误”与“验证码错误”两条提示。
+     * 判断 client_id 是否为 portal 客户端。
      */
-    private void redirectWithCaptchaError(HttpServletRequest request, HttpServletResponse response,
-            String loginChannel) throws IOException {
-        String clientId = resolveClientId(loginChannel);
-        String failureUrl = oauth2ClientProperties.resolveExternalLoginUrl(clientId)
-                + "?captcha-error";
-        response.sendRedirect(failureUrl);
+    private boolean isPortalClient(String clientId) {
+        return oauth2ClientProperties.getPortal().getClientId() != null
+                && oauth2ClientProperties.getPortal().getClientId().equals(clientId);
     }
 
     /**
-     * 将 loginChannel 映射为 clientId，用于构造回跳 URL。
+     * 返回标准 OAuth2 JSON 错误响应（不重定向，适配 SPA AJAX 调用）。
      */
-    private String resolveClientId(String loginChannel) {
-        if (LoginChannel.PORTAL.getValue().equals(loginChannel)) {
-            return oauth2ClientProperties.getPortal().getClientId();
-        }
-        return oauth2ClientProperties.getAdmin().getClientId();
+    private void writeCaptchaError(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpStatus.BAD_REQUEST.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        String json = String.format(
+            "{\"error\":\"invalid_request\",\"error_description\":\"%s\",\"timestamp\":%d}",
+            message, Instant.now().toEpochMilli());
+        response.getWriter().write(json);
     }
 }

@@ -35,12 +35,25 @@ public class ScaOpaqueAccessTokenClaimsCustomizer implements OAuth2TokenCustomiz
             return;
         }
         // 3) 写入标准业务 claims，字段名与资源服务器 OAuth2AccessTokenClaimNames 约定一致
+        // SAS 的 claim() 方法不允许 null 值，需逐个判空
         var claims = context.getClaims();
-        claims.subject(userDetails.getUserId());
-        claims.claim(OAuth2AccessTokenClaimNames.PREFERRED_USERNAME, userDetails.getUsername());
-        claims.claim(OAuth2AccessTokenClaimNames.TENANT_ID, userDetails.getTenantId());
-        claims.claim(OAuth2AccessTokenClaimNames.IS_SUPER_ADMIN, userDetails.getIsSuperadmin());
-        claims.claim(OAuth2AccessTokenClaimNames.NICKNAME, userDetails.getNickname());
-        claims.claim(OAuth2AccessTokenClaimNames.AUTHORITIES, userDetails.getPermissions());
+        if (userDetails.getUserId() != null) {
+            claims.subject(userDetails.getUserId());
+        }
+        if (userDetails.getUsername() != null) {
+            claims.claim(OAuth2AccessTokenClaimNames.PREFERRED_USERNAME, userDetails.getUsername());
+        }
+        if (userDetails.getTenantId() != null) {
+            claims.claim(OAuth2AccessTokenClaimNames.TENANT_ID, userDetails.getTenantId());
+        }
+        if (userDetails.getIsSuperadmin() != null) {
+            claims.claim(OAuth2AccessTokenClaimNames.IS_SUPER_ADMIN, userDetails.getIsSuperadmin());
+        }
+        if (userDetails.getNickname() != null) {
+            claims.claim(OAuth2AccessTokenClaimNames.NICKNAME, userDetails.getNickname());
+        }
+        if (userDetails.getPermissions() != null) {
+            claims.claim(OAuth2AccessTokenClaimNames.AUTHORITIES, userDetails.getPermissions());
+        }
     }
 }
