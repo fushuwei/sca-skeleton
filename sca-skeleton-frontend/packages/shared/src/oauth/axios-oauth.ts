@@ -85,10 +85,14 @@ export function createOAuthAxiosInstance(
         return instance.request(config);
       }
     }
-    // 令牌刷新失败：清除本地令牌并导航到登录页
-    options.clearTokens();
-    options.onTokensUpdated?.("", undefined);
-    options.redirectToLogin?.();
+    // 令牌刷新失败：仅当本地仍有令牌时清理并跳转登录，避免并发 401 重复触发副作用。
+    // 多个并发 401 共享同一个 refreshPromise，resolve 后同步逐个执行本分支：
+    // 第一个调用 clearTokens() 后 localStorage 被清空，后续调用 getAccessToken() 返回 null，跳过副作用。
+    if (options.getAccessToken()) {
+      options.clearTokens();
+      options.onTokensUpdated?.("", undefined);
+      options.redirectToLogin?.();
+    }
     return Promise.reject(new Error("登录已过期，请重新登录"));
   }
 
@@ -149,9 +153,12 @@ export async function oauthRequest<T>(
       retriedConfig._oauthRetried = true;
       return oauthRequest(instance, options, retriedConfig);
     }
-    options.clearTokens();
-    options.onTokensUpdated?.("", undefined);
-    options.redirectToLogin?.();
+    // 令牌刷新失败：仅当本地仍有令牌时清理并跳转登录，避免并发重复触发副作用
+    if (options.getAccessToken()) {
+      options.clearTokens();
+      options.onTokensUpdated?.("", undefined);
+      options.redirectToLogin?.();
+    }
     throw new Error(payload.message || "登录已过期，请重新登录");
   }
   return payload;
