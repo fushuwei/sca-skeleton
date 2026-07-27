@@ -1,26 +1,6 @@
-# ============================================================================
-# Cloudflare Tunnel 配置文件
-#
-# 部署路径：/root/.cloudflared/config.yml
-#   （注意：执行 `cloudflared service install` 之前，文件必须先放在这个位置）
-#
-# 单域名单入口架构：newease.cloud 所有路径 → 本机 Nginx:80
-# Nginx 内部再做 /admin/、/、/api/ 二次分流（见 sca-skeleton.conf）
-# ============================================================================
-
-# 隧道 UUID（cloudflared tunnel create 命令返回的 UUID，不是隧道名字）
-# ↓↓↓ 必须替换为真实值，替换清单见《安装步骤.md》 ↓↓↓
 tunnel: <YOUR_TUNNEL_UUID>
 credentials-file: /root/.cloudflared/<YOUR_TUNNEL_UUID>.json
-
-# 日志级别：调试时改为 info / debug
 loglevel: warn
-
-# ----------------------------------------------------------------------------
-# Ingress 规则
-# 单域名单入口：所有 newease.cloud 流量统一转发到本机 Nginx 容器（端口 8080）
-# ----------------------------------------------------------------------------
-
 ingress:
   # 主域名 → 本机 Nginx 容器
   # cloudflared 进程与 Nginx 同处一台宿主机，直接 127.0.0.1 即可
