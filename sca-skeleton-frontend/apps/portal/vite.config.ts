@@ -2,6 +2,7 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig, loadEnv } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { quasar, transformAssetUrls } from "@quasar/vite-plugin";
+import { overrideFontDisplay } from "@repo/ui/vite-plugins/override-font-display";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -45,6 +46,9 @@ export default defineConfig(({ mode }) => {
       }
     },
     plugins: [
+      // 必须放在 vue/quasar 之前：在 Vite 处理 CSS 前替换 @quasar/extras 的 font-display: block → swap
+      // 避免 Material Icons/Symbols 字体（5.2MB）在 block 模式下导致图标 3 秒不可见
+      overrideFontDisplay(),
       vue({
         template: { transformAssetUrls }
       }),

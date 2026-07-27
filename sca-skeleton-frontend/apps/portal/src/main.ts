@@ -10,7 +10,7 @@ import {
   readInitialDark
 } from "./i18n";
 import "quasar/src/css/index.sass";
-import "./styles/fonts-web.scss";
+import "@repo/ui/styles/fonts-web.scss";
 import "./styles/app-typography.scss";
 import "./styles/layout-overscroll.scss";
 import "@quasar/extras/material-icons/material-icons.css";

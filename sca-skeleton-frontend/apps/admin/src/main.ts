@@ -10,7 +10,7 @@ import {
   readInitialDark
 } from "./i18n"; // 应用文案与 Quasar 语言包对齐。
 import "quasar/src/css/index.sass"; // 导入 Quasar 基础样式。
-import "./styles/fonts-web.scss"; // 自托管 JetBrains Mono / OPPO Sans 的 @font-face（须先于 app-typography）
+import "@repo/ui/styles/fonts-web.scss"; // 自托管 JetBrains Mono / OPPO Sans 的 @font-face（须先于 app-typography）
 import "./styles/app-typography.scss"; // 全站字体栈（html 根节点与 Quasar 变量对齐）。
 import "./styles/layout-overscroll.scss"; // 全局收紧过度滚动，避免整页橡皮筋
 import "@quasar/extras/material-icons/material-icons.css"; // 导入 Material Icons 字体。
