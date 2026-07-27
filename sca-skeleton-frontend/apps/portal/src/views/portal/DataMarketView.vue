@@ -48,7 +48,7 @@ const products: DataProduct[] = [
   {
     id: 3,
     name: "教师绩效评估报告",
-    icon: "sym_r_assessment",
+    icon: "sym_r_analytics",
     color: "#7b1fa2",
     type: "report",
     domain: "人事域",
@@ -269,7 +269,7 @@ function viewDetail(product: DataProduct): void {
 
         <h3 class="product-card__title">{{ product.name }}</h3>
         <div class="product-card__provider">
-          <q-icon name="sym_r_business" size="14px" />
+          <q-icon name="sym_r_domain" size="14px" />
           <span>{{ product.provider }}</span>
         </div>
 

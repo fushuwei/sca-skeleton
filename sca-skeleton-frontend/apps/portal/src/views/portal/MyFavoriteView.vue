@@ -172,7 +172,7 @@ function unfavorite(row: FavoriteRow): void {
             <q-btn flat dense round size="sm" color="teal" icon="sym_r_visibility" @click.stop="viewDetail(props.row)">
               <q-tooltip>{{ t('myFavorite.viewDetail') }}</q-tooltip>
             </q-btn>
-            <q-btn flat dense round size="sm" color="negative" icon="sym_r_star_border" @click.stop="unfavorite(props.row)">
+            <q-btn flat dense round size="sm" color="negative" icon="sym_r_star" @click.stop="unfavorite(props.row)">
               <q-tooltip>{{ t('myFavorite.unfavorite') }}</q-tooltip>
             </q-btn>
           </q-td>

@@ -160,7 +160,7 @@ function markAllRead(): void {
               dense
               :label="t('notification.delete')"
               color="red"
-              icon="sym_r_delete_outline"
+              icon="sym_r_delete"
               size="12px"
               @click="deleteNotification(item)"
             />
