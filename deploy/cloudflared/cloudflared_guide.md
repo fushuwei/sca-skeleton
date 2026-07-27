@@ -46,8 +46,8 @@ cloudflared tunnel create thinkpad-tunnel
 ```yaml
 tunnel: <YOUR_TUNNEL_UUID>
 credentials-file: /root/.cloudflared/<YOUR_TUNNEL_UUID>.json
-loglevel: warn
 protocol: http2
+loglevel: warn
 
 ingress:
     # 1. SSH 远程访问：ssh.newease.cloud → 22 端口
