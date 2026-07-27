@@ -1,6 +1,6 @@
 # Cloudflare Tunnel (cloudflared) 安装与配置指南
 
-本文档提供了在 Ubuntu Server 上部署 Cloudflare Tunnel 的标准化流程，用于将本地服务（如 `192.168.1.105:8080`）安全地暴露至公网域名 `newease.cloud`。
+本文档提供了在 Ubuntu Server 上部署 Cloudflare Tunnel 的标准化流程，将该服务器作为统一的内网穿透接入点。
 
 ---
 
@@ -30,10 +30,10 @@ cloudflared tunnel login
 *授权完成后，系统会自动生成证书文件：`/root/.cloudflared/cert.pem`。*
 
 ### 2.2 创建隧道
-创建一个名为 `sca-skeleton` 的隧道：
+创建一个以机器命名的通用隧道：
 
 ```bash
-cloudflared tunnel create sca-skeleton
+cloudflared tunnel create thinkpad-tunnel
 ```
 **注意**：记下返回的 **Tunnel ID (UUID)**，后续配置需使用。
 
@@ -49,15 +49,19 @@ credentials-file: /root/.cloudflared/<YOUR_TUNNEL_UUID>.json
 loglevel: warn
 
 ingress:
-  # 1. 主域名映射至本地 Nginx 或服务端口
-  - hostname: newease.cloud
-    service: http://localhost:8080
-
-  # 2. SSH 远程访问（可选）
+  # 1. SSH 远程访问：ssh.newease.cloud → 22 端口
   - hostname: ssh.newease.cloud
     service: ssh://localhost:22
 
-  # 3. 兜底规则（必须保留）
+  # 2. 项目 sca-skeleton：newease.cloud → 8080 端口
+  - hostname: newease.cloud
+    service: http://localhost:8080
+
+  # 3. (可选) 未来可以继续添加更多域名映射
+  # - hostname: other.newease.cloud
+  #   service: http://localhost:3000
+
+  # 4. 兜底规则（必须保留）
   - service: http_status:404
 ```
 > **替换说明**：将 `<YOUR_TUNNEL_UUID>` 替换为 2.2 步骤中获取的实际 UUID。
@@ -70,10 +74,10 @@ ingress:
 
 ```bash
 # 映射主域名
-cloudflared tunnel route dns sca-skeleton newease.cloud
+cloudflared tunnel route dns thinkpad-tunnel newease.cloud
 
 # 映射 SSH 域名（如配置了 SSH）
-cloudflared tunnel route dns sca-skeleton ssh.newease.cloud
+cloudflared tunnel route dns thinkpad-tunnel ssh.newease.cloud
 ```
 
 ---
