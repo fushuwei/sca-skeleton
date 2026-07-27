@@ -236,7 +236,7 @@ onUnmounted(() => {
 
         <div class="carousel-controls">
           <button class="md3-icon-button carousel-prev" type="button" tabindex="-1" @click="moveCarousel(-1)">
-            <span class="material-symbols-rounded login-icon">chevron_left</span>
+            <q-icon name="chevron_left" class="login-icon" />
           </button>
           <div class="carousel-indicators">
             <span
@@ -248,7 +248,7 @@ onUnmounted(() => {
             />
           </div>
           <button class="md3-icon-button carousel-next" type="button" tabindex="-1" @click="moveCarousel(1)">
-            <span class="material-symbols-rounded login-icon">chevron_right</span>
+            <q-icon name="chevron_right" class="login-icon" />
           </button>
         </div>
       </div>
@@ -258,7 +258,7 @@ onUnmounted(() => {
         <div class="login-box md3-surface elevation-3">
           <div class="login-header">
             <div class="login-logo">
-              <span class="material-symbols-rounded login-icon logo-icon">admin_panel_settings</span>
+              <q-icon name="admin_panel_settings" class="login-icon logo-icon" />
             </div>
             <h1 class="md3-display-small login-title">用户登录</h1>
           </div>
@@ -267,7 +267,7 @@ onUnmounted(() => {
             <!-- 用户名 -->
             <div class="md3-text-field-container">
               <div class="md3-text-field-wrapper">
-                <span class="material-symbols-rounded login-icon field-icon">person</span>
+                <q-icon name="person" class="login-icon field-icon" />
                 <input
                   v-model="username"
                   ref="usernameInput"
@@ -279,7 +279,7 @@ onUnmounted(() => {
                   @focus="($event.target as HTMLInputElement).select()"
                 />
                 <div class="error-message" :style="{ display: usernameErrorVisible ? 'flex' : 'none' }">
-                  <span class="material-symbols-rounded login-icon error-icon">error</span>
+                  <q-icon name="error" class="login-icon error-icon" />
                   <span class="error-text">{{ usernameError }}</span>
                 </div>
               </div>
@@ -288,7 +288,7 @@ onUnmounted(() => {
             <!-- 密码 -->
             <div class="md3-text-field-container">
               <div class="md3-text-field-wrapper">
-                <span class="material-symbols-rounded login-icon field-icon">lock</span>
+                <q-icon name="lock" class="login-icon field-icon" />
                 <input
                   v-model="password"
                   ref="passwordInput"
@@ -299,12 +299,10 @@ onUnmounted(() => {
                   @input="validatePassword"
                 />
                 <button type="button" class="toggle-password" tabindex="-1" @click="togglePassword">
-                  <span class="material-symbols-rounded login-icon">
-                    {{ passwordVisible ? 'visibility_off' : 'visibility' }}
-                  </span>
+                  <q-icon :name="passwordVisible ? 'visibility_off' : 'visibility'" class="login-icon" />
                 </button>
                 <div class="error-message" :style="{ display: passwordErrorVisible ? 'flex' : 'none' }">
-                  <span class="material-symbols-rounded login-icon error-icon">error</span>
+                  <q-icon name="error" class="login-icon error-icon" />
                   <span class="error-text">{{ passwordError }}</span>
                 </div>
               </div>
@@ -313,7 +311,7 @@ onUnmounted(() => {
             <!-- 图形验证码 -->
             <div class="md3-text-field-container captcha-row">
               <div class="md3-text-field-wrapper">
-                <span class="material-symbols-rounded login-icon field-icon">verified_user</span>
+                <q-icon name="verified_user" class="login-icon field-icon" />
                 <input
                   v-model="captchaCode"
                   ref="captchaInput"
@@ -326,7 +324,7 @@ onUnmounted(() => {
                   @input="validateCaptcha"
                 />
                 <div class="error-message" :style="{ display: captchaErrorVisible ? 'flex' : 'none' }">
-                  <span class="material-symbols-rounded login-icon error-icon">error</span>
+                  <q-icon name="error" class="login-icon error-icon" />
                   <span class="error-text">{{ captchaError }}</span>
                 </div>
               </div>
