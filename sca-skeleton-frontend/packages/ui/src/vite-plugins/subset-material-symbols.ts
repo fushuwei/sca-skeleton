@@ -59,7 +59,11 @@ export function subsetMaterialSymbols(): Plugin {
       const fontBuffer = readFileSync(fontSrcPath);
 
       // 2. 扫描代码中的图标名（sym_r_xxx / sym_o_xxx / sym_s_xxx → 去前缀得到图标名）
-      // 扫描范围：frontend root 下的 apps/ 和 packages/
+      // 扫描范围：项目根目录下所有 .vue/.ts/.tsx/.scss/.sql 文件
+      // SQL 文件必须纳入扫描：菜单图标存储在数据库中，运行时由后端返回给前端，
+      // 前端源码中不会硬编码这些图标名。若不扫描 SQL，这些图标不会被纳入子集字体，
+      // 导致 iconMapFn 查不到 codepoint，Quasar fallback 到 ligature 渲染，
+      // 而子集字体不含 GSUB ligature 数据，最终显示为乱码。
       const frontendRoot = resolve(
         dirname(fileURLToPath(import.meta.url)),
         "..",
@@ -67,7 +71,8 @@ export function subsetMaterialSymbols(): Plugin {
         "..",
         ".."
       );
-      const icons = scanIcons(frontendRoot);
+      const projectRoot = resolve(frontendRoot, "..");
+      const icons = scanIcons(projectRoot);
       console.log(`[subset] 扫描到 ${icons.size} 个图标`);
 
       // 3. fontkit 解析 cmap，构建 name → codepoint 映射
@@ -140,19 +145,38 @@ export const materialSymbolsCodepoints: Record<string, number> = ${JSON.stringif
 }
 
 /**
- * 递归扫描 apps/ 和 packages/ 下的 .vue/.ts/.tsx/.scss 文件，
+ * 从项目根目录递归扫描 .vue/.ts/.tsx/.scss/.sql 文件，
  * 收集 sym_r_xxx / sym_o_xxx / sym_s_xxx 形式的图标引用，去前缀后返回图标名集合
+ *
+ * SQL 文件必须纳入扫描：菜单图标存储在数据库中，运行时由后端返回给前端，
+ * 前端源码中不会硬编码这些图标名。若不扫描 SQL，这些图标不会被纳入子集字体，
+ * 导致 iconMapFn 查不到 codepoint，Quasar fallback 到 ligature 渲染，
+ * 而子集字体不含 GSUB ligature 数据，最终显示为乱码。
+ *
+ * sca-skeleton-frontend 和 sca-skeleton-backend 是工程目录，不含生产 SQL 脚本，
+ * 进入这两个目录后不再扫描 .sql 文件（仍扫描 .vue/.ts/.tsx/.scss）。
  */
-function scanIcons(frontendRoot: string): Set<string> {
+function scanIcons(projectRoot: string): Set<string> {
   const icons = new Set<string>();
   const iconRe = /sym_[ros]_[a-z0-9_]*/g;
   const prefixRe = /^sym_[ros]_/;
+  // 跳过依赖、构建产物、IDE 配置等非源码目录
   const skipDirs = new Set([
     "node_modules",
     "dist",
     ".git",
     ".turbo",
-    "coverage"
+    "coverage",
+    "target",      // Java/Maven 编译产物
+    "build",       // Gradle 构建产物
+    ".gradle",     // Gradle 缓存
+    ".idea",       // IntelliJ IDEA 配置
+    ".vscode"      // VS Code 配置
+  ]);
+  // 进入这些目录后不再扫描 .sql（工程目录不含生产 SQL 脚本）
+  const noSqlDirs = new Set([
+    "sca-skeleton-frontend",
+    "sca-skeleton-backend"
   ]);
   // 跳过本插件及 iconMapFn 自身文件：注释里的 sym_r_xxx 是说明文字，不是真实图标引用
   const skipFiles = new Set([
@@ -160,9 +184,9 @@ function scanIcons(frontendRoot: string): Set<string> {
     "setup-icon-map.ts",
     "material-symbols-codepoints.ts"
   ]);
-  const extRe = /\.(vue|ts|tsx|scss)$/;
+  const sourceExtRe = /\.(vue|ts|tsx|scss)$/;
 
-  const walk = (dir: string) => {
+  const walk = (dir: string, allowSql: boolean) => {
     let entries: ReturnType<typeof readdirSync>;
     try {
       entries = readdirSync(dir, { withFileTypes: true });
@@ -172,22 +196,26 @@ function scanIcons(frontendRoot: string): Set<string> {
     for (const entry of entries) {
       if (entry.isDirectory()) {
         if (!skipDirs.has(entry.name)) {
-          walk(join(dir, entry.name));
+          // 进入工程目录后关闭 SQL 扫描
+          walk(join(dir, entry.name), !noSqlDirs.has(entry.name));
         }
-      } else if (extRe.test(entry.name) && !skipFiles.has(entry.name)) {
-        const content = readFileSync(join(dir, entry.name), "utf8");
-        const matches = content.match(iconRe);
-        if (matches) {
-          for (const m of matches) {
-            const name = m.replace(prefixRe, "");
-            if (name) icons.add(name);
+      } else if (!skipFiles.has(entry.name)) {
+        const isSource = sourceExtRe.test(entry.name);
+        const isSql = entry.name.endsWith(".sql");
+        if (isSource || (allowSql && isSql)) {
+          const content = readFileSync(join(dir, entry.name), "utf8");
+          const matches = content.match(iconRe);
+          if (matches) {
+            for (const m of matches) {
+              const name = m.replace(prefixRe, "");
+              if (name) icons.add(name);
+            }
           }
         }
       }
     }
   };
 
-  walk(join(frontendRoot, "apps"));
-  walk(join(frontendRoot, "packages"));
+  walk(projectRoot, true);
   return icons;
 }
