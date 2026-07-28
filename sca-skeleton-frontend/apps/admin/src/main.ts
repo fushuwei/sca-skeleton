@@ -45,12 +45,14 @@ app.use(Quasar, {
   plugins: { Dialog, Notify }, // 注册 Quasar Dialog 与 Notify 插件（$q.dialog / $q.notify 可用）。
   lang: initialQuasarLang, // 与 i18n locale 一致。
   config: {
-    dark: initialDark, // `$q.dark` 初始态；头部按钮再 toggle 并持久化。
-    // iconMapFn 必须放在 config 内（Quasar install 只读 $q.config.iconMapFn，类型定义里的顶层字段实际不生效）。
-    // build 时用 PUA 码位渲染（绕开 ligature）；dev 时映射为空，fallback 到 ligature。
-    iconMapFn: createMaterialSymbolsIconMapFn()
+    dark: initialDark // `$q.dark` 初始态；头部按钮再 toggle 并持久化。
   }
 }); // 挂载 Quasar。
+
+// Quasar 运行时只读 $q.config.iconMapFn（quasar.client.js:944），但 QuasarUIConfiguration 类型未声明该字段，
+// 放 config 内会 TS 报错。Quasar install 后通过 $q.iconMapFn setter（injectProp 注入）赋值，绕开类型与运行时不一致。
+// build 时用 PUA 码位渲染（绕开 ligature）；dev 时映射为空，fallback 到 ligature。
+app.config.globalProperties.$q.iconMapFn = createMaterialSymbolsIconMapFn();
 
 // 配置 Quasar Notify 全局默认 + 注入到 @repo/shared 的 showToast（admin/portal 共享实现）
 setupQuasarNotify();
