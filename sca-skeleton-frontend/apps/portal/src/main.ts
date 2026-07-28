@@ -43,9 +43,11 @@ app.use(i18n);
 app.use(Quasar, {
   plugins: { Dialog, Notify },
   lang: initialQuasarLang,
-  iconMapFn: createMaterialSymbolsIconMapFn(), // build 时用 PUA 码位渲染（绕开 ligature）；dev 时映射为空，fallback 到 ligature。
   config: {
-    dark: initialDark
+    dark: initialDark,
+    // iconMapFn 必须放在 config 内（Quasar install 只读 $q.config.iconMapFn，类型定义里的顶层字段实际不生效）。
+    // build 时用 PUA 码位渲染（绕开 ligature）；dev 时映射为空，fallback 到 ligature。
+    iconMapFn: createMaterialSymbolsIconMapFn()
   }
 });
 

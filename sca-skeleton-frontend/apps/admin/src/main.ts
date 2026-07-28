@@ -44,9 +44,11 @@ app.use(i18n); // 挂载 vue-i18n。
 app.use(Quasar, {
   plugins: { Dialog, Notify }, // 注册 Quasar Dialog 与 Notify 插件（$q.dialog / $q.notify 可用）。
   lang: initialQuasarLang, // 与 i18n locale 一致。
-  iconMapFn: createMaterialSymbolsIconMapFn(), // build 时用 PUA 码位渲染（绕开 ligature）；dev 时映射为空，fallback 到 ligature。
   config: {
-    dark: initialDark // `$q.dark` 初始态；头部按钮再 toggle 并持久化。
+    dark: initialDark, // `$q.dark` 初始态；头部按钮再 toggle 并持久化。
+    // iconMapFn 必须放在 config 内（Quasar install 只读 $q.config.iconMapFn，类型定义里的顶层字段实际不生效）。
+    // build 时用 PUA 码位渲染（绕开 ligature）；dev 时映射为空，fallback 到 ligature。
+    iconMapFn: createMaterialSymbolsIconMapFn()
   }
 }); // 挂载 Quasar。
 
