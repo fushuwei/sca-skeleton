@@ -95,8 +95,11 @@ start_backend() {
 
 # ---------------- 阶段 3：构建前端 ----------------
 build_frontend() {
-  log "构建前端 admin / portal dist"
+  log "安装前端依赖"
   cd "${FRONTEND_DIR}"
+  pnpm install --frozen-lockfile
+
+  log "构建前端 admin / portal dist"
   pnpm build:admin
   pnpm build:portal
 }
