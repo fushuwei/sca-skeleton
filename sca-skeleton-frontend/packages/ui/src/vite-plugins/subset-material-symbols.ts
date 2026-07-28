@@ -154,6 +154,12 @@ function scanIcons(frontendRoot: string): Set<string> {
     ".turbo",
     "coverage"
   ]);
+  // 跳过本插件及 iconMapFn 自身文件：注释里的 sym_r_xxx 是说明文字，不是真实图标引用
+  const skipFiles = new Set([
+    "subset-material-symbols.ts",
+    "setup-icon-map.ts",
+    "material-symbols-codepoints.ts"
+  ]);
   const extRe = /\.(vue|ts|tsx|scss)$/;
 
   const walk = (dir: string) => {
@@ -168,7 +174,7 @@ function scanIcons(frontendRoot: string): Set<string> {
         if (!skipDirs.has(entry.name)) {
           walk(join(dir, entry.name));
         }
-      } else if (extRe.test(entry.name)) {
+      } else if (extRe.test(entry.name) && !skipFiles.has(entry.name)) {
         const content = readFileSync(join(dir, entry.name), "utf8");
         const matches = content.match(iconRe);
         if (matches) {
