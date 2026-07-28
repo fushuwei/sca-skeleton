@@ -10,12 +10,14 @@ import {
   readInitialDark
 } from "./i18n"; // 应用文案与 Quasar 语言包对齐。
 import "quasar/src/css/index.sass"; // 导入 Quasar 基础样式。
-import "@repo/ui/styles/fonts-web.scss"; // 自托管 JetBrains Mono / OPPO Sans 的 @font-face（须先于 app-typography）
+import "@repo/ui/styles/fonts-web.scss"; // 自托管 JetBrains Mono 的 @font-face（须先于 app-typography）
 import "./styles/app-typography.scss"; // 全站字体栈（html 根节点与 Quasar 变量对齐）。
 import "./styles/layout-overscroll.scss"; // 全局收紧过度滚动，避免整页橡皮筋
 import "@quasar/extras/material-icons/material-icons.css"; // 导入 Material Icons 字体。
-import "@quasar/extras/material-symbols-rounded/material-symbols-rounded.css"; // 导入 Material Symbols Rounded 字体。
-import "./styles/material-symbols-axes.scss"; // 全站 Material Symbols 默认 FILL=0 等可变轴。
+// dev 用 @quasar/extras 完整字体（5MB，即写即显）；生产构建由 override-font-display 插件删除其 @font-face，
+// 改用下方 material-symbols-axes.scss 的子集字体（~140KB）。须先于 axes.scss，确保子集 @font-face 覆盖完整字体。
+import "@quasar/extras/material-symbols-rounded/material-symbols-rounded.css"; // Material Symbols Rounded 完整字体。
+import "./styles/material-symbols-axes.scss"; // Material Symbols Rounded：子集 @font-face + 类定义 + 可变轴。
 import "./styles/quasar-flat.scss"; // 导入全局直角风格样式覆盖。
 import "@repo/ui/styles/quasar-notify.scss"; // Quasar Notify 企业级样式覆盖（admin/portal 共享）。
 import "@repo/ui/styles/quasar-dialog.scss"; // Quasar Dialog 企业级样式覆盖。
@@ -23,6 +25,7 @@ import "./styles/admin-layout-dark.scss"; // AdminLayout 壳层在 Dark 模式�
 import { registerAdminTokenSync } from "./apis/http";
 import { useAuthStore } from "./stores/auth";
 import { setupQuasarNotify } from "@repo/ui";
+import { createMaterialSymbolsIconMapFn } from "@repo/ui/setup-icon-map";
 
 const app = createApp(App); // 创建 Vue 应用实例。
 const pinia = createPinia(); // 创建 Pinia 状态管理实例。
@@ -41,6 +44,7 @@ app.use(i18n); // 挂载 vue-i18n。
 app.use(Quasar, {
   plugins: { Dialog, Notify }, // 注册 Quasar Dialog 与 Notify 插件（$q.dialog / $q.notify 可用）。
   lang: initialQuasarLang, // 与 i18n locale 一致。
+  iconMapFn: createMaterialSymbolsIconMapFn(), // build 时用 PUA 码位渲染（绕开 ligature）；dev 时映射为空，fallback 到 ligature。
   config: {
     dark: initialDark // `$q.dark` 初始态；头部按钮再 toggle 并持久化。
   }

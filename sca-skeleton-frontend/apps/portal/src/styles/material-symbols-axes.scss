@@ -1,6 +1,27 @@
+// 子集字体由 Vite 插件 subset-material-symbols 在 build 时自动生成（仅含项目用到的图标，~140KB），
+// 替代 @quasar/extras 的 5MB 完整字体。构建前自动重新生成，新增图标无需手动操作。
 @font-face {
   font-family: "Material Symbols Rounded";
+  src: url("../../../../packages/ui/fonts/Material_Symbols/material-symbols-rounded-subset.woff2") format("woff2");
   font-display: swap;
+}
+
+// 原 @quasar/extras/material-symbols-rounded.css 的类定义（不再导入该 CSS，避免打包 5MB 完整字体）
+.material-symbols-rounded {
+  font-family: "Material Symbols Rounded";
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "liga";
 }
 
 .material-symbols-rounded,

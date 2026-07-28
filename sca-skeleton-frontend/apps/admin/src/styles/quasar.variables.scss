@@ -1,6 +1,7 @@
 $border-radius-base: 0px; // 将 Quasar 默认圆角设置为 0，保证全局直角。
 
-// 全站正文字体栈（拉丁优先 JetBrains Mono，中文缺字回退 OPPO Sans；@repo/ui/fonts 自托管）
+// 全站正文字体栈：拉丁文走自托管 JetBrains Mono（@repo/ui/fonts），中文回退系统字体
+// （mac PingFang SC / Windows Microsoft YaHei）；保留 "OPPO Sans" 供已安装该字体的机器优先命中
 $typography-font-family:
   "JetBrains Mono",
   "OPPO Sans",

@@ -82,6 +82,9 @@ ip2region/
 # 代码评审目录
 .code-reviews/
 
+# Material Symbols 子集字体（build 时由 Vite 插件 subset-material-symbols 自动生成，dev 用 @quasar/extras 完整字体）
+sca-skeleton-frontend/packages/ui/fonts/Material_Symbols/
+
 # AI models and agents
 .claude/
 .cursor/

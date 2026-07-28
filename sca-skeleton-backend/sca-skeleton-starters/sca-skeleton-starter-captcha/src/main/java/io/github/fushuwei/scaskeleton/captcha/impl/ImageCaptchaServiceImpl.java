@@ -9,7 +9,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
+import java.awt.Font;
+import java.awt.FontFormatException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -50,6 +53,11 @@ public class ImageCaptchaServiceImpl implements CaptchaService {
      * Redis 字符串模板
      */
     private final StringRedisTemplate stringRedisTemplate;
+
+    /**
+     * 缓存的验证码字体（避免每次请求都从 JAR 解析 TTF）
+     */
+    private volatile Font cachedFont;
 
     /**
      * 生成验证码并写入 HTTP 响应流（PNG 格式）
@@ -123,14 +131,36 @@ public class ImageCaptchaServiceImpl implements CaptchaService {
     }
 
     /**
-     * 创建 SpecCaptcha 实例
+     * 创建 SpecCaptcha 实例，注入缓存字体以避免每次请求重新解析 TTF
      *
      * @return 配置好的 SpecCaptcha 实例
      */
     private SpecCaptcha createCaptcha() {
         SpecCaptcha captcha = new SpecCaptcha(captchaWidth, captchaHeight, codeLength);
         captcha.setCharType(Captcha.TYPE_DEFAULT);
+        captcha.setFont(getCachedFont());
         return captcha;
+    }
+
+    /**
+     * 懒加载验证码字体（双重检查锁，仅首次调用时从 JAR 解析 TTF）
+     *
+     * @return 缓存的 Font 实例
+     */
+    private Font getCachedFont() {
+        if (cachedFont == null) {
+            synchronized (this) {
+                if (cachedFont == null) {
+                    try (InputStream is = getClass().getResourceAsStream("/actionj.ttf")) {
+                        cachedFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(Font.BOLD, 32f);
+                    } catch (FontFormatException | IOException e) {
+                        log.warn("[验证码] 加载内置字体失败，回退到系统字体", e);
+                        cachedFont = new Font("Arial", Font.BOLD, 32);
+                    }
+                }
+            }
+        }
+        return cachedFont;
     }
 
     /**

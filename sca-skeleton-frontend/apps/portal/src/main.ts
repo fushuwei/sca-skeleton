@@ -14,14 +14,17 @@ import "@repo/ui/styles/fonts-web.scss";
 import "./styles/app-typography.scss";
 import "./styles/layout-overscroll.scss";
 import "@quasar/extras/material-icons/material-icons.css";
-import "@quasar/extras/material-symbols-rounded/material-symbols-rounded.css";
-import "./styles/material-symbols-axes.scss";
+// dev 用 @quasar/extras 完整字体（5MB，即写即显）；生产构建由 override-font-display 插件删除其 @font-face，
+// 改用下方 material-symbols-axes.scss 的子集字体（~140KB）。须先于 axes.scss，确保子集 @font-face 覆盖完整字体。
+import "@quasar/extras/material-symbols-rounded/material-symbols-rounded.css"; // Material Symbols Rounded 完整字体。
+import "./styles/material-symbols-axes.scss"; // Material Symbols Rounded：子集 @font-face + 类定义 + 可变轴。
 import "./styles/quasar-flat.scss";
 import "@repo/ui/styles/quasar-notify.scss";
 import "@repo/ui/styles/quasar-dialog.scss";
 import { registerPortalTokenSync } from "./apis/http";
 import { usePortalAuthStore } from "./stores/auth";
 import { setupQuasarNotify } from "@repo/ui";
+import { createMaterialSymbolsIconMapFn } from "@repo/ui/setup-icon-map";
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -40,6 +43,7 @@ app.use(i18n);
 app.use(Quasar, {
   plugins: { Dialog, Notify },
   lang: initialQuasarLang,
+  iconMapFn: createMaterialSymbolsIconMapFn(), // build 时用 PUA 码位渲染（绕开 ligature）；dev 时映射为空，fallback 到 ligature。
   config: {
     dark: initialDark
   }
