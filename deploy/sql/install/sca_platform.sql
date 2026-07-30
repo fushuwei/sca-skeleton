@@ -379,9 +379,9 @@ SELECT t.* FROM (
     UNION ALL
     SELECT '9942', '9999', '通知公告', 'Announcements', 'menu', 'sys:notice:list', '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9915, 1, 0, 'enabled', '0,9999,9942', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '9943', '9999', '操作日志', 'Operation Logs', 'menu', 'sys:operation-log:list', '/system/log/operation', 'OperationLogListView', 'sym_r_nest_eco_leaf', 9916, 1, 0, 'enabled', '0,9999,9943', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9943', '9999', '操作日志', 'Operation Logs', 'menu', 'sys:operation-log:list', '/system/operation-log', 'OperationLogListView', 'sym_r_nest_eco_leaf', 9916, 1, 0, 'enabled', '0,9999,9943', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '9944', '9999', '登录日志', 'Login Logs', 'menu', 'sys:login-log:list', '/system/log/login', 'LoginLogListView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9944', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9944', '9999', '登录日志', 'Login Logs', 'menu', 'sys:login-log:list', '/system/login-log', 'LoginLogListView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9944', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
 WHERE NOT EXISTS (
     SELECT 1 FROM `sys_permission` WHERE `id` = '9999' AND `is_deleted` = 0
