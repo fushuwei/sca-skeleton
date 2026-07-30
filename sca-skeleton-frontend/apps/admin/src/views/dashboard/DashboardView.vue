@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue"; // 导入计算属性函数。
+import { computed, ref } from "vue"; // 导入计算属性函数。
 import { useAuthStore } from "../../stores/auth"; // 导入鉴权仓库。
 import { showToast } from "@repo/shared"; // 全局 Toast 提示（与项目实际按钮调用的底层方法一致）。
 
@@ -100,6 +100,13 @@ const notifyTestCases: NotifyTestCase[] = [
     }
   }
 ];
+
+// ═══════════════════════════════════════════════════════════════
+// Loading 效果对比（临时验证用，确定后删除）
+// ═══════════════════════════════════════════════════════════════
+
+const loadingAVisible = ref(false);
+const loadingBVisible = ref(false);
 </script>
 
 <template>
@@ -177,6 +184,44 @@ const notifyTestCases: NotifyTestCase[] = [
       </q-card-section>
     </q-card>
 
+    <!-- Loading 效果对比（临时验证用，确定后删除） -->
+    <q-card flat bordered class="workbench-notify-test">
+      <q-card-section class="row items-center q-pb-none">
+        <q-icon name="sym_r_autorenew" size="22px" color="primary" class="q-mr-sm" />
+        <span class="text-subtitle1 text-weight-medium">Loading 效果对比</span>
+        <q-space />
+        <span class="text-caption text-grey-6">
+          点击按钮查看全屏 loading 效果，点击遮罩关闭
+        </span>
+      </q-card-section>
+      <q-card-section>
+        <div class="row q-col-gutter-md">
+          <div class="col-6">
+            <q-btn
+              unelevated
+              no-caps
+              color="blue-7"
+              class="full-width notify-test-btn"
+              padding="sm md"
+              label="效果A：单环旋转（当前全局）"
+              @click="loadingAVisible = true"
+            />
+          </div>
+          <div class="col-6">
+            <q-btn
+              unelevated
+              no-caps
+              color="deep-orange-7"
+              class="full-width notify-test-btn"
+              padding="sm md"
+              label="效果B：双环叠放（对比方案）"
+              @click="loadingBVisible = true"
+            />
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
+
     <!-- 快捷说明 -->
     <q-banner rounded class="workbench-tip bg-grey-2 text-grey-9">
       <template #avatar>
@@ -186,6 +231,18 @@ const notifyTestCases: NotifyTestCase[] = [
         工作台为默认首页，可通过左侧<strong class="text-weight-medium">系统导航</strong>打开各业务模块；打开的页面会以标签页形式保留在主区域顶部，便于来回切换。
       </div>
     </q-banner>
+  </div>
+
+  <!-- Loading 效果A：单环旋转（当前全局 loading） -->
+  <div v-if="loadingAVisible" class="loading-overlay" @click="loadingAVisible = false">
+    <div class="loading-overlay__spinner-a"></div>
+    <div class="loading-overlay__text">正在加载...</div>
+  </div>
+
+  <!-- Loading 效果B：双环叠放（对比方案） -->
+  <div v-if="loadingBVisible" class="loading-overlay" @click="loadingBVisible = false">
+    <div class="loading-overlay__spinner-b"></div>
+    <div class="loading-overlay__text">正在加载...</div>
   </div>
 </template>
 
@@ -240,5 +297,82 @@ const notifyTestCases: NotifyTestCase[] = [
 
 .notify-test-btn :deep(.q-btn__content) {
   justify-content: flex-start;
+}
+
+/* ═══ Loading 效果对比（临时验证用，确定后删除）═══ */
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.loading-overlay__text {
+  font-size: 16px;
+  color: #666;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* 效果A：单环旋转（当前全局 loading） */
+.loading-overlay__spinner-a {
+  box-sizing: content-box;
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #1976d2;
+  border-radius: 50%;
+  animation: loading-a-spin 0.8s linear infinite;
+}
+
+@keyframes loading-a-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 效果B：双环叠放（对比方案） */
+.loading-overlay__spinner-b {
+  --clr: #3498db;
+  width: 50px;
+  height: 50px;
+  position: relative;
+}
+
+.loading-overlay__spinner-b:before,
+.loading-overlay__spinner-b:after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+  border: 6px solid transparent;
+  border-top-color: var(--clr);
+}
+
+.loading-overlay__spinner-b:before {
+  z-index: 100;
+  animation: loading-b-spin 1s linear infinite;
+}
+
+.loading-overlay__spinner-b:after {
+  border: 6px solid #ccc;
+}
+
+@keyframes loading-b-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
