@@ -74,9 +74,12 @@ public class Ip2RegionResolver implements IpRegionResolver, AutoCloseable {
     /**
      * 格式化 ip2region 返回的区域字符串
      * <p>
-     * 原始格式: {@code 国家|区域|省份|城市|ISP}
+     * 原始格式: {@code 国家|区域|省份|城市|ISP[|国家代码]}
+     * <p>
+     * 只保留国家/区域/省份/城市（索引 0~3），剔除运营商和国家代码。
      * <ul>
-     *   <li>{@code 中国|0|北京|北京市|电信} → {@code 中国 北京 北京市 电信}</li>
+     *   <li>{@code 中国|0|北京|北京市|电信|CN} → {@code 中国 北京 北京市}</li>
+     *   <li>{@code 中国|0|湖北省|0|移动|CN} → {@code 中国 湖北省}</li>
      *   <li>{@code 0|0|0|0|内网IP} → {@code 内网IP}</li>
      *   <li>{@code 0|0|0|0|0} → {@code null}</li>
      * </ul>
@@ -86,8 +89,12 @@ public class Ip2RegionResolver implements IpRegionResolver, AutoCloseable {
             return null;
         }
         String[] parts = region.split("\\|");
+        // 只保留索引 0~3（国家、区域、省份、城市），剔除运营商(4)和国家代码(5)
+        int start = 0;
+        int end = Math.min(parts.length, 4);
         StringBuilder sb = new StringBuilder();
-        for (String part : parts) {
+        for (int i = start; i < end; i++) {
+            String part = parts[i];
             // 过滤 {@code "0"}、空白、{@code "Reserved"}（ip2region 对保留/未分配 IP 段返回的无意义占位符）
             if (!"0".equals(part) && !part.isBlank() && !"Reserved".equals(part)) {
                 if (!sb.isEmpty()) {
