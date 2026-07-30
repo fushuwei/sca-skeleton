@@ -332,9 +332,8 @@ onUnmounted(() => {
                   :class="{ error: captchaErrorVisible }"
                   type="text"
                   placeholder="请输入验证码"
-                  maxlength="6"
                   autocomplete="off"
-                  @input="validateCaptcha"
+                  style="text-transform: uppercase"
                 />
                 <div class="error-message" :style="{ display: captchaErrorVisible ? 'flex' : 'none' }">
                   <q-icon name="sym_r_error" class="login-icon error-icon" />
