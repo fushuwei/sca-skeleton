@@ -354,7 +354,7 @@ const loadingBVisible = ref(false);
   width: 100%;
   height: 100%;
   border-radius: 100%;
-  border: 6px solid transparent;
+  border: 4px solid transparent;
   border-top-color: var(--clr);
 }
 
@@ -364,7 +364,7 @@ const loadingBVisible = ref(false);
 }
 
 .loading-overlay__spinner-b:after {
-  border: 6px solid #ccc;
+  border: 4px solid #ccc;
 }
 
 @keyframes loading-b-spin {
