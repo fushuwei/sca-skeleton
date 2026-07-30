@@ -129,6 +129,9 @@ function restartCarousel(): void {
 async function handleLogin(): Promise<void> {
   if (loading.value) return;
 
+  // 让当前聚焦的输入框失去焦点，避免登录过程中光标仍停留在输入框
+  (document.activeElement as HTMLElement | null)?.blur();
+
   const isUsernameValid = validateUsername();
   const isPasswordValid = validatePassword();
   const isCaptchaValid = validateCaptcha();
