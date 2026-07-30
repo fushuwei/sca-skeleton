@@ -29,6 +29,14 @@
     "notFoundDesc": "您访问的页面可能已被移除或暂时不可用",
     "backHome": "返回首页"
   },
+  "api": {
+    "timeout": "请求超时，请稍后重试",
+    "networkError": "网络异常，请稍后重试",
+    "forbidden": "权限不足，无法访问该功能",
+    "tooManyRequests": "请求过于频繁，请稍后重试",
+    "serverError": "服务器异常，请稍后重试",
+    "unauthorized": "登录已过期，请重新登录"
+  },
   "home": {
     "welcomeTitle": "欢迎使用数据中台",
     "welcomeSubtitle": "一站式数据资产管理与服务平台",

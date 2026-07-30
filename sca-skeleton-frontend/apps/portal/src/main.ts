@@ -21,7 +21,7 @@ import "./styles/material-symbols-axes.scss"; // Material Symbols Rounded：子�
 import "./styles/quasar-flat.scss";
 import "@repo/ui/styles/quasar-notify.scss";
 import "@repo/ui/styles/quasar-dialog.scss";
-import { registerPortalTokenSync } from "./apis/http";
+import { registerPortalTokenSync, registerPortalTranslator } from "./apis/http";
 import { usePortalAuthStore } from "./stores/auth";
 import { setupQuasarNotify } from "@repo/ui";
 import { createMaterialSymbolsIconMapFn } from "@repo/ui/setup-icon-map";
@@ -38,6 +38,8 @@ app.use(pinia);
 registerPortalTokenSync((accessToken, refreshToken) => {
   usePortalAuthStore().syncOAuthTokens(accessToken, refreshToken);
 });
+// 注入 i18n 翻译函数，供 HTTP 错误拦截器国际化提示文案（超时、网络异常等）
+registerPortalTranslator((key, params) => i18n.global.t(key, params as Record<string, string | number>));
 app.use(router);
 app.use(i18n);
 app.use(Quasar, {

@@ -29,6 +29,14 @@
     "notFoundDesc": "The page you are looking for may have been removed or is temporarily unavailable",
     "backHome": "Back to Home"
   },
+  "api": {
+    "timeout": "Request timed out, please try again",
+    "networkError": "Network error, please try again",
+    "forbidden": "Permission denied",
+    "tooManyRequests": "Too many requests, please try later",
+    "serverError": "Server error, please try again",
+    "unauthorized": "Session expired, please sign in again"
+  },
   "home": {
     "welcomeTitle": "Welcome to Data Platform",
     "welcomeSubtitle": "One-stop data asset management and service platform",

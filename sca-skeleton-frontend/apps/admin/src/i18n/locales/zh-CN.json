@@ -44,6 +44,14 @@
     "targetTenantRequired": "请选择目标租户",
     "searchFormInvalid": "搜索条件存在格式错误，请检查后再试"
   },
+  "api": {
+    "timeout": "请求超时，请稍后重试",
+    "networkError": "网络异常，请稍后重试",
+    "forbidden": "权限不足，无法访问该功能",
+    "tooManyRequests": "请求过于频繁，请稍后重试",
+    "serverError": "服务器异常，请稍后重试",
+    "unauthorized": "登录已过期，请重新登录"
+  },
   "layout": {
     "brandTitle": "数据中台管理系统",
     "workbench": "工作台",

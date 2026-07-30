@@ -18,6 +18,22 @@ export function registerAdminTokenSync(
   onTokensUpdated = handler;
 }
 
+let translateFn:
+  | ((key: string, params?: Record<string, string | number>) => string)
+  | undefined;
+
+/**
+ * 注册 i18n 翻译回调，供 HTTP 错误拦截器国际化提示文案。
+ * <p>
+ * 因 http.ts 模块加载早于 vue-i18n 实例创建，需在 main.ts 启动阶段调用此方法延迟注入
+ * （与 {@link registerAdminTokenSync} 同理）。
+ */
+export function registerAdminTranslator(
+  fn: (key: string, params?: Record<string, string | number>) => string
+): void {
+  translateFn = fn;
+}
+
 const oauthAxiosOptions = {
   getAccessToken: () => localStorage.getItem(TOKEN_STORAGE_KEY),
   getRefreshToken: () => localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY),
@@ -43,7 +59,9 @@ const oauthAxiosOptions = {
   },
   showNotification: (type: "positive" | "negative" | "warning", message: string) => {
     showToast(message, type);
-  }
+  },
+  translate: (key: string, params?: Record<string, string | number>) =>
+    translateFn?.(key, params) ?? key
 };
 
 export const http = createOAuthAxiosInstance(oauthAxiosOptions, {

@@ -22,7 +22,7 @@ import "./styles/quasar-flat.scss"; // 导入全局直角风格样式覆盖。
 import "@repo/ui/styles/quasar-notify.scss"; // Quasar Notify 企业级样式覆盖（admin/portal 共享）。
 import "@repo/ui/styles/quasar-dialog.scss"; // Quasar Dialog 企业级样式覆盖。
 import "./styles/admin-layout-dark.scss"; // AdminLayout 壳层在 Dark 模式下的颜色修补。
-import { registerAdminTokenSync } from "./apis/http";
+import { registerAdminTokenSync, registerAdminTranslator } from "./apis/http";
 import { useAuthStore } from "./stores/auth";
 import { setupQuasarNotify } from "@repo/ui";
 import { createMaterialSymbolsIconMapFn } from "@repo/ui/setup-icon-map";
@@ -39,6 +39,8 @@ app.use(pinia); // 挂载 Pinia 到应用实例。
 registerAdminTokenSync((accessToken, refreshToken) => {
   useAuthStore().syncOAuthTokens(accessToken, refreshToken);
 });
+// 注入 i18n 翻译函数，供 HTTP 错误拦截器国际化提示文案（超时、网络异常等）
+registerAdminTranslator((key, params) => i18n.global.t(key, params as Record<string, string | number>));
 app.use(router); // 挂载路由到应用实例。
 app.use(i18n); // 挂载 vue-i18n。
 app.use(Quasar, {

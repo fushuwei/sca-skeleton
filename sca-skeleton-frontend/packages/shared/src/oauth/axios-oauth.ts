@@ -23,6 +23,13 @@ export interface OAuthAxiosOptions {
   unauthorizedCode?: number;
   /** 全局通知回调，用于在 HTTP 错误时弹出提示（可选）。 */
   showNotification?: (type: NotificationType, message: string) => void;
+  /**
+   * 文案翻译回调，用于将 HTTP 错误提示国际化（可选）。
+   * <p>
+   * 由各 SPA 在启动阶段注入（如 vue-i18n 的 `i18n.global.t`）。未注入时，
+   * 所有错误文案回退到下方各分支的中文兜底，行为与历史版本一致。
+   */
+  translate?: (key: string, params?: Record<string, string | number>) => string;
 }
 
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
@@ -30,6 +37,30 @@ interface RetryableRequestConfig extends InternalAxiosRequestConfig {
 }
 
 let refreshPromise: Promise<string | null> | null = null;
+
+/**
+ * 解析 HTTP 错误提示文案：优先走注入的 {@link OAuthAxiosOptions.translate}（i18n），
+ * 未注入时回退到中文兜底，保持向后兼容。
+ */
+function resolveMessage(
+  options: OAuthAxiosOptions,
+  key: string,
+  fallback: string
+): string {
+  return options.translate ? options.translate(key) : fallback;
+}
+
+/**
+ * 构造一个"已弹出通知"的 reject 错误，并打上 `_notificationHandled` 标记。
+ * <p>
+ * 用于响应拦截器各分支，调用方 catch 块可通过 {@link isNotificationHandled}
+ * 判定后跳过重复提示。
+ */
+function rejectHandled(message: string): Promise<never> {
+  const handled = new Error(message);
+  (handled as Error & { _notificationHandled?: boolean })._notificationHandled = true;
+  return Promise.reject(handled);
+}
 
 async function refreshAccessTokenOnce(options: OAuthAxiosOptions): Promise<string | null> {
   if (refreshPromise) {
@@ -93,7 +124,7 @@ export function createOAuthAxiosInstance(
       options.onTokensUpdated?.("", undefined);
       options.redirectToLogin?.();
     }
-    return Promise.reject(new Error("登录已过期，请重新登录"));
+    return Promise.reject(new Error(resolveMessage(options, "api.unauthorized", "登录已过期，请重新登录")));
   }
 
   instance.interceptors.response.use(
@@ -103,29 +134,38 @@ export function createOAuthAxiosInstance(
       if (error.response?.status === 401) {
         return handleUnauthorized(config);
       }
-      if (error.response?.status === 403) {
-        options.showNotification?.("negative", "权限不足，无法访问该功能");
-        const handled = new Error("权限不足，无法访问该功能");
-        (handled as Error & { _notificationHandled?: boolean })._notificationHandled = true;
-        return Promise.reject(handled);
+      // 请求超时：axios 置 error.code 为 ECONNABORTED，message 形如 "timeout of 10000ms exceeded"。
+      // 必须在 401 之后、无 response 分支之前判断，避免把超时错误泄漏为英文原始 message。
+      if (error.code === "ECONNABORTED" || /timeout/i.test(error.message ?? "")) {
+        const msg = resolveMessage(options, "api.timeout", "请求超时，请稍后重试");
+        options.showNotification?.("negative", msg);
+        return rejectHandled(msg);
       }
-      if (error.response?.status === 429) {
-        options.showNotification?.("negative", "请求过于频繁，请稍后重试");
-        const handled = new Error("请求过于频繁，请稍后重试");
-        (handled as Error & { _notificationHandled?: boolean })._notificationHandled = true;
-        return Promise.reject(handled);
+      // 无 response：网络断开 / DNS 失败 / 请求未发出等，此前会把英文 "Network Error" 弹给用户。
+      if (!error.response) {
+        const msg = resolveMessage(options, "api.networkError", "网络异常，请稍后重试");
+        options.showNotification?.("negative", msg);
+        return rejectHandled(msg);
       }
-      if (error.response && error.response.status >= 500) {
-        options.showNotification?.("negative", "服务器异常，请稍后重试");
-        const handled = new Error("服务器异常，请稍后重试");
-        (handled as Error & { _notificationHandled?: boolean })._notificationHandled = true;
-        return Promise.reject(handled);
+      if (error.response.status === 403) {
+        const msg = resolveMessage(options, "api.forbidden", "权限不足，无法访问该功能");
+        options.showNotification?.("negative", msg);
+        return rejectHandled(msg);
       }
-      const msg = error.message || "网络异常，请稍后重试";
+      if (error.response.status === 429) {
+        const msg = resolveMessage(options, "api.tooManyRequests", "请求过于频繁，请稍后重试");
+        options.showNotification?.("negative", msg);
+        return rejectHandled(msg);
+      }
+      if (error.response.status >= 500) {
+        const msg = resolveMessage(options, "api.serverError", "服务器异常，请稍后重试");
+        options.showNotification?.("negative", msg);
+        return rejectHandled(msg);
+      }
+      // 其余带 response 的非预期错误，回退到原始 message 或网络异常兜底。
+      const msg = error.message || resolveMessage(options, "api.networkError", "网络异常，请稍后重试");
       options.showNotification?.("negative", msg);
-      const handled = new Error(msg);
-      (handled as Error & { _notificationHandled?: boolean })._notificationHandled = true;
-      return Promise.reject(handled);
+      return rejectHandled(msg);
     }
   );
 
@@ -159,7 +199,7 @@ export async function oauthRequest<T>(
       options.onTokensUpdated?.("", undefined);
       options.redirectToLogin?.();
     }
-    throw new Error(payload.message || "登录已过期，请重新登录");
+    throw new Error(payload.message || resolveMessage(options, "api.unauthorized", "登录已过期，请重新登录"));
   }
   return payload;
 }

@@ -44,6 +44,14 @@
     "targetTenantRequired": "Please select a target tenant",
     "searchFormInvalid": "Search conditions contain format errors, please check and retry"
   },
+  "api": {
+    "timeout": "Request timed out, please try again",
+    "networkError": "Network error, please try again",
+    "forbidden": "Permission denied",
+    "tooManyRequests": "Too many requests, please try later",
+    "serverError": "Server error, please try again",
+    "unauthorized": "Session expired, please sign in again"
+  },
   "layout": {
     "brandTitle": "Data Middle Platform",
     "workbench": "Workbench",
