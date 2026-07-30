@@ -727,6 +727,7 @@ onMounted(() => {
             <q-pagination
               v-model="curPage"
               :max="props.pagesNumber"
+              :max-pages="7"
               size="sm"
               color="primary"
               boundary-links
