@@ -135,7 +135,17 @@ async function handleLogin(): Promise<void> {
   const isUsernameValid = validateUsername();
   const isPasswordValid = validatePassword();
   const isCaptchaValid = validateCaptcha();
-  if (!isUsernameValid || !isPasswordValid || !isCaptchaValid) return;
+  if (!isUsernameValid || !isPasswordValid || !isCaptchaValid) {
+    // 依序聚焦第一个校验不通过的输入框，若已有值则全选
+    const firstInvalidInput = !isUsernameValid
+      ? usernameInput.value
+      : !isPasswordValid
+        ? passwordInput.value
+        : captchaInput.value;
+    firstInvalidInput?.focus();
+    firstInvalidInput?.select();
+    return;
+  }
 
   loading.value = true;
 
@@ -149,8 +159,8 @@ async function handleLogin(): Promise<void> {
   } catch (error) {
     const message = error instanceof Error ? error.message : "登录失败，请重试";
     showToast(message, "negative");
-    // 登录失败后刷新验证码
-    void fetchCaptcha();
+    // 登录失败后刷新验证码，刷新成功后聚焦验证码输入框
+    void fetchCaptcha(true);
   } finally {
     loading.value = false;
   }
