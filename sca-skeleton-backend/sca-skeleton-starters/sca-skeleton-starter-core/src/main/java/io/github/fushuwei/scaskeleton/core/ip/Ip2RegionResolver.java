@@ -47,9 +47,8 @@ public class Ip2RegionResolver implements IpRegionResolver, AutoCloseable {
         }
         try {
             String region = ip2Region.search(ip);
-            String formatted = formatRegion(region);
-            log.info("[IP解析] clientIp={}, 原始数据={}, 位置={}", ip, region, formatted);
-            return formatted;
+            log.info("[IP解析] {} => {}", ip, region);
+            return formatRegion(region);
         } catch (Exception e) {
             log.warn("[IP解析] 无法解析 IP: {} ({})", ip, e.getMessage());
             return null;
