@@ -6,7 +6,7 @@ import {
   TOKEN_STORAGE_KEY
 } from "../constants/auth-storage";
 
-const REQUEST_TIMEOUT = 10_000;
+const REQUEST_TIMEOUT = 15_000;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 let onTokensUpdated: ((accessToken: string, refreshToken?: string) => void) | undefined;
