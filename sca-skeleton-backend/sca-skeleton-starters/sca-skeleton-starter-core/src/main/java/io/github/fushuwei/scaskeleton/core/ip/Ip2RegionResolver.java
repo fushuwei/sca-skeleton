@@ -47,7 +47,6 @@ public class Ip2RegionResolver implements IpRegionResolver, AutoCloseable {
         }
         try {
             String region = ip2Region.search(ip);
-            log.info("====== " + region);
             return formatRegion(region);
         } catch (Exception e) {
             log.warn("[IP解析] 无法解析 IP: {} ({})", ip, e.getMessage());
@@ -75,13 +74,12 @@ public class Ip2RegionResolver implements IpRegionResolver, AutoCloseable {
     /**
      * 格式化 ip2region 返回的区域字符串
      * <p>
-     * 原始格式: {@code 国家|区域|省份|城市|ISP[|国家代码]}
+     * 原始格式: {@code 国家|省份|城市|ISP|国家代码}
      * <p>
-     * 只保留国家/区域/省份/城市（索引 0~3），剔除运营商和国家代码。
+     * 只保留国家/省份/城市（索引 0~2），剔除运营商和国家代码。
      * <ul>
-     *   <li>{@code 中国|0|北京|北京市|电信|CN} → {@code 中国 北京 北京市}</li>
-     *   <li>{@code 中国|0|湖北省|0|移动|CN} → {@code 中国 湖北省}</li>
-     *   <li>{@code 0|0|0|0|内网IP} → {@code 内网IP}</li>
+     *   <li>{@code 中国|湖北省|武汉市|移动|CN} → {@code 中国 湖北省 武汉市}</li>
+     *   <li>{@code 中国|湖北省|0|移动|CN} → {@code 中国 湖北省}</li>
      *   <li>{@code 0|0|0|0|0} → {@code null}</li>
      * </ul>
      */
@@ -90,9 +88,9 @@ public class Ip2RegionResolver implements IpRegionResolver, AutoCloseable {
             return null;
         }
         String[] parts = region.split("\\|");
-        // 只保留索引 0~3（国家、区域、省份、城市），剔除运营商(4)和国家代码(5)
+        // 只保留索引 0~2（国家、省份、城市），剔除运营商(3)和国家代码(4)
         int start = 0;
-        int end = Math.min(parts.length, 4);
+        int end = Math.min(parts.length, 3);
         StringBuilder sb = new StringBuilder();
         for (int i = start; i < end; i++) {
             String part = parts[i];
