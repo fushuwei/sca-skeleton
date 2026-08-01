@@ -101,6 +101,7 @@ const notifyTestCases: NotifyTestCase[] = [
 
 const loadingAVisible = ref(false);
 const loadingBVisible = ref(false);
+const loadingCVisible = ref(false);
 </script>
 
 <template>
@@ -169,7 +170,7 @@ const loadingBVisible = ref(false);
       </q-card-section>
       <q-card-section>
         <div class="row q-col-gutter-md">
-          <div class="col-6">
+          <div class="col-12 col-sm-4">
             <q-btn
               unelevated
               no-caps
@@ -180,7 +181,7 @@ const loadingBVisible = ref(false);
               @click="loadingAVisible = true"
             />
           </div>
-          <div class="col-6">
+          <div class="col-12 col-sm-4">
             <q-btn
               unelevated
               no-caps
@@ -189,6 +190,17 @@ const loadingBVisible = ref(false);
               padding="sm md"
               label="效果B：双环叠放（对比方案）"
               @click="loadingBVisible = true"
+            />
+          </div>
+          <div class="col-12 col-sm-4">
+            <q-btn
+              unelevated
+              no-caps
+              color="teal-7"
+              class="full-width notify-test-btn"
+              padding="sm md"
+              label="效果C：A+B 同屏对比"
+              @click="loadingCVisible = true"
             />
           </div>
         </div>
@@ -206,6 +218,20 @@ const loadingBVisible = ref(false);
   <div v-if="loadingBVisible" class="loading-overlay" @click="loadingBVisible = false">
     <div class="loading-overlay__spinner-b"></div>
     <div class="loading-overlay__text">正在加载...</div>
+  </div>
+
+  <!-- Loading 效果C：A+B 同屏对比 -->
+  <div v-if="loadingCVisible" class="loading-overlay" @click="loadingCVisible = false">
+    <div class="loading-overlay__compare">
+      <div class="loading-overlay__compare-item">
+        <div class="loading-overlay__spinner-a"></div>
+        <div class="loading-overlay__text">效果A · 正在加载...</div>
+      </div>
+      <div class="loading-overlay__compare-item">
+        <div class="loading-overlay__spinner-b"></div>
+        <div class="loading-overlay__text">效果B · 正在加载...</div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -313,5 +339,19 @@ const loadingBVisible = ref(false);
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* 效果C：A+B 同屏对比 */
+.loading-overlay__compare {
+  display: flex;
+  gap: 80px;
+  align-items: center;
+}
+
+.loading-overlay__compare-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 </style>
