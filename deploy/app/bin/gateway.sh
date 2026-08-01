@@ -4,12 +4,12 @@ cd /data/projects/sca-skeleton || exit 1
 # 构建：在项目根目录编译网关模块及其依赖模块
 mvn clean package -pl sca-skeleton-backend/sca-skeleton-gateway -am -DskipTests
 
-# 部署：将构建产物拷贝到 bin/dev 目录
-cp sca-skeleton-backend/sca-skeleton-gateway/target/sca-skeleton-gateway-1.0.0.jar bin/dev/
-
-# 停止旧进程
-pkill -9 -f "bin/dev/sca-skeleton-gateway-1.0.0.jar"
+# 停止旧进程（先停，避免占用 jar 文件导致覆盖异常）
+pkill -9 -f "java -jar bin/dev/sca-skeleton-gateway-1.0.0.jar"
 sleep 1
+
+# 部署：将构建产物拷贝到 bin/dev 目录（覆盖旧 jar）
+cp sca-skeleton-backend/sca-skeleton-gateway/target/sca-skeleton-gateway-1.0.0.jar bin/dev/
 
 # 加载环境变量并启动
 set -a
