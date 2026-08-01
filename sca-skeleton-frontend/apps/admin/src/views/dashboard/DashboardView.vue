@@ -102,6 +102,7 @@ const notifyTestCases: NotifyTestCase[] = [
 const loadingAVisible = ref(false);
 const loadingBVisible = ref(false);
 const loadingCVisible = ref(false);
+const loadingDVisible = ref(false);
 </script>
 
 <template>
@@ -170,7 +171,7 @@ const loadingCVisible = ref(false);
       </q-card-section>
       <q-card-section>
         <div class="row q-col-gutter-md">
-          <div class="col-12 col-sm-4">
+          <div class="col-12 col-sm-6 col-md-3">
             <q-btn
               unelevated
               no-caps
@@ -181,7 +182,7 @@ const loadingCVisible = ref(false);
               @click="loadingAVisible = true"
             />
           </div>
-          <div class="col-12 col-sm-4">
+          <div class="col-12 col-sm-6 col-md-3">
             <q-btn
               unelevated
               no-caps
@@ -192,7 +193,7 @@ const loadingCVisible = ref(false);
               @click="loadingBVisible = true"
             />
           </div>
-          <div class="col-12 col-sm-4">
+          <div class="col-12 col-sm-6 col-md-3">
             <q-btn
               unelevated
               no-caps
@@ -201,6 +202,17 @@ const loadingCVisible = ref(false);
               padding="sm md"
               label="效果C：A+B 同屏对比"
               @click="loadingCVisible = true"
+            />
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <q-btn
+              unelevated
+              no-caps
+              color="purple-7"
+              class="full-width notify-test-btn"
+              padding="sm md"
+              label="效果D：A+B 同位叠放"
+              @click="loadingDVisible = true"
             />
           </div>
         </div>
@@ -225,13 +237,22 @@ const loadingCVisible = ref(false);
     <div class="loading-overlay__compare">
       <div class="loading-overlay__compare-item">
         <div class="loading-overlay__spinner-a"></div>
-        <div class="loading-overlay__text">效果A · 正在加载...</div>
+        <div class="loading-overlay__text">正在加载...</div>
       </div>
       <div class="loading-overlay__compare-item">
         <div class="loading-overlay__spinner-b"></div>
-        <div class="loading-overlay__text">效果B · 正在加载...</div>
+        <div class="loading-overlay__text">正在加载...</div>
       </div>
     </div>
+  </div>
+
+  <!-- Loading 效果D：A+B 同位叠放（按实际坐标显示，可能重叠） -->
+  <div v-if="loadingDVisible" class="loading-overlay" @click="loadingDVisible = false">
+    <div class="loading-overlay__stack">
+      <div class="loading-overlay__spinner-a"></div>
+      <div class="loading-overlay__spinner-b"></div>
+    </div>
+    <div class="loading-overlay__text">正在加载...</div>
   </div>
 </template>
 
@@ -353,5 +374,18 @@ const loadingCVisible = ref(false);
   flex-direction: column;
   align-items: center;
   gap: 16px;
+}
+
+/* 效果D：A+B 同位叠放（按实际坐标居中重叠，不加区分标签） */
+.loading-overlay__stack {
+  position: relative;
+  width: 50px;
+  height: 50px;
+}
+
+.loading-overlay__stack > * {
+  position: absolute;
+  inset: 0;
+  margin: auto;
 }
 </style>
