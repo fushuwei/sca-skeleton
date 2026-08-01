@@ -306,8 +306,12 @@ function initForm() {
 watch(() => props.role, initForm, { immediate: true });
 
 onMounted(() => {
-  loadPermTree();
   loadTenantOptions();
+  // 新增模式：默认不加载授权面板（权限树为空），待选择角色域后按域动态查询，避免查出全部域的权限；
+  // 编辑/查看模式：realm 已从角色回填，打开时按角色域加载权限树。
+  if (props.mode !== "add") {
+    loadPermTree();
+  }
 });
 
 // 同步 q-tree ticked 到 form.permissionIds
@@ -321,6 +325,8 @@ watch(() => form.realm, (newRealm, oldRealm) => {
   if (props.mode !== 'add' || newRealm === oldRealm) return;
   permTreeTicked.value = [];
   form.permissionIds = [];
+  // 仅当选择了角色域时按域动态查询；未选域（清空）则保持授权面板为空，避免查出全部域的权限
+  if (!newRealm) return;
   loadPermTree();
 });
 
