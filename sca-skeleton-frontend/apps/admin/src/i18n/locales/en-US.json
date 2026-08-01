@@ -1,4 +1,9 @@
 {
+  "error": {
+    "notFoundTitle": "Page Not Found",
+    "notFoundDesc": "The page you are looking for may have been removed or is temporarily unavailable",
+    "backHome": "Back to Home"
+  },
   "common": {
     "all": "All",
     "search": "Search",

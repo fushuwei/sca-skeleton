@@ -2,11 +2,16 @@
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 
+const props = defineProps<{
+  /** 点击「返回首页」按钮后跳转的目标路径 */
+  homePath: string;
+}>();
+
 const router = useRouter();
 const { t } = useI18n({ useScope: "global" });
 
 function goHome(): void {
-  router.push("/portal/home");
+  router.replace(props.homePath);
 }
 </script>
 

@@ -340,7 +340,7 @@ const loadingDVisible = ref(false);
   width: 100%;
   height: 100%;
   border-radius: 100%;
-  border: 4px solid transparent;
+  border: 3px solid transparent;
   border-top-color: var(--clr);
 }
 
@@ -350,7 +350,7 @@ const loadingDVisible = ref(false);
 }
 
 .loading-overlay__spinner-b:after {
-  border: 4px solid #ccc;
+  border: 3px solid #ccc;
 }
 
 @keyframes loading-b-spin {
