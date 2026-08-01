@@ -17,7 +17,8 @@ public class LoginLogPageRequest {
 
     /** 允许排序的字段白名单 */
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
-        "login_time", "username", "client_ip", "is_success", "device", "browser", "os", "cost_ms"
+        "login_time", "tenant_name", "username", "real_name", "client_ip",
+        "location", "is_success", "device", "browser", "os", "cost_ms"
     );
 
     // ==================== 分页参数 ====================

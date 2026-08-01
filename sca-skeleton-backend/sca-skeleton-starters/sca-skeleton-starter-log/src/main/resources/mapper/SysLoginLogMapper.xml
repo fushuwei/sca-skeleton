@@ -32,7 +32,13 @@
         </if>
         <choose>
             <when test="sortField != null and sortField != ''">
-                ORDER BY l.${sortField} ${sortOrder}
+                ORDER BY
+                <choose>
+                    <when test="sortField == 'tenant_name'">t.name</when>
+                    <when test="sortField == 'real_name'">u.real_name</when>
+                    <otherwise>l.${sortField}</otherwise>
+                </choose>
+                ${sortOrder}
             </when>
             <otherwise>
                 ORDER BY l.login_time DESC

@@ -136,7 +136,7 @@ const columns = computed<QTableColumn<SysLoginLog>[]>(() => [
     field: "tenantName",
     label: t("loginLog.tenantName"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "username",
@@ -150,7 +150,7 @@ const columns = computed<QTableColumn<SysLoginLog>[]>(() => [
     field: "realName",
     label: t("loginLog.realName"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "clientIp",
@@ -164,7 +164,7 @@ const columns = computed<QTableColumn<SysLoginLog>[]>(() => [
     field: "location",
     label: t("loginLog.location"),
     align: "left",
-    sortable: false
+    sortable: true
   },
   {
     name: "device",
@@ -213,8 +213,11 @@ const columns = computed<QTableColumn<SysLoginLog>[]>(() => [
 // ── 前端列名 → 后端排序列名映射 ──
 const SORT_FIELD_MAP: Record<string, string> = {
   loginTime: "login_time",
+  tenantName: "tenant_name",
   username: "username",
+  realName: "real_name",
   clientIp: "client_ip",
+  location: "location",
   isSuccess: "is_success",
   costMs: "cost_ms",
   device: "device",
