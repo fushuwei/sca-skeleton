@@ -326,8 +326,8 @@ const loadingDVisible = ref(false);
 .loading-overlay__spinner-b {
   --clr: #1976d2;
   box-sizing: border-box;
-  width: 50px;
-  height: 50px;
+  width: 46px;
+  height: 46px;
   position: relative;
 }
 
