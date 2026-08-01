@@ -98,6 +98,16 @@ const statusOptions = computed(() => [
 // ── 权限树 ──
 const permTreeLoading = ref(false);
 const allPermissions = ref<PermissionAssignOption[]>([]);
+
+/** 分类节点 id 前缀（避免与真实权限 ID 冲突） */
+const REALM_GROUP_PREFIX = "realm:";
+/** 权限域分组定义（顺序即树展示顺序） */
+const REALM_GROUPS: { realm: string; labelKey: string }[] = [
+  { realm: "admin", labelKey: "permissionMgmt.adminGroup" },
+  { realm: "portal", labelKey: "permissionMgmt.portalGroup" }
+];
+const realmGroupId = (realm: string) => REALM_GROUP_PREFIX + realm;
+
 const permTreeNodes = computed(() => buildPermTree(allPermissions.value));
 const permTreeExpanded = ref<string[]>([]);
 const permTreeTicked = ref<string[]>([]);
@@ -107,7 +117,7 @@ const permSearchKey = ref("");
 const pendingPermIds = ref<string[] | null>(null);
 
 /**
- * 将扁平权限列表转成树结构。
+ * 将扁平权限列表转成树结构，并按权限域（admin/portal）分组成两棵子树。
  *
  * 后端已做过滤（仅返回启用且可见的权限，且非超管仅返回自身拥有的权限），
  * 前端直接信任后端数据，不再做任何过滤，避免「掩耳盗铃」式掩盖后端问题。
@@ -117,45 +127,67 @@ function buildPermTree(perms: PermissionAssignOption[]): PermissionTreeNode[] {
 
   const sorted = [...perms].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
 
-  const map = new Map<string, PermissionTreeNode>();
+  // 先按 realm 分组，再各自建树
   const isEn = locale.value.startsWith("en");
-  for (const p of sorted) {
-    map.set(p.id, {
-      id: p.id,
-      label: (isEn && p.nameEn) ? p.nameEn : p.name,
-      parentId: p.parentId,
-      type: p.type,
-      icon: p.icon || "",
-      children: []
-    });
-  }
+  const groups: PermissionTreeNode[] = [];
 
-  const roots: PermissionTreeNode[] = [];
-  for (const p of sorted) {
-    const node = map.get(p.id)!;
-    if (!p.parentId || p.parentId === "0") {
-      roots.push(node);
-    } else {
-      const parent = map.get(p.parentId);
-      if (parent) {
-        parent.children = parent.children ?? [];
-        parent.children.push(node);
-      }
-      // 父节点不在返回列表中（非超管场景下当前用户未持有该父权限），丢弃该节点
+  for (const group of REALM_GROUPS) {
+    const groupPerms = sorted.filter((p) => p.realm === group.realm);
+    if (!groupPerms.length) continue;
+
+    const map = new Map<string, PermissionTreeNode>();
+    for (const p of groupPerms) {
+      map.set(p.id, {
+        id: p.id,
+        label: (isEn && p.nameEn) ? p.nameEn : p.name,
+        parentId: p.parentId,
+        type: p.type,
+        icon: p.icon || "",
+        realm: p.realm,
+        children: []
+      });
     }
-  }
 
-  const cleanEmpty = (nodes: PermissionTreeNode[]) => {
-    for (const n of nodes) {
-      if (n.children?.length) {
-        cleanEmpty(n.children);
+    const roots: PermissionTreeNode[] = [];
+    for (const p of groupPerms) {
+      const node = map.get(p.id)!;
+      if (!p.parentId || p.parentId === "0") {
+        roots.push(node);
       } else {
-        delete n.children;
+        const parent = map.get(p.parentId);
+        if (parent) {
+          parent.children = parent.children ?? [];
+          parent.children.push(node);
+        }
+        // 父节点不在返回列表中（非超管场景下当前用户未持有该父权限），丢弃该节点
       }
     }
-  };
-  cleanEmpty(roots);
-  return roots;
+
+    const cleanEmpty = (nodes: PermissionTreeNode[]) => {
+      for (const n of nodes) {
+        if (n.children?.length) {
+          cleanEmpty(n.children);
+        } else {
+          delete n.children;
+        }
+      }
+    };
+    cleanEmpty(roots);
+
+    if (roots.length) {
+      groups.push({
+        id: realmGroupId(group.realm),
+        label: t(group.labelKey),
+        parentId: "",
+        type: "realm-group",
+        icon: "",
+        realm: group.realm,
+        children: roots
+      });
+    }
+  }
+
+  return groups;
 }
 
 /** 收集权限树中所有叶子节点的 ID（leaf-filtered 模式要求 ticked 数组仅含叶子节点） */
@@ -194,9 +226,9 @@ function collectWithAncestors(tickedIds: string[]): string[] {
   return [...result];
 }
 
-/** 节点图标：模块/目录用 folder/folder_open（随展开状态切换），菜单用 nest_eco_leaf，按钮无图标 */
+/** 节点图标：分类节点（realm 组）/模块/目录统一用 folder/folder_open（随展开状态切换），菜单用 nest_eco_leaf，按钮无图标 */
 function permNodeIcon(node: PermissionTreeNode): string {
-  if (node.type === "module" || node.type === "folder") {
+  if (node.type === "realm-group" || node.type === "module" || node.type === "folder") {
     return permTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
   }
   if (node.type === "menu") return "sym_r_nest_eco_leaf";
