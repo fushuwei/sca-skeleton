@@ -28,7 +28,7 @@
                             ON tpp.permission_id = p.id
                                 AND tpp.is_deleted = 0
                  INNER JOIN sys_tenant t
-                            ON t.id = tpp.package_id
+                            ON t.package_id = tpp.package_id
                                 AND t.is_deleted = 0
         WHERE p.is_deleted = 0
           AND p.status = 'enabled'
