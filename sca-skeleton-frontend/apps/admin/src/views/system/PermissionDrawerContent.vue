@@ -534,7 +534,7 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-        <!-- 权限类型 -->
+        <!-- 权限类型（创建后不可修改，编辑/查看模式禁用） -->
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.type"
@@ -547,7 +547,7 @@ async function handleSave() {
             emit-value
             map-options
             :rules="formRules.type"
-            :disable="drawerReadonly"
+            :disable="drawerReadonly || mode !== 'add'"
             hide-bottom-space
             class="required-field"
           />
