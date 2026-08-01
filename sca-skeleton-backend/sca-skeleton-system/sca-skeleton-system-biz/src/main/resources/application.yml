@@ -1,5 +1,5 @@
 server:
-  port: 9002
+  port: ${SYSTEM_PORT:9002}
 
 spring:
   application:
