@@ -8,7 +8,6 @@ import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.permission.PermissionUpdateRequest;
-import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionAssignOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysPermissionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,16 +36,6 @@ public class SysPermissionController {
     @RequiresPermission("sys:permission:list")
     public Result<List<PermissionResponse>> list(@RequestParam(required = false) String realm) {
         return Result.ok(permissionService.listAllPermissions(realm));
-    }
-
-    @Operation(summary = "查询可授权权限列表", description = "用于租户套餐/角色等功能授权面板")
-    @GetMapping("/assign-options")
-    @RequiresPermission({
-        "sys:role:list",              // 角色管理授权面板
-        "sys:tenant-package:list"     // 租户套餐管理授权面板
-    })
-    public Result<List<PermissionAssignOptionResponse>> assignOptions(@RequestParam(required = false) String realm) {
-        return Result.ok(permissionService.listAssignablePermissions(realm));
     }
 
     @Operation(summary = "查询当前用户权限列表")

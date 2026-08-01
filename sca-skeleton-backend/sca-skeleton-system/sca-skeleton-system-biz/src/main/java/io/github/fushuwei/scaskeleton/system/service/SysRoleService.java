@@ -3,7 +3,6 @@ package io.github.fushuwei.scaskeleton.system.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.role.RolePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
@@ -84,11 +83,4 @@ public interface SysRoleService {
      * @return 权限 ID 列表
      */
     List<String> getRolePermissionIds(String roleId);
-
-    /**
-     * 为角色分配权限
-     *
-     * @param request 权限分配信息
-     */
-    void assignPermissions(RolePermissionAssignRequest request);
 }

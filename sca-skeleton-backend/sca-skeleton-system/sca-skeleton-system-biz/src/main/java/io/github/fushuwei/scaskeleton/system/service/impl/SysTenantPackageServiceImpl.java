@@ -7,7 +7,6 @@ import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageCreateRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageResponse;
@@ -278,29 +277,6 @@ public class SysTenantPackageServiceImpl implements SysTenantPackageService {
             return Collections.emptyList();
         }
         return list.stream().map(SysTenantPackagePermission::getPermissionId).toList();
-    }
-
-    /**
-     * 为套餐分配权限
-     *
-     * @param request 权限分配信息
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void assignPermissions(TenantPackagePermissionAssignRequest request) {
-        // 仅超级管理员可为套餐分配权限，防止其他用户伪造数据
-        if (!SecurityUtils.isSuperAdmin()) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "仅超级管理员可为套餐分配权限");
-        }
-
-        // 加载套餐实体
-        loadPackageEntity(request.getId());
-
-        // 先清空该套餐下原有权限关联关系
-        deletePackagePermissions(request.getId());
-
-        // 保存新的套餐与权限关联关系
-        savePackagePermissions(request.getId(), request.getPermissionIds());
     }
 
     /**

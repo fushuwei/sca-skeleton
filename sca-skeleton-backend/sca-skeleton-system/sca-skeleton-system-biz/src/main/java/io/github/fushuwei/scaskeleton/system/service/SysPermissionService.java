@@ -25,12 +25,26 @@ public interface SysPermissionService {
     List<PermissionResponse> listAllPermissions(String realm);
 
     /**
-     * 查询可授权权限列表
+     * 查询角色授权面板可分配的权限列表
+     * <p>
+     * 超管：仅返回指定租户套餐内的权限（tenantId 必传，未传返回空）；<br>
+     * 非超管：仅返回当前用户自身拥有的权限。
+     *
+     * @param realm    权限域
+     * @param tenantId 目标租户 ID（超管必传）
+     * @return 可授权权限列表
+     */
+    List<PermissionAssignOptionResponse> listPermissionsForRole(String realm, String tenantId);
+
+    /**
+     * 查询套餐授权面板可分配的权限列表
+     * <p>
+     * 仅超管可操作（套餐管理本身仅超管可用），返回所有「启用 + 可见」的权限，用于定义套餐内容。
      *
      * @param realm 权限域
      * @return 可授权权限列表
      */
-    List<PermissionAssignOptionResponse> listAssignablePermissions(String realm);
+    List<PermissionAssignOptionResponse> listPermissionsForPackage(String realm);
 
     /**
      * 查询当前用户权限列表

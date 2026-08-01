@@ -7,10 +7,11 @@ import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePageRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionAssignOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageResponse;
+import io.github.fushuwei.scaskeleton.system.service.SysPermissionService;
 import io.github.fushuwei.scaskeleton.system.service.SysTenantPackageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,11 +34,20 @@ public class SysTenantPackageController {
 
     private final SysTenantPackageService packageService;
 
+    private final SysPermissionService permissionService;
+
     @Operation(summary = "查询套餐列表")
     @GetMapping("/list")
     @RequiresPermission("sys:tenant-package:list")
     public Result<List<TenantPackageResponse>> list() {
         return Result.ok(packageService.listPackages());
+    }
+
+    @Operation(summary = "查询套餐授权面板可分配权限", description = "返回所有启用且可见的权限，用于定义套餐内容（仅超管）")
+    @GetMapping("/assign-options")
+    @RequiresPermission("sys:tenant-package:list")
+    public Result<List<PermissionAssignOptionResponse>> assignOptions(@RequestParam(required = false) String realm) {
+        return Result.ok(permissionService.listPermissionsForPackage(realm));
     }
 
     @Operation(summary = "查询套餐选项列表", description = "用于租户管理等功能表单下拉选择")
@@ -101,15 +111,6 @@ public class SysTenantPackageController {
     @OperationLog(module = "套餐管理", action = "批量删除套餐")
     public Result<Void> batchDelete(@RequestBody List<String> ids) {
         packageService.batchDeletePackages(ids);
-        return Result.ok();
-    }
-
-    @Operation(summary = "为套餐分配权限")
-    @PostMapping("/assign-permission")
-    @RequiresPermission("sys:tenant-package:assign-permission")
-    @OperationLog(module = "套餐管理", action = "分配权限")
-    public Result<Void> assignPermissions(@Validated @RequestBody TenantPackagePermissionAssignRequest request) {
-        packageService.assignPermissions(request);
         return Result.ok();
     }
 }

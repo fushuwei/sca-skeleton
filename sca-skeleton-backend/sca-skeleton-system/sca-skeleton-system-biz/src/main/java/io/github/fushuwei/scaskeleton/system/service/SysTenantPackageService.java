@@ -3,7 +3,6 @@ package io.github.fushuwei.scaskeleton.system.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageCreateRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackagePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.tenantpackage.TenantPackageUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.tenantpackage.TenantPackageResponse;
@@ -82,11 +81,4 @@ public interface SysTenantPackageService {
      * @return 权限 ID 列表
      */
     List<String> getPackagePermissionIds(String packageId);
-
-    /**
-     * 为套餐分配权限
-     *
-     * @param request 权限分配信息
-     */
-    void assignPermissions(TenantPackagePermissionAssignRequest request);
 }

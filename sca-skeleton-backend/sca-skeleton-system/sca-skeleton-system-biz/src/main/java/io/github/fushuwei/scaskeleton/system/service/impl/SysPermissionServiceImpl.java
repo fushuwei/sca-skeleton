@@ -67,22 +67,26 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     }
 
     /**
-     * 查询可授权权限列表（用于角色/套餐授权面板）
+     * 查询角色授权面板可分配的权限列表
+     * <p>
+     * 超管：仅返回指定租户套餐内的权限（tenantId 必传，未传返回空）；<br>
+     * 非超管：仅返回当前用户自身拥有的权限。
      *
-     * @param realm 权限域
+     * @param realm    权限域
+     * @param tenantId 目标租户 ID（超管必传）
      * @return 可授权权限列表
      */
     @Override
-    public List<PermissionAssignOptionResponse> listAssignablePermissions(String realm) {
+    public List<PermissionAssignOptionResponse> listPermissionsForRole(String realm, String tenantId) {
         List<SysPermission> permissions;
 
         if (SecurityUtils.isSuperAdmin()) {
-            // 超级管理员：返回所有「启用 + 可见」的权限
-            permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
-                .eq(SysPermission::getStatus, "enabled")
-                .eq(SysPermission::getIsVisible, 1)
-                .eq(StringUtils.hasText(realm), SysPermission::getRealm, realm)
-                .orderByAsc(SysPermission::getSort));
+            // 超管：tenantId 必传，未传返回空（防止前端不传租户时查出全部权限）
+            if (!StringUtils.hasText(tenantId)) {
+                return Collections.emptyList();
+            }
+            // 单条 JOIN SQL 查询租户套餐内的权限
+            permissions = permissionMapper.selectPermissionsByTenantPackage(tenantId, realm);
         } else {
             // 非超级管理员：仅返回当前用户自身拥有的权限（防止越权授予自己不具备的权限）
             String userId = SecurityUtils.getUserId();
@@ -103,6 +107,28 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         }
 
         // 转换为响应对象列表
+        return permissionConverter.toPermissionAssignOptionResponseList(permissions);
+    }
+
+    /**
+     * 查询套餐授权面板可分配的权限列表
+     * <p>
+     * 仅超管可操作（套餐管理本身仅超管可用），返回所有「启用 + 可见」的权限，用于定义套餐内容。
+     *
+     * @param realm 权限域
+     * @return 可授权权限列表
+     */
+    @Override
+    public List<PermissionAssignOptionResponse> listPermissionsForPackage(String realm) {
+        // 非超管不能管理套餐，直接返回空
+        if (!SecurityUtils.isSuperAdmin()) {
+            return Collections.emptyList();
+        }
+        List<SysPermission> permissions = permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
+            .eq(SysPermission::getStatus, "enabled")
+            .eq(SysPermission::getIsVisible, 1)
+            .eq(StringUtils.hasText(realm), SysPermission::getRealm, realm)
+            .orderByAsc(SysPermission::getSort));
         return permissionConverter.toPermissionAssignOptionResponseList(permissions);
     }
 

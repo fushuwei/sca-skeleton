@@ -5,7 +5,7 @@ import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysRole, PermissionAssignOption, PermissionTreeNode, SysTenant } from "../../types/auth";
 import { createRoleApi, updateRoleApi } from "../../apis/role";
 import { getRolePermissionIdsApi } from "../../apis/role";
-import { getPermissionAssignOptionsApi } from "../../apis/permission";
+import { getRoleAssignOptionsApi } from "../../apis/role";
 import { getTenantListApi } from "../../apis/tenant";
 import { useAuthStore } from "../../stores/auth";
 
@@ -58,6 +58,18 @@ const tenantOptionsFormatted = computed(() =>
   tenantOptions.value.map(t => ({ label: t.name, value: t.id }))
 );
 
+/**
+ * 权限树加载用的目标租户 ID：
+ * - 超管新增：取表单选择的租户 ID
+ * - 超管编辑/查看：取角色所属租户 ID
+ * - 非超管：不传（后端按当前登录用户自身拥有的权限过滤）
+ */
+const effectiveTenantId = computed<string | undefined>(() => {
+  if (!isSuperadmin.value) return undefined;
+  if (props.mode === "add") return form.tenantId || undefined;
+  return props.role?.tenantId;
+});
+
 const formRules = computed(() => ({
   name: [(v: string) => !!v?.trim() || t("roleMgmt.nameRequired")],
   code: [(v: string) => !!v?.trim() || t("roleMgmt.codeRequired")],
@@ -101,7 +113,7 @@ const pendingPermIds = ref<string[] | null>(null);
 /**
  * 将扁平权限列表转成树结构。
  *
- * 后端已做过滤（仅返回启用且可见的权限，且非超管仅返回自身拥有的权限），
+ * 后端已做过滤（仅返回启用且可见的权限；超管按指定租户套餐过滤，非超管仅返回自身拥有的权限），
  * 前端直接信任后端数据，不再做任何过滤，避免「掩耳盗铃」式掩盖后端问题。
  */
 function buildPermTree(perms: PermissionAssignOption[]): PermissionTreeNode[] {
@@ -230,8 +242,8 @@ watch(permSearchKey, (val) => {
 async function loadPermTree() {
   permTreeLoading.value = true;
   try {
-    // 按角色域过滤可分配权限，防止跨域授权
-    const result = await getPermissionAssignOptionsApi(form.realm);
+    // 按角色域过滤可分配权限，防止跨域授权；超管按目标租户套餐过滤
+    const result = await getRoleAssignOptionsApi(form.realm, effectiveTenantId.value);
     if (result.code === 10_000 && result.data) {
       allPermissions.value = result.data;
       // 默认展开第一级
@@ -307,7 +319,7 @@ watch(() => props.role, initForm, { immediate: true });
 
 onMounted(() => {
   loadTenantOptions();
-  // 新增模式：默认不加载授权面板（权限树为空），待选择角色域后按域动态查询，避免查出全部域的权限；
+  // 新增模式：默认不加载授权面板（权限树为空），待选择角色域（超管还需选择租户）后动态查询；
   // 编辑/查看模式：realm 已从角色回填，打开时按角色域加载权限树。
   if (props.mode !== "add") {
     loadPermTree();
@@ -319,14 +331,29 @@ watch(permTreeTicked, (val) => {
   form.permissionIds = [...val];
 });
 
+/** 新增模式下，是否满足加载权限树的前置条件：需选定角色域，超管还需选定目标租户 */
+function canLoadPermTree(): boolean {
+  if (!form.realm) return false;
+  if (isSuperadmin.value && !form.tenantId) return false;
+  return true;
+}
+
 // 新增模式下，切换权限域时清空已勾选权限（防止跨域权限残留）并重新加载权限树
 watch(() => form.realm, (newRealm, oldRealm) => {
   // 仅新增模式且用户主动切换时触发（编辑/查看模式 realm 禁用，initForm 赋值由 onMounted 负责首次加载）
   if (props.mode !== 'add' || newRealm === oldRealm) return;
   permTreeTicked.value = [];
   form.permissionIds = [];
-  // 仅当选择了角色域时按域动态查询；未选域（清空）则保持授权面板为空，避免查出全部域的权限
-  if (!newRealm) return;
+  if (!canLoadPermTree()) return;
+  loadPermTree();
+});
+
+// 新增模式下，超管切换目标租户时清空已勾选权限并重新加载权限树（权限受租户套餐限制）
+watch(() => form.tenantId, (newTenantId, oldTenantId) => {
+  if (props.mode !== 'add' || newTenantId === oldTenantId) return;
+  permTreeTicked.value = [];
+  form.permissionIds = [];
+  if (!canLoadPermTree()) return;
   loadPermTree();
 });
 

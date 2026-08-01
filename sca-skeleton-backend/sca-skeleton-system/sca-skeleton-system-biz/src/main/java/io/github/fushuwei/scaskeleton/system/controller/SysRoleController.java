@@ -7,10 +7,11 @@ import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.role.RolePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.permission.PermissionAssignOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
+import io.github.fushuwei.scaskeleton.system.service.SysPermissionService;
 import io.github.fushuwei.scaskeleton.system.service.SysRoleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,11 +34,22 @@ public class SysRoleController {
 
     private final SysRoleService roleService;
 
+    private final SysPermissionService permissionService;
+
     @Operation(summary = "查询角色列表")
     @GetMapping("/list")
     @RequiresPermission("sys:role:list")
     public Result<List<RoleResponse>> list() {
         return Result.ok(roleService.listRoles());
+    }
+
+    @Operation(summary = "查询角色授权面板可分配权限", description = "超管按指定租户套餐过滤，非超管按自身权限过滤")
+    @GetMapping("/assign-options")
+    @RequiresPermission("sys:role:list")
+    public Result<List<PermissionAssignOptionResponse>> assignOptions(
+        @RequestParam(required = false) String realm,
+        @RequestParam(required = false) String tenantId) {
+        return Result.ok(permissionService.listPermissionsForRole(realm, tenantId));
     }
 
     @Operation(summary = "查询角色选项列表", description = "用于用户管理等功能表单下拉选择")
@@ -101,15 +113,6 @@ public class SysRoleController {
     @OperationLog(module = "角色管理", action = "批量删除角色")
     public Result<Void> batchDelete(@RequestBody List<String> ids) {
         roleService.batchDeleteRoles(ids);
-        return Result.ok();
-    }
-
-    @Operation(summary = "为角色分配权限")
-    @PostMapping("/assign-permission")
-    @RequiresPermission("sys:role:assign-permission")
-    @OperationLog(module = "角色管理", action = "分配权限")
-    public Result<Void> assignPermissions(@Validated @RequestBody RolePermissionAssignRequest request) {
-        roleService.assignPermissions(request);
         return Result.ok();
     }
 }

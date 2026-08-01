@@ -8,7 +8,6 @@ import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RolePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleCreateRequest;
-import io.github.fushuwei.scaskeleton.system.api.request.role.RolePermissionAssignRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.role.RoleUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleOptionResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
@@ -180,6 +179,9 @@ public class SysRoleServiceImpl implements SysRoleService {
         role.setRemark(request.getRemark());
         role.setIsBuiltin(0);
 
+        // 校验分配的权限不超出租户套餐（超管）或用户自身权限（非超管）范围
+        validateAssignablePermissions(tenantId, request.getPermissionIds(), request.getRealm());
+
         // 保存角色
         roleMapper.insert(role);
 
@@ -210,6 +212,9 @@ public class SysRoleServiceImpl implements SysRoleService {
         if (affectedRows == 0) {
             throw new BusinessException(ResultCode.VERSION_CONFLICT);
         }
+
+        // 校验分配的权限不超出租户套餐（超管）或用户自身权限（非超管）范围
+        validateAssignablePermissions(role.getTenantId(), request.getPermissionIds(), role.getRealm());
 
         // 删除旧的关联关系，并保存新的关联关系
         deleteRolePermissions(request.getId());
@@ -283,27 +288,6 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     /**
-     * 为角色分配权限
-     *
-     * @param request 权限分配信息
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void assignPermissions(RolePermissionAssignRequest request) {
-        // 加载可操作角色实体
-        SysRole role = loadOperableRoleEntity(request.getId());
-
-        // 越权防护：校验所选权限的域与角色域一致，防止跨域分配权限
-        validatePermissionRealm(role.getRealm(), request.getPermissionIds());
-
-        // 先清空该角色下原有权限关联关系
-        deleteRolePermissions(request.getId());
-
-        // 保存新的角色与权限关联关系
-        saveRolePermissions(role.getTenantId(), request.getId(), request.getPermissionIds());
-    }
-
-    /**
      * 校验所选权限的域与角色域一致，防止跨域分配权限（越权防护）
      *
      * @param roleRealm     角色域
@@ -320,6 +304,80 @@ public class SysRoleServiceImpl implements SysRoleService {
         if (validCount != permIdSet.size()) {
             throw new BusinessException(ResultCode.FORBIDDEN, "所选权限与角色域不一致，不允许跨域分配权限");
         }
+    }
+
+    /**
+     * 校验分配的权限不超出可授权范围（越权防护）
+     * <p>
+     * 超管：权限不能超过目标租户套餐所拥有的权限；<br>
+     * 非超管：权限不能超过当前登录用户自身所拥有的权限。
+     *
+     * @param tenantId      目标租户 ID
+     * @param permissionIds 权限 ID 列表
+     * @param roleRealm     角色域（用于跨域校验）
+     */
+    private void validateAssignablePermissions(String tenantId, List<String> permissionIds, String roleRealm) {
+        if (CollectionUtils.isEmpty(permissionIds)) {
+            return;
+        }
+        // 1. 校验权限域与角色域一致，防止跨域分配权限
+        validatePermissionRealm(roleRealm, permissionIds);
+        // 2. 校验权限不超出可授权范围
+        Set<String> allowedIds = resolveAllowedPermissionIds(tenantId);
+        Set<String> requestedIds = new HashSet<>(permissionIds);
+        if (!allowedIds.containsAll(requestedIds)) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "存在超出可授权范围的权限，不允许分配");
+        }
+    }
+
+    /**
+     * 解析当前登录用户可授权的权限 ID 集合
+     * <p>
+     * 超管：目标租户套餐内的权限；<br>
+     * 非超管：当前登录用户自身拥有的权限。
+     *
+     * @param tenantId 目标租户 ID
+     * @return 可授权权限 ID 集合
+     */
+    private Set<String> resolveAllowedPermissionIds(String tenantId) {
+        if (SecurityUtils.isSuperAdmin()) {
+            return getTenantPackagePermissionIds(tenantId);
+        }
+        return getCurrentUserPermissionIds();
+    }
+
+    /**
+     * 查询指定租户套餐内的权限 ID 集合（单条 JOIN SQL）
+     *
+     * @param tenantId 租户 ID
+     * @return 权限 ID 集合
+     */
+    private Set<String> getTenantPackagePermissionIds(String tenantId) {
+        if (!StringUtils.hasText(tenantId)) {
+            return Collections.emptySet();
+        }
+        List<SysPermission> permissions = permissionMapper.selectPermissionsByTenantPackage(tenantId, null);
+        return permissions.stream().map(SysPermission::getId).collect(Collectors.toSet());
+    }
+
+    /**
+     * 查询当前登录用户自身拥有的权限 ID 集合
+     *
+     * @return 权限 ID 集合
+     */
+    private Set<String> getCurrentUserPermissionIds() {
+        String userId = SecurityUtils.getUserId();
+        if (!StringUtils.hasText(userId)) {
+            return Collections.emptySet();
+        }
+        List<SysUserRole> userRoles = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>()
+            .eq(SysUserRole::getUserId, userId));
+        if (CollectionUtils.isEmpty(userRoles)) {
+            return Collections.emptySet();
+        }
+        List<String> roleIds = userRoles.stream().map(SysUserRole::getRoleId).toList();
+        List<SysPermission> permissions = permissionMapper.selectPermissionsByRoleIds(roleIds);
+        return permissions.stream().map(SysPermission::getId).collect(Collectors.toSet());
     }
 
     /**

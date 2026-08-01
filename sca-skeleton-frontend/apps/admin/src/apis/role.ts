@@ -1,9 +1,25 @@
 import { request } from "./http";
-import type { ApiEnvelope, SysRole, RoleOption, RolePageRequest, IPage } from "../types/auth";
+import type { ApiEnvelope, SysRole, RoleOption, RolePageRequest, PermissionAssignOption, IPage } from "../types/auth";
 
 /** 获取当前租户下角色列表（角色管理页面） */
 export async function getRoleListApi(): Promise<ApiEnvelope<SysRole[]>> {
   return request<SysRole[]>({ method: "GET", url: "/sys/role/list" });
+}
+
+/**
+ * 查询角色授权面板可分配权限列表
+ *
+ * 后端已做两层防护：
+ * 1. 字段最小化：仅返回 id/parentId/name/nameEn/type/realm/icon/sort，不含 path/component/code/treePath 等敏感字段
+ * 2. 越权防护：超管按指定租户套餐过滤（tenantId 必传），非超管仅返回当前用户自身拥有的权限
+ *
+ * 前端无需再做任何过滤，直接信任后端数据。
+ *
+ * @param realm    权限域（admin/portal），按角色域过滤可分配的权限，为空则返回所有
+ * @param tenantId 目标租户 ID（超管必传，按租户套餐过滤）
+ */
+export async function getRoleAssignOptionsApi(realm?: string, tenantId?: string): Promise<ApiEnvelope<PermissionAssignOption[]>> {
+  return request<PermissionAssignOption[]>({ method: "GET", url: "/sys/role/assign-options", params: { realm, tenantId } });
 }
 
 /**

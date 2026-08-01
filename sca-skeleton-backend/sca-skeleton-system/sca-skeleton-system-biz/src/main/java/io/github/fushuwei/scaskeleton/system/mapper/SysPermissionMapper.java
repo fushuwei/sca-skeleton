@@ -22,6 +22,15 @@ public interface SysPermissionMapper extends BaseMapper<SysPermission> {
     List<SysPermission> selectPermissionsByRoleIds(@Param("roleIds") List<String> roleIds);
 
     /**
+     * 查询指定租户套餐内的权限列表（单条 JOIN SQL，启用 + 可见，按权限域过滤）
+     *
+     * @param tenantId 租户 ID
+     * @param realm    权限域（为空则不过滤）
+     * @return 权限列表（去重）
+     */
+    List<SysPermission> selectPermissionsByTenantPackage(@Param("tenantId") String tenantId, @Param("realm") String realm);
+
+    /**
      * 批量更新所有子孙节点的 tree_path 字段值
      *
      * @param oldPrefix    变更前的 treePath 前缀

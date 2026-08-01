@@ -20,6 +20,26 @@
         ORDER BY p.sort ASC
     </select>
 
+    <!-- 查询指定租户套餐内的权限列表（单条 JOIN SQL） -->
+    <select id="selectPermissionsByTenantPackage" resultType="io.github.fushuwei.scaskeleton.system.entity.SysPermission">
+        SELECT DISTINCT p.*
+        FROM sys_permission p
+                 INNER JOIN sys_tenant_package_permission tpp
+                            ON tpp.permission_id = p.id
+                                AND tpp.is_deleted = 0
+                 INNER JOIN sys_tenant t
+                            ON t.id = tpp.package_id
+                                AND t.is_deleted = 0
+        WHERE p.is_deleted = 0
+          AND p.status = 'enabled'
+          AND p.is_visible = 1
+          AND t.id = #{tenantId}
+          <if test="realm != null and realm != ''">
+              AND p.realm = #{realm}
+          </if>
+        ORDER BY p.sort ASC
+    </select>
+
     <!-- 批量更新所有子孙节点的 tree_path 字段值 -->
     <update id="updateDescendantsTreePath">
         UPDATE sys_permission

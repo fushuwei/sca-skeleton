@@ -5,7 +5,7 @@ import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysTenantPackage, PermissionAssignOption, PermissionTreeNode } from "../../types/auth";
 import { createTenantPackageApi, updateTenantPackageApi } from "../../apis/tenant-package";
 import { getTenantPackagePermissionIdsApi } from "../../apis/tenant-package";
-import { getPermissionAssignOptionsApi } from "../../apis/permission";
+import { getTenantPackageAssignOptionsApi } from "../../apis/tenant-package";
 
 const { t, locale } = useI18n({ useScope: "global" });
 
@@ -269,7 +269,7 @@ watch(permSearchKey, (val) => {
 async function loadPermTree() {
   permTreeLoading.value = true;
   try {
-    const result = await getPermissionAssignOptionsApi();
+    const result = await getTenantPackageAssignOptionsApi();
     if (result.code === 10_000 && result.data) {
       allPermissions.value = result.data;
       permTreeExpanded.value = permTreeNodes.value.map((n) => n.id);

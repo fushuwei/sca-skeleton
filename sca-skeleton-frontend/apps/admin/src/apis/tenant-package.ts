@@ -1,5 +1,5 @@
 import { request } from "./http";
-import type { ApiEnvelope, SysTenantPackage, TenantPackageOption, TenantPackagePageRequest, IPage } from "../types/auth";
+import type { ApiEnvelope, SysTenantPackage, TenantPackageOption, TenantPackagePageRequest, PermissionAssignOption, IPage } from "../types/auth";
 
 /** 分页查询套餐列表 */
 export async function getTenantPackagePageApi(
@@ -10,6 +10,17 @@ export async function getTenantPackagePageApi(
     url: "/sys/tenant-package/page",
     params
   });
+}
+
+/**
+ * 查询套餐授权面板可分配权限列表（仅超管可用）
+ *
+ * 返回所有「启用 + 可见」的权限，用于定义套餐内容。后端已校验仅超管可调用。
+ *
+ * @param realm 权限域
+ */
+export async function getTenantPackageAssignOptionsApi(realm?: string): Promise<ApiEnvelope<PermissionAssignOption[]>> {
+  return request<PermissionAssignOption[]>({ method: "GET", url: "/sys/tenant-package/assign-options", params: { realm } });
 }
 
 /** 查询全部套餐列表（套餐管理页面） */
