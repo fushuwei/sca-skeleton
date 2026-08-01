@@ -1,12 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from "vue"; // 导入计算属性函数。
-import { useAuthStore } from "../../stores/auth"; // 导入鉴权仓库。
+import { ref } from "vue";
 import { showToast } from "@repo/shared"; // 全局 Toast 提示（与项目实际按钮调用的底层方法一致）。
-
-const authStore = useAuthStore(); // 获取鉴权仓库实例。
-
-const nickname = computed(() => authStore.profile?.nickname ?? "管理员"); // 展示昵称。
-const loginHint = computed(() => authStore.profile?.username ?? "admin"); // 登录名提示。
 
 /** 工作台指标占位（骨架演示，非真实业务统计） */
 const metricCards = [
@@ -111,27 +105,6 @@ const loadingBVisible = ref(false);
 
 <template>
   <div class="workbench-page column q-gutter-y-lg">
-    <!-- 欢迎区 -->
-    <q-card flat bordered class="workbench-hero overflow-hidden">
-      <q-card-section class="workbench-hero__inner row items-center no-wrap">
-        <q-avatar rounded color="white" text-color="primary" size="56px" class="workbench-hero__avatar">
-          <span class="text-h6 text-weight-medium">{{ nickname.slice(0, 1) || "U" }}</span>
-        </q-avatar>
-        <div class="column q-ml-md min-w-0">
-          <div class="text-h6 text-white text-weight-medium ellipsis">
-            {{ nickname }}，欢迎使用工作台
-          </div>
-          <div class="text-body2 workbench-hero__sub q-mt-xs ellipsis">
-            数据中台管理系统 · 登录账号 {{ loginHint }}
-          </div>
-        </div>
-        <q-space />
-        <div class="gt-xs text-body2 text-white text-weight-medium workbench-hero__date">
-          {{ new Date().toLocaleDateString("zh-CN", { weekday: "long", year: "numeric", month: "long", day: "numeric" }) }}
-        </div>
-      </q-card-section>
-    </q-card>
-
     <!-- 指标卡 -->
     <div class="row q-col-gutter-md">
       <div v-for="m in metricCards" :key="m.label" class="col-12 col-sm-6 col-lg-3">
@@ -221,16 +194,6 @@ const loadingBVisible = ref(false);
         </div>
       </q-card-section>
     </q-card>
-
-    <!-- 快捷说明 -->
-    <q-banner rounded class="workbench-tip bg-grey-2 text-grey-9">
-      <template #avatar>
-        <q-icon name="sym_r_lightbulb" color="primary" size="28px" />
-      </template>
-      <div class="text-body2">
-        工作台为默认首页，可通过左侧<strong class="text-weight-medium">系统导航</strong>打开各业务模块；打开的页面会以标签页形式保留在主区域顶部，便于来回切换。
-      </div>
-    </q-banner>
   </div>
 
   <!-- Loading 效果A：单环旋转（当前全局 loading） -->
@@ -253,37 +216,12 @@ const loadingBVisible = ref(false);
   margin: 0 auto;
 }
 
-.workbench-hero {
-  border: none;
-  background: linear-gradient(120deg, #00796b 0%, #009688 55%, #26a69a 100%);
-}
-
-.workbench-hero__inner {
-  padding: 20px 24px;
-}
-
-.workbench-hero__sub {
-  opacity: 0.92;
-}
-
-.workbench-hero__date {
-  opacity: 0.95;
-}
-
-.workbench-hero__avatar {
-  border: 2px solid rgba(255, 255, 255, 0.35);
-}
-
 .workbench-metric {
   transition: box-shadow 0.2s ease;
 }
 
 .workbench-metric:hover {
   box-shadow: 0 2px 8px rgba(0, 121, 107, 0.12);
-}
-
-.workbench-tip {
-  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .workbench-notify-test {
@@ -340,6 +278,7 @@ const loadingBVisible = ref(false);
 /* 效果B：双环叠放（对比方案） */
 .loading-overlay__spinner-b {
   --clr: #3498db;
+  box-sizing: border-box;
   width: 50px;
   height: 50px;
   position: relative;
@@ -349,8 +288,8 @@ const loadingBVisible = ref(false);
 .loading-overlay__spinner-b:after {
   content: "";
   position: absolute;
-  top: -10px;
-  left: -10px;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   border-radius: 100%;
