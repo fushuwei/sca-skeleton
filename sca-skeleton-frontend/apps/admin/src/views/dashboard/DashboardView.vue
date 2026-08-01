@@ -324,7 +324,7 @@ const loadingDVisible = ref(false);
 
 /* 效果B：双环叠放（对比方案） */
 .loading-overlay__spinner-b {
-  --clr: #3498db;
+  --clr: #1976d2;
   box-sizing: border-box;
   width: 50px;
   height: 50px;
