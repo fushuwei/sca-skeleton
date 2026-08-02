@@ -36,4 +36,7 @@ public class DatasourceUpdateRequest implements Serializable {
 
     private String connectionParams;
     private String poolConfig;
+
+    /** 乐观锁版本号 */
+    private Integer version;
 }

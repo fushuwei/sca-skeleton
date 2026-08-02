@@ -235,12 +235,14 @@ function onRequest(props: { pagination: { page: number; rowsPerPage: number } })
 
 // 新增
 function handleCreate() {
-  $q.notify({ type: "info", message: "驱动新增表单页面待实现（DriverDrawerContent）" });
+  editingRow.value = null;
+  drawerVisible.value = true;
 }
 
 // 编辑
-function handleEdit(_row: Driver) {
-  $q.notify({ type: "info", message: "驱动编辑表单页面待实现（DriverDrawerContent）" });
+function handleEdit(row: Driver) {
+  editingRow.value = { ...row };
+  drawerVisible.value = true;
 }
 
 // 启用

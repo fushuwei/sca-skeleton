@@ -8,6 +8,7 @@ import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.Datasour
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourcePageRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceUpdateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DatasourceResponse;
+import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DbTypeOptionResponse;
 import io.github.fushuwei.scaskeleton.datasource.service.DatasourceService;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
@@ -104,7 +105,7 @@ public class DatasourceController {
     @Operation(summary = "获取数据库类型下拉")
     @GetMapping("/db-types")
     @RequiresPermission("sys:datasource:list")
-    public Result<List<DbType>> dbTypes() {
+    public Result<List<DbTypeOptionResponse>> dbTypes() {
         return Result.ok(datasourceService.listDbTypes());
     }
 
@@ -125,7 +126,9 @@ public class DatasourceController {
     @Operation(summary = "查询表字段列表")
     @GetMapping("/{id}/columns")
     @RequiresPermission("sys:datasource:list")
-    public Result<List<String>> columns(@PathVariable String id, @RequestParam String table) {
-        return Result.ok(datasourceService.listColumns(id, table));
+    public Result<List<String>> columns(@PathVariable String id,
+                                        @RequestParam(required = false) String database,
+                                        @RequestParam String table) {
+        return Result.ok(datasourceService.listColumns(id, database, table));
     }
 }

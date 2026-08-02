@@ -7,6 +7,8 @@ import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverPageRe
 import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverUpdateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverOptionResponse;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverResponse;
+import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverUploadResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,6 +22,8 @@ public interface DriverService {
     IPage<DriverResponse> pageDrivers(DriverPageRequest request);
 
     DriverResponse getDriverById(String id);
+
+    DriverUploadResponse uploadDriver(DbType dbType, MultipartFile file);
 
     void createDriver(DriverCreateRequest request);
 

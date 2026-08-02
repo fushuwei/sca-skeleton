@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * 驱动响应
@@ -30,5 +31,6 @@ public class DriverResponse implements Serializable {
     private String status;
     private Integer isBuiltin;
     private String remark;
-    private String createTime;
+    private Integer version;
+    private LocalDateTime createTime;
 }

@@ -21,6 +21,7 @@ export interface Driver {
   status: string;
   isBuiltin: number;
   remark: string;
+  version: number;
   createTime: string;
 }
 
@@ -50,6 +51,7 @@ export interface Datasource {
   connectionState: string;
   errorMsg: string;
   lastConnectTime: string;
+  version: number;
   createTime: string;
 }
 
@@ -104,6 +106,31 @@ export async function createDriverApi(
   data: Record<string, unknown>
 ): Promise<ApiEnvelope<null>> {
   return request<null>({ method: "POST", url: "/ds/driver/create", data });
+}
+
+/** 上传驱动 JAR 文件 */
+export async function uploadDriverApi(
+  dbType: string,
+  file: File
+): Promise<ApiEnvelope<DriverUploadResponse>> {
+  const formData = new FormData();
+  formData.append("file", file);
+  return request<DriverUploadResponse>({
+    method: "POST",
+    url: "/ds/driver/upload",
+    params: { dbType },
+    data: formData,
+    headers: { "Content-Type": "multipart/form-data" }
+  });
+}
+
+/** 驱动上传响应 */
+export interface DriverUploadResponse {
+  jarSha256: string;
+  objectKey: string;
+  fileSize: number;
+  detectedDriverClasses: string[];
+  driverClass: string | null;
 }
 
 /** 编辑驱动 */
@@ -241,11 +268,12 @@ export async function getTablesApi(
 /** 查询表字段列表 */
 export async function getColumnsApi(
   datasourceId: string,
-  table: string
+  table: string,
+  database?: string
 ): Promise<ApiEnvelope<string[]>> {
   return request<string[]>({
     method: "GET",
     url: `/ds/datasource/${datasourceId}/columns`,
-    params: { table }
+    params: { table, database }
   });
 }

@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * 数据源响应
@@ -35,6 +36,7 @@ public class DatasourceResponse implements Serializable {
     private Integer enabled;
     private String connectionState;
     private String errorMsg;
-    private String lastConnectTime;
-    private String createTime;
+    private LocalDateTime lastConnectTime;
+    private Integer version;
+    private LocalDateTime createTime;
 }

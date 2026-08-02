@@ -6,6 +6,7 @@ import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.Datasour
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourcePageRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceUpdateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DatasourceResponse;
+import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DbTypeOptionResponse;
 
 import java.util.List;
 
@@ -30,11 +31,11 @@ public interface DatasourceService {
 
     void changeEnabled(String id, Integer enabled);
 
-    List<DbType> listDbTypes();
+    List<DbTypeOptionResponse> listDbTypes();
 
     List<String> listDatabases(String datasourceId);
 
     List<String> listTables(String datasourceId, String database);
 
-    List<String> listColumns(String datasourceId, String table);
+    List<String> listColumns(String datasourceId, String database, String table);
 }

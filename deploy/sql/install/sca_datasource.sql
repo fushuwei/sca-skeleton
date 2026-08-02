@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `ds_datasource` (
     `username`          VARCHAR(200)   NOT NULL            COMMENT '用户名',
     `password_cipher`   VARCHAR(512)   NOT NULL            COMMENT '密码（AES-GCM加密）',
     `cipher_version`    VARCHAR(10)    DEFAULT NULL        COMMENT '密钥版本',
-    `connection_params` JSON           DEFAULT NULL        COMMENT '连接参数（JSON）',
+    `connection_params` TEXT           DEFAULT NULL            COMMENT '连接参数（JSON 或 query string 格式）',
     `pool_config`       JSON           DEFAULT NULL        COMMENT '连接池配置（JSON）',
     `enabled`           TINYINT(1)     NOT NULL DEFAULT 1  COMMENT '管理态（1启用 0禁用）',
     `connection_state`  VARCHAR(10)    DEFAULT 'offline'   COMMENT '运行态（offline/online/error）',

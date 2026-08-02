@@ -176,8 +176,14 @@ async function handleTest(row: Datasource) {
   try {
     await testDatasourceApi(row.id);
     $q.notify({ type: "positive", message: "连接成功" });
-  } catch { $q.notify({ type: "negative", message: "连接失败" }); }
-  finally { $q.loading.hide(); }
+    loadData();
+  } catch (e: unknown) {
+    const err = e as { response?: { data?: { message?: string } }; message?: string };
+    const msg = err?.response?.data?.message || err?.message || "连接失败";
+    $q.notify({ type: "negative", message: msg, timeout: 5000 });
+  } finally {
+    $q.loading.hide();
+  }
 }
 
 async function handleEnable(row: Datasource) { await enableDatasourceApi(row.id); $q.notify({ type: "positive", message: "已启用" }); loadData(); }

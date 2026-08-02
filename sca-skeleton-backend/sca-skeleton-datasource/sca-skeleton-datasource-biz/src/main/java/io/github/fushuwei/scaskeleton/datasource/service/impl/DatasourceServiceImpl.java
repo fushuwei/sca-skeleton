@@ -3,33 +3,63 @@ package io.github.fushuwei.scaskeleton.datasource.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
+import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import io.github.fushuwei.scaskeleton.datasource.api.enums.DbType;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceCreateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourcePageRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceUpdateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DatasourceResponse;
+import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DbTypeOptionResponse;
 import io.github.fushuwei.scaskeleton.datasource.converter.DatasourceConverter;
+import io.github.fushuwei.scaskeleton.datasource.engine.dialect.Dialect;
+import io.github.fushuwei.scaskeleton.datasource.engine.dialect.DialectRegistry;
+import io.github.fushuwei.scaskeleton.datasource.engine.driver.DriverInstance;
+import io.github.fushuwei.scaskeleton.datasource.engine.driver.DriverLifecycle;
+import io.github.fushuwei.scaskeleton.datasource.engine.security.CredentialCipher;
+import io.github.fushuwei.scaskeleton.datasource.engine.storage.DriverStore;
 import io.github.fushuwei.scaskeleton.datasource.entity.Datasource;
 import io.github.fushuwei.scaskeleton.datasource.entity.Driver;
 import io.github.fushuwei.scaskeleton.datasource.mapper.DatasourceMapper;
 import io.github.fushuwei.scaskeleton.datasource.mapper.DriverMapper;
 import io.github.fushuwei.scaskeleton.datasource.service.DatasourceService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * 数据源管理 Service 实现（M0 骨架版）
+ * 数据源管理 Service 实现。
  * <p>
- * M0 阶段仅实现 CRUD 骨架，连接测试、元数据浏览等在 M2 实现。
+ * 完整实现：CRUD（凭据加密 + 乐观锁 + 驱动一致性校验）、测试连接（直连 + 状态更新）、
+ * 元数据浏览（库/表/字段列表）。
+ * <p>
+ * 设计约束（对应设计方案 v1.3）：
+ * - testConnection 用纯 Driver 实例直连一次（不建池），返回连通性 + 状态更新（§4）；
+ * - 元数据浏览复用 DriverLifecycle 引用计数，连接后即释放（§3.5）；
+ * - 凭据 AES-GCM 加密入库，密钥版本前缀（§6）；
+ * - 数据源与驱动一致性校验 dbType 匹配 + 驱动 enabled（§8 P2-4）。
  *
  * @author Fu Wei
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DatasourceServiceImpl implements DatasourceService {
@@ -37,6 +67,16 @@ public class DatasourceServiceImpl implements DatasourceService {
     private final DatasourceMapper datasourceMapper;
     private final DriverMapper driverMapper;
     private final DatasourceConverter datasourceConverter;
+    private final DriverLifecycle driverLifecycle;
+    private final DialectRegistry dialectRegistry;
+    private final CredentialCipher credentialCipher;
+    private final DriverStore driverStore;
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    // ============================================================
+    // CRUD
+    // ============================================================
 
     @Override
     public IPage<DatasourceResponse> pageDatasources(DatasourcePageRequest request) {
@@ -56,49 +96,65 @@ public class DatasourceServiceImpl implements DatasourceService {
         wrapper.orderByDesc(Datasource::getCreateTime);
 
         IPage<Datasource> dsPage = datasourceMapper.selectPage(page, wrapper);
-        return dsPage.convert(datasourceConverter::toDatasourceResponse);
+
+        // 批量查询 driverName，避免 N+1
+        Set<String> driverIds = dsPage.getRecords().stream()
+            .map(Datasource::getDriverId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+        Map<String, String> driverNameMap = driverIds.isEmpty()
+            ? Collections.emptyMap()
+            : driverMapper.selectBatchIds(driverIds).stream()
+                .collect(Collectors.toMap(Driver::getId, Driver::getDriverName));
+
+        return dsPage.convert(ds -> {
+            DatasourceResponse resp = datasourceConverter.toDatasourceResponse(ds);
+            resp.setDriverName(driverNameMap.get(ds.getDriverId()));
+            return resp;
+        });
     }
 
     @Override
     public DatasourceResponse getDatasourceById(String id) {
-        Datasource datasource = datasourceMapper.selectById(id);
-        if (datasource == null) {
-            throw new BusinessException("数据源不存在");
+        Datasource ds = loadDatasourceEntity(id);
+        DatasourceResponse response = datasourceConverter.toDatasourceResponse(ds);
+        if (StringUtils.hasText(ds.getDriverId())) {
+            Driver driver = driverMapper.selectById(ds.getDriverId());
+            if (driver != null) {
+                response.setDriverName(driver.getDriverName());
+            }
         }
-        return datasourceConverter.toDatasourceResponse(datasource);
+        return response;
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void createDatasource(DatasourceCreateRequest request) {
-        // 校验数据源与驱动一致性
-        if (StringUtils.hasText(request.getDriverId())) {
-            Driver driver = driverMapper.selectById(request.getDriverId());
-            if (driver == null) {
-                throw new BusinessException("关联驱动不存在");
-            }
-            if (!driver.getDbType().equals(request.getDbType().name())) {
-                throw new BusinessException("驱动数据库类型与数据源类型不一致");
-            }
-            if (!"enabled".equals(driver.getStatus())) {
-                throw new BusinessException("关联驱动已禁用");
-            }
-        }
+        // 驱动一致性校验
+        validateDriverConsistency(request.getDriverId(), request.getDbType());
 
         Datasource datasource = datasourceConverter.toDatasource(request);
         datasource.setId(UuidUtils.nextSimpleStr());
+        datasource.setDbType(request.getDbType().name());
         datasource.setEnabled(1);
         datasource.setConnectionState("offline");
-        // TODO M2: 凭据 AES-GCM 加密
-        datasource.setPasswordCipher(request.getPassword());
+        // AES-GCM 加密凭据
+        datasource.setPasswordCipher(credentialCipher.encrypt(request.getPassword()));
+        datasource.setCipherVersion(credentialCipher.currentCipherVersion());
         datasourceMapper.insert(datasource);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateDatasource(DatasourceUpdateRequest request) {
-        Datasource datasource = datasourceMapper.selectById(request.getId());
-        if (datasource == null) {
-            throw new BusinessException("数据源不存在");
-        }
+        Datasource datasource = loadDatasourceEntity(request.getId());
+
+        // 驱动一致性校验（合并请求与现有值后的最终 dbType）
+        DbType effectiveDbType = request.getDbType() != null
+            ? request.getDbType()
+            : DbType.valueOf(datasource.getDbType());
+        validateDriverConsistency(request.getDriverId(), effectiveDbType);
+
         if (StringUtils.hasText(request.getName())) {
             datasource.setName(request.getName());
         }
@@ -121,8 +177,8 @@ public class DatasourceServiceImpl implements DatasourceService {
             datasource.setUsername(request.getUsername());
         }
         if (StringUtils.hasText(request.getPassword())) {
-            // TODO M2: 凭据 AES-GCM 加密
-            datasource.setPasswordCipher(request.getPassword());
+            datasource.setPasswordCipher(credentialCipher.encrypt(request.getPassword()));
+            datasource.setCipherVersion(credentialCipher.currentCipherVersion());
         }
         if (StringUtils.hasText(request.getConnectionParams())) {
             datasource.setConnectionParams(request.getConnectionParams());
@@ -130,54 +186,275 @@ public class DatasourceServiceImpl implements DatasourceService {
         if (StringUtils.hasText(request.getPoolConfig())) {
             datasource.setPoolConfig(request.getPoolConfig());
         }
-        datasourceMapper.updateById(datasource);
+        datasource.setVersion(request.getVersion());
+
+        int affectedRows = datasourceMapper.updateById(datasource);
+        if (affectedRows == 0) {
+            throw new BusinessException(ResultCode.VERSION_CONFLICT);
+        }
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteDatasource(String id) {
-        Datasource datasource = datasourceMapper.selectById(id);
-        if (datasource == null) {
-            throw new BusinessException("数据源不存在");
-        }
+        loadDatasourceEntity(id);
+        // TODO M3: 关闭连接池（DataSourcePoolManager）后删除
         datasourceMapper.deleteById(id);
     }
 
     @Override
-    public DatasourceResponse testConnection(String id) {
-        // TODO M2: 使用 Driver 实例直连测试
-        throw new BusinessException("连接测试功能在 M2 阶段实现");
-    }
-
-    @Override
     public void changeEnabled(String id, Integer enabled) {
-        Datasource datasource = datasourceMapper.selectById(id);
-        if (datasource == null) {
-            throw new BusinessException("数据源不存在");
-        }
+        Datasource datasource = loadDatasourceEntity(id);
         datasource.setEnabled(enabled);
-        datasourceMapper.updateById(datasource);
+        int affectedRows = datasourceMapper.updateById(datasource);
+        if (affectedRows == 0) {
+            throw new BusinessException(ResultCode.VERSION_CONFLICT);
+        }
     }
 
     @Override
-    public List<DbType> listDbTypes() {
-        return Arrays.asList(DbType.values());
+    public List<DbTypeOptionResponse> listDbTypes() {
+        return Arrays.stream(DbType.values())
+            .map(dbType -> new DbTypeOptionResponse(
+                dbType.name(),
+                dbType.getDisplayName(),
+                dbType.getUrlPrefix(),
+                dbType.getDefaultPort()))
+            .toList();
     }
+
+    // ============================================================
+    // 测试连接（纯 Driver 直连，不建池）
+    // ============================================================
+
+    @Override
+    public DatasourceResponse testConnection(String id) {
+        Datasource ds = loadDatasourceEntity(id);
+        Driver driver = loadDriverEntity(ds.getDriverId());
+        Dialect dialect = dialectRegistry.get(parseDbType(ds.getDbType()));
+
+        // 加载驱动实例
+        DriverInstance instance;
+        try {
+            Path[] jarPaths = {driverStore.downloadToLocal(driver.getObjectKey())};
+            instance = driverLifecycle.acquire(driver.getId(), driver.getDriverClass(), jarPaths);
+        } catch (Exception e) {
+            log.warn("加载驱动失败: datasourceId={}, error={}", id, e.getMessage());
+            updateConnectionState(ds, "error", "加载驱动失败: " + e.getMessage());
+            throw new BusinessException("加载驱动失败: " + e.getMessage());
+        }
+
+        String jdbcUrl = dialect.buildJdbcUrl(ds.getHost(), ds.getPort(),
+            ds.getDatabaseName(), toQueryString(ds.getConnectionParams()));
+        Properties props = buildConnectionProps(ds);
+
+        try {
+            try (Connection conn = instance.connect(jdbcUrl, props)) {
+                if (conn == null) {
+                    throw new BusinessException("驱动无法识别 JDBC URL: " + jdbcUrl);
+                }
+                // 执行心跳 SQL
+                try (var stmt = conn.createStatement()) {
+                    stmt.execute(dialect.pingSql());
+                }
+            }
+            // 连接成功：更新运行态
+            updateConnectionState(ds, "online", null);
+            log.info("测试连接成功: datasourceId={}, jdbcUrl={}", id, jdbcUrl);
+            return buildResponse(ds, driver);
+        } catch (Exception e) {
+            log.warn("测试连接失败: datasourceId={}, error={}", id, e.getMessage());
+            updateConnectionState(ds, "error", e.getMessage());
+            throw new BusinessException("连接失败: " + e.getMessage());
+        } finally {
+            driverLifecycle.release(driver.getId());
+        }
+    }
+
+    // ============================================================
+    // 元数据浏览（库/表/字段）
+    // ============================================================
 
     @Override
     public List<String> listDatabases(String datasourceId) {
-        // TODO M2: 元数据浏览
-        throw new BusinessException("元数据浏览功能在 M2 阶段实现");
+        return executeQuery(datasourceId, (conn, dialect, ds) -> dialect.listDatabases(conn));
     }
 
     @Override
     public List<String> listTables(String datasourceId, String database) {
-        // TODO M2: 元数据浏览
-        throw new BusinessException("元数据浏览功能在 M2 阶段实现");
+        return executeQuery(datasourceId, (conn, dialect, ds) ->
+            dialect.listTables(conn, StringUtils.hasText(database) ? database : null));
     }
 
     @Override
-    public List<String> listColumns(String datasourceId, String table) {
-        // TODO M2: 元数据浏览
-        throw new BusinessException("元数据浏览功能在 M2 阶段实现");
+    public List<String> listColumns(String datasourceId, String database, String table) {
+        return executeQuery(datasourceId, (conn, dialect, ds) ->
+            dialect.listColumns(conn,
+                StringUtils.hasText(database) ? database : ds.getDatabaseName(),
+                table));
+    }
+
+    // ============================================================
+    // 内部辅助方法
+    // ============================================================
+
+    /**
+     * 元数据查询通用模板：加载驱动 → 建连 → 执行查询 → 释放驱动。
+     */
+    private <T> T executeQuery(String datasourceId, SqlAction<T> action) {
+        Datasource ds = loadDatasourceEntity(datasourceId);
+        Driver driver = loadDriverEntity(ds.getDriverId());
+        Dialect dialect = dialectRegistry.get(parseDbType(ds.getDbType()));
+
+        Path[] jarPaths = {driverStore.downloadToLocal(driver.getObjectKey())};
+        DriverInstance instance = driverLifecycle.acquire(
+            driver.getId(), driver.getDriverClass(), jarPaths);
+
+        String jdbcUrl = dialect.buildJdbcUrl(ds.getHost(), ds.getPort(),
+            ds.getDatabaseName(), toQueryString(ds.getConnectionParams()));
+        Properties props = buildConnectionProps(ds);
+
+        try {
+            try (Connection conn = instance.connect(jdbcUrl, props)) {
+                if (conn == null) {
+                    throw new BusinessException("驱动无法识别 JDBC URL: " + jdbcUrl);
+                }
+                return action.execute(conn, dialect, ds);
+            }
+        } catch (SQLException e) {
+            throw new BusinessException("数据库操作失败: " + e.getMessage());
+        } finally {
+            driverLifecycle.release(driver.getId());
+        }
+    }
+
+    /**
+     * 构建连接属性（解密密码）。
+     */
+    private Properties buildConnectionProps(Datasource ds) {
+        Properties props = new Properties();
+        props.setProperty("user", ds.getUsername());
+        props.setProperty("password", credentialCipher.decrypt(ds.getPasswordCipher()));
+        return props;
+    }
+
+    /**
+     * 更新数据源运行态（best-effort，不掩盖原始异常）。
+     */
+    private void updateConnectionState(Datasource ds, String state, String errorMsg) {
+        ds.setConnectionState(state);
+        if ("online".equals(state)) {
+            ds.setLastConnectTime(LocalDateTime.now());
+            ds.setErrorMsg(null);
+        } else {
+            ds.setErrorMsg(StringUtils.hasText(errorMsg) ? errorMsg : "未知错误");
+        }
+        try {
+            datasourceMapper.updateById(ds);
+        } catch (Exception e) {
+            log.warn("更新数据源连接状态失败: id={}, error={}", ds.getId(), e.getMessage());
+        }
+    }
+
+    /**
+     * 构建响应（填充 driverName）。
+     */
+    private DatasourceResponse buildResponse(Datasource ds, Driver driver) {
+        DatasourceResponse response = datasourceConverter.toDatasourceResponse(ds);
+        if (driver != null) {
+            response.setDriverName(driver.getDriverName());
+        }
+        return response;
+    }
+
+    /**
+     * 校验数据源与驱动一致性（dbType 匹配 + 驱动启用）。
+     */
+    private void validateDriverConsistency(String driverId, DbType dbType) {
+        if (!StringUtils.hasText(driverId)) {
+            return;
+        }
+        Driver driver = driverMapper.selectById(driverId);
+        if (driver == null) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "关联驱动不存在");
+        }
+        if (!driver.getDbType().equals(dbType.name())) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动数据库类型与数据源类型不一致");
+        }
+        if (!"enabled".equals(driver.getStatus())) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "关联驱动已禁用，请先启用驱动");
+        }
+    }
+
+    private Datasource loadDatasourceEntity(String id) {
+        Datasource datasource = datasourceMapper.selectById(id);
+        if (datasource == null) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "数据源不存在");
+        }
+        return datasource;
+    }
+
+    private Driver loadDriverEntity(String driverId) {
+        if (!StringUtils.hasText(driverId)) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "数据源未关联驱动，请先配置驱动");
+        }
+        Driver driver = driverMapper.selectById(driverId);
+        if (driver == null) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "关联驱动不存在");
+        }
+        if (!"enabled".equals(driver.getStatus())) {
+            throw new BusinessException("关联驱动已禁用，请先启用驱动");
+        }
+        return driver;
+    }
+
+    private DbType parseDbType(String dbType) {
+        try {
+            return DbType.valueOf(dbType);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException("未知的数据库类型: " + dbType);
+        }
+    }
+
+    /**
+     * 将 connectionParams 转换为 JDBC URL query string。
+     * <p>
+     * 兼容两种输入格式：
+     * <ul>
+     *   <li>JSON：{@code {"useSSL": false, "serverTimezone": "Asia/Shanghai"}} → {@code useSSL=false&serverTimezone=Asia/Shanghai}</li>
+     *   <li>已为 query string：{@code useSSL=false&serverTimezone=Asia/Shanghai} → 原样返回</li>
+     * </ul>
+     */
+    private String toQueryString(String connectionParams) {
+        if (!StringUtils.hasText(connectionParams)) {
+            return null;
+        }
+        String trimmed = connectionParams.trim();
+        if (!trimmed.startsWith("{")) {
+            return trimmed;
+        }
+        try {
+            Map<String, Object> params = OBJECT_MAPPER.readValue(trimmed, new TypeReference<>() {});
+            if (params.isEmpty()) {
+                return null;
+            }
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
+                if (sb.length() > 0) {
+                    sb.append("&");
+                }
+                sb.append(entry.getKey()).append("=").append(entry.getValue());
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            log.warn("解析连接参数 JSON 失败，按原始格式使用: {}", trimmed);
+            return trimmed;
+        }
+    }
+
+    /** SQL 操作函数式接口 */
+    @FunctionalInterface
+    private interface SqlAction<T> {
+        T execute(Connection conn, Dialect dialect, Datasource ds) throws SQLException;
     }
 }

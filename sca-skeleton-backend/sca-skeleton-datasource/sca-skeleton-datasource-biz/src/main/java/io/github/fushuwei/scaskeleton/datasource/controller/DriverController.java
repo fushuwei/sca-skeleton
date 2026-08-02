@@ -9,6 +9,7 @@ import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverPageRe
 import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverUpdateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverOptionResponse;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverResponse;
+import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverUploadResponse;
 import io.github.fushuwei.scaskeleton.datasource.service.DriverService;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
@@ -17,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -56,6 +58,15 @@ public class DriverController {
     public Result<Void> create(@Validated @RequestBody DriverCreateRequest request) {
         driverService.createDriver(request);
         return Result.ok();
+    }
+
+    @Operation(summary = "上传驱动 JAR 文件")
+    @PostMapping("/upload")
+    @RequiresPermission("sys:datasource:driver:add")
+    @OperationLog(module = "驱动管理", action = "上传驱动JAR")
+    public Result<DriverUploadResponse> upload(@RequestParam DbType dbType,
+                                               @RequestParam("file") MultipartFile file) {
+        return Result.ok(driverService.uploadDriver(dbType, file));
     }
 
     @Operation(summary = "编辑驱动")
