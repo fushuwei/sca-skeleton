@@ -332,7 +332,7 @@ SELECT t.* FROM (
            10 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,1000' AS `tree_path`, 'admin' AS `realm`, NULL AS `remark`,
            0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
     UNION ALL
-    SELECT '1100', '1000', '数据源管理', 'Data Sources', 'menu', 'sys:datasource:list', '/datasource/list', 'DataSourceListView', 'sym_r_nest_eco_leaf', 1010, 1, 0, 'enabled', '0,1000,1100', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '1100', '1000', '数据源管理', 'Data Sources', 'menu', 'sys:datasource:list', '/datasource/list', 'DatasourceListView', 'sym_r_nest_eco_leaf', 1010, 1, 0, 'enabled', '0,1000,1100', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
     SELECT '1200', '1000', '数据查询', 'SQL Query', 'menu', 'sys:datasource:sql-query', '/datasource/sql-query', 'SqlQueryView', 'sym_r_nest_eco_leaf', 1011, 1, 0, 'enabled', '0,1000,1200', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL

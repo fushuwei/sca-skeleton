@@ -14,6 +14,8 @@ const MENU_COMPONENT_MAP: Record<MenuComponent, () => Promise<unknown>> = { // �
   TenantListView: () => import("../views/system/TenantListView.vue"), // 将 TenantList 菜单映射到租户管理页面。
   OperationLogListView: () => import("../views/system/OperationLogListView.vue"), // 将 OperationLogList 菜单映射到操作日志页面。
   LoginLogListView: () => import("../views/system/LoginLogListView.vue"), // 将 LoginLogList 菜单映射到登录日志页面。
+  DriverListView: () => import("../views/datasource/DriverListView.vue"), // 将 DriverList 菜单映射到驱动管理页面。
+  DatasourceListView: () => import("../views/datasource/DatasourceListView.vue"), // 将 DatasourceList 菜单映射到数据源管理页面。
   PlaceholderView: () => import("../views/common/PlaceholderView.vue") // 通用占位页。
 }; // 结束菜单组件映射表定义。
 

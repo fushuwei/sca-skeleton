@@ -92,7 +92,7 @@ const show = computed({
 });
 
 const dbTypeOptions = ref<DbTypeOption[]>([]);
-const form = ref<Record<string, unknown>>({});
+const form = ref<Record<string, string | number>>({});
 const showPwd = ref(false);
 const submitting = ref(false);
 const driverOptions = ref<DriverOption[]>([]);

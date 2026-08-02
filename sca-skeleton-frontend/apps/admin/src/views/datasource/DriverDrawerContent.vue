@@ -94,7 +94,7 @@ const dbTypeOptions = [
   { label: "GaussDB", value: "GAUSSDB" }
 ];
 
-const form = ref<Record<string, unknown>>({});
+const form = ref<Record<string, string | number>>({});
 const jarFile = ref<File | null>(null);
 const uploadInfo = ref<DriverUploadResponse | null>(null);
 const detectedClasses = ref<string[]>([]);
