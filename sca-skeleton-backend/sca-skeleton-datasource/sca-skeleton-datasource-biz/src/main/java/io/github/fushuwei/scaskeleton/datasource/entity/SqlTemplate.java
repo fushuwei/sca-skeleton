@@ -16,7 +16,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("ds_sql_template")
-public class DsSqlTemplate extends BaseEntity {
+public class SqlTemplate extends BaseEntity {
 
     /** 租户 ID */
     private String tenantId;

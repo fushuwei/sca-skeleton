@@ -3,19 +3,19 @@ package io.github.fushuwei.scaskeleton.datasource.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
+import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import io.github.fushuwei.scaskeleton.datasource.api.enums.DbType;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceCreateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourcePageRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceUpdateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DatasourceResponse;
-import io.github.fushuwei.scaskeleton.datasource.converter.DsDatasourceConverter;
-import io.github.fushuwei.scaskeleton.datasource.entity.DsDatasource;
-import io.github.fushuwei.scaskeleton.datasource.entity.DsDriver;
-import io.github.fushuwei.scaskeleton.datasource.mapper.DsDatasourceMapper;
-import io.github.fushuwei.scaskeleton.datasource.mapper.DsDriverMapper;
-import io.github.fushuwei.scaskeleton.datasource.service.DsDatasourceService;
-import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
-import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
+import io.github.fushuwei.scaskeleton.datasource.converter.DatasourceConverter;
+import io.github.fushuwei.scaskeleton.datasource.entity.Datasource;
+import io.github.fushuwei.scaskeleton.datasource.entity.Driver;
+import io.github.fushuwei.scaskeleton.datasource.mapper.DatasourceMapper;
+import io.github.fushuwei.scaskeleton.datasource.mapper.DriverMapper;
+import io.github.fushuwei.scaskeleton.datasource.service.DatasourceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -32,53 +32,47 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-public class DsDatasourceServiceImpl implements DsDatasourceService {
+public class DatasourceServiceImpl implements DatasourceService {
 
-    private final DsDatasourceMapper datasourceMapper;
-    private final DsDriverMapper driverMapper;
-    private final DsDatasourceConverter datasourceConverter;
+    private final DatasourceMapper datasourceMapper;
+    private final DriverMapper driverMapper;
+    private final DatasourceConverter datasourceConverter;
 
     @Override
     public IPage<DatasourceResponse> pageDatasources(DatasourcePageRequest request) {
-        Page<DsDatasource> page = new Page<>(request.getPageNum(), request.getPageSize());
-        LambdaQueryWrapper<DsDatasource> wrapper = new LambdaQueryWrapper<>();
+        Page<Datasource> page = new Page<>(request.getPageNum(), request.getPageSize());
+        LambdaQueryWrapper<Datasource> wrapper = new LambdaQueryWrapper<>();
 
         if (StringUtils.hasText(request.getDbType())) {
-            wrapper.eq(DsDatasource::getDbType, request.getDbType());
+            wrapper.eq(Datasource::getDbType, request.getDbType());
         }
         if (request.getEnabled() != null) {
-            wrapper.eq(DsDatasource::getEnabled, request.getEnabled());
+            wrapper.eq(Datasource::getEnabled, request.getEnabled());
         }
         if (StringUtils.hasText(request.getKeyword())) {
-            wrapper.and(w -> w.like(DsDatasource::getName, request.getKeyword())
-                .or().like(DsDatasource::getHost, request.getKeyword()));
+            wrapper.and(w -> w.like(Datasource::getName, request.getKeyword())
+                .or().like(Datasource::getHost, request.getKeyword()));
         }
-        wrapper.orderByDesc(DsDatasource::getCreateTime);
+        wrapper.orderByDesc(Datasource::getCreateTime);
 
-        IPage<DsDatasource> dsPage = datasourceMapper.selectPage(page, wrapper);
-        return dsPage.convert(ds -> {
-            DatasourceResponse resp = datasourceConverter.toDatasourceResponse(ds);
-            resp.setPassword(null);
-            return resp;
-        });
+        IPage<Datasource> dsPage = datasourceMapper.selectPage(page, wrapper);
+        return dsPage.convert(datasourceConverter::toDatasourceResponse);
     }
 
     @Override
     public DatasourceResponse getDatasourceById(String id) {
-        DsDatasource datasource = datasourceMapper.selectById(id);
+        Datasource datasource = datasourceMapper.selectById(id);
         if (datasource == null) {
             throw new BusinessException("数据源不存在");
         }
-        DatasourceResponse resp = datasourceConverter.toDatasourceResponse(datasource);
-        resp.setPassword(null);
-        return resp;
+        return datasourceConverter.toDatasourceResponse(datasource);
     }
 
     @Override
     public void createDatasource(DatasourceCreateRequest request) {
         // 校验数据源与驱动一致性
         if (StringUtils.hasText(request.getDriverId())) {
-            DsDriver driver = driverMapper.selectById(request.getDriverId());
+            Driver driver = driverMapper.selectById(request.getDriverId());
             if (driver == null) {
                 throw new BusinessException("关联驱动不存在");
             }
@@ -90,7 +84,7 @@ public class DsDatasourceServiceImpl implements DsDatasourceService {
             }
         }
 
-        DsDatasource datasource = datasourceConverter.toDsDatasource(request);
+        Datasource datasource = datasourceConverter.toDatasource(request);
         datasource.setId(UuidUtils.nextSimpleStr());
         datasource.setEnabled(1);
         datasource.setConnectionState("offline");
@@ -101,7 +95,7 @@ public class DsDatasourceServiceImpl implements DsDatasourceService {
 
     @Override
     public void updateDatasource(DatasourceUpdateRequest request) {
-        DsDatasource datasource = datasourceMapper.selectById(request.getId());
+        Datasource datasource = datasourceMapper.selectById(request.getId());
         if (datasource == null) {
             throw new BusinessException("数据源不存在");
         }
@@ -141,7 +135,7 @@ public class DsDatasourceServiceImpl implements DsDatasourceService {
 
     @Override
     public void deleteDatasource(String id) {
-        DsDatasource datasource = datasourceMapper.selectById(id);
+        Datasource datasource = datasourceMapper.selectById(id);
         if (datasource == null) {
             throw new BusinessException("数据源不存在");
         }
@@ -156,7 +150,7 @@ public class DsDatasourceServiceImpl implements DsDatasourceService {
 
     @Override
     public void changeEnabled(String id, Integer enabled) {
-        DsDatasource datasource = datasourceMapper.selectById(id);
+        Datasource datasource = datasourceMapper.selectById(id);
         if (datasource == null) {
             throw new BusinessException("数据源不存在");
         }

@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @TableName("ds_query_log")
-public class DsQueryLog implements Serializable {
+public class QueryLog implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -49,7 +49,7 @@ public class DsQueryLog implements Serializable {
     /** 执行的 SQL 语句（超长截断 4000 字符） */
     private String sqlContent;
 
-    /** SQL 类型（SELECT/INSERT/UPDATE/DELETE/DDL/OTHER） */
+    /** SQL 类型 */
     private String sqlType;
 
     /** 执行状态（success/fail） */

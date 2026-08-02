@@ -1,14 +1,14 @@
 package io.github.fushuwei.scaskeleton.datasource.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import io.github.fushuwei.scaskeleton.datasource.entity.DsQueryLog;
+import io.github.fushuwei.scaskeleton.datasource.entity.Datasource;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
- * SQL 查询历史 Mapper
+ * 数据源 Mapper
  *
  * @author Fu Wei
  */
 @Mapper
-public interface DsQueryLogMapper extends BaseMapper<DsQueryLog> {
+public interface DatasourceMapper extends BaseMapper<Datasource> {
 }

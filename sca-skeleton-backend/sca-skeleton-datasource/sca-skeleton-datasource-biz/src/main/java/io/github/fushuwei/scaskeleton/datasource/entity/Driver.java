@@ -21,7 +21,7 @@ import lombok.EqualsAndHashCode;
 @ReferencedBy({
     @Reference(table = "ds_datasource", column = "driver_id", message = "驱动被数据源引用，无法删除")
 })
-public class DsDriver extends BaseEntity {
+public class Driver extends BaseEntity {
 
     /** 数据库类型 */
     private String dbType;

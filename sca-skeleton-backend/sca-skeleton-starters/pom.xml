@@ -36,5 +36,7 @@
         <module>sca-skeleton-starter-security</module>
         <!-- API 文档：SpringDoc OpenAPI 3 + Swagger UI，微服务引入即用 -->
         <module>sca-skeleton-starter-doc</module>
+        <!-- MinIO 对象存储：MinioClient 自动配置、MinioUtils 工具类 -->
+        <module>sca-skeleton-starter-minio</module>
     </modules>
 </project>

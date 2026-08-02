@@ -9,7 +9,7 @@ import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverPageRe
 import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverUpdateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverOptionResponse;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverResponse;
-import io.github.fushuwei.scaskeleton.datasource.service.DsDriverService;
+import io.github.fushuwei.scaskeleton.datasource.service.DriverService;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,9 +31,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/ds/driver")
 @RequiredArgsConstructor
-public class DsDriverController {
+public class DriverController {
 
-    private final DsDriverService driverService;
+    private final DriverService driverService;
 
     @Operation(summary = "分页查询驱动列表")
     @GetMapping("/page")
@@ -76,10 +76,10 @@ public class DsDriverController {
         return Result.ok();
     }
 
-    @Operation(summary = "启用/禁用驱动")
+    @Operation(summary = "启用驱动")
     @PostMapping("/{id}/enable")
     @RequiresPermission("sys:datasource:driver:edit")
-    @OperationLog(module = "驱动管理", action = "变更驱动状态")
+    @OperationLog(module = "驱动管理", action = "启用驱动")
     public Result<Void> enable(@PathVariable String id) {
         driverService.changeStatus(id, "enabled");
         return Result.ok();
@@ -88,7 +88,7 @@ public class DsDriverController {
     @Operation(summary = "禁用驱动")
     @PostMapping("/{id}/disable")
     @RequiresPermission("sys:datasource:driver:edit")
-    @OperationLog(module = "驱动管理", action = "变更驱动状态")
+    @OperationLog(module = "驱动管理", action = "禁用驱动")
     public Result<Void> disable(@PathVariable String id) {
         driverService.changeStatus(id, "disabled");
         return Result.ok();

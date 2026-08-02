@@ -2,7 +2,7 @@ package io.github.fushuwei.scaskeleton.datasource.converter;
 
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceCreateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DatasourceResponse;
-import io.github.fushuwei.scaskeleton.datasource.entity.DsDatasource;
+import io.github.fushuwei.scaskeleton.datasource.entity.Datasource;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -12,16 +12,11 @@ import org.mapstruct.Mapping;
  * @author Fu Wei
  */
 @Mapper(componentModel = "spring")
-public interface DsDatasourceConverter {
+public interface DatasourceConverter {
 
-    /**
-     * 新增请求转实体
-     */
-    DsDatasource toDsDatasource(DatasourceCreateRequest request);
+    Datasource toDatasource(DatasourceCreateRequest request);
 
-    /**
-     * 实体转响应
-     */
     @Mapping(target = "driverName", ignore = true)
-    DatasourceResponse toDatasourceResponse(DsDatasource datasource);
+    @Mapping(target = "password", ignore = true)
+    DatasourceResponse toDatasourceResponse(Datasource datasource);
 }

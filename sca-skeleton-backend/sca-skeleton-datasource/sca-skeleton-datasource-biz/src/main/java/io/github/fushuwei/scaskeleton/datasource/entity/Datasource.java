@@ -6,6 +6,8 @@ import io.github.fushuwei.scaskeleton.mybatis.base.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.LocalDateTime;
+
 /**
  * 数据源实体类
  * <p>
@@ -16,7 +18,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("ds_datasource")
-public class DsDatasource extends BaseEntity {
+public class Datasource extends BaseEntity {
 
     /** 租户 ID */
     private String tenantId;
@@ -64,7 +66,7 @@ public class DsDatasource extends BaseEntity {
     private String errorMsg;
 
     /** 最后连接时间 */
-    private java.time.LocalDateTime lastConnectTime;
+    private LocalDateTime lastConnectTime;
 
     /** 乐观锁版本号 */
     @Version

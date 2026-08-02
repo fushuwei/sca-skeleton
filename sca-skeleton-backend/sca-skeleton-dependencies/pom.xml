@@ -27,6 +27,7 @@
         <springdoc.version>3.0.3</springdoc.version>
         <captcha.version>1.6.2</captcha.version>
         <ip2region.version>3.3.7</ip2region.version>
+        <minio.version>8.5.17</minio.version>
     </properties>
 
     <dependencyManagement>
@@ -130,6 +131,13 @@
                 <version>${ip2region.version}</version>
             </dependency>
 
+            <!-- MinIO 对象存储 SDK -->
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
+            </dependency>
+
             <!-- ======================================================================== -->
             <!-- 内部 Starter 统一管理 -->
             <!-- ======================================================================== -->
@@ -197,6 +205,13 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <!-- 项目 MinIO 对象存储 Starter（MinioClient 自动配置、MinioUtils 工具类） -->
+            <dependency>
+                <groupId>io.github.fushuwei</groupId>
+                <artifactId>sca-skeleton-starter-minio</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <!-- ======================================================================== -->
             <!-- 业务模块 API 契约统一管理 -->
             <!-- ======================================================================== -->
@@ -212,13 +227,6 @@
             <dependency>
                 <groupId>io.github.fushuwei</groupId>
                 <artifactId>sca-skeleton-datasource-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <!-- Datasource 服务业务实现模块 -->
-            <dependency>
-                <groupId>io.github.fushuwei</groupId>
-                <artifactId>sca-skeleton-datasource-biz</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

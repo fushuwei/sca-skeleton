@@ -8,7 +8,7 @@ import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.Datasour
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourcePageRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceUpdateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DatasourceResponse;
-import io.github.fushuwei.scaskeleton.datasource.service.DsDatasourceService;
+import io.github.fushuwei.scaskeleton.datasource.service.DatasourceService;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,9 +30,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/ds/datasource")
 @RequiredArgsConstructor
-public class DsDatasourceController {
+public class DatasourceController {
 
-    private final DsDatasourceService datasourceService;
+    private final DatasourceService datasourceService;
 
     @Operation(summary = "分页查询数据源列表")
     @GetMapping("/page")

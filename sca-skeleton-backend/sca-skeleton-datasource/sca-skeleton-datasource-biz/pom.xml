@@ -77,6 +77,12 @@
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
         </dependency>
+
+        <!-- MinIO 对象存储 Starter（MinioClient 自动配置、MinioUtils 工具类） -->
+        <dependency>
+            <groupId>io.github.fushuwei</groupId>
+            <artifactId>sca-skeleton-starter-minio</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

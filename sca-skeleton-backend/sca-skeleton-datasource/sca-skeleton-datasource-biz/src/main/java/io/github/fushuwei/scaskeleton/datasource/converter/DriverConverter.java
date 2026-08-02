@@ -2,7 +2,7 @@ package io.github.fushuwei.scaskeleton.datasource.converter;
 
 import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverCreateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverResponse;
-import io.github.fushuwei.scaskeleton.datasource.entity.DsDriver;
+import io.github.fushuwei.scaskeleton.datasource.entity.Driver;
 import org.mapstruct.Mapper;
 
 /**
@@ -11,15 +11,9 @@ import org.mapstruct.Mapper;
  * @author Fu Wei
  */
 @Mapper(componentModel = "spring")
-public interface DsDriverConverter {
+public interface DriverConverter {
 
-    /**
-     * 新增请求转实体
-     */
-    DsDriver toDsDriver(DriverCreateRequest request);
+    Driver toDriver(DriverCreateRequest request);
 
-    /**
-     * 实体转响应
-     */
-    DriverResponse toDriverResponse(DsDriver driver);
+    DriverResponse toDriverResponse(Driver driver);
 }
