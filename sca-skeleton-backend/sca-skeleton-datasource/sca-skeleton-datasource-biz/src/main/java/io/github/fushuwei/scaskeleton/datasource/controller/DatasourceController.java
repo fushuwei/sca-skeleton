@@ -76,6 +76,15 @@ public class DatasourceController {
         return Result.ok();
     }
 
+    @Operation(summary = "批量删除数据源")
+    @PostMapping("/batch/delete")
+    @RequiresPermission("sys:datasource:delete")
+    @OperationLog(module = "数据源管理", action = "批量删除数据源")
+    public Result<Void> batchDelete(@RequestBody List<String> ids) {
+        datasourceService.batchDeleteDatasources(ids);
+        return Result.ok();
+    }
+
     @Operation(summary = "测试数据源连接")
     @PostMapping("/test")
     @RequiresPermission("sys:datasource:list")

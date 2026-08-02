@@ -34,6 +34,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 驱动管理 Service 实现
@@ -179,14 +180,65 @@ public class DriverServiceImpl implements DriverService {
         driverMapper.deleteById(id);
 
         // 存储清理：检查是否还有其他驱动记录引用同一个 objectKey，无引用则删除 JAR 文件
+        cleanupOrphanJar(driver.getObjectKey(), id);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchDeleteDrivers(List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return;
+        }
+
+        // 批量加载驱动实体
+        List<Driver> drivers = driverMapper.selectBatchIds(ids);
+        if (drivers.isEmpty()) {
+            return;
+        }
+
+        // 内置驱动不允许删除
+        List<Driver> builtinDrivers = drivers.stream()
+            .filter(d -> d.getIsBuiltin() != null && d.getIsBuiltin() == 1)
+            .toList();
+        if (!builtinDrivers.isEmpty()) {
+            throw new BusinessException("内置驱动不允许删除: " +
+                builtinDrivers.stream().map(Driver::getDriverName).collect(Collectors.joining(", ")));
+        }
+
+        // 批量引用校验
+        referenceChecker.checkBatch(Driver.class, ids);
+
+        driverMapper.deleteBatchIds(ids);
+
+        // 存储清理：收集本次删除涉及的 objectKey，排除仍被其他驱动记录引用的对象
+        List<String> deletedIds = drivers.stream().map(Driver::getId).toList();
+        for (Driver driver : drivers) {
+            cleanupOrphanJar(driver.getObjectKey(), deletedIds);
+        }
+    }
+
+    /**
+     * 存储清理：检查 objectKey 是否还被其他驱动记录引用，无引用则删除 JAR 文件。
+     *
+     * @param objectKey     对象键
+     * @param excludeIds    需排除的驱动 ID（刚删除的记录）
+     */
+    private void cleanupOrphanJar(String objectKey, String excludeId) {
+        cleanupOrphanJar(objectKey, List.of(excludeId));
+    }
+
+    private void cleanupOrphanJar(String objectKey, List<String> excludeIds) {
+        if (!StringUtils.hasText(objectKey)) {
+            return;
+        }
         long refCount = driverMapper.selectCount(new LambdaQueryWrapper<Driver>()
-            .eq(Driver::getObjectKey, driver.getObjectKey())
-            .ne(Driver::getId, id));
+            .eq(Driver::getObjectKey, objectKey)
+            .notIn(!excludeIds.isEmpty(), Driver::getId, excludeIds));
         if (refCount == 0) {
             try {
-                driverStore.deleteObject(driver.getObjectKey());
+                driverStore.deleteObject(objectKey);
             } catch (Exception e) {
-                log.warn("删除驱动 JAR 文件失败: objectKey={}, error={}", driver.getObjectKey(), e.getMessage());
+                log.warn("删除驱动 JAR 文件失败: objectKey={}, error={}", objectKey, e.getMessage());
             }
         }
     }

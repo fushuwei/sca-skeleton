@@ -145,6 +145,11 @@ export async function deleteDriverApi(id: string): Promise<ApiEnvelope<null>> {
   return request<null>({ method: "POST", url: "/ds/driver/delete", data: { id } });
 }
 
+/** 批量删除驱动 */
+export async function batchDeleteDriverApi(ids: string[]): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "POST", url: "/ds/driver/batch/delete", data: ids });
+}
+
 /** 启用驱动 */
 export async function enableDriverApi(id: string): Promise<ApiEnvelope<null>> {
   return request<null>({ method: "POST", url: `/ds/driver/${id}/enable` });
@@ -211,6 +216,11 @@ export async function deleteDatasourceApi(
     url: "/ds/datasource/delete",
     data: { id }
   });
+}
+
+/** 批量删除数据源 */
+export async function batchDeleteDatasourceApi(ids: string[]): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "POST", url: "/ds/datasource/batch/delete", data: ids });
 }
 
 /** 测试数据源连接 */

@@ -1,208 +1,498 @@
-<template>
-  <q-drawer v-model="show" side="right" :width="480" bordered>
-    <div class="q-pa-md">
-      <div class="text-h6 q-mb-md">{{ editData ? '编辑驱动' : '新增驱动' }}</div>
-      <q-form @submit.prevent="handleSubmit" class="q-gutter-md">
-        <q-select
-          v-model="form.dbType"
-          :options="dbTypeOptions"
-          emit-value
-          map-options
-          label="数据库类型 *"
-          outlined
-          dense
-          :disable="!!editData"
-          :rules="[v => !!v || '必选']"
-        />
-        <q-input v-model="form.driverName" label="驱动名称 *" outlined dense :rules="[v => !!v || '必填']" />
-        <q-input v-model="form.driverClass" label="驱动类名 *" outlined dense hint="如 com.mysql.cj.jdbc.Driver" :rules="[v => !!v || '必填']" />
-        <q-input v-model="form.driverVersion" label="驱动版本 *" outlined dense hint="如 8.0.33" :rules="[v => !!v || '必填']" />
-
-        <!-- JAR 上传区域 -->
-        <div v-if="!editData">
-          <q-file
-            v-model="jarFile"
-            label="上传 JAR 文件 *"
-            accept=".jar"
-            outlined
-            dense
-            max-file-size="524288000"
-            :loading="uploading"
-            @update:model-value="onFileChange"
-          >
-            <template #prepend><q-icon name="attach_file" /></template>
-          </q-file>
-          <div v-if="uploadInfo" class="q-mt-xs text-caption text-grey-7">
-            SHA256: {{ uploadInfo.jarSha256?.substring(0, 16) }}... | 大小: {{ formatFileSize(uploadInfo.fileSize) }}
-          </div>
-          <div v-if="detectedClasses.length > 0" class="q-mt-xs">
-            <q-badge v-for="cls in detectedClasses" :key="cls" class="q-mr-xs q-mb-xs" color="blue-2" text-color="blue-9">
-              {{ cls }}
-            </q-badge>
-          </div>
-        </div>
-
-        <!-- 编辑模式下显示已有 JAR 信息 -->
-        <div v-else class="text-caption text-grey-7">
-          SHA256: {{ editData.jarSha256?.substring(0, 16) }}... | 大小: {{ formatFileSize(editData.fileSize) }}
-          <div class="text-grey-5 q-mt-xs">JAR 文件不可更改，如需更换请新建驱动</div>
-        </div>
-
-        <q-input v-model="form.urlTemplate" label="JDBC URL 模板" outlined dense hint="如 jdbc:mysql://{host}:{port}/{database}" />
-        <q-input v-model="form.remark" label="备注" outlined dense type="textarea" />
-        <div class="row q-gutter-md q-mt-sm">
-          <q-btn label="取消" flat color="grey" @click="show = false" />
-          <q-space />
-          <q-btn label="保存" type="submit" color="primary" unelevated :loading="submitting" />
-        </div>
-      </q-form>
-    </div>
-  </q-drawer>
-</template>
-
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
-import { useQuasar } from "quasar";
-import {
-  createDriverApi,
-  updateDriverApi,
-  uploadDriverApi,
-  type Driver,
-  type DriverUploadResponse
-} from "../../apis/datasource";
+import { ref, reactive, computed, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import { showToast, isNotificationHandled } from "@repo/shared";
+import type { Driver, DriverUploadResponse } from "../../apis/datasource";
+import { createDriverApi, updateDriverApi, uploadDriverApi } from "../../apis/datasource";
 
-const props = defineProps<{ modelValue: boolean; editData: Driver | null }>();
-const emit = defineEmits<{ "update:modelValue": [v: boolean]; saved: [] }>();
+const { t } = useI18n({ useScope: "global" });
 
-const $q = useQuasar();
-const show = computed({
-  get: () => props.modelValue,
-  set: v => emit("update:modelValue", v)
-});
+const props = defineProps<{
+  mode: "add" | "edit" | "view";
+  driver?: Driver;
+}>();
 
-const dbTypeOptions = [
+const emit = defineEmits<{
+  close: [];
+  saved: [];
+}>();
+
+const drawerReadonly = computed(() => props.mode === "view");
+const isEdit = computed(() => props.mode === "edit");
+
+// ── 数据库类型选项（与后端 DbType 枚举一致） ──
+const DB_TYPE_OPTIONS = [
   { label: "MySQL", value: "MYSQL" },
   { label: "Oracle", value: "ORACLE" },
   { label: "PostgreSQL", value: "POSTGRESQL" },
   { label: "SQLServer", value: "SQLSERVER" },
-  { label: "达梦", value: "DAMENG" },
-  { label: "人大金仓", value: "KINGBASE" },
+  { label: "达梦 DM", value: "DAMENG" },
+  { label: "人大金仓 Kingbase", value: "KINGBASE" },
   { label: "MongoDB", value: "MONGODB" },
   { label: "ClickHouse", value: "CLICKHOUSE" },
-  { label: "OceanBase(MySQL)", value: "OCEANBASE_MYSQL" },
-  { label: "OceanBase(Oracle)", value: "OCEANBASE_ORACLE" },
+  { label: "OceanBase (MySQL)", value: "OCEANBASE_MYSQL" },
+  { label: "OceanBase (Oracle)", value: "OCEANBASE_ORACLE" },
   { label: "GaussDB", value: "GAUSSDB" }
 ];
 
-const form = ref<Record<string, string | number>>({});
+const formLoading = ref(false);
+const form = reactive({
+  id: "",
+  dbType: "",
+  driverName: "",
+  driverClass: "",
+  driverVersion: "",
+  urlTemplate: "",
+  allowedParams: "",
+  remark: "",
+  // 上传回填字段（创建时使用）
+  jarSha256: "",
+  objectKey: "",
+  fileSize: 0 as number,
+  version: 0 as number | undefined
+});
+
+// ── JAR 上传相关 ──
 const jarFile = ref<File | null>(null);
+const uploading = ref(false);
 const uploadInfo = ref<DriverUploadResponse | null>(null);
 const detectedClasses = ref<string[]>([]);
-const uploading = ref(false);
-const submitting = ref(false);
 
-watch(
-  () => props.modelValue,
-  v => {
-    if (v) {
-      if (props.editData) {
-        form.value = { ...props.editData };
-        uploadInfo.value = null;
-        detectedClasses.value = [];
-      } else {
-        form.value = {
-          dbType: "",
-          driverName: "",
-          driverClass: "",
-          driverVersion: "",
-          urlTemplate: "",
-          remark: ""
-        };
-        uploadInfo.value = null;
-        detectedClasses.value = [];
-      }
-      jarFile.value = null;
-    }
+const formRules = computed(() => ({
+  dbType: [(v: string) => !!v || t("driverMgmt.dbTypeRequired")],
+  driverName: [(v: string) => !!v?.trim() || t("driverMgmt.driverNameRequired")],
+  driverClass: [(v: string) => !!v?.trim() || t("driverMgmt.driverClassRequired")],
+  driverVersion: [(v: string) => !!v?.trim() || t("driverMgmt.driverVersionRequired")]
+}));
+
+function resetForm() {
+  form.id = "";
+  form.dbType = "";
+  form.driverName = "";
+  form.driverClass = "";
+  form.driverVersion = "";
+  form.urlTemplate = "";
+  form.allowedParams = "";
+  form.remark = "";
+  form.jarSha256 = "";
+  form.objectKey = "";
+  form.fileSize = 0;
+  form.version = 0;
+  jarFile.value = null;
+  uploadInfo.value = null;
+  detectedClasses.value = [];
+}
+
+function initForm() {
+  resetForm();
+  if (props.driver) {
+    form.id = props.driver.id;
+    form.dbType = props.driver.dbType;
+    form.driverName = props.driver.driverName;
+    form.driverClass = props.driver.driverClass;
+    form.driverVersion = props.driver.driverVersion;
+    form.urlTemplate = props.driver.urlTemplate || "";
+    form.allowedParams = props.driver.allowedParams || "";
+    form.remark = props.driver.remark || "";
+    form.jarSha256 = props.driver.jarSha256 || "";
+    form.objectKey = props.driver.objectKey || "";
+    form.fileSize = props.driver.fileSize || 0;
+    form.version = props.driver.version;
   }
-);
+}
 
+watch(() => props.driver, initForm, { immediate: true });
+
+// ── JAR 文件上传 ──
 async function onFileChange(file: File | null) {
   if (!file) {
     uploadInfo.value = null;
     detectedClasses.value = [];
+    form.jarSha256 = "";
+    form.objectKey = "";
+    form.fileSize = 0;
     return;
   }
-  if (!form.value.dbType) {
-    $q.notify({ type: "warning", message: "请先选择数据库类型" });
+  if (!form.dbType) {
+    showToast(t("driverMgmt.dbTypeRequired"), "warning");
+    jarFile.value = null;
+    return;
+  }
+  if (!file.name.endsWith(".jar")) {
+    showToast(t("driverMgmt.jarFileHint"), "warning");
     jarFile.value = null;
     return;
   }
 
   uploading.value = true;
   try {
-    const res = await uploadDriverApi(form.value.dbType as string, file);
-    uploadInfo.value = res.data;
-    detectedClasses.value = res.data.detectedDriverClasses || [];
-    // 自动填充驱动类名（用户可修改）
-    if (res.data.driverClass && !form.value.driverClass) {
-      form.value.driverClass = res.data.driverClass;
+    const result = await uploadDriverApi(form.dbType, file);
+    if (result.code === 10_000 && result.data) {
+      uploadInfo.value = result.data;
+      detectedClasses.value = result.data.detectedDriverClasses || [];
+      form.jarSha256 = result.data.jarSha256;
+      form.objectKey = result.data.objectKey;
+      form.fileSize = result.data.fileSize;
+      // 自动填充驱动类名（仅当为空时）
+      if (!form.driverClass && result.data.driverClass) {
+        form.driverClass = result.data.driverClass;
+      }
+      showToast(t("driverMgmt.uploadSuccess"), "positive");
+    } else {
+      showToast(result.message || t("driverMgmt.uploadFail"), "negative");
+      jarFile.value = null;
     }
-    // 自动填充驱动名称（取文件名去扩展名）
-    if (!form.value.driverName) {
-      form.value.driverName = file.name.replace(/\.jar$/i, "");
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("driverMgmt.uploadFail"), "negative");
     }
-    $q.notify({ type: "positive", message: "JAR 上传成功，已探测驱动类" });
-  } catch {
     jarFile.value = null;
   } finally {
     uploading.value = false;
   }
 }
 
-async function handleSubmit() {
-  // 新建模式下校验必须上传 JAR
-  if (!props.editData && !uploadInfo.value) {
-    $q.notify({ type: "warning", message: "请先上传驱动 JAR 文件" });
+function selectDetectedClass(cls: string) {
+  if (drawerReadonly.value) return;
+  form.driverClass = cls;
+}
+
+function handleClose() {
+  emit("close");
+}
+
+async function handleSave() {
+  if (drawerReadonly.value) return;
+
+  // 新增时校验 JAR 已上传
+  if (props.mode === "add" && !form.jarSha256) {
+    showToast(t("driverMgmt.jarFileRequired"), "warning");
     return;
   }
 
-  submitting.value = true;
+  const data: Record<string, unknown> = {
+    driverName: form.driverName,
+    urlTemplate: form.urlTemplate || undefined,
+    allowedParams: form.allowedParams || undefined,
+    remark: form.remark || undefined
+  };
+
+  if (props.mode === "add") {
+    data.dbType = form.dbType;
+    data.driverClass = form.driverClass;
+    data.driverVersion = form.driverVersion;
+    data.jarSha256 = form.jarSha256;
+    data.objectKey = form.objectKey;
+    data.fileSize = form.fileSize;
+  } else {
+    data.id = form.id;
+    data.version = form.version;
+  }
+
   try {
-    if (props.editData) {
-      await updateDriverApi({
-        id: props.editData.id,
-        driverName: form.value.driverName,
-        urlTemplate: form.value.urlTemplate,
-        allowedParams: form.value.allowedParams,
-        remark: form.value.remark,
-        version: props.editData.version
-      });
-      $q.notify({ type: "positive", message: "更新成功" });
+    formLoading.value = true;
+    const result = props.mode === "add"
+      ? await createDriverApi(data)
+      : await updateDriverApi(data);
+
+    if (result.code === 10_000) {
+      showToast(t("driverMgmt.saveSuccess"), "positive");
+      emit("saved");
     } else {
-      await createDriverApi({
-        dbType: form.value.dbType,
-        driverName: form.value.driverName,
-        driverClass: form.value.driverClass,
-        driverVersion: form.value.driverVersion,
-        jarSha256: uploadInfo.value?.jarSha256,
-        objectKey: uploadInfo.value?.objectKey,
-        fileSize: uploadInfo.value?.fileSize,
-        urlTemplate: form.value.urlTemplate,
-        remark: form.value.remark
-      });
-      $q.notify({ type: "positive", message: "创建成功" });
+      showToast(result.message || t("driverMgmt.saveFail"), "negative");
     }
-    show.value = false;
-    emit("saved");
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("driverMgmt.saveFail"), "negative");
+    }
   } finally {
-    submitting.value = false;
+    formLoading.value = false;
   }
 }
 
+// ── 工具函数 ──
 function formatFileSize(bytes: number): string {
   if (!bytes) return "-";
   if (bytes < 1024) return bytes + " B";
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + " MB";
+  return (bytes / 1024 / 1024 / 1024).toFixed(2) + " GB";
 }
 </script>
+
+<template>
+  <div class="driver-drawer-content">
+    <q-form class="driver-drawer-form" @submit="handleSave">
+      <div class="row q-col-gutter-md">
+        <!-- 数据库类型 -->
+        <div class="col-12 col-md-6">
+          <q-select
+            v-model="form.dbType"
+            :label="t('driverMgmt.dbType')"
+            filled
+            square
+            :options="DB_TYPE_OPTIONS"
+            emit-value
+            map-options
+            :rules="formRules.dbType"
+            :disable="isEdit || drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+            class="required-field"
+          />
+        </div>
+        <!-- 驱动版本 -->
+        <div class="col-12 col-md-6">
+          <q-input
+            v-model.trim="form.driverVersion"
+            :label="t('driverMgmt.driverVersion')"
+            filled
+            square
+            :rules="formRules.driverVersion"
+            :disable="isEdit || drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+            class="required-field"
+          />
+        </div>
+        <!-- 驱动名称 -->
+        <div class="col-12">
+          <q-input
+            v-model.trim="form.driverName"
+            :label="t('driverMgmt.driverName')"
+            filled
+            square
+            :rules="formRules.driverName"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+            class="required-field"
+          />
+        </div>
+        <!-- 驱动类名 -->
+        <div class="col-12">
+          <q-input
+            v-model.trim="form.driverClass"
+            :label="t('driverMgmt.driverClass')"
+            filled
+            square
+            :rules="formRules.driverClass"
+            :disable="isEdit || drawerReadonly"
+            :readonly="drawerReadonly"
+            hint="如 com.mysql.cj.jdbc.Driver"
+            hide-bottom-space
+            class="required-field"
+          />
+        </div>
+
+        <!-- JAR 上传区域（仅新增模式） -->
+        <div v-if="!isEdit" class="col-12">
+          <div class="text-caption text-grey-8 q-mb-xs">{{ t('driverMgmt.jarFile') }} <span class="text-negative">*</span></div>
+          <q-file
+            v-model="jarFile"
+            accept=".jar"
+            filled
+            square
+            :label="t('driverMgmt.jarFile')"
+            :loading="uploading"
+            :disable="drawerReadonly"
+            :hint="t('driverMgmt.jarFileHint')"
+            hide-bottom-space
+            class="required-field"
+            @update:model-value="onFileChange"
+          >
+            <template #prepend>
+              <q-icon name="sym_r_attach_file" />
+            </template>
+          </q-file>
+
+          <!-- 上传后信息 -->
+          <div v-if="uploadInfo" class="q-mt-xs">
+            <div class="text-caption text-grey-7">
+              <span>SHA256: {{ uploadInfo.jarSha256?.substring(0, 16) }}...</span>
+              <span class="q-ml-md">{{ t('driverMgmt.fileSize') }}: {{ formatFileSize(uploadInfo.fileSize) }}</span>
+            </div>
+            <!-- 探测到的驱动类 -->
+            <div v-if="detectedClasses.length > 0" class="q-mt-xs">
+              <div class="text-caption text-grey-8 q-mb-xs">{{ t('driverMgmt.detectedClasses') }}:</div>
+              <q-badge
+                v-for="cls in detectedClasses"
+                :key="cls"
+                class="q-mr-xs q-mb-xs cursor-pointer detected-class-badge"
+                :color="form.driverClass === cls ? 'primary' : 'blue-2'"
+                :text-color="form.driverClass === cls ? 'white' : 'blue-9'"
+                @click="selectDetectedClass(cls)"
+              >
+                {{ cls }}
+              </q-badge>
+            </div>
+          </div>
+        </div>
+
+        <!-- 编辑/查看模式下显示已有 JAR 信息 -->
+        <div v-else class="col-12">
+          <div class="text-caption text-grey-8 q-mb-xs">{{ t('driverMgmt.jarFile') }}</div>
+          <div class="jar-info-box">
+            <div class="text-caption text-grey-7">
+              <span>SHA256: {{ form.jarSha256?.substring(0, 16) }}...</span>
+              <span class="q-ml-md">{{ t('driverMgmt.fileSize') }}: {{ formatFileSize(form.fileSize) }}</span>
+            </div>
+            <div class="text-caption text-grey-5 q-mt-xs">{{ t('driverMgmt.jarLocked') }}</div>
+          </div>
+        </div>
+
+        <!-- JDBC URL 模板 -->
+        <div class="col-12">
+          <q-input
+            v-model.trim="form.urlTemplate"
+            :label="t('driverMgmt.urlTemplate')"
+            filled
+            square
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hint="如 jdbc:mysql://{host}:{port}/{database}"
+            hide-bottom-space
+          />
+        </div>
+        <!-- URL 参数白名单 -->
+        <div class="col-12">
+          <q-input
+            v-model="form.allowedParams"
+            :label="t('driverMgmt.allowedParams')"
+            filled
+            square
+            type="textarea"
+            rows="2"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hint='JSON 数组，如 ["useSSL", "serverTimezone"]'
+            hide-bottom-space
+          />
+        </div>
+        <!-- 备注 -->
+        <div class="col-12">
+          <q-input
+            v-model="form.remark"
+            :label="t('driverMgmt.remark')"
+            filled
+            square
+            type="textarea"
+            rows="3"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+          />
+        </div>
+      </div>
+
+      <!-- 底部操作按钮 -->
+      <div v-if="!drawerReadonly" class="driver-drawer-footer row justify-end q-gutter-sm">
+        <q-btn
+          color="grey-7"
+          outline
+          no-caps
+          class="drawer-action-btn"
+          @click="handleClose"
+        >
+          {{ t('common.cancel') }}
+        </q-btn>
+        <q-btn
+          type="submit"
+          color="primary"
+          unelevated
+          no-caps
+          :loading="formLoading"
+          class="drawer-action-btn"
+        >
+          {{ t('common.confirm') }}
+        </q-btn>
+      </div>
+    </q-form>
+  </div>
+</template>
+
+<style scoped>
+.driver-drawer-content {
+  padding: 0;
+}
+
+.driver-drawer-footer {
+  flex-shrink: 0;
+  padding: 12px 0 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 16px;
+}
+
+.drawer-action-btn {
+  min-width: 72px;
+}
+
+/* 必填项星号红色高亮 */
+.required-field :deep(.q-field__label::after) {
+  content: " *";
+  color: var(--q-negative);
+}
+
+:deep(.q-field__append > .q-icon:not(.text-negative)) {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* JAR 信息展示盒 */
+.jar-info-box {
+  padding: 8px 12px;
+  background: #fafafa;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 0;
+}
+
+/* 探测到的驱动类徽章 */
+.detected-class-badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 0;
+}
+
+/* 修复 prefix 右侧多余间距 */
+:deep(.q-field__prefix) {
+  padding-right: 0 !important;
+}
+</style>
+
+<style>
+.body--dark .driver-drawer-form .q-field__control {
+  background: #2d2d2d;
+}
+
+.body--dark .driver-drawer-form .q-field__native,
+.body--dark .driver-drawer-form .q-field__prefix,
+.body--dark .driver-drawer-form .q-field__suffix {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .driver-drawer-form .q-field__label {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.body--dark .driver-drawer-form .q-field--focused .q-field__label {
+  color: #80cbc4;
+}
+
+.body--dark .driver-drawer-form .q-field__control::before {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.body--dark .driver-drawer-form .q-field--focused .q-field__control::after {
+  border-color: #80cbc4;
+}
+
+/* 抽屉底部按钮区域分隔线 */
+.body--dark .driver-drawer-footer {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+/* JAR 信息盒暗色模式 */
+.body--dark .jar-info-box {
+  background: #252525;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+</style>

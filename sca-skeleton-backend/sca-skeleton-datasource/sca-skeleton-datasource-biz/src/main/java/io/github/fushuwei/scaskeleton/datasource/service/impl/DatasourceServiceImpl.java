@@ -203,6 +203,21 @@ public class DatasourceServiceImpl implements DatasourceService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchDeleteDatasources(List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return;
+        }
+        // 批量加载并校验存在
+        List<Datasource> datasources = datasourceMapper.selectBatchIds(ids);
+        if (datasources.isEmpty()) {
+            return;
+        }
+        // TODO M3: 关闭连接池（DataSourcePoolManager）后删除
+        datasourceMapper.deleteBatchIds(ids);
+    }
+
+    @Override
     public void changeEnabled(String id, Integer enabled) {
         Datasource datasource = loadDatasourceEntity(id);
         datasource.setEnabled(enabled);

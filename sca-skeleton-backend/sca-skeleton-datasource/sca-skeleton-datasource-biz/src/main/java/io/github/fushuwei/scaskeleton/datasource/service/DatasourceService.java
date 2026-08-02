@@ -27,6 +27,13 @@ public interface DatasourceService {
 
     void deleteDatasource(String id);
 
+    /**
+     * 批量删除数据源
+     *
+     * @param ids 数据源 ID 列表
+     */
+    void batchDeleteDatasources(List<String> ids);
+
     DatasourceResponse testConnection(String id);
 
     void changeEnabled(String id, Integer enabled);

@@ -87,6 +87,15 @@ public class DriverController {
         return Result.ok();
     }
 
+    @Operation(summary = "批量删除驱动")
+    @PostMapping("/batch/delete")
+    @RequiresPermission("sys:datasource:driver:delete")
+    @OperationLog(module = "驱动管理", action = "批量删除驱动")
+    public Result<Void> batchDelete(@RequestBody List<String> ids) {
+        driverService.batchDeleteDrivers(ids);
+        return Result.ok();
+    }
+
     @Operation(summary = "启用驱动")
     @PostMapping("/{id}/enable")
     @RequiresPermission("sys:datasource:driver:edit")

@@ -31,6 +31,13 @@ public interface DriverService {
 
     void deleteDriver(String id);
 
+    /**
+     * 批量删除驱动
+     *
+     * @param ids 驱动 ID 列表
+     */
+    void batchDeleteDrivers(List<String> ids);
+
     void changeStatus(String id, String status);
 
     List<DriverOptionResponse> listDriverOptions(DbType dbType);
