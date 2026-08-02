@@ -287,3 +287,34 @@ export async function getColumnsApi(
     params: { table, database }
   });
 }
+
+// ============================================================
+// SQL 查询 API
+// ============================================================
+
+/** SQL 查询请求 */
+export interface SqlExecuteRequest {
+  datasourceId: string;
+  sql: string;
+  database?: string;
+  maxRows?: number;
+}
+
+/** SQL 查询响应 */
+export interface SqlExecuteResponse {
+  columns: string[];
+  rows: Record<string, unknown>[];
+  rowCount: number;
+  costMs: number;
+}
+
+/** 执行 SQL 查询 */
+export async function executeSqlApi(
+  data: SqlExecuteRequest
+): Promise<ApiEnvelope<SqlExecuteResponse>> {
+  return request<SqlExecuteResponse>({
+    method: "POST",
+    url: "/ds/query/execute",
+    data
+  });
+}

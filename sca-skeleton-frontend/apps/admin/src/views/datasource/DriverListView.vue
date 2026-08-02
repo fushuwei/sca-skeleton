@@ -38,8 +38,8 @@ const DB_TYPE_OPTIONS = [
 ];
 
 const STATUS_OPTIONS = [
-  { label: t("driverMgmt.statusEnabled"), value: "enabled" },
-  { label: t("driverMgmt.statusDisabled"), value: "disabled" }
+  { label: "driverMgmt.statusEnabled", value: "enabled" },
+  { label: "driverMgmt.statusDisabled", value: "disabled" }
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -481,33 +481,48 @@ onMounted(() => {
             <div class="col-auto">
               <q-select
                 v-model="searchForm.dbType"
-                :options="DB_TYPE_OPTIONS"
-                :label="t('driverMgmt.dbType')"
                 filled
                 square
                 dense
+                :options="DB_TYPE_OPTIONS"
+                :option-label="(o: { label: string; value: string } | undefined) => (o ? o.label : '')"
+                option-value="value"
                 emit-value
                 map-options
-                clearable
                 hide-bottom-space
-                style="min-width: 180px"
-                :options-dense="false"
-              />
+                clearable
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                class="status-select"
+                popup-content-class="status-select-popup"
+              >
+                <template v-if="!searchForm.dbType" v-slot:selected>
+                  <span class="status-placeholder">{{ t('driverMgmt.dbTypePlaceholder') }}</span>
+                </template>
+              </q-select>
             </div>
             <div class="col-auto">
               <q-select
                 v-model="searchForm.status"
-                :options="STATUS_OPTIONS"
-                :label="t('driverMgmt.status')"
                 filled
                 square
                 dense
+                :options="STATUS_OPTIONS"
+                :option-label="(o: { label: string; value: string } | undefined) => (o ? t(o.label) : '')"
+                option-value="value"
                 emit-value
                 map-options
-                clearable
                 hide-bottom-space
-                style="min-width: 140px"
-              />
+                clearable
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                class="status-select"
+                popup-content-class="status-select-popup"
+              >
+                <template v-if="!searchForm.status" v-slot:selected>
+                  <span class="status-placeholder">{{ t('driverMgmt.statusPlaceholder') }}</span>
+                </template>
+              </q-select>
             </div>
             <div class="col-auto">
               <div class="row q-gutter-x-sm no-wrap">
@@ -842,6 +857,16 @@ onMounted(() => {
   font-size: 13px;
 }
 
+.status-select :deep(.q-field__native) {
+  /* 与搜索文本框（q-input）输入文字颜色保持一致：rgba(0, 0, 0, 0.87) */
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.status-select :deep(.q-field__control) {
+  min-height: 40px;
+  min-width: 160px;
+}
+
 .search-collapse-btn {
   width: 32px;
   height: 32px;
@@ -1174,6 +1199,11 @@ onMounted(() => {
 
 <!-- 非 scoped：每页条数下拉弹出层 & 抽屉暗色模式（Teleport to body，无法用 scoped 覆盖） -->
 <style>
+.status-select-popup .q-item {
+  min-height: 40px;
+  padding: 0 16px;
+}
+
 .rows-per-page-popup .q-item {
   min-height: 36px;
   padding: 0 16px;

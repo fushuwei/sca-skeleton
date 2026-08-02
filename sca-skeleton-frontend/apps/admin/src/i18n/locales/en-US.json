@@ -600,5 +600,26 @@
     "batchDeleteConfirm": "Confirm to delete {count} selected datasource(s)? This cannot be undone.",
     "saveSuccess": "Saved successfully",
     "saveFail": "Failed to save"
+  },
+  "sqlQuery": {
+    "title": "SQL Query",
+    "datasource": "Datasource",
+    "datasourcePlaceholder": "Select datasource",
+    "sqlEditor": "SQL Editor",
+    "sqlPlaceholder": "Enter SQL query (SELECT / SHOW / DESC / EXPLAIN only)",
+    "maxRows": "Max Rows",
+    "execute": "Execute",
+    "executing": "Executing...",
+    "clear": "Clear",
+    "result": "Result",
+    "noResult": "Execute a query first",
+    "rowCount": "{count} rows returned",
+    "costMs": "{ms} ms",
+    "executeSuccess": "Query succeeded",
+    "executeFail": "Query failed",
+    "sqlRequired": "Please input SQL",
+    "datasourceRequired": "Please select a datasource",
+    "onlyRead": "Only read-only queries (SELECT / SHOW / DESC / EXPLAIN) are allowed",
+    "export": "Export"
   }
 }

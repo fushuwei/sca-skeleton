@@ -29,7 +29,7 @@ import java.util.List;
  */
 @Tag(name = "数据源管理")
 @RestController
-@RequestMapping("/ds/datasource")
+@RequestMapping("/datasource")
 @RequiredArgsConstructor
 public class DatasourceController {
 

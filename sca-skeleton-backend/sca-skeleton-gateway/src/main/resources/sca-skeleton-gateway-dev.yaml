@@ -60,6 +60,14 @@ spring:
           filters:
             - StripPrefix=1
 
+        # 数据源服务路由
+        - id: sca-skeleton-datasource
+          uri: lb://sca-skeleton-datasource
+          predicates:
+            - Path=/ds/**
+          filters:
+            - StripPrefix=1
+
       # 全局默认过滤器
       default-filters:
         # 清理下游污染的 CORS 头
@@ -144,6 +152,7 @@ gateway:
       - /webjars/**
       - /auth/v3/api-docs/**
       - /sys/v3/api-docs/**
+      - /ds/v3/api-docs/**
       # Actuator 监控管控配置
       - /actuator/health
       - /actuator/info
@@ -162,6 +171,8 @@ springdoc:
         url: /auth/v3/api-docs
       - name: 系统管理服务
         url: /sys/v3/api-docs
+      - name: 数据源管理服务
+        url: /ds/v3/api-docs
 
 # Actuator 监控管控配置
 management:

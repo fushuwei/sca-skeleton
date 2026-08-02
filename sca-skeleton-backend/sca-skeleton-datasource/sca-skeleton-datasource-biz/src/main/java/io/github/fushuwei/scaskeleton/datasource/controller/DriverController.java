@@ -31,7 +31,7 @@ import java.util.List;
  */
 @Tag(name = "驱动管理")
 @RestController
-@RequestMapping("/ds/driver")
+@RequestMapping("/driver")
 @RequiredArgsConstructor
 public class DriverController {
 

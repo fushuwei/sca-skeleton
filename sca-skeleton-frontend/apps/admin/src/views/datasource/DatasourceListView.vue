@@ -56,8 +56,8 @@ async function loadDbTypeOptions() {
 }
 
 const ENABLED_OPTIONS = [
-  { label: t("datasourceMgmt.enabledStatus"), value: 1 },
-  { label: t("datasourceMgmt.disabledStatus"), value: 0 }
+  { label: "datasourceMgmt.enabledStatus", value: 1 },
+  { label: "datasourceMgmt.disabledStatus", value: 0 }
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -522,32 +522,48 @@ onMounted(async () => {
             <div class="col-auto">
               <q-select
                 v-model="searchForm.dbType"
-                :options="dbTypeOptions"
-                :label="t('datasourceMgmt.dbType')"
                 filled
                 square
                 dense
+                :options="dbTypeOptions"
+                :option-label="(o: { label: string; value: string } | undefined) => (o ? o.label : '')"
+                option-value="value"
                 emit-value
                 map-options
-                clearable
                 hide-bottom-space
-                style="min-width: 180px"
-              />
+                clearable
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                class="status-select"
+                popup-content-class="status-select-popup"
+              >
+                <template v-if="!searchForm.dbType" v-slot:selected>
+                  <span class="status-placeholder">{{ t('datasourceMgmt.dbTypePlaceholder') }}</span>
+                </template>
+              </q-select>
             </div>
             <div class="col-auto">
               <q-select
                 v-model="searchForm.enabled"
-                :options="ENABLED_OPTIONS"
-                :label="t('datasourceMgmt.enabled')"
                 filled
                 square
                 dense
+                :options="ENABLED_OPTIONS"
+                :option-label="(o: { label: string; value: number } | undefined) => (o ? t(o.label) : '')"
+                option-value="value"
                 emit-value
                 map-options
-                clearable
                 hide-bottom-space
-                style="min-width: 140px"
-              />
+                clearable
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                class="status-select"
+                popup-content-class="status-select-popup"
+              >
+                <template v-if="searchForm.enabled === undefined || searchForm.enabled === null" v-slot:selected>
+                  <span class="status-placeholder">{{ t('datasourceMgmt.enabledPlaceholder') }}</span>
+                </template>
+              </q-select>
             </div>
             <div class="col-auto">
               <div class="row q-gutter-x-sm no-wrap">
@@ -884,6 +900,16 @@ onMounted(async () => {
   font-size: 13px;
 }
 
+.status-select :deep(.q-field__native) {
+  /* 与搜索文本框（q-input）输入文字颜色保持一致：rgba(0, 0, 0, 0.87) */
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.status-select :deep(.q-field__control) {
+  min-height: 40px;
+  min-width: 160px;
+}
+
 .search-collapse-btn {
   width: 32px;
   height: 32px;
@@ -1210,6 +1236,11 @@ onMounted(async () => {
 
 <!-- 非 scoped：每页条数下拉弹出层 & 抽屉暗色模式（Teleport to body，无法用 scoped 覆盖） -->
 <style>
+.status-select-popup .q-item {
+  min-height: 40px;
+  padding: 0 16px;
+}
+
 .rows-per-page-popup .q-item {
   min-height: 36px;
   padding: 0 16px;

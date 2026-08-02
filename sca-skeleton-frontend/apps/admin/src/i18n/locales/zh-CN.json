@@ -600,5 +600,26 @@
     "batchDeleteConfirm": "确认删除选中的 {count} 个数据源？删除后不可恢复。",
     "saveSuccess": "保存成功",
     "saveFail": "保存失败"
+  },
+  "sqlQuery": {
+    "title": "数据查询",
+    "datasource": "数据源",
+    "datasourcePlaceholder": "请选择数据源",
+    "sqlEditor": "SQL 编辑器",
+    "sqlPlaceholder": "请输入 SQL 查询语句（仅支持 SELECT / SHOW / DESC / EXPLAIN）",
+    "maxRows": "最大行数",
+    "execute": "执行查询",
+    "executing": "执行中...",
+    "clear": "清空",
+    "result": "查询结果",
+    "noResult": "请先执行查询",
+    "rowCount": "返回 {count} 行",
+    "costMs": "耗时 {ms} 毫秒",
+    "executeSuccess": "查询成功",
+    "executeFail": "查询失败",
+    "sqlRequired": "请输入 SQL 语句",
+    "datasourceRequired": "请选择数据源",
+    "onlyRead": "仅支持只读查询（SELECT / SHOW / DESC / EXPLAIN）",
+    "export": "导出"
   }
 }
