@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.fushuwei</groupId>
+        <artifactId>sca-skeleton-backend</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>sca-skeleton-datasource</artifactId>
+    <packaging>pom</packaging>
+
+    <name>SCA Skeleton Backend :: Datasource</name>
+    <description>Datasource management service aggregator: api (contract) + biz (implementation)</description>
+
+    <modules>
+        <!-- API 契约模块：请求/响应 DTO + HTTP Interface 远程调用声明，可被其他服务依赖 -->
+        <module>sca-skeleton-datasource-api</module>
+        <!-- 业务实现模块：Controller + Service + Mapper + Entity + Engine，独立部署的微服务 -->
+        <module>sca-skeleton-datasource-biz</module>
+    </modules>
+</project>

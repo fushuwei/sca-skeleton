@@ -22,6 +22,7 @@
         <module>sca-skeleton-gateway</module>
         <module>sca-skeleton-auth</module>
         <module>sca-skeleton-system</module>
+        <module>sca-skeleton-datasource</module>
         <module>sca-skeleton-starters</module>
         <module>sca-skeleton-middlewares</module>
     </modules>

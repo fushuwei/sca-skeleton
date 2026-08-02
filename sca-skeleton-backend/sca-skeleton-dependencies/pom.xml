@@ -207,6 +207,20 @@
                 <artifactId>sca-skeleton-system-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <!-- Datasource 服务 API 契约（请求/响应 DTO + HTTP Interface 远程调用声明） -->
+            <dependency>
+                <groupId>io.github.fushuwei</groupId>
+                <artifactId>sca-skeleton-datasource-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Datasource 服务业务实现模块 -->
+            <dependency>
+                <groupId>io.github.fushuwei</groupId>
+                <artifactId>sca-skeleton-datasource-biz</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
