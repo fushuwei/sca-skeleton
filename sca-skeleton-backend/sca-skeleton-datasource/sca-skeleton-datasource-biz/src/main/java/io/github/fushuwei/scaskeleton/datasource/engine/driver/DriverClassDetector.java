@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -24,6 +25,8 @@ import java.util.jar.JarFile;
  *       {@code isAssignableFrom(java.sql.Driver.class)} 判断。</li>
  * </ol>
  * 所有探测入口一律「只加载不初始化」，不触发静态块，不在隔离 CL 中实例化 provider。
+ * <p>
+ * 使用普通 {@link URLClassLoader} 加载驱动目录下所有 JAR，探测完成后关闭 CL 释放文件句柄。
  *
  * @author Fu Wei
  */
@@ -33,14 +36,14 @@ public final class DriverClassDetector {
     }
 
     /**
-     * 探测 JAR 文件中的驱动主类候选列表。
+     * 探测驱动目录下所有 JAR 文件中的驱动主类候选列表。
      *
-     * @param jarPaths JAR 文件本地路径数组
+     * @param jarPaths JAR 文件本地路径数组（驱动主 JAR + 依赖 JAR）
      * @return 驱动类全限定名列表（可能为空）
      */
     public static List<String> detectDriverClasses(Path[] jarPaths) {
         URL[] urls = toUrls(jarPaths);
-        try (ChildFirstURLClassLoader cl = new ChildFirstURLClassLoader(urls)) {
+        try (URLClassLoader cl = new URLClassLoader(urls)) {
             List<String> fromServices = readServicesFile(jarPaths, cl);
             if (!fromServices.isEmpty()) {
                 return fromServices;

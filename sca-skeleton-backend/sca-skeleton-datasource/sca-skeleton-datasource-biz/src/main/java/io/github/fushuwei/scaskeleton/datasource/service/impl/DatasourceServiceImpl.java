@@ -251,7 +251,7 @@ public class DatasourceServiceImpl implements DatasourceService {
         // 加载驱动实例
         DriverInstance instance;
         try {
-            Path[] jarPaths = {driverStore.downloadToLocal(driver.getObjectKey())};
+            Path[] jarPaths = driverStore.listLocalJars(driver.getObjectKey()).toArray(new Path[0]);
             instance = driverLifecycle.acquire(driver.getId(), driver.getDriverClass(), jarPaths);
         } catch (Exception e) {
             log.warn("加载驱动失败: datasourceId={}, error={}", id, e.getMessage());
@@ -321,7 +321,7 @@ public class DatasourceServiceImpl implements DatasourceService {
         Driver driver = loadDriverEntity(ds.getDriverId());
         Dialect dialect = dialectRegistry.get(parseDbType(ds.getDbType()));
 
-        Path[] jarPaths = {driverStore.downloadToLocal(driver.getObjectKey())};
+        Path[] jarPaths = driverStore.listLocalJars(driver.getObjectKey()).toArray(new Path[0]);
         DriverInstance instance = driverLifecycle.acquire(
             driver.getId(), driver.getDriverClass(), jarPaths);
 

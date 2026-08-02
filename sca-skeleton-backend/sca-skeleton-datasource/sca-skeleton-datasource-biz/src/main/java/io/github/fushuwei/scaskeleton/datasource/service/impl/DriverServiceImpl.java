@@ -32,14 +32,20 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * 驱动管理 Service 实现
+ * 驱动管理 Service 实现。
  * <p>
- * 完整实现：JAR 上传（SHA256 + 驱动类探测）、CRUD、引用校验、乐观锁、存储清理。
+ * 采用 Chat2DB 风格的目录式管理：每个驱动记录对应一个目录 drivers/{driverName}/，
+ * 目录下存放驱动主 JAR + 所有依赖 JAR，加载时用一个 URLClassLoader 全部加载。
+ * <p>
+ * 上传流程：支持多 JAR 上传 → 临时存到 drivers/_temp/{uploadId}/ → 探测驱动类 → 返回 uploadId。
+ * 创建流程：用 driverName 作为目录名 → 把临时目录重命名为 drivers/{driverName}/ → 落库。
  *
  * @author Fu Wei
  */
@@ -47,6 +53,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class DriverServiceImpl implements DriverService {
+
+    private static final String TEMP_DIR_PREFIX = "drivers/_temp/";
+    private static final String DRIVER_DIR_PREFIX = "drivers/";
 
     private final DriverMapper driverMapper;
     private final DriverConverter driverConverter;
@@ -81,45 +90,74 @@ public class DriverServiceImpl implements DriverService {
         return driverConverter.toDriverResponse(driver);
     }
 
+    /**
+     * 上传驱动 JAR 文件（支持多文件）。
+     * <p>
+     * 上传的 JAR 会临时存到 drivers/_temp/{uploadId}/ 目录，前端拿到 uploadId + 探测到的 driverClass 后回填到创建表单。
+     * 创建驱动时用 driverName 作为正式目录名，把临时目录重命名为 drivers/{driverName}/。
+     */
     @Override
-    public DriverUploadResponse uploadDriver(DbType dbType, MultipartFile file) {
-        if (file == null || file.isEmpty()) {
+    public DriverUploadResponse uploadDriver(DbType dbType, MultipartFile[] files) {
+        if (files == null || files.length == 0) {
             throw new BusinessException(ResultCode.VALIDATION_ERROR, "上传文件不能为空");
         }
-        String originalName = file.getOriginalFilename();
-        if (originalName == null || !originalName.endsWith(".jar")) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "仅支持 .jar 文件，zip 解包暂不支持");
-        }
 
-        // 计算 SHA256
-        String sha256;
-        try (InputStream is = file.getInputStream()) {
-            sha256 = computeSha256(is);
-        } catch (IOException e) {
-            throw new BusinessException(ResultCode.FAILURE, "计算 SHA256 失败: " + e.getMessage());
-        }
+        // 生成上传批次 ID 作为临时目录名
+        String uploadId = UUID.randomUUID().toString().replace("-", "");
+        String tempDriverDir = TEMP_DIR_PREFIX + uploadId;
 
-        // 内容寻址对象键：driver/{dbType}/{sha256}/{name}.jar
-        String objectKey = "driver/" + dbType.name() + "/" + sha256 + "/" + originalName;
+        List<String> jarFileNames = new ArrayList<>();
+        long totalSize = 0;
+        String firstJarSha256 = null;
+        List<Path> localJarPaths = new ArrayList<>();
 
-        // 存储到 DriverStore（内容寻址，已存在则跳过）
-        if (!driverStore.exists(objectKey)) {
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) {
+                continue;
+            }
+            String originalName = file.getOriginalFilename();
+            if (originalName == null || !originalName.endsWith(".jar")) {
+                throw new BusinessException(ResultCode.VALIDATION_ERROR, "仅支持 .jar 文件: " + originalName);
+            }
+
+            // 计算 SHA256（首个 JAR 用于展示）
+            String sha256;
             try (InputStream is = file.getInputStream()) {
-                driverStore.putObject(objectKey, is, file.getSize());
+                sha256 = computeSha256(is);
+            } catch (IOException e) {
+                throw new BusinessException(ResultCode.FAILURE, "计算 SHA256 失败: " + e.getMessage());
+            }
+            if (firstJarSha256 == null) {
+                firstJarSha256 = sha256;
+            }
+
+            // 存储到临时目录
+            try (InputStream is = file.getInputStream()) {
+                driverStore.putJar(tempDriverDir, originalName, is, file.getSize());
             } catch (IOException e) {
                 throw new BusinessException(ResultCode.FAILURE, "存储驱动 JAR 失败: " + e.getMessage());
             }
+
+            jarFileNames.add(originalName);
+            totalSize += file.getSize();
         }
 
-        // 获取本地路径用于探测驱动类（LocalDriverStore 直接返回本地路径，MinioDriverStore 下载到临时文件）
-        Path localPath = driverStore.downloadToLocal(objectKey);
-        List<String> detectedClasses = DriverClassDetector.detectDriverClasses(new Path[]{localPath});
+        if (jarFileNames.isEmpty()) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "没有有效的 JAR 文件");
+        }
+
+        // 获取本地路径用于探测驱动类
+        localJarPaths.addAll(driverStore.listLocalJars(tempDriverDir));
+        Path[] jarPathArray = localJarPaths.toArray(new Path[0]);
+
+        List<String> detectedClasses = DriverClassDetector.detectDriverClasses(jarPathArray);
         String driverClass = detectedClasses.isEmpty() ? null : detectedClasses.get(0);
 
         DriverUploadResponse response = new DriverUploadResponse();
-        response.setJarSha256(sha256);
-        response.setObjectKey(objectKey);
-        response.setFileSize(file.getSize());
+        response.setUploadId(uploadId);
+        response.setJarSha256(firstJarSha256);
+        response.setFileSize(totalSize);
+        response.setJarFileNames(jarFileNames);
         response.setDetectedDriverClasses(detectedClasses);
         response.setDriverClass(driverClass);
         return response;
@@ -128,13 +166,35 @@ public class DriverServiceImpl implements DriverService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createDriver(DriverCreateRequest request) {
-        // 校验必须先上传 JAR
-        if (!StringUtils.hasText(request.getJarSha256()) || !StringUtils.hasText(request.getObjectKey())) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "请先上传驱动 JAR 文件");
+        // 校验驱动名称唯一（作为目录名必须唯一）
+        long existCount = driverMapper.selectCount(new LambdaQueryWrapper<Driver>()
+            .eq(Driver::getDriverName, request.getDriverName()));
+        if (existCount > 0) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动名称已存在: " + request.getDriverName());
         }
 
+        // 临时目录 → 正式目录
+        String tempDriverDir = TEMP_DIR_PREFIX + request.getUploadId();
+        String driverDir = DRIVER_DIR_PREFIX + request.getDriverName();
+
+        // 获取临时目录下 JAR 信息（用于落库 fileSize）
+        List<Path> jarPaths = driverStore.listLocalJars(tempDriverDir);
+        long totalSize = jarPaths.stream().mapToLong(p -> {
+            try {
+                return java.nio.file.Files.size(p);
+            } catch (IOException e) {
+                return 0;
+            }
+        }).sum();
+
+        // 重命名临时目录为正式目录
+        driverStore.renameDriverDir(tempDriverDir, driverDir);
+
+        // 落库
         Driver driver = driverConverter.toDriver(request);
         driver.setDbType(request.getDbType().name());
+        driver.setObjectKey(driverDir);
+        driver.setFileSize(totalSize);
         driver.setStatus("enabled");
         driver.setIsBuiltin(0);
         driver.setStorageType(driverStoreProperties.getStorageType());
@@ -179,8 +239,12 @@ public class DriverServiceImpl implements DriverService {
 
         driverMapper.deleteById(id);
 
-        // 存储清理：检查是否还有其他驱动记录引用同一个 objectKey，无引用则删除 JAR 文件
-        cleanupOrphanJar(driver.getObjectKey(), id);
+        // 存储清理：删除整个驱动目录
+        try {
+            driverStore.deleteDriverDir(driver.getObjectKey());
+        } catch (Exception e) {
+            log.warn("删除驱动目录失败: objectKey={}, error={}", driver.getObjectKey(), e.getMessage());
+        }
     }
 
     @Override
@@ -190,7 +254,6 @@ public class DriverServiceImpl implements DriverService {
             return;
         }
 
-        // 批量加载驱动实体
         List<Driver> drivers = driverMapper.selectBatchIds(ids);
         if (drivers.isEmpty()) {
             return;
@@ -210,35 +273,12 @@ public class DriverServiceImpl implements DriverService {
 
         driverMapper.deleteBatchIds(ids);
 
-        // 存储清理：收集本次删除涉及的 objectKey，排除仍被其他驱动记录引用的对象
-        List<String> deletedIds = drivers.stream().map(Driver::getId).toList();
+        // 存储清理：删除每个驱动目录
         for (Driver driver : drivers) {
-            cleanupOrphanJar(driver.getObjectKey(), deletedIds);
-        }
-    }
-
-    /**
-     * 存储清理：检查 objectKey 是否还被其他驱动记录引用，无引用则删除 JAR 文件。
-     *
-     * @param objectKey     对象键
-     * @param excludeIds    需排除的驱动 ID（刚删除的记录）
-     */
-    private void cleanupOrphanJar(String objectKey, String excludeId) {
-        cleanupOrphanJar(objectKey, List.of(excludeId));
-    }
-
-    private void cleanupOrphanJar(String objectKey, List<String> excludeIds) {
-        if (!StringUtils.hasText(objectKey)) {
-            return;
-        }
-        long refCount = driverMapper.selectCount(new LambdaQueryWrapper<Driver>()
-            .eq(Driver::getObjectKey, objectKey)
-            .notIn(!excludeIds.isEmpty(), Driver::getId, excludeIds));
-        if (refCount == 0) {
             try {
-                driverStore.deleteObject(objectKey);
+                driverStore.deleteDriverDir(driver.getObjectKey());
             } catch (Exception e) {
-                log.warn("删除驱动 JAR 文件失败: objectKey={}, error={}", objectKey, e.getMessage());
+                log.warn("删除驱动目录失败: objectKey={}, error={}", driver.getObjectKey(), e.getMessage());
             }
         }
     }

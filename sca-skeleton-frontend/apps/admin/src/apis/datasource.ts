@@ -108,13 +108,15 @@ export async function createDriverApi(
   return request<null>({ method: "POST", url: "/ds/driver/create", data });
 }
 
-/** 上传驱动 JAR 文件 */
+/** 上传驱动 JAR 文件（支持多文件） */
 export async function uploadDriverApi(
   dbType: string,
-  file: File
+  files: File[]
 ): Promise<ApiEnvelope<DriverUploadResponse>> {
   const formData = new FormData();
-  formData.append("file", file);
+  for (const file of files) {
+    formData.append("files", file);
+  }
   return request<DriverUploadResponse>({
     method: "POST",
     url: "/ds/driver/upload",
@@ -126,9 +128,10 @@ export async function uploadDriverApi(
 
 /** 驱动上传响应 */
 export interface DriverUploadResponse {
+  uploadId: string;
   jarSha256: string;
-  objectKey: string;
   fileSize: number;
+  jarFileNames: string[];
   detectedDriverClasses: string[];
   driverClass: string | null;
 }

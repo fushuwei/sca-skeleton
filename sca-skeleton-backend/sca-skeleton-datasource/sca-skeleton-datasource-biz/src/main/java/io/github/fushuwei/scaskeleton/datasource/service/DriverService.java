@@ -23,7 +23,7 @@ public interface DriverService {
 
     DriverResponse getDriverById(String id);
 
-    DriverUploadResponse uploadDriver(DbType dbType, MultipartFile file);
+    DriverUploadResponse uploadDriver(DbType dbType, MultipartFile[] files);
 
     void createDriver(DriverCreateRequest request);
 

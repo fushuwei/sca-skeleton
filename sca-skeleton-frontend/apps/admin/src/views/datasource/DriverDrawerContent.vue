@@ -46,14 +46,13 @@ const form = reactive({
   allowedParams: "",
   remark: "",
   // 上传回填字段（创建时使用）
-  jarSha256: "",
-  objectKey: "",
+  uploadId: "",
   fileSize: 0 as number,
   version: 0 as number | undefined
 });
 
-// ── JAR 上传相关 ──
-const jarFile = ref<File | null>(null);
+// ── JAR 多文件上传相关 ──
+const jarFiles = ref<File[]>([]);
 const uploading = ref(false);
 const uploadInfo = ref<DriverUploadResponse | null>(null);
 const detectedClasses = ref<string[]>([]);
@@ -74,11 +73,10 @@ function resetForm() {
   form.urlTemplate = "";
   form.allowedParams = "";
   form.remark = "";
-  form.jarSha256 = "";
-  form.objectKey = "";
+  form.uploadId = "";
   form.fileSize = 0;
   form.version = 0;
-  jarFile.value = null;
+  jarFiles.value = [];
   uploadInfo.value = null;
   detectedClasses.value = [];
 }
@@ -94,8 +92,6 @@ function initForm() {
     form.urlTemplate = props.driver.urlTemplate || "";
     form.allowedParams = props.driver.allowedParams || "";
     form.remark = props.driver.remark || "";
-    form.jarSha256 = props.driver.jarSha256 || "";
-    form.objectKey = props.driver.objectKey || "";
     form.fileSize = props.driver.fileSize || 0;
     form.version = props.driver.version;
   }
@@ -103,35 +99,36 @@ function initForm() {
 
 watch(() => props.driver, initForm, { immediate: true });
 
-// ── JAR 文件上传 ──
-async function onFileChange(file: File | null) {
-  if (!file) {
+// ── JAR 文件上传（多文件） ──
+async function onFilesChange(files: File[] | null) {
+  if (!files || files.length === 0) {
     uploadInfo.value = null;
     detectedClasses.value = [];
-    form.jarSha256 = "";
-    form.objectKey = "";
+    form.uploadId = "";
     form.fileSize = 0;
     return;
   }
   if (!form.dbType) {
     showToast(t("driverMgmt.dbTypeRequired"), "warning");
-    jarFile.value = null;
+    jarFiles.value = [];
     return;
   }
-  if (!file.name.endsWith(".jar")) {
-    showToast(t("driverMgmt.jarFileHint"), "warning");
-    jarFile.value = null;
-    return;
+  // 校验全部为 .jar 文件
+  for (const f of files) {
+    if (!f.name.endsWith(".jar")) {
+      showToast(t("driverMgmt.jarFileHint"), "warning");
+      jarFiles.value = [];
+      return;
+    }
   }
 
   uploading.value = true;
   try {
-    const result = await uploadDriverApi(form.dbType, file);
+    const result = await uploadDriverApi(form.dbType, files);
     if (result.code === 10_000 && result.data) {
       uploadInfo.value = result.data;
       detectedClasses.value = result.data.detectedDriverClasses || [];
-      form.jarSha256 = result.data.jarSha256;
-      form.objectKey = result.data.objectKey;
+      form.uploadId = result.data.uploadId;
       form.fileSize = result.data.fileSize;
       // 自动填充驱动类名（仅当为空时）
       if (!form.driverClass && result.data.driverClass) {
@@ -140,13 +137,13 @@ async function onFileChange(file: File | null) {
       showToast(t("driverMgmt.uploadSuccess"), "positive");
     } else {
       showToast(result.message || t("driverMgmt.uploadFail"), "negative");
-      jarFile.value = null;
+      jarFiles.value = [];
     }
   } catch (error) {
     if (!isNotificationHandled(error)) {
       showToast(t("driverMgmt.uploadFail"), "negative");
     }
-    jarFile.value = null;
+    jarFiles.value = [];
   } finally {
     uploading.value = false;
   }
@@ -165,7 +162,7 @@ async function handleSave() {
   if (drawerReadonly.value) return;
 
   // 新增时校验 JAR 已上传
-  if (props.mode === "add" && !form.jarSha256) {
+  if (props.mode === "add" && !form.uploadId) {
     showToast(t("driverMgmt.jarFileRequired"), "warning");
     return;
   }
@@ -181,9 +178,7 @@ async function handleSave() {
     data.dbType = form.dbType;
     data.driverClass = form.driverClass;
     data.driverVersion = form.driverVersion;
-    data.jarSha256 = form.jarSha256;
-    data.objectKey = form.objectKey;
-    data.fileSize = form.fileSize;
+    data.uploadId = form.uploadId;
   } else {
     data.id = form.id;
     data.version = form.version;
@@ -265,6 +260,7 @@ function formatFileSize(bytes: number): string {
             :rules="formRules.driverName"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
+            hint="驱动名称作为目录名，创建后不可修改"
             hide-bottom-space
             class="required-field"
           />
@@ -285,21 +281,22 @@ function formatFileSize(bytes: number): string {
           />
         </div>
 
-        <!-- JAR 上传区域（仅新增模式） -->
+        <!-- JAR 上传区域（仅新增模式，支持多文件） -->
         <div v-if="!isEdit" class="col-12">
           <div class="text-caption text-grey-8 q-mb-xs">{{ t('driverMgmt.jarFile') }} <span class="text-negative">*</span></div>
           <q-file
-            v-model="jarFile"
+            v-model="jarFiles"
             accept=".jar"
             filled
             square
+            multiple
             :label="t('driverMgmt.jarFile')"
             :loading="uploading"
             :disable="drawerReadonly"
             :hint="t('driverMgmt.jarFileHint')"
             hide-bottom-space
             class="required-field"
-            @update:model-value="onFileChange"
+            @update:model-value="onFilesChange"
           >
             <template #prepend>
               <q-icon name="sym_r_attach_file" />
@@ -309,8 +306,20 @@ function formatFileSize(bytes: number): string {
           <!-- 上传后信息 -->
           <div v-if="uploadInfo" class="q-mt-xs">
             <div class="text-caption text-grey-7">
-              <span>SHA256: {{ uploadInfo.jarSha256?.substring(0, 16) }}...</span>
-              <span class="q-ml-md">{{ t('driverMgmt.fileSize') }}: {{ formatFileSize(uploadInfo.fileSize) }}</span>
+              <span>{{ t('driverMgmt.fileSize') }}: {{ formatFileSize(uploadInfo.fileSize) }}</span>
+              <span class="q-ml-md">{{ uploadInfo.jarFileNames?.length || 0 }} JAR(s)</span>
+            </div>
+            <!-- 已上传文件名列表 -->
+            <div v-if="uploadInfo.jarFileNames?.length" class="q-mt-xs">
+              <q-badge
+                v-for="name in uploadInfo.jarFileNames"
+                :key="name"
+                class="q-mr-xs q-mb-xs"
+                color="blue-2"
+                text-color="blue-9"
+              >
+                {{ name }}
+              </q-badge>
             </div>
             <!-- 探测到的驱动类 -->
             <div v-if="detectedClasses.length > 0" class="q-mt-xs">
@@ -334,8 +343,7 @@ function formatFileSize(bytes: number): string {
           <div class="text-caption text-grey-8 q-mb-xs">{{ t('driverMgmt.jarFile') }}</div>
           <div class="jar-info-box">
             <div class="text-caption text-grey-7">
-              <span>SHA256: {{ form.jarSha256?.substring(0, 16) }}...</span>
-              <span class="q-ml-md">{{ t('driverMgmt.fileSize') }}: {{ formatFileSize(form.fileSize) }}</span>
+              <span>{{ t('driverMgmt.fileSize') }}: {{ formatFileSize(form.fileSize) }}</span>
             </div>
             <div class="text-caption text-grey-5 q-mt-xs">{{ t('driverMgmt.jarLocked') }}</div>
           </div>

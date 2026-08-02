@@ -2,56 +2,68 @@ package io.github.fushuwei.scaskeleton.datasource.engine.storage;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * 驱动 JAR 存储接口。
  * <p>
- * 抽象存储层，支持本地文件系统与 MinIO 对象存储两种实现。
- * 首期（M0/M1）使用 {@link LocalDriverStore}，MinIO 在 M3/M4 引入。
+ * 采用 Chat2DB 风格的「目录式管理」：每个驱动记录对应一个目录，目录下存放驱动主 JAR + 所有依赖 JAR。
  * <p>
- * 对象键采用内容寻址：driver/{dbType}/{sha256}/{originalName}.jar，保证不可变。
+ * 对象键格式：drivers/{driverName}/{fileName}.jar
+ * <ul>
+ *   <li>driverName：驱动记录的名称（唯一），作为目录名</li>
+ *   <li>fileName：上传时的原始文件名</li>
+ * </ul>
+ * 同一驱动目录下所有 JAR 共同构成「自包含依赖环境」，加载时用一个 {@link java.net.URLClassLoader} 全部加载，
+ * 通过标准 parent-first 双亲委派实现类隔离，无需 child-first 反转。
  *
  * @author Fu Wei
  */
 public interface DriverStore {
 
     /**
-     * 存储驱动 JAR 文件。
+     * 存储单个 JAR 文件到指定驱动目录。
      *
-     * @param objectKey   内容寻址对象键（driver/{dbType}/{sha256}/{name}.jar）
+     * @param driverDir   驱动目录键（drivers/{driverName}）
+     * @param fileName    JAR 文件名
      * @param inputStream JAR 文件输入流
      * @param fileSize    文件大小（字节）
      */
-    void putObject(String objectKey, InputStream inputStream, long fileSize);
+    void putJar(String driverDir, String fileName, InputStream inputStream, long fileSize);
 
     /**
-     * 获取驱动 JAR 文件输入流。
+     * 检查指定 JAR 是否存在。
      *
-     * @param objectKey 内容寻址对象键
-     * @return JAR 文件输入流
-     */
-    InputStream getObject(String objectKey);
-
-    /**
-     * 检查对象是否存在。
-     *
-     * @param objectKey 内容寻址对象键
+     * @param driverDir 驱动目录键
+     * @param fileName  JAR 文件名
      * @return 存在返回 true
      */
-    boolean exists(String objectKey);
+    boolean jarExists(String driverDir, String fileName);
 
     /**
-     * 将远程对象下载到本地缓存路径。
+     * 列出驱动目录下所有 JAR 文件的本地路径。
+     * <p>
+     * LocalDriverStore 直接返回本地文件系统路径；MinioDriverStore 会先将所有 JAR 下载到本地缓存目录再返回。
      *
-     * @param objectKey 内容寻址对象键
-     * @return 本地文件路径
+     * @param driverDir 驱动目录键
+     * @return 本地 JAR 文件路径列表
      */
-    Path downloadToLocal(String objectKey);
+    List<Path> listLocalJars(String driverDir);
 
     /**
-     * 删除对象。
+     * 删除整个驱动目录（含目录下所有 JAR）。
      *
-     * @param objectKey 内容寻址对象键
+     * @param driverDir 驱动目录键
      */
-    void deleteObject(String objectKey);
+    void deleteDriverDir(String driverDir);
+
+    /**
+     * 重命名驱动目录（本地场景优化，MinIO 场景为空操作）。
+     * <p>
+     * 用于创建驱动时把临时目录 drivers/_temp/{uploadId}/ 重命名为正式目录 drivers/{driverName}/。
+     *
+     * @param fromDriverDir 源目录键
+     * @param toDriverDir   目标目录键
+     */
+    void renameDriverDir(String fromDriverDir, String toDriverDir);
 }

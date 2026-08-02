@@ -9,7 +9,9 @@ import java.util.List;
 /**
  * 驱动 JAR 上传响应。
  * <p>
- * 上传后自动探测驱动类，前端拿到 sha256/objectKey/driverClass 后回填到创建表单。
+ * 支持多 JAR 上传：上传的 JAR 会临时存到 drivers/_temp/{uploadId}/ 目录，
+ * 前端拿到 uploadId + 探测到的 driverClass 后回填到创建表单。
+ * 创建驱动时用 driverName 作为正式目录名，把临时目录重命名为 drivers/{driverName}/。
  *
  * @author Fu Wei
  */
@@ -19,14 +21,17 @@ public class DriverUploadResponse implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /** JAR 文件 SHA256 */
+    /** 上传批次 ID（临时目录 drivers/_temp/{uploadId}/ 的标识） */
+    private String uploadId;
+
+    /** 主 JAR 文件 SHA256（多 JAR 时为首个 JAR 的 SHA256，用于展示） */
     private String jarSha256;
 
-    /** 内容寻址对象键（driver/{dbType}/{sha256}/{name}.jar） */
-    private String objectKey;
-
-    /** 文件大小（字节） */
+    /** 所有 JAR 文件总大小（字节） */
     private Long fileSize;
+
+    /** 上传的 JAR 文件名列表 */
+    private List<String> jarFileNames;
 
     /** 探测到的驱动类候选列表 */
     private List<String> detectedDriverClasses;

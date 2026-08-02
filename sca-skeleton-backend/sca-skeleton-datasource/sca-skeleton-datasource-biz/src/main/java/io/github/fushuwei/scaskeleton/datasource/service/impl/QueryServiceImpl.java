@@ -73,7 +73,7 @@ public class QueryServiceImpl implements QueryService {
         Driver driver = loadDriverEntity(ds.getDriverId());
         Dialect dialect = dialectRegistry.get(parseDbType(ds.getDbType()));
 
-        Path[] jarPaths = {driverStore.downloadToLocal(driver.getObjectKey())};
+        Path[] jarPaths = driverStore.listLocalJars(driver.getObjectKey()).toArray(new Path[0]);
         DriverInstance instance = driverLifecycle.acquire(
             driver.getId(), driver.getDriverClass(), jarPaths);
 

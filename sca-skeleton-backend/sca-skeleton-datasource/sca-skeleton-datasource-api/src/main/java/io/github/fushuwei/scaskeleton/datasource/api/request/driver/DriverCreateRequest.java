@@ -10,6 +10,9 @@ import java.io.Serializable;
 
 /**
  * 驱动新增请求
+ * <p>
+ * 前端先调用 /driver/upload 上传 JAR（支持多文件），拿到 uploadId 后回填到此请求。
+ * 创建时用 driverName 作为正式目录名，把临时目录 drivers/_temp/{uploadId}/ 重命名为 drivers/{driverName}/。
  *
  * @author Fu Wei
  */
@@ -31,14 +34,9 @@ public class DriverCreateRequest implements Serializable {
     @NotBlank(message = "驱动版本不能为空")
     private String driverVersion;
 
-    /** JAR SHA256（上传后回填） */
-    private String jarSha256;
-
-    /** 存储对象键 */
-    private String objectKey;
-
-    /** 文件大小（字节） */
-    private Long fileSize;
+    /** 上传批次 ID（上传 JAR 后返回，用于定位临时目录） */
+    @NotBlank(message = "请先上传驱动 JAR 文件")
+    private String uploadId;
 
     /** JDBC URL 模板 */
     private String urlTemplate;

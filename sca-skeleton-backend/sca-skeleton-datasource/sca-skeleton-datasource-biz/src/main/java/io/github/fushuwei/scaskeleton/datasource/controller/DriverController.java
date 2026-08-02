@@ -60,13 +60,13 @@ public class DriverController {
         return Result.ok();
     }
 
-    @Operation(summary = "上传驱动 JAR 文件")
+    @Operation(summary = "上传驱动 JAR 文件（支持多文件）")
     @PostMapping("/upload")
     @RequiresPermission("sys:datasource:driver:add")
     @OperationLog(module = "驱动管理", action = "上传驱动JAR")
     public Result<DriverUploadResponse> upload(@RequestParam DbType dbType,
-                                               @RequestParam("file") MultipartFile file) {
-        return Result.ok(driverService.uploadDriver(dbType, file));
+                                               @RequestParam("files") MultipartFile[] files) {
+        return Result.ok(driverService.uploadDriver(dbType, files));
     }
 
     @Operation(summary = "编辑驱动")

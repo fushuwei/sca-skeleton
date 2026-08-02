@@ -35,13 +35,13 @@ public class Driver extends BaseEntity {
     /** 驱动业务版本（如 8.0.33） */
     private String driverVersion;
 
-    /** JAR 文件 SHA256 校验值 */
+    /** 主 JAR 文件 SHA256 校验值（用于展示，多 JAR 场景下仅记录首个主 JAR） */
     private String jarSha256;
 
-    /** 存储对象键（内容寻址：driver/{dbType}/{sha256}/{name}.jar） */
+    /** 驱动目录键（drivers/{driverName}，目录下存放驱动主 JAR + 所有依赖 JAR） */
     private String objectKey;
 
-    /** JAR 文件大小（字节） */
+    /** 所有 JAR 文件总大小（字节） */
     private Long fileSize;
 
     /** 存储类型（local/minio） */
