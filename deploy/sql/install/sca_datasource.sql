@@ -1,8 +1,15 @@
--- ============================================================
--- 数据源管理模块建表脚本
--- 对应设计方案 v1.3 第八章
--- 表名统一 ds_ 前缀，字段风格沿用 sys_post 既有约定
--- ============================================================
+-- 创建数据库
+CREATE DATABASE IF NOT EXISTS sca_datasource DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
+-- 使用数据库
+USE sca_datasource;
+
+-- 设置连接字符集
+SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+-- 关闭外键检查
+SET FOREIGN_KEY_CHECKS = 0;
+
+
 
 -- -----------------------------------------------------------
 -- 1. 驱动表 ds_driver
@@ -115,3 +122,10 @@ CREATE TABLE IF NOT EXISTS `ds_sql_template` (
     PRIMARY KEY (`id`),
     KEY `idx_tenant_ds` (`tenant_id`, `datasource_id`, `is_deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='SQL查询模板表';
+
+
+
+
+
+-- 打开外键检查
+SET FOREIGN_KEY_CHECKS = 1;
