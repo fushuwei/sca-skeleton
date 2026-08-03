@@ -1,6 +1,18 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+// 数据库品牌图标（来源：DBeaver 开源项目 https://github.com/dbeaver/dbeaver）
+import mysqlIcon from "../assets/db-icons/mysql.png";
+import oracleIcon from "../assets/db-icons/oracle.png";
+import postgresqlIcon from "../assets/db-icons/postgresql.png";
+import sqlserverIcon from "../assets/db-icons/sqlserver.png";
+import damengIcon from "../assets/db-icons/dameng.png";
+import kingbaseIcon from "../assets/db-icons/kingbase.png";
+import mongodbIcon from "../assets/db-icons/mongodb.png";
+import clickhouseIcon from "../assets/db-icons/clickhouse.png";
+import oceanbaseIcon from "../assets/db-icons/oceanbase.png";
+import gaussdbIcon from "../assets/db-icons/gaussdb.png";
+
 const props = withDefaults(
   defineProps<{
     dbType: string;
@@ -9,63 +21,56 @@ const props = withDefaults(
   { size: 20 }
 );
 
-interface DbIconConfig {
-  /** 品牌色 */
-  color: string;
-  /** 文字颜色（默认白色） */
-  textColor?: string;
-  /** 缩写文字 */
-  text: string;
-}
-
-// 各数据库品牌色与缩写
-const DB_ICON_MAP: Record<string, DbIconConfig> = {
-  MYSQL: { color: "#4479A1", text: "My" },
-  ORACLE: { color: "#C74634", text: "Or" },
-  POSTGRESQL: { color: "#336791", text: "Pg" },
-  SQLSERVER: { color: "#CC2927", text: "SQ" },
-  DAMENG: { color: "#0078D7", text: "DM" },
-  KINGBASE: { color: "#C41E3A", text: "KB" },
-  MONGODB: { color: "#47A248", text: "Mg" },
-  CLICKHOUSE: { color: "#FFCC01", textColor: "#1A1A1A", text: "CH" },
-  OCEANBASE: { color: "#1677FF", text: "OB" },
-  GAUSSDB: { color: "#C7000B", text: "GB" }
+const DB_ICON_MAP: Record<string, string> = {
+  MYSQL: mysqlIcon,
+  ORACLE: oracleIcon,
+  POSTGRESQL: postgresqlIcon,
+  SQLSERVER: sqlserverIcon,
+  DAMENG: damengIcon,
+  KINGBASE: kingbaseIcon,
+  MONGODB: mongodbIcon,
+  CLICKHOUSE: clickhouseIcon,
+  OCEANBASE: oceanbaseIcon,
+  GAUSSDB: gaussdbIcon
 };
 
-const config = computed<DbIconConfig>(() =>
-  DB_ICON_MAP[props.dbType] ?? { color: "#666666", text: props.dbType.slice(0, 2) }
-);
-
-// 根据文字长度和图标尺寸自适应字号
-const fontSize = computed(() => {
-  const len = config.value.text.length;
-  if (len <= 1) return Math.round(props.size * 0.55);
-  if (len === 2) return Math.round(props.size * 0.4);
-  return Math.round(props.size * 0.3);
-});
+const iconSrc = computed(() => DB_ICON_MAP[props.dbType] ?? "");
 </script>
 
 <template>
-  <span
+  <img
+    v-if="iconSrc"
+    :src="iconSrc"
+    :width="size"
+    :height="size"
+    :alt="dbType"
     class="db-type-icon"
-    :style="{
-      width: size + 'px',
-      height: size + 'px',
-      backgroundColor: config.color,
-      color: config.textColor ?? '#fff',
-      fontSize: fontSize + 'px'
-    }"
+  />
+  <span
+    v-else
+    class="db-type-icon-fallback"
+    :style="{ width: size + 'px', height: size + 'px' }"
   >
-    {{ config.text }}
+    {{ dbType.slice(0, 2) }}
   </span>
 </template>
 
 <style scoped>
 .db-type-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+  object-fit: contain;
+}
+
+.db-type-icon-fallback {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 4px;
+  background: #666;
+  color: #fff;
+  font-size: 10px;
   font-weight: 700;
   flex-shrink: 0;
   line-height: 1;

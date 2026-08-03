@@ -16,6 +16,7 @@ import {
   getDbTypesApi
 } from "../../apis/datasource";
 import { useConfirmDialog } from "@repo/ui";
+import DbTypeIcon from "../../components/DbTypeIcon.vue";
 import DatasourceDrawerContent from "./DatasourceDrawerContent.vue";
 
 const { t } = useI18n({ useScope: "global" });
@@ -525,7 +526,6 @@ onMounted(async () => {
                 square
                 dense
                 :options="dbTypeOptions"
-                :option-label="(o: { label: string; value: string } | undefined) => (o ? o.label : '')"
                 option-value="value"
                 emit-value
                 map-options
@@ -533,11 +533,25 @@ onMounted(async () => {
                 clearable
                 transition-show="jump-up"
                 transition-hide="jump-down"
-                class="status-select"
+                class="status-select db-type-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.dbType" v-slot:selected>
-                  <span class="status-placeholder">{{ t('datasourceMgmt.dbTypePlaceholder') }}</span>
+                <template v-slot:selected>
+                  <div v-if="searchForm.dbType" class="row items-center no-wrap q-gutter-x-xs">
+                    <DbTypeIcon :db-type="searchForm.dbType" :size="18" />
+                    <span>{{ getDbTypeLabel(searchForm.dbType) }}</span>
+                  </div>
+                  <span v-else class="status-placeholder">{{ t('datasourceMgmt.dbTypePlaceholder') }}</span>
+                </template>
+                <template v-slot:option="scope">
+                  <q-item v-bind="scope.itemProps">
+                    <q-item-section avatar>
+                      <DbTypeIcon :db-type="scope.opt.value" :size="20" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>{{ scope.opt.label }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
                 </template>
               </q-select>
             </div>
@@ -648,7 +662,10 @@ onMounted(async () => {
         <!-- 数据库类型列 -->
         <template #body-cell-dbType="props">
           <q-td :props="props">
-            <q-badge color="blue-2" text-color="blue-9" :label="getDbTypeLabel(props.row.dbType)" />
+            <div class="row items-center no-wrap q-gutter-x-xs">
+              <DbTypeIcon :db-type="props.row.dbType" :size="18" />
+              <q-badge color="blue-2" text-color="blue-9" :label="getDbTypeLabel(props.row.dbType)" />
+            </div>
           </q-td>
         </template>
 
@@ -907,6 +924,10 @@ onMounted(async () => {
 .status-select :deep(.q-field__control) {
   min-height: 40px;
   min-width: 160px;
+}
+
+.db-type-select :deep(.q-field__control) {
+  min-width: 180px;
 }
 
 .search-collapse-btn {

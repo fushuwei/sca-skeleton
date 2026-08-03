@@ -623,7 +623,10 @@ onMounted(() => {
         <!-- 数据库类型列 -->
         <template #body-cell-dbType="props">
           <q-td :props="props">
-            <q-badge color="blue-2" text-color="blue-9" :label="getDbTypeLabel(props.row.dbType)" />
+            <div class="row items-center no-wrap q-gutter-x-xs">
+              <DbTypeIcon :db-type="props.row.dbType" :size="18" />
+              <q-badge color="blue-2" text-color="blue-9" :label="getDbTypeLabel(props.row.dbType)" />
+            </div>
           </q-td>
         </template>
 

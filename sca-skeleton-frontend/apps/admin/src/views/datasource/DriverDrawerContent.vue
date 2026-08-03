@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { Driver, DriverUploadResponse } from "../../apis/datasource";
 import { createDriverApi, updateDriverApi, uploadDriverApi } from "../../apis/datasource";
+import DbTypeIcon from "../../components/DbTypeIcon.vue";
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -228,7 +229,24 @@ function formatFileSize(bytes: number): string {
             :readonly="drawerReadonly"
             hide-bottom-space
             class="required-field"
-          />
+          >
+            <template v-slot:selected-item="scope">
+              <div v-if="scope.opt" class="row items-center no-wrap q-gutter-x-xs">
+                <DbTypeIcon :db-type="scope.opt.value" :size="20" />
+                <span>{{ scope.opt.label }}</span>
+              </div>
+            </template>
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps">
+                <q-item-section avatar>
+                  <DbTypeIcon :db-type="scope.opt.value" :size="20" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ scope.opt.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
         </div>
         <!-- 驱动名称 -->
         <div class="col-12 col-md-6">

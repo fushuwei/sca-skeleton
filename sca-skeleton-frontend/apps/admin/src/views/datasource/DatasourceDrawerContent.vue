@@ -9,6 +9,7 @@ import {
   getDriverOptionsApi,
   getDbTypesApi
 } from "../../apis/datasource";
+import DbTypeIcon from "../../components/DbTypeIcon.vue";
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -254,7 +255,24 @@ onMounted(() => {
             hide-bottom-space
             class="required-field"
             @update:model-value="onDbTypeChange"
-          />
+          >
+            <template v-slot:selected-item="scope">
+              <div v-if="scope.opt" class="row items-center no-wrap q-gutter-x-xs">
+                <DbTypeIcon :db-type="scope.opt.value" :size="20" />
+                <span>{{ scope.opt.label }}</span>
+              </div>
+            </template>
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps">
+                <q-item-section avatar>
+                  <DbTypeIcon :db-type="scope.opt.value" :size="20" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ scope.opt.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
         </div>
         <!-- 关联驱动 -->
         <div class="col-12">
