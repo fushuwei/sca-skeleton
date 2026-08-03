@@ -33,7 +33,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2AccessTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator;
@@ -241,11 +240,4 @@ public class AuthorizationServerConfig {
         return new DelegatingOAuth2TokenGenerator(accessTokenGenerator, refreshTokenGenerator);
     }
 
-    @Bean
-    public AuthorizationServerSettings authorizationServerSettings() {
-        log.info("AuthorizationServer 初始化完成：issuer={}", oauth2ClientProperties.getIssuer());
-        return AuthorizationServerSettings.builder()
-            .issuer(oauth2ClientProperties.getIssuer())
-            .build();
-    }
 }
