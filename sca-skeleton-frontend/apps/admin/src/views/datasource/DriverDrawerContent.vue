@@ -328,15 +328,6 @@ function formatFileSize(bytes: number): string {
 
         <!-- ── 驱动文件（新增模式：拖拽上传区 + 文件列表） ── -->
         <div v-if="!isEdit" class="col-12 driver-files-section">
-          <div class="driver-files-head row items-center justify-between">
-            <span class="driver-files-title">
-              {{ t('driverMgmt.driverFiles') }}
-              <span class="text-negative">*</span>
-            </span>
-            <span v-if="jarFiles.length" class="driver-files-count">
-              {{ t('driverMgmt.driverFilesCount', { count: jarFiles.length }) }}
-            </span>
-          </div>
 
           <!-- 拖拽上传区（未上传阶段） -->
           <div
@@ -352,7 +343,7 @@ function formatFileSize(bytes: number): string {
               <q-icon name="sym_r_upload_file" size="30px" />
             </div>
             <div class="file-dropzone__title">{{ t('driverMgmt.dropzoneTitle') }}</div>
-            <div class="file-dropzone__subtitle">{{ t('driverMgmt.jarFileHint') }}</div>
+            <div class="file-dropzone__subtitle">{{ t('driverMgmt.dropzoneSubtitle') }}</div>
             <q-btn
               class="file-dropzone__btn q-mt-sm"
               outline
@@ -373,13 +364,16 @@ function formatFileSize(bytes: number): string {
               <div class="file-list__head">
                 <q-icon name="sym_r_inbox" size="15px" />
                 <span>{{ t('driverMgmt.pendingFiles') }}</span>
+                <span v-if="jarFiles.length" class="driver-files-count">
+                  {{ t('driverMgmt.driverFilesCount', { count: jarFiles.length }) }}
+                </span>
                 <q-space />
                 <span class="file-list__total">{{ t('driverMgmt.totalFileSize') }}：{{ formatFileSize(pendingTotalSize) }}</span>
               </div>
 
               <div class="file-list__body">
                 <div
-                  v-for="(file, idx) in jarFiles"
+                  v-for="file in jarFiles"
                   :key="file.name"
                   class="file-row"
                 >
@@ -390,7 +384,6 @@ function formatFileSize(bytes: number): string {
                     <div class="file-row__name ellipsis">{{ file.name }}</div>
                     <div class="file-row__size">{{ formatFileSize(file.size) }}</div>
                   </div>
-                  <q-badge v-if="idx === 0" class="file-row__main" color="teal-2" text-color="teal-9" :label="t('driverMgmt.mainFile')" />
                   <q-btn
                     flat
                     round
@@ -451,7 +444,7 @@ function formatFileSize(bytes: number): string {
 
               <div class="file-list__body">
                 <div
-                  v-for="(name, idx) in uploadInfo.jarFileNames || []"
+                  v-for="name in uploadInfo.jarFileNames || []"
                   :key="name"
                   class="file-row"
                 >
@@ -461,7 +454,6 @@ function formatFileSize(bytes: number): string {
                   <div class="file-row__meta">
                     <div class="file-row__name ellipsis">{{ name }}</div>
                   </div>
-                  <q-badge v-if="idx === 0" class="file-row__main" color="teal-2" text-color="teal-9" :label="t('driverMgmt.mainFile')" />
                   <q-icon name="sym_r_check" size="18px" class="file-row__ok" />
                 </div>
               </div>
@@ -508,7 +500,7 @@ function formatFileSize(bytes: number): string {
           </div>
           <div class="jar-info-box">
             <div
-              v-for="(file, idx) in props.driver?.files || []"
+              v-for="file in props.driver?.files || []"
               :key="file.fileName"
               class="row items-center no-wrap q-py-xs"
             >
@@ -516,7 +508,6 @@ function formatFileSize(bytes: number): string {
               <div class="text-body2 text-grey-8 ellipsis" style="max-width: 60%">
                 {{ file.fileName }}
               </div>
-              <q-badge v-if="idx === 0" class="q-ml-sm" color="teal-2" text-color="teal-9" :label="t('driverMgmt.mainFile')" />
               <q-space />
               <div class="text-caption text-grey-6 q-ml-sm">{{ formatFileSize(file.fileSize) }}</div>
             </div>
@@ -658,16 +649,6 @@ function formatFileSize(bytes: number): string {
   margin-top: 4px;
 }
 
-.driver-files-head {
-  margin-bottom: 8px;
-}
-
-.driver-files-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.85);
-}
-
 .driver-files-count {
   font-size: 12px;
   color: #26a69a;
@@ -788,12 +769,6 @@ function formatFileSize(bytes: number): string {
 .file-row__size {
   font-size: 12px;
   color: #9aa3af;
-  flex-shrink: 0;
-}
-.file-row__main {
-  font-size: 10px;
-  padding: 1px 7px;
-  border-radius: 8px;
   flex-shrink: 0;
 }
 .file-row__remove {

@@ -645,8 +645,7 @@ onMounted(() => {
               {{ t('driverMgmt.driverFilesCount', { count: props.row.files.length }) }}
               <q-tooltip>
                 <div class="q-gutter-y-xs">
-                  <div v-for="(f, idx) in props.row.files" :key="f.fileName" class="row items-center">
-                    <q-badge v-if="idx === 0" class="q-mr-xs" color="teal-2" text-color="teal-9" :label="t('driverMgmt.mainFile')" />
+                  <div v-for="f in props.row.files" :key="f.fileName" class="row items-center">
                     <span>{{ f.fileName }}</span>
                   </div>
                 </div>
@@ -1253,6 +1252,58 @@ onMounted(() => {
 .rows-per-page-popup .q-item {
   min-height: 36px;
   padding: 0 16px;
+}
+
+/* 列表页暗色模式 */
+.body--dark .search-area {
+  background: #1e1e1e !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .search-area-header {
+  background: #252525 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .search-area-title,
+.body--dark .search-collapse-btn {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .search-collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .status-select .q-field__native {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .driver-table {
+  background: #1e1e1e !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .driver-table thead tr th {
+  color: rgba(255, 255, 255, 0.8) !important;
+  background: #252525 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .driver-table tbody td {
+  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.body--dark .driver-table tbody tr:hover td {
+  background: #1d2120 !important;
+}
+
+.body--dark .driver-table tbody tr.q-tr--selected td {
+  background: #1c2323 !important;
+}
+
+.body--dark .driver-table .q-table__bottom {
+  background: #1e1e1e !important;
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* 抽屉暗色模式 */
