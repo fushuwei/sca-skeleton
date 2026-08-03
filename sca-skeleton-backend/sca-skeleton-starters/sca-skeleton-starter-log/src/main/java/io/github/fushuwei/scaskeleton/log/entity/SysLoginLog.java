@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * @author Fu Wei
  */
 @Data
-@TableName("sys_login_log")
+@TableName(value = "sys_login_log", schema = "sca_platform")
 public class SysLoginLog implements Serializable {
 
     @Serial
