@@ -50,12 +50,6 @@ const form = reactive({
   version: 0 as number | undefined
 });
 
-// ── JAR 多文件上传相关 ──
-const jarFiles = ref<File[]>([]);
-const uploading = ref(false);
-const uploadInfo = ref<DriverUploadResponse | null>(null);
-const detectedClasses = ref<string[]>([]);
-
 const formRules = computed(() => ({
   dbType: [(v: string) => !!v || t("driverMgmt.dbTypeRequired")],
   driverName: [(v: string) => !!v?.trim() || t("driverMgmt.driverNameRequired")],
@@ -76,6 +70,7 @@ function resetForm() {
   jarFiles.value = [];
   uploadInfo.value = null;
   detectedClasses.value = [];
+  fileInputKey.value++;
 }
 
 function initForm() {
@@ -93,34 +88,83 @@ function initForm() {
   }
 }
 
+// ── 驱动文件列表（添加模式：待上传文件 / 已上传信息） ──
+// 注意：这些 ref 必须在 watch(...) 之前声明，否则 initForm()->resetForm()
+// 会在它们初始化之前访问（TDZ），导致 "Cannot access 'xxx' before initialization"。
+const jarFiles = ref<File[]>([]);
+const uploading = ref(false);
+const uploadInfo = ref<DriverUploadResponse | null>(null);
+const detectedClasses = ref<string[]>([]);
+const fileInput = ref<HTMLInputElement | null>(null);
+const fileInputKey = ref(0);
+const dragActive = ref(false);
+
 watch(() => props.driver, initForm, { immediate: true });
 
-// ── JAR 文件上传（多文件） ──
-async function onFilesChange(files: File[] | null) {
-  if (!files || files.length === 0) {
-    uploadInfo.value = null;
-    detectedClasses.value = [];
-    form.uploadId = "";
-    form.fileSize = 0;
+// 触发隐藏文件选择框
+function triggerFilePick() {
+  if (uploading.value || !form.dbType) return;
+  fileInput.value?.click();
+}
+
+// 选择文件（追加到待上传列表，可多次选择）
+function onFilesChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const picked = Array.from(input.files || []);
+  // 重置 input 以允许多次选择同一文件
+  input.value = "";
+  addFiles(picked);
+}
+
+// 拖拽到上传区
+function onDrop(e: DragEvent) {
+  dragActive.value = false;
+  const files = Array.from(e.dataTransfer?.files || []);
+  addFiles(files);
+}
+
+// 通用：校验并追加文件到待上传列表
+function addFiles(picked: File[]) {
+  if (!picked.length) return;
+
+  if (!form.dbType) {
+    showToast(t("driverMgmt.dbTypeRequired"), "warning");
+    return;
+  }
+  // 校验全部为 .jar 文件
+  if (picked.some((f) => !f.name.endsWith(".jar"))) {
+    showToast(t("driverMgmt.jarFileHint"), "warning");
+    return;
+  }
+
+  // 去重后追加到待上传列表
+  const existing = new Set(jarFiles.value.map((f) => f.name));
+  picked.forEach((f) => {
+    if (!existing.has(f.name)) {
+      jarFiles.value.push(f);
+      existing.add(f.name);
+    }
+  });
+}
+
+// 从待上传列表移除单个文件
+function removePendingFile(name: string) {
+  jarFiles.value = jarFiles.value.filter((f) => f.name !== name);
+}
+
+// 统一上传整个待上传列表
+async function handleUpload() {
+  if (jarFiles.value.length === 0) {
+    showToast(t("driverMgmt.jarFileRequired"), "warning");
     return;
   }
   if (!form.dbType) {
     showToast(t("driverMgmt.dbTypeRequired"), "warning");
-    jarFiles.value = [];
     return;
   }
-  // 校验全部为 .jar 文件
-  for (const f of files) {
-    if (!f.name.endsWith(".jar")) {
-      showToast(t("driverMgmt.jarFileHint"), "warning");
-      jarFiles.value = [];
-      return;
-    }
-  }
-
   uploading.value = true;
   try {
-    const result = await uploadDriverApi(form.dbType, files);
+    const result = await uploadDriverApi(form.dbType, jarFiles.value);
     if (result.code === 10_000 && result.data) {
       uploadInfo.value = result.data;
       detectedClasses.value = result.data.detectedDriverClasses || [];
@@ -133,13 +177,11 @@ async function onFilesChange(files: File[] | null) {
       showToast(t("driverMgmt.uploadSuccess"), "positive");
     } else {
       showToast(result.message || t("driverMgmt.uploadFail"), "negative");
-      jarFiles.value = [];
     }
   } catch (error) {
     if (!isNotificationHandled(error)) {
       showToast(t("driverMgmt.uploadFail"), "negative");
     }
-    jarFiles.value = [];
   } finally {
     uploading.value = false;
   }
@@ -149,6 +191,11 @@ function selectDetectedClass(cls: string) {
   if (drawerReadonly.value) return;
   form.driverClass = cls;
 }
+
+// 待上传文件的总大小（用于列表头部展示）
+const pendingTotalSize = computed(() =>
+  jarFiles.value.reduce((sum, f) => sum + (f.size || 0), 0)
+);
 
 function handleClose() {
   emit("close");
@@ -279,61 +326,178 @@ function formatFileSize(bytes: number): string {
           />
         </div>
 
-        <!-- JAR 上传区域（仅新增模式，支持多文件） -->
-        <div v-if="!isEdit" class="col-12">
-          <div class="text-caption text-grey-8 q-mb-xs">{{ t('driverMgmt.jarFile') }} <span class="text-negative">*</span></div>
-          <q-file
-            v-model="jarFiles"
-            accept=".jar"
-            filled
-            square
-            multiple
-            :label="t('driverMgmt.jarFile')"
-            :loading="uploading"
-            :disable="drawerReadonly"
-            :hint="t('driverMgmt.jarFileHint')"
-            hide-bottom-space
-            class="required-field"
-            @update:model-value="onFilesChange"
-          >
-            <template #prepend>
-              <q-icon name="sym_r_attach_file" />
-            </template>
-          </q-file>
-
-          <!-- 上传后信息 -->
-          <div v-if="uploadInfo" class="q-mt-xs">
-            <div class="text-caption text-grey-7">
-              <span>{{ t('driverMgmt.totalFileSize') }}: {{ formatFileSize(uploadInfo.fileSize) }}</span>
-              <span class="q-ml-md">{{ t('driverMgmt.driverFilesCount', { count: uploadInfo.jarFileNames?.length || 0 }) }}</span>
-            </div>
-            <!-- 已上传文件名列表 -->
-            <div v-if="uploadInfo.jarFileNames?.length" class="q-mt-xs">
-              <q-badge
-                v-for="name in uploadInfo.jarFileNames"
-                :key="name"
-                class="q-mr-xs q-mb-xs"
-                color="blue-2"
-                text-color="blue-9"
-              >
-                {{ name }}
-              </q-badge>
-            </div>
-            <!-- 探测到的驱动类 -->
-            <div v-if="detectedClasses.length > 0" class="q-mt-xs">
-              <div class="text-caption text-grey-8 q-mb-xs">{{ t('driverMgmt.detectedClasses') }}:</div>
-              <q-badge
-                v-for="cls in detectedClasses"
-                :key="cls"
-                class="q-mr-xs q-mb-xs cursor-pointer detected-class-badge"
-                :color="form.driverClass === cls ? 'primary' : 'blue-2'"
-                :text-color="form.driverClass === cls ? 'white' : 'blue-9'"
-                @click="selectDetectedClass(cls)"
-              >
-                {{ cls }}
-              </q-badge>
-            </div>
+        <!-- ── 驱动文件（新增模式：拖拽上传区 + 文件列表） ── -->
+        <div v-if="!isEdit" class="col-12 driver-files-section">
+          <div class="driver-files-head row items-center justify-between">
+            <span class="driver-files-title">
+              {{ t('driverMgmt.driverFiles') }}
+              <span class="text-negative">*</span>
+            </span>
+            <span v-if="jarFiles.length" class="driver-files-count">
+              {{ t('driverMgmt.driverFilesCount', { count: jarFiles.length }) }}
+            </span>
           </div>
+
+          <!-- 拖拽上传区（未上传阶段） -->
+          <div
+            v-if="!uploadInfo"
+            class="file-dropzone"
+            :class="{ 'file-dropzone--drag': dragActive }"
+            @click="triggerFilePick"
+            @dragover.prevent="dragActive = true"
+            @dragleave="dragActive = false"
+            @drop.prevent="onDrop"
+          >
+            <div class="file-dropzone__icon">
+              <q-icon name="sym_r_upload_file" size="30px" />
+            </div>
+            <div class="file-dropzone__title">{{ t('driverMgmt.dropzoneTitle') }}</div>
+            <div class="file-dropzone__subtitle">{{ t('driverMgmt.jarFileHint') }}</div>
+            <q-btn
+              class="file-dropzone__btn q-mt-sm"
+              outline
+              unelevated
+              no-caps
+              color="primary"
+              size="sm"
+              icon="sym_r_folder_open"
+              :label="t('driverMgmt.chooseFile')"
+              :disable="!form.dbType || uploading"
+              @click.stop="triggerFilePick"
+            />
+          </div>
+
+          <!-- 待上传文件列表（选中后出现） -->
+          <transition name="filelist">
+            <div v-if="!uploadInfo && jarFiles.length" class="file-list">
+              <div class="file-list__head">
+                <q-icon name="sym_r_inbox" size="15px" />
+                <span>{{ t('driverMgmt.pendingFiles') }}</span>
+                <q-space />
+                <span class="file-list__total">{{ t('driverMgmt.totalFileSize') }}：{{ formatFileSize(pendingTotalSize) }}</span>
+              </div>
+
+              <div class="file-list__body">
+                <div
+                  v-for="(file, idx) in jarFiles"
+                  :key="file.name"
+                  class="file-row"
+                >
+                  <div class="file-row__icon">
+                    <q-icon name="sym_r_description" size="18px" />
+                  </div>
+                  <div class="file-row__meta">
+                    <div class="file-row__name ellipsis">{{ file.name }}</div>
+                    <div class="file-row__size">{{ formatFileSize(file.size) }}</div>
+                  </div>
+                  <q-badge v-if="idx === 0" class="file-row__main" color="teal-2" text-color="teal-9" :label="t('driverMgmt.mainFile')" />
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    size="sm"
+                    color="grey"
+                    class="file-row__remove"
+                    icon="sym_r_close"
+                    :aria-label="t('driverMgmt.removeFile')"
+                    @click="removePendingFile(file.name)"
+                  >
+                    <q-tooltip>{{ t('driverMgmt.removeFile') }}</q-tooltip>
+                  </q-btn>
+                </div>
+              </div>
+
+              <!-- 操作按钮 -->
+              <div class="file-list__actions row justify-end q-gutter-sm no-wrap">
+                <q-btn
+                  outline
+                  unelevated
+                  no-caps
+                  color="grey-7"
+                  size="sm"
+                  icon="sym_r_add"
+                  :label="t('driverMgmt.addFile')"
+                  :disable="uploading"
+                  @click="triggerFilePick"
+                />
+                <q-btn
+                  unelevated
+                  no-caps
+                  color="primary"
+                  size="sm"
+                  icon="sym_r_cloud_upload"
+                  :label="t('driverMgmt.startUpload')"
+                  :disable="!jarFiles.length"
+                  :loading="uploading"
+                  @click="handleUpload"
+                />
+              </div>
+            </div>
+          </transition>
+
+          <!-- 已上传状态 -->
+          <transition name="filelist">
+            <div v-if="uploadInfo" class="file-uploaded">
+              <div class="file-uploaded__banner">
+                <q-icon name="sym_r_check_circle" size="20px" />
+                <div>
+                  <div class="file-uploaded__title">{{ t('driverMgmt.uploadSuccess') }}</div>
+                  <div class="file-uploaded__summary">
+                    {{ t('driverMgmt.driverFilesCount', { count: uploadInfo.jarFileNames?.length || 0 }) }}
+                    · {{ t('driverMgmt.totalFileSize') }} {{ formatFileSize(uploadInfo.fileSize) }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="file-list__body">
+                <div
+                  v-for="(name, idx) in uploadInfo.jarFileNames || []"
+                  :key="name"
+                  class="file-row"
+                >
+                  <div class="file-row__icon">
+                    <q-icon name="sym_r_description" size="18px" />
+                  </div>
+                  <div class="file-row__meta">
+                    <div class="file-row__name ellipsis">{{ name }}</div>
+                  </div>
+                  <q-badge v-if="idx === 0" class="file-row__main" color="teal-2" text-color="teal-9" :label="t('driverMgmt.mainFile')" />
+                  <q-icon name="sym_r_check" size="18px" class="file-row__ok" />
+                </div>
+              </div>
+
+              <!-- 探测到的驱动类 -->
+              <div v-if="detectedClasses.length" class="file-detected">
+                <div class="file-detected__label">{{ t('driverMgmt.detectedClasses') }}</div>
+                <div class="file-detected__list">
+                  <q-badge
+                    v-for="cls in detectedClasses"
+                    :key="cls"
+                    class="detected-class-badge cursor-pointer q-mr-xs q-mb-xs"
+                    :color="form.driverClass === cls ? 'primary' : 'blue-2'"
+                    :text-color="form.driverClass === cls ? 'white' : 'blue-9'"
+                    @click="selectDetectedClass(cls)"
+                  >
+                    {{ cls }}
+                  </q-badge>
+                </div>
+              </div>
+              <div v-else-if="uploadInfo" class="file-detected file-detected--manual">
+                {{ t('driverMgmt.driverClassManual') }}
+              </div>
+            </div>
+          </transition>
+
+          <!-- 隐藏的文件选择器（由“选择文件/添加文件”触发，可多次追加） -->
+          <input
+            ref="fileInput"
+            :key="fileInputKey"
+            type="file"
+            accept=".jar"
+            multiple
+            class="hidden-file-input"
+            @change="onFilesChange"
+          />
         </div>
 
         <!-- 编辑/查看模式下显示已有驱动文件列表（支持多文件） -->
@@ -472,6 +636,237 @@ function formatFileSize(bytes: number): string {
   font-size: 11px;
   padding: 3px 8px;
   border-radius: 0;
+}
+
+/* 文件列表行 */
+.file-row + .file-row {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* 隐藏的原生文件选择器 */
+.hidden-file-input {
+  display: none;
+}
+
+/* 文件列表小按钮 */
+.drawer-action-btn-sm {
+  min-width: 88px;
+}
+
+/* ── 驱动文件区（新增模式：拖拽上传 + 文件列表） ── */
+.driver-files-section {
+  margin-top: 4px;
+}
+
+.driver-files-head {
+  margin-bottom: 8px;
+}
+
+.driver-files-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.driver-files-count {
+  font-size: 12px;
+  color: #26a69a;
+  background: rgba(38, 166, 154, 0.1);
+  border-radius: 10px;
+  padding: 1px 10px;
+  font-weight: 500;
+}
+
+/* 拖拽上传区 */
+.file-dropzone {
+  border: 1.5px dashed #c8cfd8;
+  border-radius: 8px;
+  background: #fafbfc;
+  padding: 22px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.file-dropzone:hover {
+  border-color: #1976d2;
+  background: #f5f9ff;
+}
+.file-dropzone--drag {
+  border-color: #1976d2;
+  background: #eef4ff;
+}
+.file-dropzone--drag .file-dropzone__icon {
+  transform: translateY(-2px);
+}
+.file-dropzone__icon {
+  color: #1976d2;
+  display: flex;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+.file-dropzone__title {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.8);
+}
+.file-dropzone__subtitle {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #9aa3af;
+}
+.file-dropzone__btn {
+  border-radius: 6px;
+}
+
+/* 文件列表容器 */
+.file-list {
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.file-list__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+  background: #f7f8fa;
+  border-bottom: 1px solid #eef0f3;
+}
+.file-list__total {
+  font-weight: 500;
+  color: #9aa3af;
+}
+.file-list__body {
+  max-height: 220px;
+  overflow-y: auto;
+}
+.file-list__actions {
+  padding: 10px 12px;
+  border-top: 1px solid #eef0f3;
+  background: #fafbfc;
+}
+.file-list__actions .q-btn {
+  border-radius: 6px;
+}
+
+/* 文件行 */
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.file-row + .file-row {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+.file-row:hover {
+  background: #fafbfc;
+}
+.file-row__icon {
+  color: #1976d2;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.file-row__meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.file-row__name {
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.85);
+  font-weight: 500;
+}
+.file-row__size {
+  font-size: 12px;
+  color: #9aa3af;
+  flex-shrink: 0;
+}
+.file-row__main {
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.file-row__remove {
+  flex-shrink: 0;
+  color: #9aa3af;
+}
+.file-row__ok {
+  color: #26a69a;
+  flex-shrink: 0;
+}
+
+/* 上传成功状态 */
+.file-uploaded {
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.file-uploaded__banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: #f0faf7;
+  border-bottom: 1px solid #e0f2ec;
+}
+.file-uploaded__banner .q-icon {
+  color: #26a69a;
+}
+.file-uploaded__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00897b;
+}
+.file-uploaded__summary {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #6e8b84;
+}
+
+/* 探测到的驱动类 */
+.file-detected {
+  padding: 10px 12px;
+  border-top: 1px solid #eef0f3;
+}
+.file-detected__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+  margin-bottom: 4px;
+}
+.file-detected__list {
+  display: flex;
+  flex-wrap: wrap;
+}
+.file-detected--manual {
+  color: #9aa3af;
+  font-size: 12px;
+}
+
+/* 文件列表过渡动画 */
+.filelist-enter-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.filelist-leave-active {
+  transition: opacity 0.1s ease;
+}
+.filelist-enter-from {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.filelist-leave-to {
+  opacity: 0;
 }
 
 /* 修复 prefix 右侧多余间距 */
