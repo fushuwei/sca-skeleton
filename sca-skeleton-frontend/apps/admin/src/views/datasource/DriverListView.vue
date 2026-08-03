@@ -14,6 +14,7 @@ import {
   disableDriverApi
 } from "../../apis/datasource";
 import { useConfirmDialog } from "@repo/ui";
+import DbTypeIcon from "../../components/DbTypeIcon.vue";
 import DriverDrawerContent from "./DriverDrawerContent.vue";
 
 const { t } = useI18n({ useScope: "global" });
@@ -484,7 +485,6 @@ onMounted(() => {
                 square
                 dense
                 :options="DB_TYPE_OPTIONS"
-                :option-label="(o: { label: string; value: string } | undefined) => (o ? o.label : '')"
                 option-value="value"
                 emit-value
                 map-options
@@ -492,11 +492,27 @@ onMounted(() => {
                 clearable
                 transition-show="jump-up"
                 transition-hide="jump-down"
-                class="status-select"
+                class="status-select db-type-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.dbType" v-slot:selected>
-                  <span class="status-placeholder">{{ t('driverMgmt.dbTypePlaceholder') }}</span>
+                <!-- 选中时展示图标 + 标签 -->
+                <template v-slot:selected>
+                  <div v-if="searchForm.dbType" class="row items-center no-wrap q-gutter-x-xs">
+                    <DbTypeIcon :db-type="searchForm.dbType" :size="18" />
+                    <span>{{ getDbTypeLabel(searchForm.dbType) }}</span>
+                  </div>
+                  <span v-else class="status-placeholder">{{ t('driverMgmt.dbTypePlaceholder') }}</span>
+                </template>
+                <!-- 下拉选项：图标 + 标签 -->
+                <template v-slot:option="scope">
+                  <q-item v-bind="scope.itemProps">
+                    <q-item-section avatar>
+                      <DbTypeIcon :db-type="scope.opt.value" :size="20" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>{{ scope.opt.label }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
                 </template>
               </q-select>
             </div>
@@ -884,6 +900,10 @@ onMounted(() => {
   min-width: 160px;
 }
 
+.db-type-select :deep(.q-field__control) {
+  min-width: 180px;
+}
+
 .search-collapse-btn {
   width: 32px;
   height: 32px;
@@ -1219,6 +1239,12 @@ onMounted(() => {
 .status-select-popup .q-item {
   min-height: 40px;
   padding: 0 16px;
+}
+
+/* 数据库类型下拉选项中的 avatar 区域紧凑化 */
+.status-select-popup .q-item__section--avatar {
+  min-width: 28px;
+  padding-right: 8px;
 }
 
 .rows-per-page-popup .q-item {
