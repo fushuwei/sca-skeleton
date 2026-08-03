@@ -15,6 +15,6 @@ public class DriverStoreProperties {
     /** 存储类型（local/minio），默认 local */
     private String storageType = "local";
 
-    /** 本地存储根路径，默认 ~/.sca-skeleton/drivers */
-    private String basePath = System.getProperty("user.home") + "/.sca-skeleton/drivers";
+    /** 本地存储根路径，默认 ${user.dir}/drivers */
+    private String basePath = System.getProperty("user.dir") + "/drivers";
 }
