@@ -333,7 +333,6 @@ onUnmounted(() => {
                   type="text"
                   placeholder="请输入验证码"
                   autocomplete="off"
-                  style="text-transform: uppercase"
                 />
                 <div class="error-message" :style="{ display: captchaErrorVisible ? 'flex' : 'none' }">
                   <q-icon name="sym_r_error" class="login-icon error-icon" />
