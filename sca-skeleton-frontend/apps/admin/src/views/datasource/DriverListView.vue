@@ -497,8 +497,8 @@ onMounted(() => {
               >
                 <!-- 选中时展示图标 + 标签 -->
                 <template v-slot:selected>
-                  <div v-if="searchForm.dbType" class="row items-center no-wrap q-gutter-x-xs">
-                    <DbTypeIcon :db-type="searchForm.dbType" :size="18" />
+                  <div v-if="searchForm.dbType" class="row items-center no-wrap">
+                    <DbTypeIcon :db-type="searchForm.dbType" :size="18" class="q-mr-xs" />
                     <span>{{ getDbTypeLabel(searchForm.dbType) }}</span>
                   </div>
                   <span v-else class="status-placeholder">{{ t('driverMgmt.dbTypePlaceholder') }}</span>
@@ -506,7 +506,7 @@ onMounted(() => {
                 <!-- 下拉选项：图标 + 标签 -->
                 <template v-slot:option="scope">
                   <q-item v-bind="scope.itemProps">
-                    <q-item-section avatar>
+                    <q-item-section avatar style="min-width: auto; padding-right: 8px;">
                       <DbTypeIcon :db-type="scope.opt.value" :size="20" />
                     </q-item-section>
                     <q-item-section>
@@ -623,8 +623,8 @@ onMounted(() => {
         <!-- 数据库类型列 -->
         <template #body-cell-dbType="props">
           <q-td :props="props">
-            <div class="row items-center no-wrap q-gutter-x-xs">
-              <DbTypeIcon :db-type="props.row.dbType" :size="18" />
+            <div class="row items-center no-wrap">
+              <DbTypeIcon :db-type="props.row.dbType" :size="18" class="q-mr-xs" />
               <q-badge color="blue-2" text-color="blue-9" :label="getDbTypeLabel(props.row.dbType)" />
             </div>
           </q-td>

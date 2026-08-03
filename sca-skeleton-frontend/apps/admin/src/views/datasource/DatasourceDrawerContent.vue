@@ -257,14 +257,14 @@ onMounted(() => {
             @update:model-value="onDbTypeChange"
           >
             <template v-slot:selected-item="scope">
-              <div v-if="scope.opt" class="row items-center no-wrap q-gutter-x-xs">
-                <DbTypeIcon :db-type="scope.opt.value" :size="20" />
+              <div v-if="scope.opt" class="row items-center no-wrap">
+                <DbTypeIcon :db-type="scope.opt.value" :size="20" class="q-mr-xs" />
                 <span>{{ scope.opt.label }}</span>
               </div>
             </template>
             <template v-slot:option="scope">
               <q-item v-bind="scope.itemProps">
-                <q-item-section avatar>
+                <q-item-section avatar style="min-width: auto; padding-right: 8px;">
                   <DbTypeIcon :db-type="scope.opt.value" :size="20" />
                 </q-item-section>
                 <q-item-section>
