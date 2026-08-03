@@ -12,18 +12,14 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 
 -- -----------------------------------------------------------
--- 1. 驱动表 ds_driver
--- 系统级全局资产（无 tenant_id）
+-- 驱动表
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ds_driver` (
     `id`              VARCHAR(64)     NOT NULL                        COMMENT '主键ID，唯一标识',
     `db_type`         VARCHAR(50)     NOT NULL                        COMMENT '数据库类型',
     `driver_name`     VARCHAR(200)    NOT NULL                        COMMENT '驱动名称',
     `driver_class`    VARCHAR(255)    NOT NULL                        COMMENT 'JDBC Driver 全限定类名',
-    `driver_version`  VARCHAR(50)     NOT NULL                        COMMENT '驱动业务版本号',
-    `jar_sha256`      VARCHAR(64)     NOT NULL                        COMMENT 'JAR 文件 SHA256 值',
-    `object_key`      VARCHAR(500)    NOT NULL                        COMMENT '存储对象键（内容寻址）',
-    `file_size`       BIGINT          DEFAULT NULL                    COMMENT 'JAR 文件大小（字节）',
+    `object_key`      VARCHAR(500)    NOT NULL                        COMMENT '驱动目录键（drivers/{driverName}，目录下存放驱动文件 + 依赖）',
     `storage_type`    VARCHAR(10)     NOT NULL DEFAULT 'local'        COMMENT '存储类型（local 本地存储，minio 对象存储）',
     `url_template`    VARCHAR(500)    DEFAULT NULL                    COMMENT 'JDBC URL 前缀模板',
     `allowed_params`  JSON            DEFAULT NULL                    COMMENT 'URL 参数白名单（JSON 格式）',
@@ -37,13 +33,31 @@ CREATE TABLE IF NOT EXISTS `ds_driver` (
     `update_time`     DATETIME        DEFAULT NULL                    COMMENT '更新时间',
     `is_deleted`      TINYINT(1)      NOT NULL DEFAULT 0              COMMENT '是否删除（0否 1是）',
     PRIMARY KEY (`id`),
-    KEY `idx_db_type_status` (`db_type`, `status`),
-    KEY `idx_sha256` (`jar_sha256`)
+    KEY `idx_db_type_status` (`db_type`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='数据源驱动表';
 
 -- -----------------------------------------------------------
--- 2. 数据源表 ds_datasource
--- 按租户隔离
+-- 驱动文件表
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ds_driver_file` (
+    `id`              VARCHAR(64)     NOT NULL                        COMMENT '主键ID，唯一标识',
+    `driver_id`       VARCHAR(64)     NOT NULL                        COMMENT '关联驱动ID',
+    `file_name`       VARCHAR(255)    NOT NULL                        COMMENT '驱动文件名（上传时的原始文件名）',
+    `file_size`       BIGINT          DEFAULT NULL                    COMMENT '文件大小（字节）',
+    `sha256`          VARCHAR(64)     NOT NULL                        COMMENT '文件 SHA256 校验值',
+    `sort_order`      INT             NOT NULL DEFAULT 0              COMMENT '排序序号（主文件 0，依赖按上传顺序递增）',
+    `create_by`       VARCHAR(64)     DEFAULT NULL                    COMMENT '创建人',
+    `create_time`     DATETIME        DEFAULT NULL                    COMMENT '创建时间',
+    `update_by`       VARCHAR(64)     DEFAULT NULL                    COMMENT '更新人',
+    `update_time`     DATETIME        DEFAULT NULL                    COMMENT '更新时间',
+    `is_deleted`      TINYINT(1)      NOT NULL DEFAULT 0              COMMENT '是否删除（0否 1是）',
+    PRIMARY KEY (`id`),
+    KEY `idx_driver_id` (`driver_id`),
+    KEY `idx_sha256` (`sha256`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='驱动文件表';
+
+-- -----------------------------------------------------------
+-- 数据源表
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ds_datasource` (
     `id`                VARCHAR(64)     NOT NULL                        COMMENT '主键ID，唯一标识',
@@ -75,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `ds_datasource` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='数据源表';
 
 -- -----------------------------------------------------------
--- 3. SQL 查询历史表 ds_query_log（日志表，只追加，无逻辑删除）
+-- SQL 查询历史表
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ds_query_log` (
     `id`                VARCHAR(64)     NOT NULL                        COMMENT '主键ID，唯一标识',
@@ -99,7 +113,7 @@ CREATE TABLE IF NOT EXISTS `ds_query_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='SQL 查询历史表';
 
 -- -----------------------------------------------------------
--- 4. SQL 模板表 ds_sql_template
+-- SQL 模板表
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ds_sql_template` (
     `id`              VARCHAR(64)     NOT NULL                        COMMENT '主键ID，唯一标识',

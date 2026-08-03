@@ -9,6 +9,7 @@ import io.github.fushuwei.scaskeleton.datasource.api.enums.DbType;
 import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverCreateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverPageRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverUpdateRequest;
+import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverFileResponse;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverOptionResponse;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverResponse;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverUploadResponse;
@@ -17,6 +18,8 @@ import io.github.fushuwei.scaskeleton.datasource.engine.driver.DriverClassDetect
 import io.github.fushuwei.scaskeleton.datasource.engine.storage.DriverStore;
 import io.github.fushuwei.scaskeleton.datasource.engine.storage.DriverStoreProperties;
 import io.github.fushuwei.scaskeleton.datasource.entity.Driver;
+import io.github.fushuwei.scaskeleton.datasource.entity.DriverFile;
+import io.github.fushuwei.scaskeleton.datasource.mapper.DriverFileMapper;
 import io.github.fushuwei.scaskeleton.datasource.mapper.DriverMapper;
 import io.github.fushuwei.scaskeleton.datasource.service.DriverService;
 import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
@@ -29,23 +32,28 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
  * 驱动管理 Service 实现。
  * <p>
- * 采用 Chat2DB 风格的目录式管理：每个驱动记录对应一个目录 drivers/{driverName}/，
- * 目录下存放驱动主 JAR + 所有依赖 JAR，加载时用一个 URLClassLoader 全部加载。
+ * 采用目录式管理：每个驱动记录对应一个目录 drivers/{driverName}/，
+ * 目录下存放驱动文件 + 依赖 JAR，加载时用一个 URLClassLoader 全部加载。
  * <p>
- * 上传流程：支持多 JAR 上传 → 临时存到 drivers/_temp/{uploadId}/ → 探测驱动类 → 返回 uploadId。
- * 创建流程：用 driverName 作为目录名 → 把临时目录重命名为 drivers/{driverName}/ → 落库。
+ * 驱动文件元数据存储在 ds_driver_file 表，一个驱动可关联多个文件。
+ * <p>
+ * 上传流程：支持多文件上传 → 临时存到 drivers/_temp/{uploadId}/ → 探测驱动类 → 返回 uploadId。
+ * 创建流程：用 driverName 作为目录名 → 把临时目录重命名为 drivers/{driverName}/ → 落库 + 落文件表。
  *
  * @author Fu Wei
  */
@@ -58,6 +66,7 @@ public class DriverServiceImpl implements DriverService {
     private static final String DRIVER_DIR_PREFIX = "drivers/";
 
     private final DriverMapper driverMapper;
+    private final DriverFileMapper driverFileMapper;
     private final DriverConverter driverConverter;
     private final ReferenceChecker referenceChecker;
     private final DriverStore driverStore;
@@ -81,19 +90,19 @@ public class DriverServiceImpl implements DriverService {
         wrapper.orderByDesc(Driver::getCreateTime);
 
         IPage<Driver> driverPage = driverMapper.selectPage(page, wrapper);
-        return driverPage.convert(driverConverter::toDriverResponse);
+        return driverPage.convert(this::toDriverResponseWithFiles);
     }
 
     @Override
     public DriverResponse getDriverById(String id) {
         Driver driver = loadDriverEntity(id);
-        return driverConverter.toDriverResponse(driver);
+        return toDriverResponseWithFiles(driver);
     }
 
     /**
-     * 上传驱动 JAR 文件（支持多文件）。
+     * 上传驱动文件（支持多文件）。
      * <p>
-     * 上传的 JAR 会临时存到 drivers/_temp/{uploadId}/ 目录，前端拿到 uploadId + 探测到的 driverClass 后回填到创建表单。
+     * 上传的文件会临时存到 drivers/_temp/{uploadId}/ 目录，前端拿到 uploadId + 探测到的 driverClass 后回填到创建表单。
      * 创建驱动时用 driverName 作为正式目录名，把临时目录重命名为 drivers/{driverName}/。
      */
     @Override
@@ -108,7 +117,6 @@ public class DriverServiceImpl implements DriverService {
 
         List<String> jarFileNames = new ArrayList<>();
         long totalSize = 0;
-        String firstJarSha256 = null;
         List<Path> localJarPaths = new ArrayList<>();
 
         for (MultipartFile file : files) {
@@ -120,22 +128,11 @@ public class DriverServiceImpl implements DriverService {
                 throw new BusinessException(ResultCode.VALIDATION_ERROR, "仅支持 .jar 文件: " + originalName);
             }
 
-            // 计算 SHA256（首个 JAR 用于展示）
-            String sha256;
-            try (InputStream is = file.getInputStream()) {
-                sha256 = computeSha256(is);
-            } catch (IOException e) {
-                throw new BusinessException(ResultCode.FAILURE, "计算 SHA256 失败: " + e.getMessage());
-            }
-            if (firstJarSha256 == null) {
-                firstJarSha256 = sha256;
-            }
-
             // 存储到临时目录
             try (InputStream is = file.getInputStream()) {
                 driverStore.putJar(tempDriverDir, originalName, is, file.getSize());
             } catch (IOException e) {
-                throw new BusinessException(ResultCode.FAILURE, "存储驱动 JAR 失败: " + e.getMessage());
+                throw new BusinessException(ResultCode.FAILURE, "存储驱动文件失败: " + e.getMessage());
             }
 
             jarFileNames.add(originalName);
@@ -143,7 +140,7 @@ public class DriverServiceImpl implements DriverService {
         }
 
         if (jarFileNames.isEmpty()) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "没有有效的 JAR 文件");
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "没有有效的驱动文件");
         }
 
         // 获取本地路径用于探测驱动类
@@ -155,7 +152,6 @@ public class DriverServiceImpl implements DriverService {
 
         DriverUploadResponse response = new DriverUploadResponse();
         response.setUploadId(uploadId);
-        response.setJarSha256(firstJarSha256);
         response.setFileSize(totalSize);
         response.setJarFileNames(jarFileNames);
         response.setDetectedDriverClasses(detectedClasses);
@@ -177,28 +173,39 @@ public class DriverServiceImpl implements DriverService {
         String tempDriverDir = TEMP_DIR_PREFIX + request.getUploadId();
         String driverDir = DRIVER_DIR_PREFIX + request.getDriverName();
 
-        // 获取临时目录下 JAR 信息（用于落库 fileSize）
+        // 获取临时目录下文件信息（用于落库文件表）
         List<Path> jarPaths = driverStore.listLocalJars(tempDriverDir);
-        long totalSize = jarPaths.stream().mapToLong(p -> {
-            try {
-                return java.nio.file.Files.size(p);
-            } catch (IOException e) {
-                return 0;
-            }
-        }).sum();
 
         // 重命名临时目录为正式目录
         driverStore.renameDriverDir(tempDriverDir, driverDir);
 
-        // 落库
+        // 落库驱动主表
         Driver driver = driverConverter.toDriver(request);
         driver.setDbType(request.getDbType().name());
         driver.setObjectKey(driverDir);
-        driver.setFileSize(totalSize);
         driver.setStatus("enabled");
         driver.setIsBuiltin(0);
         driver.setStorageType(driverStoreProperties.getStorageType());
         driverMapper.insert(driver);
+
+        // 落库驱动文件表（逐个文件记录元数据）
+        long totalSize = 0;
+        int sortOrder = 0;
+        for (Path jarPath : jarPaths) {
+            DriverFile driverFile = new DriverFile();
+            driverFile.setDriverId(driver.getId());
+            driverFile.setFileName(jarPath.getFileName().toString());
+            try {
+                driverFile.setFileSize(Files.size(jarPath));
+                totalSize += Files.size(jarPath);
+            } catch (IOException e) {
+                driverFile.setFileSize(0L);
+            }
+            driverFile.setSha256(computeSha256(jarPath));
+            driverFile.setSortOrder(sortOrder++);
+            driverFileMapper.insert(driverFile);
+        }
+        log.info("创建驱动成功: driverName={}, fileCount={}", request.getDriverName(), jarPaths.size());
     }
 
     @Override
@@ -237,6 +244,9 @@ public class DriverServiceImpl implements DriverService {
         // 引用校验：检查是否被数据源引用
         referenceChecker.check(Driver.class, id);
 
+        // 删除驱动文件记录
+        driverFileMapper.delete(new LambdaQueryWrapper<DriverFile>()
+            .eq(DriverFile::getDriverId, id));
         driverMapper.deleteById(id);
 
         // 存储清理：删除整个驱动目录
@@ -271,6 +281,9 @@ public class DriverServiceImpl implements DriverService {
         // 批量引用校验
         referenceChecker.checkBatch(Driver.class, ids);
 
+        // 删除驱动文件记录
+        driverFileMapper.delete(new LambdaQueryWrapper<DriverFile>()
+            .in(DriverFile::getDriverId, ids));
         driverMapper.deleteBatchIds(ids);
 
         // 存储清理：删除每个驱动目录
@@ -305,8 +318,27 @@ public class DriverServiceImpl implements DriverService {
 
         List<Driver> drivers = driverMapper.selectList(wrapper);
         return drivers.stream()
-            .map(d -> new DriverOptionResponse(d.getId(), d.getDriverName(), d.getDriverVersion()))
+            .map(d -> new DriverOptionResponse(d.getId(), d.getDriverName()))
             .toList();
+    }
+
+    // ── 私有辅助方法 ──
+
+    /**
+     * 将 Driver 实体转为响应对象，并附带文件列表与总大小。
+     */
+    private DriverResponse toDriverResponseWithFiles(Driver driver) {
+        DriverResponse response = driverConverter.toDriverResponse(driver);
+        List<DriverFile> files = driverFileMapper.selectList(
+            new LambdaQueryWrapper<DriverFile>()
+                .eq(DriverFile::getDriverId, driver.getId())
+                .orderByAsc(DriverFile::getSortOrder));
+        List<DriverFileResponse> fileResponses = driverConverter.toDriverFileResponseList(files);
+        response.setFiles(fileResponses);
+        response.setTotalFileSize(fileResponses.stream()
+            .mapToLong(f -> f.getFileSize() != null ? f.getFileSize() : 0L)
+            .sum());
+        return response;
     }
 
     private Driver loadDriverEntity(String id) {
@@ -315,6 +347,17 @@ public class DriverServiceImpl implements DriverService {
             throw new BusinessException(ResultCode.NOT_FOUND, "驱动不存在");
         }
         return driver;
+    }
+
+    /**
+     * 计算文件的 SHA256 校验值。
+     */
+    private String computeSha256(Path filePath) {
+        try (InputStream is = Files.newInputStream(filePath)) {
+            return computeSha256(is);
+        } catch (IOException e) {
+            throw new BusinessException(ResultCode.FAILURE, "计算 SHA256 失败: " + e.getMessage());
+        }
     }
 
     private String computeSha256(InputStream is) throws IOException {

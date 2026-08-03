@@ -5,16 +5,21 @@ import type { ApiEnvelope, IPage } from "../types/auth";
 // 类型定义
 // ============================================================
 
+/** 驱动文件 */
+export interface DriverFile {
+  fileName: string;
+  fileSize: number;
+  sha256: string;
+  sortOrder: number;
+}
+
 /** 驱动 */
 export interface Driver {
   id: string;
   dbType: string;
   driverName: string;
   driverClass: string;
-  driverVersion: string;
-  jarSha256: string;
   objectKey: string;
-  fileSize: number;
   storageType: string;
   urlTemplate: string;
   allowedParams: string;
@@ -23,13 +28,14 @@ export interface Driver {
   remark: string;
   version: number;
   createTime: string;
+  files: DriverFile[];
+  totalFileSize: number;
 }
 
 /** 驱动选项 */
 export interface DriverOption {
   id: string;
   driverName: string;
-  driverVersion: string;
 }
 
 /** 数据源 */
@@ -129,7 +135,6 @@ export async function uploadDriverApi(
 /** 驱动上传响应 */
 export interface DriverUploadResponse {
   uploadId: string;
-  jarSha256: string;
   fileSize: number;
   jarFileNames: string[];
   detectedDriverClasses: string[];

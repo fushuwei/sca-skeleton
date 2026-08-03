@@ -26,12 +26,11 @@ const DB_TYPE_OPTIONS = [
   { label: "Oracle", value: "ORACLE" },
   { label: "PostgreSQL", value: "POSTGRESQL" },
   { label: "SQLServer", value: "SQLSERVER" },
-  { label: "达梦 DM", value: "DAMENG" },
-  { label: "人大金仓 Kingbase", value: "KINGBASE" },
+  { label: "达梦数据库", value: "DAMENG" },
+  { label: "Kingbase", value: "KINGBASE" },
   { label: "MongoDB", value: "MONGODB" },
   { label: "ClickHouse", value: "CLICKHOUSE" },
-  { label: "OceanBase (MySQL)", value: "OCEANBASE_MYSQL" },
-  { label: "OceanBase (Oracle)", value: "OCEANBASE_ORACLE" },
+  { label: "OceanBase", value: "OCEANBASE" },
   { label: "GaussDB", value: "GAUSSDB" }
 ];
 
@@ -41,7 +40,6 @@ const form = reactive({
   dbType: "",
   driverName: "",
   driverClass: "",
-  driverVersion: "",
   urlTemplate: "",
   allowedParams: "",
   remark: "",
@@ -60,8 +58,7 @@ const detectedClasses = ref<string[]>([]);
 const formRules = computed(() => ({
   dbType: [(v: string) => !!v || t("driverMgmt.dbTypeRequired")],
   driverName: [(v: string) => !!v?.trim() || t("driverMgmt.driverNameRequired")],
-  driverClass: [(v: string) => !!v?.trim() || t("driverMgmt.driverClassRequired")],
-  driverVersion: [(v: string) => !!v?.trim() || t("driverMgmt.driverVersionRequired")]
+  driverClass: [(v: string) => !!v?.trim() || t("driverMgmt.driverClassRequired")]
 }));
 
 function resetForm() {
@@ -69,7 +66,6 @@ function resetForm() {
   form.dbType = "";
   form.driverName = "";
   form.driverClass = "";
-  form.driverVersion = "";
   form.urlTemplate = "";
   form.allowedParams = "";
   form.remark = "";
@@ -88,11 +84,10 @@ function initForm() {
     form.dbType = props.driver.dbType;
     form.driverName = props.driver.driverName;
     form.driverClass = props.driver.driverClass;
-    form.driverVersion = props.driver.driverVersion;
     form.urlTemplate = props.driver.urlTemplate || "";
     form.allowedParams = props.driver.allowedParams || "";
     form.remark = props.driver.remark || "";
-    form.fileSize = props.driver.fileSize || 0;
+    form.fileSize = props.driver.totalFileSize || 0;
     form.version = props.driver.version;
   }
 }
@@ -177,7 +172,6 @@ async function handleSave() {
   if (props.mode === "add") {
     data.dbType = form.dbType;
     data.driverClass = form.driverClass;
-    data.driverVersion = form.driverVersion;
     data.uploadId = form.uploadId;
   } else {
     data.id = form.id;
@@ -236,29 +230,15 @@ function formatFileSize(bytes: number): string {
             class="required-field"
           />
         </div>
-        <!-- 驱动版本 -->
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model.trim="form.driverVersion"
-            :label="t('driverMgmt.driverVersion')"
-            filled
-            square
-            :rules="formRules.driverVersion"
-            :disable="isEdit || drawerReadonly"
-            :readonly="drawerReadonly"
-            hide-bottom-space
-            class="required-field"
-          />
-        </div>
         <!-- 驱动名称 -->
-        <div class="col-12">
+        <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.driverName"
             :label="t('driverMgmt.driverName')"
             filled
             square
             :rules="formRules.driverName"
-            :disable="drawerReadonly"
+            :disable="isEdit || drawerReadonly"
             :readonly="drawerReadonly"
             hint="驱动名称作为目录名，创建后不可修改"
             hide-bottom-space
@@ -306,8 +286,8 @@ function formatFileSize(bytes: number): string {
           <!-- 上传后信息 -->
           <div v-if="uploadInfo" class="q-mt-xs">
             <div class="text-caption text-grey-7">
-              <span>{{ t('driverMgmt.fileSize') }}: {{ formatFileSize(uploadInfo.fileSize) }}</span>
-              <span class="q-ml-md">{{ uploadInfo.jarFileNames?.length || 0 }} JAR(s)</span>
+              <span>{{ t('driverMgmt.totalFileSize') }}: {{ formatFileSize(uploadInfo.fileSize) }}</span>
+              <span class="q-ml-md">{{ t('driverMgmt.driverFilesCount', { count: uploadInfo.jarFileNames?.length || 0 }) }}</span>
             </div>
             <!-- 已上传文件名列表 -->
             <div v-if="uploadInfo.jarFileNames?.length" class="q-mt-xs">
@@ -338,14 +318,30 @@ function formatFileSize(bytes: number): string {
           </div>
         </div>
 
-        <!-- 编辑/查看模式下显示已有 JAR 信息 -->
+        <!-- 编辑/查看模式下显示已有驱动文件列表（支持多文件） -->
         <div v-else class="col-12">
-          <div class="text-caption text-grey-8 q-mb-xs">{{ t('driverMgmt.jarFile') }}</div>
+          <div class="text-caption text-grey-8 q-mb-xs">
+            {{ t('driverMgmt.driverFiles') }}
+            <span class="q-ml-xs text-grey-6">({{ t('driverMgmt.driverFilesCount', { count: props.driver?.files?.length || 0 }) }})</span>
+          </div>
           <div class="jar-info-box">
-            <div class="text-caption text-grey-7">
-              <span>{{ t('driverMgmt.fileSize') }}: {{ formatFileSize(form.fileSize) }}</span>
+            <div
+              v-for="(file, idx) in props.driver?.files || []"
+              :key="file.fileName"
+              class="row items-center no-wrap q-py-xs"
+            >
+              <q-icon name="sym_r_description" size="18px" class="q-mr-sm text-grey-6" />
+              <div class="text-body2 text-grey-8 ellipsis" style="max-width: 60%">
+                {{ file.fileName }}
+              </div>
+              <q-badge v-if="idx === 0" class="q-ml-sm" color="teal-2" text-color="teal-9" :label="t('driverMgmt.mainFile')" />
+              <q-space />
+              <div class="text-caption text-grey-6 q-ml-sm">{{ formatFileSize(file.fileSize) }}</div>
             </div>
-            <div class="text-caption text-grey-5 q-mt-xs">{{ t('driverMgmt.jarLocked') }}</div>
+            <div class="text-caption text-grey-7 q-mt-xs row items-center">
+              <span>{{ t('driverMgmt.totalFileSize') }}: {{ formatFileSize(form.fileSize) }}</span>
+            </div>
+            <div class="text-caption text-grey-5 q-mt-xs">{{ t('driverMgmt.fileLocked') }}</div>
           </div>
         </div>
 

@@ -20,5 +20,4 @@ public class DriverOptionResponse implements Serializable {
 
     private String id;
     private String driverName;
-    private String driverVersion;
 }

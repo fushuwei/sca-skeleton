@@ -47,12 +47,11 @@ async function loadDbTypeOptions() {
     { label: "Oracle", value: "ORACLE", defaultPort: 1521 },
     { label: "PostgreSQL", value: "POSTGRESQL", defaultPort: 5432 },
     { label: "SQLServer", value: "SQLSERVER", defaultPort: 1433 },
-    { label: "达梦 DM", value: "DAMENG", defaultPort: 5236 },
-    { label: "人大金仓 Kingbase", value: "KINGBASE", defaultPort: 54321 },
+    { label: "达梦数据库", value: "DAMENG", defaultPort: 5236 },
+    { label: "Kingbase", value: "KINGBASE", defaultPort: 54321 },
     { label: "MongoDB", value: "MONGODB", defaultPort: 27017 },
     { label: "ClickHouse", value: "CLICKHOUSE", defaultPort: 8123 },
-    { label: "OceanBase (MySQL)", value: "OCEANBASE_MYSQL", defaultPort: 2883 },
-    { label: "OceanBase (Oracle)", value: "OCEANBASE_ORACLE", defaultPort: 2883 },
+    { label: "OceanBase", value: "OCEANBASE", defaultPort: 2883 },
     { label: "GaussDB", value: "GAUSSDB", defaultPort: 5432 }
   ];
 }
@@ -71,7 +70,7 @@ async function loadDriverOptions(dbType?: string) {
     const res = await getDriverOptionsApi(dbType);
     if (res.code === 10_000 && res.data) {
       driverOptions.value = res.data.map((d: DriverOption) => ({
-        label: `${d.driverName} (v${d.driverVersion})`,
+        label: d.driverName,
         value: d.id
       }));
     }

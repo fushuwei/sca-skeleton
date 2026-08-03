@@ -5,6 +5,7 @@ import lombok.Data;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 驱动响应
@@ -21,10 +22,7 @@ public class DriverResponse implements Serializable {
     private String dbType;
     private String driverName;
     private String driverClass;
-    private String driverVersion;
-    private String jarSha256;
     private String objectKey;
-    private Long fileSize;
     private String storageType;
     private String urlTemplate;
     private String allowedParams;
@@ -33,4 +31,10 @@ public class DriverResponse implements Serializable {
     private String remark;
     private Integer version;
     private LocalDateTime createTime;
+
+    /** 驱动文件列表（一个驱动可包含多个文件） */
+    private List<DriverFileResponse> files;
+
+    /** 所有文件总大小（字节，聚合展示用） */
+    private Long totalFileSize;
 }

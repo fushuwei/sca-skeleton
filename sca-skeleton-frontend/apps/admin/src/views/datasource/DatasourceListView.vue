@@ -45,12 +45,11 @@ async function loadDbTypeOptions() {
     { label: "Oracle", value: "ORACLE" },
     { label: "PostgreSQL", value: "POSTGRESQL" },
     { label: "SQLServer", value: "SQLSERVER" },
-    { label: "达梦 DM", value: "DAMENG" },
-    { label: "人大金仓 Kingbase", value: "KINGBASE" },
+    { label: "达梦数据库", value: "DAMENG" },
+    { label: "Kingbase", value: "KINGBASE" },
     { label: "MongoDB", value: "MONGODB" },
     { label: "ClickHouse", value: "CLICKHOUSE" },
-    { label: "OceanBase (MySQL)", value: "OCEANBASE_MYSQL" },
-    { label: "OceanBase (Oracle)", value: "OCEANBASE_ORACLE" },
+    { label: "OceanBase", value: "OCEANBASE" },
     { label: "GaussDB", value: "GAUSSDB" }
   ];
 }

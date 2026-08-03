@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { Driver, DriverPageRequest } from "../../apis/datasource";
+import type { Driver, DriverFile, DriverPageRequest } from "../../apis/datasource";
 import {
   getDriverPageApi,
   getDriverByIdApi,
@@ -28,12 +28,11 @@ const DB_TYPE_OPTIONS = [
   { label: "Oracle", value: "ORACLE" },
   { label: "PostgreSQL", value: "POSTGRESQL" },
   { label: "SQLServer", value: "SQLSERVER" },
-  { label: "达梦 DM", value: "DAMENG" },
-  { label: "人大金仓 Kingbase", value: "KINGBASE" },
+  { label: "达梦数据库", value: "DAMENG" },
+  { label: "Kingbase", value: "KINGBASE" },
   { label: "MongoDB", value: "MONGODB" },
   { label: "ClickHouse", value: "CLICKHOUSE" },
-  { label: "OceanBase (MySQL)", value: "OCEANBASE_MYSQL" },
-  { label: "OceanBase (Oracle)", value: "OCEANBASE_ORACLE" },
+  { label: "OceanBase", value: "OCEANBASE" },
   { label: "GaussDB", value: "GAUSSDB" }
 ];
 
@@ -137,15 +136,16 @@ const columns = computed<QTableColumn<Driver>[]>(() => [
     format: (val: string) => (val ? val : "-")
   },
   {
-    name: "driverVersion",
-    field: "driverVersion",
-    label: t("driverMgmt.driverVersion"),
+    name: "files",
+    field: "files",
+    label: t("driverMgmt.driverFiles"),
     align: "left",
-    sortable: true
+    sortable: false,
+    format: (val: DriverFile[] | undefined) => (val?.length ? t("driverMgmt.driverFilesCount", { count: val.length }) : "-")
   },
   {
     name: "fileSize",
-    field: "fileSize",
+    field: "totalFileSize",
     label: t("driverMgmt.fileSize"),
     align: "left",
     sortable: false,
@@ -188,7 +188,6 @@ const visibleColumns = ref(columns.value.map((c) => c.name));
 const SORT_FIELD_MAP: Record<string, string> = {
   driverName: "driver_name",
   dbType: "db_type",
-  driverVersion: "driver_version",
   status: "status",
   createTime: "create_time"
 };
@@ -616,6 +615,24 @@ onMounted(() => {
         <template #body-cell-driverClass="props">
           <q-td :props="props">
             <span v-if="props.value" class="mono-text">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 驱动文件列 -->
+        <template #body-cell-files="props">
+          <q-td :props="props">
+            <span v-if="props.row.files?.length" class="cursor-pointer">
+              {{ t('driverMgmt.driverFilesCount', { count: props.row.files.length }) }}
+              <q-tooltip>
+                <div class="q-gutter-y-xs">
+                  <div v-for="(f, idx) in props.row.files" :key="f.fileName" class="row items-center">
+                    <q-badge v-if="idx === 0" class="q-mr-xs" color="teal-2" text-color="teal-9" :label="t('driverMgmt.mainFile')" />
+                    <span>{{ f.fileName }}</span>
+                  </div>
+                </div>
+              </q-tooltip>
+            </span>
             <span v-else class="text-grey-5">-</span>
           </q-td>
         </template>
