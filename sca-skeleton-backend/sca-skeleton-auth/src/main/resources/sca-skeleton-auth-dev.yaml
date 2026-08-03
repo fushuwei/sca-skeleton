@@ -30,6 +30,8 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    variables:
+      "log.database": sca_platform
   global-config:
     db-config:
       logic-delete-field: isDeleted

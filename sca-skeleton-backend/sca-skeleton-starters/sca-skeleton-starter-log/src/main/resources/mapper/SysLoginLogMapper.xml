@@ -8,9 +8,9 @@
         SELECT l.*,
                t.name AS tenant_name,
                u.real_name AS real_name
-        FROM sca_platform.sys_login_log l
-        LEFT JOIN sca_platform.sys_tenant t ON t.id = l.tenant_id
-        LEFT JOIN sca_platform.sys_user u ON u.id = l.user_id
+        FROM ${log.database}.sys_login_log l
+        LEFT JOIN ${log.database}.sys_tenant t ON t.id = l.tenant_id
+        LEFT JOIN ${log.database}.sys_user u ON u.id = l.user_id
         WHERE 1=1
         <if test="tenantId != null">
             AND l.tenant_id = #{tenantId}
@@ -51,15 +51,15 @@
         SELECT l.*,
                t.name AS tenant_name,
                u.real_name AS real_name
-        FROM sca_platform.sys_login_log l
-        LEFT JOIN sca_platform.sys_tenant t ON t.id = l.tenant_id
-        LEFT JOIN sca_platform.sys_user u ON u.id = l.user_id
+        FROM ${log.database}.sys_login_log l
+        LEFT JOIN ${log.database}.sys_tenant t ON t.id = l.tenant_id
+        LEFT JOIN ${log.database}.sys_user u ON u.id = l.user_id
         WHERE l.id = #{id}
     </select>
 
     <!-- 清空全部登录日志 -->
     <delete id="clearAllLogs">
-        DELETE FROM sca_platform.sys_login_log WHERE id IS NOT NULL
+        DELETE FROM ${log.database}.sys_login_log WHERE id IS NOT NULL
     </delete>
 
 </mapper>
