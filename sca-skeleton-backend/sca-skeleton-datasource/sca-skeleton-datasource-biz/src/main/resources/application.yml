@@ -6,9 +6,9 @@ spring:
     name: sca-skeleton-datasource
   servlet:
     multipart:
-      # 前端已限制单次提交的驱动文件总大小 ≤ 20MB
+      # 上传的驱动文件（JAR）本身的最大总大小：20MB
       max-file-size: 20MB
-      # 在文件总大小之上预留 multipart 边界与表单字段的开销
+      # 整个上传请求的最大大小：21MB，请求里除了文件本身，还带着驱动名称等表单字段和少量协议包装开销，所以比文件上限多留 1MB，避免恰好 20MB 的文件被误拒
       max-request-size: 21MB
   cloud:
     nacos:
