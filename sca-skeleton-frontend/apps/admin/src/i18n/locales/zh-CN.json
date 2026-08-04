@@ -535,7 +535,6 @@
     "isBuiltin": "内置",
     "remark": "备注",
     "createTime": "创建时间",
-    "detectedClasses": "探测到驱动类",
     "keywordPlaceholder": "请输入驱动名称/类名搜索",
     "dbTypePlaceholder": "请选择数据库类型",
     "statusPlaceholder": "请选择状态",
@@ -552,8 +551,6 @@
     "saveSuccess": "保存成功",
     "saveFail": "保存失败",
     "driverNameExists": "驱动名称已存在",
-    "driverClassHint": "如 com.mysql.cj.jdbc.Driver",
-    "urlTemplateHint": "如 jdbc:mysql://{host}:{port}/{database}",
     "allowedParamsHint": "JSON 数组，如 [\"useSSL\", \"serverTimezone\"]",
     "addMoreFiles": "添加更多文件（点击或拖拽）",
     "clearFiles": "清空"

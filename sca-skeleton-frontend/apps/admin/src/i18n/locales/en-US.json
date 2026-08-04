@@ -535,7 +535,6 @@
     "isBuiltin": "Built-in",
     "remark": "Remark",
     "createTime": "Created At",
-    "detectedClasses": "Detected Driver Classes",
     "keywordPlaceholder": "Search by driver name / class",
     "dbTypePlaceholder": "Select database type",
     "statusPlaceholder": "Select status",
@@ -552,8 +551,6 @@
     "saveSuccess": "Saved successfully",
     "saveFail": "Failed to save",
     "driverNameExists": "Driver name already exists",
-    "driverClassHint": "e.g. com.mysql.cj.jdbc.Driver",
-    "urlTemplateHint": "e.g. jdbc:mysql://{host}:{port}/{database}",
     "allowedParamsHint": "JSON array, e.g. [\"useSSL\", \"serverTimezone\"]",
     "addMoreFiles": "Add more files (click or drag)",
     "clearFiles": "Clear"

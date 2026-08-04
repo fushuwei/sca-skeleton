@@ -550,28 +550,6 @@ function formatFileSize(bytes: number): string {
             </div>
           </div>
 
-          <!-- 客户端探测到的驱动类（点击回填驱动类名） -->
-          <template v-if="jarFiles.length && !drawerReadonly">
-            <div v-if="detectedClasses.length" class="file-detected">
-              <div class="file-detected__label">{{ t('driverMgmt.detectedClasses') }}</div>
-              <div class="file-detected__list">
-                <q-badge
-                  v-for="cls in detectedClasses"
-                  :key="cls"
-                  class="detected-class-badge cursor-pointer q-mr-xs q-mb-xs"
-                  :color="form.driverClass === cls ? 'primary' : 'blue-2'"
-                  :text-color="form.driverClass === cls ? 'white' : 'blue-9'"
-                  @click="selectDetectedClass(cls)"
-                >
-                  {{ cls }}
-                </q-badge>
-              </div>
-            </div>
-            <div v-else-if="!detecting" class="file-detected file-detected--manual">
-              {{ t('driverMgmt.driverClassManual') }}
-            </div>
-          </template>
-
           <!-- 隐藏的文件选择器（由上传区点击触发，可多次追加） -->
           <input
             ref="fileInput"
@@ -593,10 +571,30 @@ function formatFileSize(bytes: number): string {
             :rules="formRules.driverClass"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
-            :hint="t('driverMgmt.driverClassHint')"
             hide-bottom-space
             class="required-field"
           />
+
+          <!-- 客户端探测到的驱动类（点击回填驱动类名） -->
+          <template v-if="jarFiles.length && !drawerReadonly">
+            <div v-if="detectedClasses.length" class="file-detected">
+              <div class="file-detected__list">
+                <q-badge
+                  v-for="cls in detectedClasses"
+                  :key="cls"
+                  class="detected-class-badge cursor-pointer q-mr-xs q-mb-xs"
+                  :color="form.driverClass === cls ? 'primary' : 'blue-2'"
+                  :text-color="form.driverClass === cls ? 'white' : 'blue-9'"
+                  @click="selectDetectedClass(cls)"
+                >
+                  {{ cls }}
+                </q-badge>
+              </div>
+            </div>
+            <div v-else-if="!detecting" class="file-detected file-detected--manual">
+              {{ t('driverMgmt.driverClassManual') }}
+            </div>
+          </template>
         </div>
 
         <!-- JDBC URL 模板 -->
@@ -608,7 +606,6 @@ function formatFileSize(bytes: number): string {
             square
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
-            :hint="t('driverMgmt.urlTemplateHint')"
             hide-bottom-space
           />
         </div>
@@ -701,7 +698,7 @@ function formatFileSize(bytes: number): string {
 .detected-class-badge {
   font-size: 11px;
   padding: 3px 8px;
-  border-radius: 0;
+  border-radius: 9999px;
 }
 
 /* 隐藏的原生文件选择器 */
@@ -851,12 +848,6 @@ function formatFileSize(bytes: number): string {
 .file-detected {
   margin-top: 8px;
 }
-.file-detected__label {
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.6);
-  margin-bottom: 4px;
-}
 .file-detected__list {
   display: flex;
   flex-wrap: wrap;
@@ -940,8 +931,5 @@ function formatFileSize(bytes: number): string {
   border-color: #80cbc4;
   color: #80cbc4;
   background: #2a2f2e;
-}
-.body--dark .file-detected__label {
-  color: rgba(255, 255, 255, 0.6);
 }
 </style>
