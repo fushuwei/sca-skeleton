@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 驱动管理 Service 实现。
@@ -87,9 +86,6 @@ public class DriverServiceImpl implements DriverService {
 
         if (request.getDbType() != null) {
             wrapper.eq(Driver::getDbType, request.getDbType().name());
-        }
-        if (StringUtils.hasText(request.getStatus())) {
-            wrapper.eq(Driver::getStatus, request.getStatus());
         }
         if (StringUtils.hasText(request.getKeyword())) {
             wrapper.and(w -> w.like(Driver::getDriverName, request.getKeyword())
@@ -185,8 +181,6 @@ public class DriverServiceImpl implements DriverService {
         Driver driver = driverConverter.toDriver(request);
         driver.setDbType(request.getDbType().name());
         driver.setObjectKey(driverDir);
-        driver.setStatus("enabled");
-        driver.setIsBuiltin(0);
         driver.setStorageType(driverStoreProperties.getStorageType());
         driverMapper.insert(driver);
 
@@ -336,9 +330,6 @@ public class DriverServiceImpl implements DriverService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteDriver(String id) {
         Driver driver = loadDriverEntity(id);
-        if (driver.getIsBuiltin() != null && driver.getIsBuiltin() == 1) {
-            throw new BusinessException("内置驱动不允许删除");
-        }
 
         // 引用校验：检查是否被数据源引用
         referenceChecker.check(Driver.class, id);
@@ -368,15 +359,6 @@ public class DriverServiceImpl implements DriverService {
             return;
         }
 
-        // 内置驱动不允许删除
-        List<Driver> builtinDrivers = drivers.stream()
-            .filter(d -> d.getIsBuiltin() != null && d.getIsBuiltin() == 1)
-            .toList();
-        if (!builtinDrivers.isEmpty()) {
-            throw new BusinessException("内置驱动不允许删除: " +
-                builtinDrivers.stream().map(Driver::getDriverName).collect(Collectors.joining(", ")));
-        }
-
         // 批量引用校验
         referenceChecker.checkBatch(Driver.class, ids);
 
@@ -396,20 +378,8 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void changeStatus(String id, String status) {
-        Driver driver = loadDriverEntity(id);
-        driver.setStatus(status);
-        int affectedRows = driverMapper.updateById(driver);
-        if (affectedRows == 0) {
-            throw new BusinessException(ResultCode.VERSION_CONFLICT);
-        }
-    }
-
-    @Override
     public List<DriverOptionResponse> listDriverOptions(DbType dbType) {
         LambdaQueryWrapper<Driver> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Driver::getStatus, "enabled");
         if (dbType != null) {
             wrapper.eq(Driver::getDbType, dbType.name());
         }

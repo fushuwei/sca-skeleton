@@ -396,9 +396,6 @@ public class DatasourceServiceImpl implements DatasourceService {
         if (!driver.getDbType().equals(dbType.name())) {
             throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动数据库类型与数据源类型不一致");
         }
-        if (!"enabled".equals(driver.getStatus())) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "关联驱动已禁用，请先启用驱动");
-        }
     }
 
     private Datasource loadDatasourceEntity(String id) {
@@ -416,9 +413,6 @@ public class DatasourceServiceImpl implements DatasourceService {
         Driver driver = driverMapper.selectById(driverId);
         if (driver == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "关联驱动不存在");
-        }
-        if (!"enabled".equals(driver.getStatus())) {
-            throw new BusinessException("关联驱动已禁用，请先启用驱动");
         }
         return driver;
     }

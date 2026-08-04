@@ -95,24 +95,6 @@ public class DriverController {
         return Result.ok();
     }
 
-    @Operation(summary = "启用驱动")
-    @PostMapping("/{id}/enable")
-    @RequiresPermission("sys:datasource:driver:edit")
-    @OperationLog(module = "驱动管理", action = "启用驱动")
-    public Result<Void> enable(@PathVariable String id) {
-        driverService.changeStatus(id, "enabled");
-        return Result.ok();
-    }
-
-    @Operation(summary = "禁用驱动")
-    @PostMapping("/{id}/disable")
-    @RequiresPermission("sys:datasource:driver:edit")
-    @OperationLog(module = "驱动管理", action = "禁用驱动")
-    public Result<Void> disable(@PathVariable String id) {
-        driverService.changeStatus(id, "disabled");
-        return Result.ok();
-    }
-
     @Operation(summary = "查询驱动选项列表")
     @GetMapping("/options")
     @RequiresPermission("sys:datasource:driver:list")

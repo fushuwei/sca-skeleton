@@ -26,8 +26,6 @@ public class DriverResponse implements Serializable {
     private String storageType;
     private String urlTemplate;
     private String allowedParams;
-    private String status;
-    private Integer isBuiltin;
     private String remark;
     private Integer version;
     private LocalDateTime createTime;

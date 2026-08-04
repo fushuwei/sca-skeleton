@@ -228,9 +228,6 @@ public class QueryServiceImpl implements QueryService {
         if (driver == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "关联驱动不存在");
         }
-        if (!"enabled".equals(driver.getStatus())) {
-            throw new BusinessException("关联驱动已禁用，请先启用驱动");
-        }
         return driver;
     }
 

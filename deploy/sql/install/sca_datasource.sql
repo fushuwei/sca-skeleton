@@ -23,8 +23,6 @@ CREATE TABLE IF NOT EXISTS `ds_driver` (
     `storage_type`    VARCHAR(10)     NOT NULL DEFAULT 'local'        COMMENT '存储类型（local 本地存储，minio 对象存储）',
     `url_template`    VARCHAR(500)    DEFAULT NULL                    COMMENT 'JDBC URL 前缀模板',
     `allowed_params`  JSON            DEFAULT NULL                    COMMENT 'URL 参数白名单（JSON 格式）',
-    `status`          VARCHAR(10)     NOT NULL DEFAULT 'enabled'      COMMENT '状态（enabled 启用，disabled 禁用）',
-    `is_builtin`      TINYINT(1)      NOT NULL DEFAULT 0              COMMENT '是否内置（0否 1是）',
     `remark`          TEXT            DEFAULT NULL                    COMMENT '备注',
     `version`         INT             NOT NULL DEFAULT 0              COMMENT '乐观锁版本号',
     `create_by`       VARCHAR(64)     DEFAULT NULL                    COMMENT '创建人',
@@ -33,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `ds_driver` (
     `update_time`     DATETIME        DEFAULT NULL                    COMMENT '更新时间',
     `is_deleted`      TINYINT(1)      NOT NULL DEFAULT 0              COMMENT '是否删除（0否 1是）',
     PRIMARY KEY (`id`),
-    KEY `idx_db_type_status` (`db_type`, `status`)
+    KEY `idx_db_type` (`db_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='数据源驱动表';
 
 -- -----------------------------------------------------------

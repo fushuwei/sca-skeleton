@@ -44,12 +44,6 @@ public class Driver extends BaseEntity {
     /** URL 参数白名单（JSON） */
     private String allowedParams;
 
-    /** 状态（enabled/disabled） */
-    private String status;
-
-    /** 是否内置驱动（0 否，1 是） */
-    private Integer isBuiltin;
-
     /** 备注 */
     private String remark;
 

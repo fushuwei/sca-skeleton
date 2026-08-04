@@ -24,9 +24,6 @@ public class DriverPageRequest implements Serializable {
     /** 关键字搜索（驱动名称/类名） */
     private String keyword;
 
-    /** 状态筛选（enabled/disabled） */
-    private String status;
-
     /** 页码 */
     private Integer pageNum = 1;
 

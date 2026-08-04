@@ -43,7 +43,5 @@ public interface DriverService {
      */
     void batchDeleteDrivers(List<String> ids);
 
-    void changeStatus(String id, String status);
-
     List<DriverOptionResponse> listDriverOptions(DbType dbType);
 }
