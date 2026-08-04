@@ -524,6 +524,7 @@
     "dropzoneTitle": "Click or drag driver files here",
     "dropzoneSubtitle": "Supports multiple JAR files, up to 20MB in total",
     "totalSizeExceeded": "Total file size cannot exceed 20MB",
+    "fileTypeBlocked": "Script or executable files are not allowed (e.g., .js, .sh, .exe)",
     "fileSize": "File Size",
     "totalFileSize": "Total Size",
     "urlTemplate": "JDBC URL Template",

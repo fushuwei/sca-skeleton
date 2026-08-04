@@ -524,6 +524,7 @@
     "dropzoneTitle": "点击或拖拽驱动文件到此处",
     "dropzoneSubtitle": "支持上传多个 JAR 文件，总大小不超过 20MB",
     "totalSizeExceeded": "文件总大小不能超过 20MB",
+    "fileTypeBlocked": "不支持上传脚本或可执行文件（如 .js、.sh、.exe 等）",
     "fileSize": "文件大小",
     "totalFileSize": "总大小",
     "urlTemplate": "JDBC URL 模板",

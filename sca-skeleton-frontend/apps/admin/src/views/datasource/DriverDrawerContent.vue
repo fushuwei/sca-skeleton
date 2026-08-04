@@ -119,6 +119,18 @@ const deletedFileNames = ref<Set<string>>(new Set());
 
 // 单次提交的驱动文件总大小上限：20MB（与后端 spring.servlet.multipart 保持一致）
 const MAX_UPLOAD_TOTAL_BYTES = 20 * 1024 * 1024;
+
+// 禁止上传的脚本/可执行文件扩展名（防止注入攻击）
+const BLOCKED_EXTENSIONS = [
+  ".js", ".mjs", ".cjs",          // JavaScript
+  ".sh", ".bash", ".zsh",         // Shell
+  ".bat", ".cmd", ".com",         // Windows 批处理
+  ".ps1", ".psm1",                // PowerShell
+  ".vbs", ".vba", ".wsf",         // VBScript / Windows Script
+  ".py", ".rb", ".php", ".pl",    // 脚本语言
+  ".lua", ".tcl",                 // 脚本语言
+  ".exe", ".dll", ".so", ".dylib", ".msi", ".scr"  // 可执行/二进制文件
+];
 const detectedClasses = ref<string[]>([]);
 const detecting = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -191,6 +203,15 @@ function onDrop(e: DragEvent) {
 // 通用：校验并追加文件，随后刷新客户端驱动类探测结果
 async function addFiles(picked: File[]) {
   if (!picked.length || drawerReadonly.value || formLoading.value) return;
+
+  // 校验：禁止上传脚本/可执行文件
+  const blockedFile = picked.find((f) =>
+    BLOCKED_EXTENSIONS.some((ext) => f.name.toLowerCase().endsWith(ext))
+  );
+  if (blockedFile) {
+    showToast(t("driverMgmt.fileTypeBlocked"), "warning");
+    return;
+  }
 
   // 按文件名去重：排除新增文件、未删除的已有文件
   const currentNames = new Set([

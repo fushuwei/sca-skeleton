@@ -66,6 +66,20 @@ public class DriverServiceImpl implements DriverService {
     private final DriverStore driverStore;
     private final DriverStoreProperties driverStoreProperties;
 
+    /**
+     * 禁止上传的脚本/可执行文件扩展名（防止注入攻击）
+     */
+    private static final Set<String> BLOCKED_EXTENSIONS = Set.of(
+        ".js", ".mjs", ".cjs",          // JavaScript
+        ".sh", ".bash", ".zsh",         // Shell
+        ".bat", ".cmd", ".com",         // Windows 批处理
+        ".ps1", ".psm1",                // PowerShell
+        ".vbs", ".vba", ".wsf",         // VBScript / Windows Script
+        ".py", ".rb", ".php", ".pl",    // 脚本语言
+        ".lua", ".tcl",                 // 脚本语言
+        ".exe", ".dll", ".so", ".dylib", ".msi", ".scr"  // 可执行/二进制文件
+    );
+
     @Override
     public IPage<DriverResponse> pageDrivers(DriverPageRequest request) {
         Page<Driver> page = new Page<>(request.getPageNum(), request.getPageSize());
@@ -118,6 +132,12 @@ public class DriverServiceImpl implements DriverService {
                 String originalName = file.getOriginalFilename();
                 if (originalName == null || originalName.isBlank()) {
                     throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名不能为空");
+                }
+                String lowerName = originalName.toLowerCase();
+                for (String ext : BLOCKED_EXTENSIONS) {
+                    if (lowerName.endsWith(ext)) {
+                        throw new BusinessException(ResultCode.VALIDATION_ERROR, "不允许上传脚本/可执行文件: " + originalName);
+                    }
                 }
                 if (!fileNames.add(originalName)) {
                     throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名重复: " + originalName);
@@ -236,6 +256,12 @@ public class DriverServiceImpl implements DriverService {
                 String originalName = file.getOriginalFilename();
                 if (originalName == null || originalName.isBlank()) {
                     throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名不能为空");
+                }
+                String lowerName = originalName.toLowerCase();
+                for (String ext : BLOCKED_EXTENSIONS) {
+                    if (lowerName.endsWith(ext)) {
+                        throw new BusinessException(ResultCode.VALIDATION_ERROR, "不允许上传脚本/可执行文件: " + originalName);
+                    }
                 }
                 if (existingFileNames.contains(originalName)) {
                     throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名已存在: " + originalName);
