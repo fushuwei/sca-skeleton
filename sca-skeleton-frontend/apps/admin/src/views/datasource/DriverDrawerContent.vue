@@ -39,6 +39,26 @@ const DB_TYPE_OPTIONS = [
   { label: "GaussDB", value: "GAUSSDB" }
 ];
 
+// ── 各数据库类型默认 JDBC URL 模板（占位符 {host}/{port}/{database}，前缀与后端 DbType 枚举一致） ──
+const DEFAULT_URL_TEMPLATES: Record<string, string> = {
+  MYSQL: "jdbc:mysql://{host}:{port}/{database}",
+  ORACLE: "jdbc:oracle:thin:@//{host}:{port}/{database}",
+  POSTGRESQL: "jdbc:postgresql://{host}:{port}/{database}",
+  SQLSERVER: "jdbc:sqlserver://{host}:{port};databaseName={database}",
+  DAMENG: "jdbc:dm://{host}:{port}/{database}",
+  KINGBASE: "jdbc:kingbase8://{host}:{port}/{database}",
+  MONGODB: "mongodb://{host}:{port}/{database}",
+  CLICKHOUSE: "jdbc:clickhouse://{host}:{port}/{database}",
+  OCEANBASE: "jdbc:oceanbase://{host}:{port}/{database}",
+  GAUSSDB: "jdbc:gaussdb://{host}:{port}/{database}"
+};
+
+// 判断当前 URL 模板是否为某个类型的默认模板（切换类型时据此决定是否自动覆盖，避免覆盖用户自定义内容）
+const DEFAULT_URL_VALUES = new Set(Object.values(DEFAULT_URL_TEMPLATES));
+function isDefaultUrlTemplate(value: string): boolean {
+  return DEFAULT_URL_VALUES.has(value);
+}
+
 const formLoading = ref(false);
 
 const form = reactive({
@@ -105,6 +125,17 @@ const formRules = computed(() => ({
   dbType: [(v: string) => !!v || t("driverMgmt.dbTypeRequired")],
   driverClass: [(v: string) => !!v?.trim() || t("driverMgmt.driverClassRequired")]
 }));
+
+// 选择数据库类型时自动填充默认 JDBC URL 模板：
+// 仅当模板为空或当前值仍为某类型的默认模板时覆盖，保留用户自定义内容
+function onDbTypeChange(value: string) {
+  if (drawerReadonly.value) return;
+  const tpl = DEFAULT_URL_TEMPLATES[value];
+  if (!tpl) return;
+  if (!form.urlTemplate || isDefaultUrlTemplate(form.urlTemplate)) {
+    form.urlTemplate = tpl;
+  }
+}
 
 // ── 驱动文件管理 ──
 // 注意：这些 ref 必须在 watch(...) 之前声明，否则 initForm()->resetForm()
@@ -438,6 +469,7 @@ function formatFileSize(bytes: number): string {
             :options="DB_TYPE_OPTIONS"
             emit-value
             map-options
+            @update:model-value="onDbTypeChange"
             :rules="formRules.dbType"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
