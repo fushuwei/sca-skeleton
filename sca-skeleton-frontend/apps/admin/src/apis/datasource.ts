@@ -139,20 +139,19 @@ export async function updateDriverApi(
   data: Record<string, unknown>,
   files?: File[]
 ): Promise<ApiEnvelope<null>> {
-  // 无文件上传时走普通 JSON 请求
-  if (!files || files.length === 0) {
-    return request<null>({ method: "POST", url: "/ds/driver/update", data });
-  }
-  // 有文件上传时走 multipart 请求
+  // 后端 update 接口 consumes = multipart/form-data，始终走 multipart 请求
   const formData = new FormData();
   formData.append("driver", new Blob([JSON.stringify(data)], { type: "application/json" }));
-  for (const file of files) {
-    formData.append("files", file);
+  if (files && files.length > 0) {
+    for (const file of files) {
+      formData.append("files", file);
+    }
   }
   return request<null>({
     method: "POST",
     url: "/ds/driver/update",
     data: formData,
+    // 上传耗时取决于文件大小与带宽，禁用单请求超时（由网关/Nginx 超时兜底）
     timeout: 0
   });
 }
