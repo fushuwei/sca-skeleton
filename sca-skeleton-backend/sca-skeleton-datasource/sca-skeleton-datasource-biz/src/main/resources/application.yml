@@ -4,6 +4,12 @@ server:
 spring:
   application:
     name: sca-skeleton-datasource
+  servlet:
+    multipart:
+      # 前端已限制单次提交的驱动文件总大小 ≤ 20MB
+      max-file-size: 20MB
+      # 在文件总大小之上预留 multipart 边界与表单字段的开销
+      max-request-size: 21MB
   cloud:
     nacos:
       server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}

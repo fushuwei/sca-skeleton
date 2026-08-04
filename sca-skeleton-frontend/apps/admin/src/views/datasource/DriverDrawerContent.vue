@@ -101,6 +101,8 @@ const formRules = computed(() => ({
 // 注意：这些 ref 必须在 watch(...) 之前声明，否则 initForm()->resetForm()
 // 会在它们初始化之前访问（TDZ），导致 "Cannot access 'xxx' before initialization"。
 const jarFiles = ref<File[]>([]);
+// 单次提交的驱动文件总大小上限：20MB（与后端 spring.servlet.multipart 保持一致）
+const MAX_UPLOAD_TOTAL_BYTES = 20 * 1024 * 1024;
 const detectedClasses = ref<string[]>([]);
 const detecting = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -177,6 +179,14 @@ async function addFiles(picked: File[]) {
   const existing = new Set(jarFiles.value.map((f) => f.name));
   const added = picked.filter((f) => !existing.has(f.name));
   if (!added.length) return;
+
+  // 校验追加后的文件总大小不超过 20MB
+  const addedSize = added.reduce((sum, f) => sum + (f.size || 0), 0);
+  if (pendingTotalSize.value + addedSize > MAX_UPLOAD_TOTAL_BYTES) {
+    showToast(t("driverMgmt.totalSizeExceeded"), "warning");
+    return;
+  }
+
   jarFiles.value.push(...added);
   await refreshDetectedClasses();
 }
@@ -230,6 +240,12 @@ async function handleSave() {
     // 新增：表单字段与文件随同一次 multipart 请求提交
     if (!jarFiles.value.length) {
       showToast(t("driverMgmt.jarFileRequired"), "warning");
+      return;
+    }
+
+    // 提交前兜底校验文件总大小
+    if (pendingTotalSize.value > MAX_UPLOAD_TOTAL_BYTES) {
+      showToast(t("driverMgmt.totalSizeExceeded"), "warning");
       return;
     }
 

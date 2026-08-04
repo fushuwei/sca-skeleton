@@ -15,6 +15,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Optional;
@@ -84,6 +85,15 @@ public class GlobalExceptionHandler {
     public Result<Void> handleMessageNotReadable(HttpMessageNotReadableException e) {
         log.warn("[请求体解析异常] {}", e.getMessage());
         return Result.fail(ResultCode.VALIDATION_ERROR, "请求体格式错误或字段类型不正确");
+    }
+
+    /**
+     * 处理上传文件大小超限异常（multipart 请求超过 max-file-size / max-request-size）
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public Result<Void> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
+        log.warn("[上传文件超限] {}", e.getMessage());
+        return Result.fail(ResultCode.VALIDATION_ERROR, "上传文件大小超出限制");
     }
 
     /**
