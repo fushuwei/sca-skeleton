@@ -522,7 +522,7 @@
     "driverFiles": "驱动文件",
     "driverFilesCount": "共 {count} 个文件",
     "dropzoneTitle": "点击或拖拽驱动文件到此处",
-    "dropzoneSubtitle": "支持上传多个 JAR 文件（主驱动 + 依赖），仅支持 .jar，总大小不超过 20MB",
+    "dropzoneSubtitle": "支持上传多个 JAR 文件，总大小不超过 20MB",
     "totalSizeExceeded": "文件总大小不能超过 20MB",
     "fileSize": "文件大小",
     "totalFileSize": "总大小",

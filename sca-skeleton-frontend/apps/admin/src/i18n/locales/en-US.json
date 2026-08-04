@@ -522,7 +522,7 @@
     "driverFiles": "Driver Files",
     "driverFilesCount": "{count} file(s)",
     "dropzoneTitle": "Click or drag driver files here",
-    "dropzoneSubtitle": "Supports multiple JAR files (main driver + dependencies), .jar only, up to 20MB in total",
+    "dropzoneSubtitle": "Supports multiple JAR files, up to 20MB in total",
     "totalSizeExceeded": "Total file size cannot exceed 20MB",
     "fileSize": "File Size",
     "totalFileSize": "Total Size",

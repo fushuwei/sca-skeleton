@@ -192,12 +192,6 @@ function onDrop(e: DragEvent) {
 async function addFiles(picked: File[]) {
   if (!picked.length || drawerReadonly.value || formLoading.value) return;
 
-  // 校验全部为 .jar 文件
-  if (picked.some((f) => !f.name.toLowerCase().endsWith(".jar"))) {
-    showToast(t("driverMgmt.dropzoneSubtitle"), "warning");
-    return;
-  }
-
   // 按文件名去重：排除新增文件、未删除的已有文件
   const currentNames = new Set([
     ...jarFiles.value.map((f) => f.name),
@@ -562,7 +556,6 @@ function formatFileSize(bytes: number): string {
             ref="fileInput"
             :key="fileInputKey"
             type="file"
-            accept=".jar"
             multiple
             class="hidden-file-input"
             @change="onFilesChange"

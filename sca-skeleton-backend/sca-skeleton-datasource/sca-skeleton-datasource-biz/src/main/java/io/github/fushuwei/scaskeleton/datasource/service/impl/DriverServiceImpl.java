@@ -116,8 +116,8 @@ public class DriverServiceImpl implements DriverService {
                     continue;
                 }
                 String originalName = file.getOriginalFilename();
-                if (originalName == null || !originalName.endsWith(".jar")) {
-                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "仅支持 .jar 文件: " + originalName);
+                if (originalName == null || originalName.isBlank()) {
+                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名不能为空");
                 }
                 if (!fileNames.add(originalName)) {
                     throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名重复: " + originalName);
@@ -234,8 +234,8 @@ public class DriverServiceImpl implements DriverService {
                     continue;
                 }
                 String originalName = file.getOriginalFilename();
-                if (originalName == null || !originalName.endsWith(".jar")) {
-                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "仅支持 .jar 文件: " + originalName);
+                if (originalName == null || originalName.isBlank()) {
+                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名不能为空");
                 }
                 if (existingFileNames.contains(originalName)) {
                     throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名已存在: " + originalName);
