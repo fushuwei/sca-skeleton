@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS `ds_driver_file` (
     `file_name`       VARCHAR(255)    NOT NULL                        COMMENT '文件名（上传时的原始文件名）',
     `file_size`       BIGINT          DEFAULT NULL                    COMMENT '文件大小（字节）',
     `sha256`          VARCHAR(64)     NOT NULL                        COMMENT '文件 SHA256 校验值',
+    `driver_classes`  VARCHAR(1000)   DEFAULT NULL                    COMMENT '探测到的驱动类（逗号分隔，如 com.mysql.cj.jdbc.Driver,org.example.AnotherDriver）',
     `sort_order`      INT             NOT NULL DEFAULT 0              COMMENT '排序序号（主文件 0，依赖按上传顺序递增）',
     `create_by`       VARCHAR(64)     DEFAULT NULL                    COMMENT '创建人',
     `create_time`     DATETIME        DEFAULT NULL                    COMMENT '创建时间',

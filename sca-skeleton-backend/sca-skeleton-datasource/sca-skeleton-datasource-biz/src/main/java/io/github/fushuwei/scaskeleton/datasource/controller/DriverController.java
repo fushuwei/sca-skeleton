@@ -101,11 +101,4 @@ public class DriverController {
     public Result<List<DriverOptionResponse>> options(@RequestParam(required = false) DbType dbType) {
         return Result.ok(driverService.listDriverOptions(dbType));
     }
-
-    @Operation(summary = "从已存储的 JAR 文件中探测驱动类")
-    @GetMapping("/{id}/detect-classes")
-    @RequiresPermission("sys:datasource:driver:list")
-    public Result<List<String>> detectClasses(@PathVariable String id) {
-        return Result.ok(driverService.detectDriverClasses(id));
-    }
 }

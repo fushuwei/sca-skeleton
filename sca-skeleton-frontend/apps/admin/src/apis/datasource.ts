@@ -11,6 +11,8 @@ export interface DriverFile {
   /** 后端 Long 类型经 ToStringSerializer 序列化为字符串，前端使用时需 Number() 转换 */
   fileSize: number | string;
   sha256: string;
+  /** 探测到的驱动类（逗号分隔） */
+  driverClasses?: string;
   sortOrder: number;
 }
 
@@ -134,13 +136,6 @@ export async function checkDriverNameExistsApi(
     url: "/ds/driver/name/exists",
     params: { name }
   });
-}
-
-/** 从已存储的 JAR 文件中探测驱动类 */
-export async function detectDriverClassesApi(
-  id: string
-): Promise<ApiEnvelope<string[]>> {
-  return request<string[]>({ method: "GET", url: `/ds/driver/${id}/detect-classes` });
 }
 
 /** 编辑驱动（表单字段 + 新增驱动文件随同一次 multipart 请求提交） */

@@ -44,15 +44,4 @@ public interface DriverService {
     void batchDeleteDrivers(List<String> ids);
 
     List<DriverOptionResponse> listDriverOptions(DbType dbType);
-
-    /**
-     * 从服务端已存储的 JAR 文件中探测 JDBC 驱动类。
-     * <p>
-     * 读取每个 JAR 中的 {@code META-INF/services/java.sql.Driver} 声明文件，
-     * 跨文件去重后返回候选驱动类列表。
-     *
-     * @param id 驱动 ID
-     * @return 探测到的驱动类全限定名列表
-     */
-    List<String> detectDriverClasses(String id);
 }

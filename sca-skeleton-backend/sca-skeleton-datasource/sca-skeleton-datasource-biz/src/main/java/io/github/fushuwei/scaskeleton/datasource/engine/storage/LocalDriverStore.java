@@ -106,6 +106,11 @@ public class LocalDriverStore implements DriverStore {
         }
     }
 
+    @Override
+    public Path getLocalJarPath(String driverDir, String fileName) {
+        return resolveJarPath(driverDir, fileName);
+    }
+
     /**
      * 解析驱动目录的完整本地路径。
      * <p>

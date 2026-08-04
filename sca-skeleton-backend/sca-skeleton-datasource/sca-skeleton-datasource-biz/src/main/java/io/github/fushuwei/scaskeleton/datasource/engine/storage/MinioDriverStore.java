@@ -70,4 +70,11 @@ public class MinioDriverStore implements DriverStore {
         String objectKey = driverDir + "/" + fileName;
         minioUtils.deleteObject(objectKey);
     }
+
+    @Override
+    public Path getLocalJarPath(String driverDir, String fileName) {
+        // 需要先下载到本地临时目录，待 MinioUtils 补充 getObject 能力后实现。
+        throw new UnsupportedOperationException(
+            "MinioDriverStore.getLocalJarPath 暂未实现，需先在 MinioUtils 补充 getObject 能力");
+    }
 }

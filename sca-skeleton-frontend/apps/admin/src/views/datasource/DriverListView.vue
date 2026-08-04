@@ -134,7 +134,7 @@ const columns = computed<QTableColumn<Driver>[]>(() => [
     field: "files",
     label: t("driverMgmt.driverFiles"),
     align: "left",
-    sortable: true
+    sortable: false
   },
   {
     name: "fileSize",
@@ -169,7 +169,6 @@ const SORT_FIELD_MAP: Record<string, string> = {
   dbType: "db_type",
   driverClass: "driver_class",
   fileSize: "total_file_size",
-  files: "file_count",
   createTime: "create_time"
 };
 

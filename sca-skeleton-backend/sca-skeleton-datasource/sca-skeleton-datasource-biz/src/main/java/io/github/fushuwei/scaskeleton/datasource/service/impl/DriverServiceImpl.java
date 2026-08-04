@@ -165,10 +165,15 @@ public class DriverServiceImpl implements DriverService {
                 throw new BusinessException(ResultCode.FAILURE, "存储驱动文件失败: " + e.getMessage());
             }
 
+            // 探测驱动类（读取 JAR 内 META-INF/services/java.sql.Driver）
+            String driverClasses = detectDriverClassesFromJar(
+                driverStore.getLocalJarPath(driverDir, file.getOriginalFilename()));
+
             DriverFile driverFile = new DriverFile();
             driverFile.setFileName(file.getOriginalFilename());
             driverFile.setFileSize(file.getSize());
             driverFile.setSha256(HexFormat.of().formatHex(digest.digest()));
+            driverFile.setDriverClasses(driverClasses);
             driverFile.setSortOrder(sortOrder++);
             driverFiles.add(driverFile);
         }
@@ -273,11 +278,16 @@ public class DriverServiceImpl implements DriverService {
                     throw new BusinessException(ResultCode.FAILURE, "存储驱动文件失败: " + e.getMessage());
                 }
 
+                // 探测驱动类（读取 JAR 内 META-INF/services/java.sql.Driver）
+                String driverClasses = detectDriverClassesFromJar(
+                    driverStore.getLocalJarPath(driverDir, originalName));
+
                 DriverFile driverFile = new DriverFile();
                 driverFile.setDriverId(driver.getId());
                 driverFile.setFileName(originalName);
                 driverFile.setFileSize(file.getSize());
                 driverFile.setSha256(HexFormat.of().formatHex(digest.digest()));
+                driverFile.setDriverClasses(driverClasses);
                 driverFile.setSortOrder(sortOrder++);
                 driverFileMapper.insert(driverFile);
                 existingFileNames.add(originalName);
@@ -382,41 +392,40 @@ public class DriverServiceImpl implements DriverService {
             .toList();
     }
 
-    @Override
-    public List<String> detectDriverClasses(String id) {
-        Driver driver = loadDriverEntity(id);
+    // ── 私有辅助方法 ──
 
-        // 获取驱动目录下所有 JAR 的本地路径
-        List<Path> jarPaths = driverStore.listLocalJars(driver.getName());
-
-        List<String> result = new ArrayList<>();
-        for (Path jarPath : jarPaths) {
-            try (JarFile jarFile = new JarFile(jarPath.toFile())) {
-                ZipEntry entry = jarFile.getEntry(SERVICES_DRIVER_ENTRY);
-                if (entry == null) {
-                    continue;
-                }
-                try (InputStream is = jarFile.getInputStream(entry)) {
-                    String content = new String(is.readAllBytes()).strip();
-                    for (String line : content.split("\n")) {
-                        String className = line.strip();
-                        // 跳过空行和注释
-                        if (className.isEmpty() || className.startsWith("#")) {
-                            continue;
-                        }
-                        if (!result.contains(className)) {
-                            result.add(className);
-                        }
+    /**
+     * 从单个 JAR 文件中探测 JDBC 驱动类。
+     * <p>
+     * 读取 JAR 内 {@code META-INF/services/java.sql.Driver} 声明文件，
+     * 多个驱动类以逗号分隔返回（如 {@code com.mysql.cj.jdbc.Driver,org.example.AnotherDriver}）。
+     * 如果 JAR 中没有该声明文件，返回 null。
+     *
+     * @param jarPath JAR 文件本地路径
+     * @return 逗号分隔的驱动类全限定名，或 null
+     */
+    private String detectDriverClassesFromJar(Path jarPath) {
+        try (JarFile jarFile = new JarFile(jarPath.toFile())) {
+            ZipEntry entry = jarFile.getEntry(SERVICES_DRIVER_ENTRY);
+            if (entry == null) {
+                return null;
+            }
+            try (InputStream is = jarFile.getInputStream(entry)) {
+                String content = new String(is.readAllBytes()).strip();
+                List<String> classes = new ArrayList<>();
+                for (String line : content.split("\n")) {
+                    String className = line.strip();
+                    if (!className.isEmpty() && !className.startsWith("#") && !classes.contains(className)) {
+                        classes.add(className);
                     }
                 }
-            } catch (IOException e) {
-                log.warn("探测驱动类失败: jarPath={}, error={}", jarPath, e.getMessage());
+                return classes.isEmpty() ? null : String.join(",", classes);
             }
+        } catch (IOException e) {
+            log.warn("探测驱动类失败: jarPath={}, error={}", jarPath, e.getMessage());
+            return null;
         }
-        return result;
     }
-
-    // ── 私有辅助方法 ──
 
     /**
      * 将 Driver 实体转为响应对象，并附带文件列表与总大小。

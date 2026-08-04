@@ -30,6 +30,9 @@ public class DriverFile extends BaseEntity {
     /** 文件 SHA256 校验值 */
     private String sha256;
 
+    /** 探测到的驱动类（逗号分隔，如 com.mysql.cj.jdbc.Driver,org.example.AnotherDriver） */
+    private String driverClasses;
+
     /** 排序序号（主文件 0，依赖按上传顺序递增） */
     private Integer sortOrder;
 }

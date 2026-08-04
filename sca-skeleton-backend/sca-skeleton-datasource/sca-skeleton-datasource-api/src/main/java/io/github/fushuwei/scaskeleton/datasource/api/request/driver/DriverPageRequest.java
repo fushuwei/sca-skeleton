@@ -20,17 +20,16 @@ public class DriverPageRequest implements Serializable {
     /**
      * 允许排序的字段白名单
      * <p>
-     * value 为安全的 SQL 排序表达式：
+     * value 为安全的 SQL 列名或别名（与 DriverMapper.xml 中的 SELECT 别名对应）：
      * - 直接字段：列名（如 {@code name}）
-     * - 计算字段：子查询表达式（如总文件大小、文件数量）
+     * - 计算字段：LEFT JOIN 子查询中定义的别名（如 {@code total_file_size}）
      */
     private static final Map<String, String> ALLOWED_SORT_FIELD_MAP = Map.of(
         "name", "name",
         "db_type", "db_type",
         "driver_class", "driver_class",
         "create_time", "create_time",
-        "total_file_size", "(SELECT COALESCE(SUM(file_size), 0) FROM ds_driver_file WHERE ds_driver_file.driver_id = ds_driver.id AND ds_driver_file.is_deleted = 0)",
-        "file_count", "(SELECT COUNT(*) FROM ds_driver_file WHERE ds_driver_file.driver_id = ds_driver.id AND ds_driver_file.is_deleted = 0)"
+        "total_file_size", "total_file_size"
     );
 
     /** 数据库类型（可选筛选） */

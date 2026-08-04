@@ -74,4 +74,16 @@ public interface DriverStore {
      * @param fileName  JAR 文件名
      */
     void deleteJar(String driverDir, String fileName);
+
+    /**
+     * 获取指定 JAR 文件的本地路径。
+     * <p>
+     * LocalDriverStore 直接返回本地文件系统路径；
+     * MinioDriverStore 会先将 JAR 下载到本地临时目录再返回。
+     *
+     * @param driverDir 驱动目录键
+     * @param fileName  JAR 文件名
+     * @return 本地 JAR 文件路径
+     */
+    Path getLocalJarPath(String driverDir, String fileName);
 }

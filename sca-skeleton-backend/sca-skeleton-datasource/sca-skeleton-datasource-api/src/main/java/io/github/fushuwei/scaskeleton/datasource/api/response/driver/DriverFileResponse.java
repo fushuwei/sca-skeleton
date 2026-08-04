@@ -25,6 +25,9 @@ public class DriverFileResponse implements Serializable {
     /** 文件 SHA256 校验值 */
     private String sha256;
 
+    /** 探测到的驱动类（逗号分隔） */
+    private String driverClasses;
+
     /** 排序序号（主文件 0） */
     private Integer sortOrder;
 }
