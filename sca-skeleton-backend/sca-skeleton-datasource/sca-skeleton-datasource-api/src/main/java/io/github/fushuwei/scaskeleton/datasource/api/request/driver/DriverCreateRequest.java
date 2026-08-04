@@ -28,7 +28,7 @@ public class DriverCreateRequest implements Serializable {
     @NotNull(message = "数据库类型不能为空")
     private DbType dbType;
 
-    @NotBlank(message = "驱动类名不能为空")
+    /** JDBC Driver 全限定类名（MongoDB 等非 JDBC 类型可为空，由 service 层条件校验） */
     private String driverClass;
 
     /** JDBC URL 模板 */

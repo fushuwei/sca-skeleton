@@ -25,6 +25,9 @@ const emit = defineEmits<{
 
 const drawerReadonly = computed(() => props.mode === "view");
 
+// MongoDB 使用官方 driver（MongoClients.create），无需 JDBC 驱动类名
+const isMongoDb = computed(() => form.dbType === "MONGODB");
+
 // ── 数据库类型选项（与后端 DbType 枚举一致） ──
 const DB_TYPE_OPTIONS = [
   { label: "MySQL", value: "MYSQL" },
@@ -123,7 +126,9 @@ const formRules = computed(() => ({
     (v: string) => !!v?.trim() || t("driverMgmt.driverNameRequired")
   ],
   dbType: [(v: string) => !!v || t("driverMgmt.dbTypeRequired")],
-  driverClass: [(v: string) => !!v?.trim() || t("driverMgmt.driverClassRequired")]
+  driverClass: isMongoDb.value
+    ? []
+    : [(v: string) => !!v?.trim() || t("driverMgmt.driverClassRequired")]
 }));
 
 // 选择数据库类型时自动填充默认 JDBC URL 模板：
@@ -358,7 +363,7 @@ async function handleSave() {
     const data: Record<string, unknown> = {
       driverName: form.driverName,
       dbType: form.dbType,
-      driverClass: form.driverClass,
+      driverClass: form.driverClass || undefined,
       urlTemplate: form.urlTemplate || undefined,
       allowedParams: form.allowedParams || undefined,
       remark: form.remark || undefined
@@ -598,7 +603,7 @@ function formatFileSize(bytes: number): string {
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
-            class="required-field"
+            :class="{ 'required-field': !isMongoDb }"
           />
 
           <!-- 客户端探测到的驱动类（点击回填驱动类名） -->

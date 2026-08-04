@@ -121,6 +121,11 @@ public class DriverServiceImpl implements DriverService {
             throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动名称已存在: " + request.getDriverName());
         }
 
+        // 校验驱动类名：MongoDB 使用官方 driver，无需驱动类名；其余 JDBC 类型必填
+        if (request.getDbType().isJdbc() && !StringUtils.hasText(request.getDriverClass())) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动类名不能为空");
+        }
+
         // 校验驱动文件
         List<MultipartFile> validFiles = new ArrayList<>();
         Set<String> fileNames = new HashSet<>();

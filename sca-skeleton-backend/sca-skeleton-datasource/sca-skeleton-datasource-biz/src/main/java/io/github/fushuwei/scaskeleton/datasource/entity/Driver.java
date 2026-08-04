@@ -29,7 +29,7 @@ public class Driver extends BaseEntity {
     /** 驱动名称 */
     private String driverName;
 
-    /** JDBC Driver 全限定类名 */
+    /** JDBC Driver 全限定类名（MongoDB 等非 JDBC 类型可为空） */
     private String driverClass;
 
     /** 驱动目录键（{driverName}，目录下存放驱动文件 + 依赖） */

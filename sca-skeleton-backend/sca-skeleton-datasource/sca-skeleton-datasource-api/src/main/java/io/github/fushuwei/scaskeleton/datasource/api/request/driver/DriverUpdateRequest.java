@@ -28,7 +28,7 @@ public class DriverUpdateRequest implements Serializable {
     /** 数据库类型 */
     private DbType dbType;
 
-    /** JDBC Driver 全限定类名 */
+    /** JDBC Driver 全限定类名（MongoDB 等非 JDBC 类型可为空） */
     private String driverClass;
 
     /** JDBC URL 模板 */
