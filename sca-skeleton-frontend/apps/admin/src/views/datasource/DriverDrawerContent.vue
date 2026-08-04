@@ -181,7 +181,6 @@ const detectedClasses = ref<string[]>([]);
 const fileInput = ref<HTMLInputElement | null>(null);
 const fileInputKey = ref(0);
 const dragActive = ref(false);
-const addDragActive = ref(false);
 
 function resetForm() {
   form.id = "";
@@ -238,7 +237,6 @@ function onFilesChange(e: Event) {
 // 拖拽到上传区
 function onDrop(e: DragEvent) {
   dragActive.value = false;
-  addDragActive.value = false;
   const files = Array.from(e.dataTransfer?.files || []);
   void addFiles(files);
 }
@@ -339,7 +337,7 @@ const totalFileSize = computed(() =>
   displayFiles.value.reduce((sum, f) => sum + (f.size || 0), 0)
 );
 
-// 是否有文件（用于判断是否显示空状态拖拽区）
+// 是否有文件（用于判断是否显示文件列表）
 const hasFiles = computed(() => displayFiles.value.length > 0);
 
 function handleClose() {
@@ -506,9 +504,9 @@ function formatFileSize(bytes: number): string {
             {{ t('driverMgmt.driverFiles') }}<span class="text-negative"> *</span>
           </div>
 
-          <!-- 空状态：拖拽上传区（整个区域可点击 / 键盘可操作） -->
+          <!-- 上传区：添加 / 编辑模式下始终展示（文件列表在下方独立展示） -->
           <div
-            v-if="!hasFiles"
+            v-if="!drawerReadonly"
             class="file-dropzone"
             :class="{ 'file-dropzone--drag': dragActive }"
             role="button"
@@ -521,13 +519,13 @@ function formatFileSize(bytes: number): string {
             @dragleave="dragActive = false"
             @drop.prevent="onDrop"
           >
-            <q-icon name="sym_r_upload" size="30px" class="file-dropzone__icon" />
+            <q-icon name="sym_r_cloud_upload" size="50px" class="file-dropzone__icon" />
             <div class="file-dropzone__title">{{ t('driverMgmt.dropzoneTitle') }}</div>
             <div class="file-dropzone__subtitle">{{ t('driverMgmt.dropzoneSubtitle') }}</div>
           </div>
 
-          <!-- 已选文件：统一文件卡片（文件行 + 内嵌添加条 + 汇总行） -->
-          <div v-else class="file-card">
+          <!-- 已选文件列表：在上传区下方独立展示 -->
+          <div v-if="hasFiles" :class="['file-card', { 'q-mt-sm': !drawerReadonly }]">
             <div class="file-card__rows">
               <div
                 v-for="file in displayFiles"
@@ -556,24 +554,6 @@ function formatFileSize(bytes: number): string {
                   <q-tooltip>{{ t('driverMgmt.removeFile') }}</q-tooltip>
                 </q-btn>
               </div>
-            </div>
-
-            <!-- 继续添加：卡片内嵌的细拖拽条 -->
-            <div
-              v-if="!drawerReadonly"
-              class="file-card__add"
-              :class="{ 'file-card__add--drag': addDragActive }"
-              role="button"
-              tabindex="0"
-              @click="triggerFilePick"
-              @keydown.enter.prevent="triggerFilePick"
-              @keydown.space.prevent="triggerFilePick"
-              @dragover.prevent="addDragActive = true"
-              @dragleave="addDragActive = false"
-              @drop.prevent="onDrop"
-            >
-              <q-icon name="sym_r_add" size="16px" />
-              <span>{{ t('driverMgmt.addMoreFiles') }}</span>
             </div>
 
             <div class="file-card__foot">
@@ -731,12 +711,12 @@ function formatFileSize(bytes: number): string {
   margin-top: 4px;
 }
 
-/* 空状态拖拽上传区：整个区域即唯一点击入口 */
+/* 拖拽上传区：整个区域即唯一点击入口 */
 .file-dropzone {
   border: 1.5px dashed #c8cfd8;
   border-radius: 8px;
   background: #fafbfc;
-  padding: 26px 16px;
+  padding: 32px 16px;
   text-align: center;
   cursor: pointer;
   outline: none;
@@ -770,7 +750,7 @@ function formatFileSize(bytes: number): string {
   color: #9aa3af;
 }
 
-/* 已选文件统一卡片：文件行 + 内嵌添加条 + 汇总行，单一边框 */
+/* 已选文件列表卡片：文件行 + 汇总行，单一边框 */
 .file-card {
   border: 1px solid #e4e7ec;
   border-radius: 8px;
@@ -780,32 +760,6 @@ function formatFileSize(bytes: number): string {
 .file-card__rows {
   max-height: 220px;
   overflow-y: auto;
-}
-.file-card__add {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin: 10px 12px 0;
-  padding: 9px 12px;
-  border: 1px dashed #c8cfd8;
-  border-radius: 6px;
-  font-size: 12px;
-  color: #9aa3af;
-  cursor: pointer;
-  outline: none;
-  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
-}
-.file-card__add:hover,
-.file-card__add:focus-visible {
-  border-color: #1976d2;
-  color: #1976d2;
-  background: #f5f9ff;
-}
-.file-card__add--drag {
-  border-color: #1976d2;
-  color: #1976d2;
-  background: #eef4ff;
 }
 .file-card__foot {
   display: flex;
@@ -937,15 +891,5 @@ function formatFileSize(bytes: number): string {
 }
 .body--dark .file-row__name {
   color: rgba(255, 255, 255, 0.85);
-}
-.body--dark .file-card__add {
-  border-color: rgba(255, 255, 255, 0.18);
-}
-.body--dark .file-card__add:hover,
-.body--dark .file-card__add:focus-visible,
-.body--dark .file-card__add--drag {
-  border-color: #80cbc4;
-  color: #80cbc4;
-  background: #2a2f2e;
 }
 </style>
