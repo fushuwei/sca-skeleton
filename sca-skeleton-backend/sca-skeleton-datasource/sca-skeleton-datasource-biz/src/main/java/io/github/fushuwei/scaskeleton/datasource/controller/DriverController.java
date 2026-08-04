@@ -60,12 +60,20 @@ public class DriverController {
         return Result.ok();
     }
 
+    @Operation(summary = "检查驱动名称是否已存在")
+    @GetMapping("/name/exists")
+    @RequiresPermission("sys:datasource:driver:add")
+    public Result<Boolean> nameExists(@RequestParam String driverName) {
+        return Result.ok(driverService.existsByDriverName(driverName));
+    }
+
     @Operation(summary = "编辑驱动")
-    @PostMapping("/update")
+    @PostMapping(value = "/update", consumes = "multipart/form-data")
     @RequiresPermission("sys:datasource:driver:edit")
     @OperationLog(module = "驱动管理", action = "编辑驱动")
-    public Result<Void> update(@Validated @RequestBody DriverUpdateRequest request) {
-        driverService.updateDriver(request);
+    public Result<Void> update(@Validated @RequestPart("driver") DriverUpdateRequest request,
+                               @RequestPart(value = "files", required = false) MultipartFile[] files) {
+        driverService.updateDriver(request, files);
         return Result.ok();
     }
 

@@ -126,11 +126,38 @@ export async function createDriverApi(
   });
 }
 
-/** 编辑驱动 */
+/** 检查驱动名称是否已存在（驱动名称作为目录名，全局唯一） */
+export async function checkDriverNameExistsApi(
+  driverName: string
+): Promise<ApiEnvelope<boolean>> {
+  return request<boolean>({
+    method: "GET",
+    url: "/ds/driver/name/exists",
+    params: { driverName }
+  });
+}
+
+/** 编辑驱动（表单字段 + 新增驱动文件随同一次 multipart 请求提交） */
 export async function updateDriverApi(
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
+  files?: File[]
 ): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: "/ds/driver/update", data });
+  // 无文件上传时走普通 JSON 请求
+  if (!files || files.length === 0) {
+    return request<null>({ method: "POST", url: "/ds/driver/update", data });
+  }
+  // 有文件上传时走 multipart 请求
+  const formData = new FormData();
+  formData.append("driver", new Blob([JSON.stringify(data)], { type: "application/json" }));
+  for (const file of files) {
+    formData.append("files", file);
+  }
+  return request<null>({
+    method: "POST",
+    url: "/ds/driver/update",
+    data: formData,
+    timeout: 0
+  });
 }
 
 /** 删除驱动 */

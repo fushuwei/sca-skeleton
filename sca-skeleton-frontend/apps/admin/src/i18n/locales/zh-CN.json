@@ -544,7 +544,6 @@
     "jarFileRequired": "请添加驱动文件",
     "removeFile": "移除",
     "driverClassManual": "未探测到驱动类，请手动输入",
-    "fileLocked": "驱动文件不可修改，如需更换请新建驱动",
     "deleteConfirm": "确认删除驱动「{name}」？",
     "batchDeleteConfirm": "确认删除选中的 {count} 个驱动？删除后不可恢复。",
     "cannotDeleteBuiltin": "内置驱动不允许删除",

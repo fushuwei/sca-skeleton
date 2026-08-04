@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 驱动更新请求
@@ -41,4 +42,7 @@ public class DriverUpdateRequest implements Serializable {
 
     /** 乐观锁版本号 */
     private Integer version;
+
+    /** 编辑时删除的已有驱动文件名列表 */
+    private List<String> deletedFileNames;
 }

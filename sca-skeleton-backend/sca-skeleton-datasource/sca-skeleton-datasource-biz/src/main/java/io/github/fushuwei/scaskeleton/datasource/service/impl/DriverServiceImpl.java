@@ -173,7 +173,8 @@ public class DriverServiceImpl implements DriverService {
         log.info("创建驱动成功: driverName={}, fileCount={}", request.getDriverName(), driverFiles.size());
     }
 
-    private boolean existsByDriverName(String driverName) {
+    @Override
+    public boolean existsByDriverName(String driverName) {
         if (!StringUtils.hasText(driverName)) {
             return false;
         }
@@ -183,7 +184,7 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateDriver(DriverUpdateRequest request) {
+    public void updateDriver(DriverUpdateRequest request, MultipartFile[] files) {
         Driver driver = loadDriverEntity(request.getId());
 
         // 驱动名称变更：校验唯一性 + 重命名存储目录 + 更新 objectKey
@@ -196,6 +197,75 @@ public class DriverServiceImpl implements DriverService {
             driver.setDriverName(request.getDriverName());
         }
 
+        // 当前生效的驱动目录（名称可能已变更）
+        String driverDir = driver.getObjectKey();
+
+        // 删除用户移除的已有驱动文件
+        if (request.getDeletedFileNames() != null && !request.getDeletedFileNames().isEmpty()) {
+            for (String fileName : request.getDeletedFileNames()) {
+                try {
+                    driverStore.deleteJar(driverDir, fileName);
+                } catch (Exception e) {
+                    log.warn("删除驱动文件失败: driverDir={}, fileName={}, error={}", driverDir, fileName, e.getMessage());
+                }
+                driverFileMapper.delete(new LambdaQueryWrapper<DriverFile>()
+                    .eq(DriverFile::getDriverId, driver.getId())
+                    .eq(DriverFile::getFileName, fileName));
+            }
+        }
+
+        // 新增用户上传的驱动文件
+        if (files != null && files.length > 0) {
+            // 查询当前最大排序序号
+            List<DriverFile> existingFiles = driverFileMapper.selectList(
+                new LambdaQueryWrapper<DriverFile>()
+                    .eq(DriverFile::getDriverId, driver.getId())
+                    .orderByDesc(DriverFile::getSortOrder));
+            int sortOrder = existingFiles.isEmpty() ? 0 : existingFiles.get(0).getSortOrder() + 1;
+
+            // 获取已有文件名集合用于去重
+            Set<String> existingFileNames = new HashSet<>();
+            for (DriverFile df : existingFiles) {
+                existingFileNames.add(df.getFileName());
+            }
+
+            for (MultipartFile file : files) {
+                if (file == null || file.isEmpty()) {
+                    continue;
+                }
+                String originalName = file.getOriginalFilename();
+                if (originalName == null || !originalName.endsWith(".jar")) {
+                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "仅支持 .jar 文件: " + originalName);
+                }
+                if (existingFileNames.contains(originalName)) {
+                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名已存在: " + originalName);
+                }
+
+                MessageDigest digest;
+                try {
+                    digest = MessageDigest.getInstance("SHA-256");
+                } catch (NoSuchAlgorithmException e) {
+                    throw new BusinessException(ResultCode.FAILURE, "SHA-256 算法不可用");
+                }
+                try (InputStream is = file.getInputStream();
+                     DigestInputStream dis = new DigestInputStream(is, digest)) {
+                    driverStore.putJar(driverDir, originalName, dis, file.getSize());
+                } catch (IOException e) {
+                    throw new BusinessException(ResultCode.FAILURE, "存储驱动文件失败: " + e.getMessage());
+                }
+
+                DriverFile driverFile = new DriverFile();
+                driverFile.setDriverId(driver.getId());
+                driverFile.setFileName(originalName);
+                driverFile.setFileSize(file.getSize());
+                driverFile.setSha256(HexFormat.of().formatHex(digest.digest()));
+                driverFile.setSortOrder(sortOrder++);
+                driverFileMapper.insert(driverFile);
+                existingFileNames.add(originalName);
+            }
+        }
+
+        // 更新驱动主表字段
         if (request.getDbType() != null) {
             driver.setDbType(request.getDbType().name());
         }

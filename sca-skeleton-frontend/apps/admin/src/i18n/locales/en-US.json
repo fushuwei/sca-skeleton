@@ -544,7 +544,6 @@
     "jarFileRequired": "Please add driver files",
     "removeFile": "Remove",
     "driverClassManual": "No driver class detected, please input manually",
-    "fileLocked": "Driver files cannot be modified, create a new driver instead",
     "deleteConfirm": "Confirm to delete driver \"{name}\"?",
     "batchDeleteConfirm": "Confirm to delete {count} selected driver(s)? This cannot be undone.",
     "cannotDeleteBuiltin": "Built-in drivers cannot be deleted",

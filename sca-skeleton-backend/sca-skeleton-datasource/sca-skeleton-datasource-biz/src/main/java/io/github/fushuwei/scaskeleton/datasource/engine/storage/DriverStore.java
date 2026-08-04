@@ -66,4 +66,12 @@ public interface DriverStore {
      * @param newDriverDir 新驱动目录键
      */
     void renameDriverDir(String oldDriverDir, String newDriverDir);
+
+    /**
+     * 删除驱动目录下的单个 JAR 文件。
+     *
+     * @param driverDir 驱动目录键
+     * @param fileName  JAR 文件名
+     */
+    void deleteJar(String driverDir, String fileName);
 }

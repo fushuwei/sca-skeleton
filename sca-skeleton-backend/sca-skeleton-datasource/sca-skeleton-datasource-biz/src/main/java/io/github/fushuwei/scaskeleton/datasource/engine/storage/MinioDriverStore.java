@@ -64,4 +64,10 @@ public class MinioDriverStore implements DriverStore {
         throw new UnsupportedOperationException(
             "MinioDriverStore.renameDriverDir 暂未实现，需先在 MinioUtils 补充 listObjects 能力");
     }
+
+    @Override
+    public void deleteJar(String driverDir, String fileName) {
+        String objectKey = driverDir + "/" + fileName;
+        minioUtils.deleteObject(objectKey);
+    }
 }

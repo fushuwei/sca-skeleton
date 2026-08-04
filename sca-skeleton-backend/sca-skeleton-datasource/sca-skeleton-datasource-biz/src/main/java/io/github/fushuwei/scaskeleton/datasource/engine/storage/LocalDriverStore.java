@@ -96,6 +96,16 @@ public class LocalDriverStore implements DriverStore {
         }
     }
 
+    @Override
+    public void deleteJar(String driverDir, String fileName) {
+        Path jarPath = resolveJarPath(driverDir, fileName);
+        try {
+            Files.deleteIfExists(jarPath);
+        } catch (IOException e) {
+            throw new RuntimeException("删除驱动 JAR 失败: " + driverDir + "/" + fileName, e);
+        }
+    }
+
     /**
      * 解析驱动目录的完整本地路径。
      * <p>
