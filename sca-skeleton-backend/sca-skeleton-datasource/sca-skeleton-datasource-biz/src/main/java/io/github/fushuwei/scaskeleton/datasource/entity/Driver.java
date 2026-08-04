@@ -23,17 +23,14 @@ import lombok.EqualsAndHashCode;
 })
 public class Driver extends BaseEntity {
 
+    /** 驱动名称（唯一，同时作为存储目录名） */
+    private String name;
+
     /** 数据库类型 */
     private String dbType;
 
-    /** 驱动名称 */
-    private String driverName;
-
     /** JDBC Driver 全限定类名（MongoDB 等非 JDBC 类型可为空） */
     private String driverClass;
-
-    /** 驱动目录键（{driverName}，目录下存放驱动文件 + 依赖） */
-    private String objectKey;
 
     /** 存储类型（local/minio） */
     private String storageType;

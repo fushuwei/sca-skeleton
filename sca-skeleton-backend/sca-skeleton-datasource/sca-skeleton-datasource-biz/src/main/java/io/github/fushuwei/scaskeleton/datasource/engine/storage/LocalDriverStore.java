@@ -14,7 +14,7 @@ import java.util.stream.Stream;
  * 本地文件系统驱动存储实现。
  * <p>
  * 采用目录式管理：每个驱动记录对应一个本地目录，目录下存放驱动主 JAR + 所有依赖 JAR。
- * 存储路径：{basePath}/{driverName}/{fileName}.jar
+ * 存储路径：{basePath}/{name}/{fileName}.jar
  *
  * @author Fu Wei
  */
@@ -109,8 +109,8 @@ public class LocalDriverStore implements DriverStore {
     /**
      * 解析驱动目录的完整本地路径。
      * <p>
-     * driverDir 格式：{driverName}
-     * 本地路径：{basePath}/{driverName}
+     * driverDir 格式：{name}
+     * 本地路径：{basePath}/{name}
      */
     private Path resolveDriverDirPath(String driverDir) {
         return basePath.resolve(driverDir);

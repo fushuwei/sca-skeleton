@@ -21,7 +21,7 @@ public class DriverFile extends BaseEntity {
     /** 关联驱动ID */
     private String driverId;
 
-    /** 驱动文件名（上传时的原始文件名） */
+    /** 文件名（上传时的原始文件名） */
     private String fileName;
 
     /** 文件大小（字节） */

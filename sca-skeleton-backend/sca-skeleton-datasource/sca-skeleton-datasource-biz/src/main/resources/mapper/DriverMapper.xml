@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.fushuwei.scaskeleton.datasource.mapper.DriverMapper">
+
+    <!-- 分页查询驱动列表（支持动态排序，排序字段经白名单校验，无 SQL 注入风险） -->
+    <select id="pageDrivers" resultType="io.github.fushuwei.scaskeleton.datasource.entity.Driver">
+        SELECT * FROM ds_driver
+        WHERE is_deleted = 0
+        <if test="request.dbType != null">
+            AND db_type = #{request.dbType}
+        </if>
+        <if test="request.keyword != null and request.keyword != ''">
+            AND (name LIKE CONCAT('%', #{request.keyword}, '%')
+                 OR driver_class LIKE CONCAT('%', #{request.keyword}, '%'))
+        </if>
+        <choose>
+            <when test="request.safeSortField() != null and request.safeSortField() != ''">
+                ORDER BY ${request.safeSortField()} ${request.safeSortOrder()}
+            </when>
+            <otherwise>
+                ORDER BY create_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

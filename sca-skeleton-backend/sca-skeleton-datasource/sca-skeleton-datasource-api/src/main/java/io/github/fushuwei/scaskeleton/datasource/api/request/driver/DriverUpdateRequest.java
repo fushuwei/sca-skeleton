@@ -23,7 +23,7 @@ public class DriverUpdateRequest implements Serializable {
     private String id;
 
     /** 驱动名称 */
-    private String driverName;
+    private String name;
 
     /** 数据库类型 */
     private DbType dbType;
@@ -40,6 +40,6 @@ public class DriverUpdateRequest implements Serializable {
     /** 乐观锁版本号 */
     private Integer version;
 
-    /** 编辑时删除的已有驱动文件名列表 */
+    /** 编辑时删除的已有文件名列表 */
     private List<String> deletedFileNames;
 }

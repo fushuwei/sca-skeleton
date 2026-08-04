@@ -63,8 +63,8 @@ public class DriverController {
     @Operation(summary = "检查驱动名称是否已存在")
     @GetMapping("/name/exists")
     @RequiresPermission("sys:datasource:driver:add")
-    public Result<Boolean> nameExists(@RequestParam String driverName) {
-        return Result.ok(driverService.existsByDriverName(driverName));
+    public Result<Boolean> nameExists(@RequestParam String name) {
+        return Result.ok(driverService.existsByName(name));
     }
 
     @Operation(summary = "编辑驱动")
@@ -100,5 +100,12 @@ public class DriverController {
     @RequiresPermission("sys:datasource:driver:list")
     public Result<List<DriverOptionResponse>> options(@RequestParam(required = false) DbType dbType) {
         return Result.ok(driverService.listDriverOptions(dbType));
+    }
+
+    @Operation(summary = "从已存储的 JAR 文件中探测驱动类")
+    @GetMapping("/{id}/detect-classes")
+    @RequiresPermission("sys:datasource:driver:list")
+    public Result<List<String>> detectClasses(@PathVariable String id) {
+        return Result.ok(driverService.detectDriverClasses(id));
     }
 }

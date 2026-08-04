@@ -9,12 +9,12 @@ import java.util.List;
  * <p>
  * 采用 Chat2DB 风格的「目录式管理」：每个驱动记录对应一个目录，目录下存放驱动主 JAR + 所有依赖 JAR。
  * <p>
- * 对象键格式：{driverName}/{fileName}.jar
+ * 对象键格式：{name}/{fileName}.jar
  * <ul>
- *   <li>driverName：驱动记录的名称（唯一），作为目录名</li>
+ *   <li>name：驱动记录的名称（唯一），作为目录名</li>
  *   <li>fileName：上传时的原始文件名</li>
  * </ul>
- * 本地存储完整路径：{basePath}/{driverName}/{fileName}.jar
+ * 本地存储完整路径：{basePath}/{name}/{fileName}.jar
  * <p>
  * 同一驱动目录下所有 JAR 共同构成「自包含依赖环境」，加载时用一个 {@link java.net.URLClassLoader} 全部加载，
  * 通过标准 parent-first 双亲委派实现类隔离，无需 child-first 反转。
@@ -26,7 +26,7 @@ public interface DriverStore {
     /**
      * 存储单个 JAR 文件到指定驱动目录。
      *
-     * @param driverDir   驱动目录键（{driverName}）
+     * @param driverDir   驱动目录键（{name}）
      * @param fileName    JAR 文件名
      * @param inputStream JAR 文件输入流
      * @param fileSize    文件大小（字节）

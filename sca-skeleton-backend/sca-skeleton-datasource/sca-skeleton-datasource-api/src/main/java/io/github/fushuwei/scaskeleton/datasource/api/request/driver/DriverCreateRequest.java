@@ -12,7 +12,7 @@ import java.io.Serializable;
  * 驱动新增请求
  * <p>
  * 表单字段与驱动文件随同一次 multipart 请求提交（本对象为 JSON 部分 "driver"，
- * 文件部分为 "files"）。创建时用 driverName 作为正式目录名，文件直接写入 {basePath}/{driverName}/。
+ * 文件部分为 "files"）。创建时用 name 作为正式目录名，文件直接写入 {basePath}/{name}/。
  *
  * @author Fu Wei
  */
@@ -23,7 +23,7 @@ public class DriverCreateRequest implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @NotBlank(message = "驱动名称不能为空")
-    private String driverName;
+    private String name;
 
     @NotNull(message = "数据库类型不能为空")
     private DbType dbType;

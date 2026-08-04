@@ -7,7 +7,8 @@ import type { Driver } from "../../apis/datasource";
 import {
   createDriverApi,
   updateDriverApi,
-  checkDriverNameExistsApi
+  checkDriverNameExistsApi,
+  detectDriverClassesApi
 } from "../../apis/datasource";
 import { detectDriverClassesInJars } from "../../utils/driverClassDetector";
 import DbTypeIcon from "../../components/DbTypeIcon.vue";
@@ -26,10 +27,10 @@ const emit = defineEmits<{
 
 const drawerReadonly = computed(() => props.mode === "view");
 
-// MongoDB 使用官方 driver（MongoClients.create），无需 JDBC 驱动类名
+// MongoDB 使用官方 driver（MongoClients.create），无需 JDBC 驱动类
 const isMongoDb = computed(() => form.dbType === "MONGODB");
 
-// 驱动类名输入框引用（切换数据库类型时重置校验状态，清除残留的错误提示）
+// 驱动类输入框引用（切换数据库类型时重置校验状态，清除残留的错误提示）
 const driverClassInputRef = ref<QInput | null>(null);
 
 // ── 数据库类型选项（与后端 DbType 枚举一致） ──
@@ -71,7 +72,7 @@ const formLoading = ref(false);
 const form = reactive({
   id: "",
   dbType: "",
-  driverName: "",
+  name: "",
   driverClass: "",
   urlTemplate: "",
   remark: "",
@@ -86,8 +87,8 @@ let nameCheckSeq = 0;
 // 上次已校验过的名称，避免失焦时值未变却重复请求
 let lastCheckedName = "";
 
-async function onDriverNameBlur() {
-  const name = form.driverName?.trim();
+async function onNameBlur() {
+  const name = form.name?.trim();
   if (!name) {
     nameError.value = "";
     return;
@@ -119,13 +120,13 @@ async function onDriverNameBlur() {
 }
 
 // 用户修改输入时清除错误提示并重置已校验标记，使下次失焦重新校验
-watch(() => form.driverName, () => {
+watch(() => form.name, () => {
   nameError.value = "";
   lastCheckedName = "";
 });
 
 const formRules = computed(() => ({
-  driverName: [
+  name: [
     (v: string) => !!v?.trim() || t("driverMgmt.driverNameRequired")
   ],
   dbType: [(v: string) => !!v || t("driverMgmt.dbTypeRequired")],
@@ -134,7 +135,7 @@ const formRules = computed(() => ({
     : [(v: string) => !!v?.trim() || t("driverMgmt.driverClassRequired")]
 }));
 
-// 切换数据库类型时重置驱动类名校验状态：
+// 切换数据库类型时重置驱动类校验状态：
 // Quasar q-input 缓存校验结果，rules 从必填变为 [] 后旧错误不会自动清除，
 // 需要手动 resetValidation() 消除残留的红色边框和感叹号
 watch(isMongoDb, () => {
@@ -162,6 +163,8 @@ const jarFiles = ref<File[]>([]);
 const existingFileNames = ref<string[]>([]);
 // 编辑模式下，用户标记删除的已有文件名
 const deletedFileNames = ref<Set<string>>(new Set());
+// 服务端探测到的驱动类（编辑模式下从已存储 JAR 文件中探测）
+const serverDetectedClasses = ref<string[]>([]);
 
 // 单次提交的驱动文件总大小上限：20MB（与后端 spring.servlet.multipart 保持一致）
 const MAX_UPLOAD_TOTAL_BYTES = 20 * 1024 * 1024;
@@ -185,7 +188,7 @@ const dragActive = ref(false);
 function resetForm() {
   form.id = "";
   form.dbType = "";
-  form.driverName = "";
+  form.name = "";
   form.driverClass = "";
   form.urlTemplate = "";
   form.remark = "";
@@ -195,24 +198,41 @@ function resetForm() {
   existingFileNames.value = [];
   deletedFileNames.value = new Set();
   detectedClasses.value = [];
+  serverDetectedClasses.value = [];
   fileInputKey.value++;
   lastCheckedName = "";
 }
 
-function initForm() {
+async function initForm() {
   resetForm();
   if (props.driver) {
     form.id = props.driver.id;
     form.dbType = props.driver.dbType;
-    form.driverName = props.driver.driverName;
+    form.name = props.driver.name;
     form.driverClass = props.driver.driverClass;
     form.urlTemplate = props.driver.urlTemplate || "";
     form.remark = props.driver.remark || "";
-    form.fileSize = props.driver.totalFileSize || 0;
+    form.fileSize = Number(props.driver.totalFileSize) || 0;
     form.version = props.driver.version;
     // 编辑模式下，记录已有文件名
     if (props.driver.files) {
       existingFileNames.value = props.driver.files.map((f) => f.fileName);
+    }
+    // 编辑模式下，从服务端已存储的 JAR 文件中探测所有驱动类
+    if (!isMongoDb.value && props.driver.id) {
+      try {
+        const result = await detectDriverClassesApi(props.driver.id);
+        if (result.code === 10_000 && result.data) {
+          serverDetectedClasses.value = result.data;
+          detectedClasses.value = [...serverDetectedClasses.value];
+        }
+      } catch {
+        // 探测失败时回退到已保存的驱动类
+        if (props.driver.driverClass) {
+          serverDetectedClasses.value = [props.driver.driverClass];
+          detectedClasses.value = [...serverDetectedClasses.value];
+        }
+      }
     }
   }
 }
@@ -275,8 +295,16 @@ async function addFiles(picked: File[]) {
 
 // 客户端探测驱动类（读取 JAR 内 META-INF/services/java.sql.Driver，不上传文件）
 async function refreshDetectedClasses() {
-  detectedClasses.value = await detectDriverClassesInJars(jarFiles.value);
-  // 驱动类名为空时自动回填第一个探测结果
+  const newClasses = await detectDriverClassesInJars(jarFiles.value);
+  // 合并服务端探测结果（现有 JAR）和客户端探测结果（新 JAR），去重
+  const merged = [...serverDetectedClasses.value];
+  for (const cls of newClasses) {
+    if (!merged.includes(cls)) {
+      merged.push(cls);
+    }
+  }
+  detectedClasses.value = merged;
+  // 驱动类为空时自动回填第一个探测结果
   if (!form.driverClass && detectedClasses.value.length) {
     form.driverClass = detectedClasses.value[0];
   }
@@ -302,6 +330,7 @@ function clearFiles() {
   if (formLoading.value) return;
   jarFiles.value = [];
   detectedClasses.value = [];
+  serverDetectedClasses.value = [];
   // 编辑模式下标记所有已有文件为删除
   for (const name of existingFileNames.value) {
     deletedFileNames.value.add(name);
@@ -326,7 +355,7 @@ const displayFiles = computed<DisplayFile[]>(() => {
     .filter((n) => !deletedFileNames.value.has(n))
     .map((name) => {
       const f = props.driver?.files?.find((f) => f.fileName === name);
-      return { name, size: f?.fileSize || 0, isNew: false };
+      return { name, size: Number(f?.fileSize) || 0, isNew: false };
     });
   const newFiles = jarFiles.value.map((f) => ({ name: f.name, size: f.size, isNew: true }));
   return [...existing, ...newFiles];
@@ -367,7 +396,7 @@ async function handleSave() {
     }
 
     const data: Record<string, unknown> = {
-      driverName: form.driverName,
+      name: form.name,
       dbType: form.dbType,
       driverClass: form.driverClass || undefined,
       urlTemplate: form.urlTemplate || undefined,
@@ -397,7 +426,7 @@ async function handleSave() {
   const data: Record<string, unknown> = {
     id: form.id,
     version: form.version,
-    driverName: form.driverName,
+    name: form.name,
     dbType: form.dbType || undefined,
     driverClass: form.driverClass || undefined,
     urlTemplate: form.urlTemplate || undefined,
@@ -430,12 +459,13 @@ async function handleSave() {
 }
 
 // ── 工具函数 ──
-function formatFileSize(bytes: number): string {
-  if (!bytes) return "-";
-  if (bytes < 1024) return bytes + " B";
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-  if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + " MB";
-  return (bytes / 1024 / 1024 / 1024).toFixed(2) + " GB";
+function formatFileSize(bytes: number | string): string {
+  const n = Number(bytes);
+  if (!n) return "-";
+  if (n < 1024) return n + " B";
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+  if (n < 1024 * 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + " MB";
+  return (n / 1024 / 1024 / 1024).toFixed(2) + " GB";
 }
 </script>
 
@@ -446,16 +476,16 @@ function formatFileSize(bytes: number): string {
         <!-- 驱动名称 -->
         <div class="col-12 col-md-6">
           <q-input
-            v-model.trim="form.driverName"
+            v-model.trim="form.name"
             :label="t('driverMgmt.driverName')"
             filled
             square
-            :rules="formRules.driverName"
+            :rules="formRules.name"
             lazy-rules
             :loading="nameChecking"
             :error="!!nameError"
             :error-message="nameError"
-            @blur="onDriverNameBlur"
+            @blur="onNameBlur"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
@@ -578,7 +608,7 @@ function formatFileSize(bytes: number): string {
           />
         </div>
 
-        <!-- 驱动类名 -->
+        <!-- 驱动类 -->
         <div class="col-12">
           <q-input
             ref="driverClassInputRef"
@@ -593,8 +623,8 @@ function formatFileSize(bytes: number): string {
             :class="{ 'required-field': !isMongoDb }"
           />
 
-          <!-- 客户端探测到的驱动类（点击回填驱动类名） -->
-          <template v-if="jarFiles.length && !drawerReadonly">
+          <!-- 探测到的驱动类（点击回填驱动类） -->
+          <template v-if="detectedClasses.length && !drawerReadonly">
             <div v-if="detectedClasses.length" class="file-detected">
               <div class="file-detected__list">
                 <q-badge

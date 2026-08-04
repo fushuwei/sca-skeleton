@@ -8,7 +8,8 @@ import type { ApiEnvelope, IPage } from "../types/auth";
 /** 驱动文件 */
 export interface DriverFile {
   fileName: string;
-  fileSize: number;
+  /** 后端 Long 类型经 ToStringSerializer 序列化为字符串，前端使用时需 Number() 转换 */
+  fileSize: number | string;
   sha256: string;
   sortOrder: number;
 }
@@ -16,23 +17,23 @@ export interface DriverFile {
 /** 驱动 */
 export interface Driver {
   id: string;
+  name: string;
   dbType: string;
-  driverName: string;
   driverClass: string;
-  objectKey: string;
   storageType: string;
   urlTemplate: string;
   remark: string;
   version: number;
   createTime: string;
   files: DriverFile[];
-  totalFileSize: number;
+  /** 后端 Long 类型经 ToStringSerializer 序列化为字符串，前端使用时需 Number() 转换 */
+  totalFileSize: number | string;
 }
 
 /** 驱动选项 */
 export interface DriverOption {
   id: string;
-  driverName: string;
+  name: string;
 }
 
 /** 数据源 */
@@ -72,6 +73,8 @@ export interface DriverPageRequest {
   keyword?: string;
   pageNum: number;
   pageSize: number;
+  sortField?: string;
+  sortOrder?: string;
 }
 
 /** 数据源分页请求 */
@@ -124,13 +127,20 @@ export async function createDriverApi(
 
 /** 检查驱动名称是否已存在（驱动名称作为目录名，全局唯一） */
 export async function checkDriverNameExistsApi(
-  driverName: string
+  name: string
 ): Promise<ApiEnvelope<boolean>> {
   return request<boolean>({
     method: "GET",
     url: "/ds/driver/name/exists",
-    params: { driverName }
+    params: { name }
   });
+}
+
+/** 从已存储的 JAR 文件中探测驱动类 */
+export async function detectDriverClassesApi(
+  id: string
+): Promise<ApiEnvelope<string[]>> {
+  return request<string[]>({ method: "GET", url: `/ds/driver/${id}/detect-classes` });
 }
 
 /** 编辑驱动（表单字段 + 新增驱动文件随同一次 multipart 请求提交） */

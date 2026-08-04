@@ -16,10 +16,9 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ds_driver` (
     `id`              VARCHAR(64)     NOT NULL                        COMMENT '主键ID，唯一标识',
+    `name`            VARCHAR(200)    NOT NULL                        COMMENT '驱动名称',
     `db_type`         VARCHAR(50)     NOT NULL                        COMMENT '数据库类型',
-    `driver_name`     VARCHAR(200)    NOT NULL                        COMMENT '驱动名称',
     `driver_class`    VARCHAR(255)    DEFAULT NULL                    COMMENT 'JDBC Driver 全限定类名（MongoDB 等非 JDBC 类型可为空）',
-    `object_key`      VARCHAR(500)    NOT NULL                        COMMENT '驱动目录键（{driverName}，目录下存放驱动文件 + 依赖）',
     `storage_type`    VARCHAR(10)     NOT NULL DEFAULT 'local'        COMMENT '存储类型（local 本地存储，minio 对象存储）',
     `url_template`    VARCHAR(500)    DEFAULT NULL                    COMMENT 'JDBC URL 前缀模板',
     `remark`          TEXT            DEFAULT NULL                    COMMENT '备注',
@@ -39,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `ds_driver` (
 CREATE TABLE IF NOT EXISTS `ds_driver_file` (
     `id`              VARCHAR(64)     NOT NULL                        COMMENT '主键ID，唯一标识',
     `driver_id`       VARCHAR(64)     NOT NULL                        COMMENT '关联驱动ID',
-    `file_name`       VARCHAR(255)    NOT NULL                        COMMENT '驱动文件名（上传时的原始文件名）',
+    `file_name`       VARCHAR(255)    NOT NULL                        COMMENT '文件名（上传时的原始文件名）',
     `file_size`       BIGINT          DEFAULT NULL                    COMMENT '文件大小（字节）',
     `sha256`          VARCHAR(64)     NOT NULL                        COMMENT '文件 SHA256 校验值',
     `sort_order`      INT             NOT NULL DEFAULT 0              COMMENT '排序序号（主文件 0，依赖按上传顺序递增）',

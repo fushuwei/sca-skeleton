@@ -71,7 +71,7 @@ async function loadDriverOptions(dbType?: string) {
     const res = await getDriverOptionsApi(dbType);
     if (res.code === 10_000 && res.data) {
       driverOptions.value = res.data.map((d: DriverOption) => ({
-        label: d.driverName,
+        label: d.name,
         value: d.id
       }));
     }

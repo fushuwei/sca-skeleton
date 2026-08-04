@@ -105,7 +105,7 @@ public class DatasourceServiceImpl implements DatasourceService {
         Map<String, String> driverNameMap = driverIds.isEmpty()
             ? Collections.emptyMap()
             : driverMapper.selectBatchIds(driverIds).stream()
-                .collect(Collectors.toMap(Driver::getId, Driver::getDriverName));
+                .collect(Collectors.toMap(Driver::getId, Driver::getName));
 
         return dsPage.convert(ds -> {
             DatasourceResponse resp = datasourceConverter.toDatasourceResponse(ds);
@@ -121,7 +121,7 @@ public class DatasourceServiceImpl implements DatasourceService {
         if (StringUtils.hasText(ds.getDriverId())) {
             Driver driver = driverMapper.selectById(ds.getDriverId());
             if (driver != null) {
-                response.setDriverName(driver.getDriverName());
+                response.setDriverName(driver.getName());
             }
         }
         return response;
@@ -251,7 +251,7 @@ public class DatasourceServiceImpl implements DatasourceService {
         // 加载驱动实例
         DriverInstance instance;
         try {
-            Path[] jarPaths = driverStore.listLocalJars(driver.getObjectKey()).toArray(new Path[0]);
+            Path[] jarPaths = driverStore.listLocalJars(driver.getName()).toArray(new Path[0]);
             instance = driverLifecycle.acquire(driver.getId(), driver.getDriverClass(), jarPaths);
         } catch (Exception e) {
             log.warn("加载驱动失败: datasourceId={}, error={}", id, e.getMessage());
@@ -321,7 +321,7 @@ public class DatasourceServiceImpl implements DatasourceService {
         Driver driver = loadDriverEntity(ds.getDriverId());
         Dialect dialect = dialectRegistry.get(parseDbType(ds.getDbType()));
 
-        Path[] jarPaths = driverStore.listLocalJars(driver.getObjectKey()).toArray(new Path[0]);
+        Path[] jarPaths = driverStore.listLocalJars(driver.getName()).toArray(new Path[0]);
         DriverInstance instance = driverLifecycle.acquire(
             driver.getId(), driver.getDriverClass(), jarPaths);
 
@@ -377,7 +377,7 @@ public class DatasourceServiceImpl implements DatasourceService {
     private DatasourceResponse buildResponse(Datasource ds, Driver driver) {
         DatasourceResponse response = datasourceConverter.toDatasourceResponse(ds);
         if (driver != null) {
-            response.setDriverName(driver.getDriverName());
+            response.setDriverName(driver.getName());
         }
         return response;
     }

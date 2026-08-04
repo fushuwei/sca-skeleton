@@ -19,10 +19,9 @@ public class DriverResponse implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String id;
+    private String name;
     private String dbType;
-    private String driverName;
     private String driverClass;
-    private String objectKey;
     private String storageType;
     private String urlTemplate;
     private String remark;

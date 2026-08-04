@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -38,17 +39,19 @@ import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 /**
  * 驱动管理 Service 实现。
  * <p>
- * 采用目录式管理：每个驱动记录对应一个目录 {driverName}/，
+ * 采用目录式管理：每个驱动记录对应一个目录 {name}/，
  * 目录下存放驱动文件 + 依赖 JAR，加载时用一个 URLClassLoader 全部加载。
  * <p>
  * 驱动文件元数据存储在 ds_driver_file 表，一个驱动可关联多个文件。
  * <p>
  * 创建流程：表单字段与驱动文件随同一次 multipart 请求提交 → 校验驱动名称唯一 →
- * 文件直接写入正式目录 {basePath}/{driverName}/ → 落库 + 落文件表。
+ * 文件直接写入正式目录 {basePath}/{name}/ → 落库 + 落文件表。
  * 不再使用临时目录，表单未提交即不产生任何服务端文件，避免脏数据。
  *
  * @author Fu Wei
@@ -64,6 +67,9 @@ public class DriverServiceImpl implements DriverService {
     private final ReferenceChecker referenceChecker;
     private final DriverStore driverStore;
     private final DriverStoreProperties driverStoreProperties;
+
+    /** META-INF/services/java.sql.Driver 声明文件在 JAR 中的路径 */
+    private static final String SERVICES_DRIVER_ENTRY = "META-INF/services/java.sql.Driver";
 
     /**
      * 禁止上传的脚本/可执行文件扩展名（防止注入攻击）
@@ -82,18 +88,7 @@ public class DriverServiceImpl implements DriverService {
     @Override
     public IPage<DriverResponse> pageDrivers(DriverPageRequest request) {
         Page<Driver> page = new Page<>(request.getPageNum(), request.getPageSize());
-        LambdaQueryWrapper<Driver> wrapper = new LambdaQueryWrapper<>();
-
-        if (request.getDbType() != null) {
-            wrapper.eq(Driver::getDbType, request.getDbType().name());
-        }
-        if (StringUtils.hasText(request.getKeyword())) {
-            wrapper.and(w -> w.like(Driver::getDriverName, request.getKeyword())
-                .or().like(Driver::getDriverClass, request.getKeyword()));
-        }
-        wrapper.orderByDesc(Driver::getCreateTime);
-
-        IPage<Driver> driverPage = driverMapper.selectPage(page, wrapper);
+        IPage<Driver> driverPage = driverMapper.pageDrivers(page, request);
         return driverPage.convert(this::toDriverResponseWithFiles);
     }
 
@@ -106,20 +101,20 @@ public class DriverServiceImpl implements DriverService {
     /**
      * 创建驱动（表单字段 + 驱动文件随同一次 multipart 请求提交）。
      * <p>
-     * 校验驱动名称唯一后，文件直接写入正式目录 {basePath}/{driverName}/，落库驱动主表与文件表。
+     * 校验驱动名称唯一后，文件直接写入正式目录 {basePath}/{name}/，落库驱动主表与文件表。
      * 未提交表单时服务端不产生任何文件，不存在脏数据问题。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createDriver(DriverCreateRequest request, MultipartFile[] files) {
         // 校验驱动名称唯一（作为目录名必须唯一）
-        if (existsByDriverName(request.getDriverName())) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动名称已存在: " + request.getDriverName());
+        if (existsByName(request.getName())) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动名称已存在: " + request.getName());
         }
 
         // 校验驱动类名：MongoDB 使用官方 driver，无需驱动类名；其余 JDBC 类型必填
         if (request.getDbType().isJdbc() && !StringUtils.hasText(request.getDriverClass())) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动类名不能为空");
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动类不能为空");
         }
 
         // 校验驱动文件
@@ -132,7 +127,7 @@ public class DriverServiceImpl implements DriverService {
                 }
                 String originalName = file.getOriginalFilename();
                 if (originalName == null || originalName.isBlank()) {
-                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名不能为空");
+                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "文件名不能为空");
                 }
                 String lowerName = originalName.toLowerCase();
                 for (String ext : BLOCKED_EXTENSIONS) {
@@ -141,7 +136,7 @@ public class DriverServiceImpl implements DriverService {
                     }
                 }
                 if (!fileNames.add(originalName)) {
-                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名重复: " + originalName);
+                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "文件名重复: " + originalName);
                 }
                 validFiles.add(file);
             }
@@ -150,7 +145,8 @@ public class DriverServiceImpl implements DriverService {
             throw new BusinessException(ResultCode.VALIDATION_ERROR, "请上传驱动文件");
         }
 
-        String driverDir = request.getDriverName();
+        // 驱动名称即存储目录名
+        String driverDir = request.getName();
 
         // 写入驱动文件（单次流式读取，同步计算 SHA-256）
         List<DriverFile> driverFiles = new ArrayList<>();
@@ -180,7 +176,6 @@ public class DriverServiceImpl implements DriverService {
         // 落库驱动主表
         Driver driver = driverConverter.toDriver(request);
         driver.setDbType(request.getDbType().name());
-        driver.setObjectKey(driverDir);
         driver.setStorageType(driverStoreProperties.getStorageType());
         driverMapper.insert(driver);
 
@@ -189,16 +184,16 @@ public class DriverServiceImpl implements DriverService {
             driverFile.setDriverId(driver.getId());
             driverFileMapper.insert(driverFile);
         }
-        log.info("创建驱动成功: driverName={}, fileCount={}", request.getDriverName(), driverFiles.size());
+        log.info("创建驱动成功: name={}, fileCount={}", request.getName(), driverFiles.size());
     }
 
     @Override
-    public boolean existsByDriverName(String driverName) {
-        if (!StringUtils.hasText(driverName)) {
+    public boolean existsByName(String name) {
+        if (!StringUtils.hasText(name)) {
             return false;
         }
         return driverMapper.selectCount(new LambdaQueryWrapper<Driver>()
-            .eq(Driver::getDriverName, driverName)) > 0;
+            .eq(Driver::getName, name)) > 0;
     }
 
     @Override
@@ -206,18 +201,17 @@ public class DriverServiceImpl implements DriverService {
     public void updateDriver(DriverUpdateRequest request, MultipartFile[] files) {
         Driver driver = loadDriverEntity(request.getId());
 
-        // 驱动名称变更：校验唯一性 + 重命名存储目录 + 更新 objectKey
-        if (StringUtils.hasText(request.getDriverName()) && !request.getDriverName().equals(driver.getDriverName())) {
-            if (existsByDriverName(request.getDriverName())) {
-                throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动名称已存在: " + request.getDriverName());
+        // 驱动名称变更：校验唯一性 + 重命名存储目录
+        if (StringUtils.hasText(request.getName()) && !request.getName().equals(driver.getName())) {
+            if (existsByName(request.getName())) {
+                throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动名称已存在: " + request.getName());
             }
-            driverStore.renameDriverDir(driver.getObjectKey(), request.getDriverName());
-            driver.setObjectKey(request.getDriverName());
-            driver.setDriverName(request.getDriverName());
+            driverStore.renameDriverDir(driver.getName(), request.getName());
+            driver.setName(request.getName());
         }
 
         // 当前生效的驱动目录（名称可能已变更）
-        String driverDir = driver.getObjectKey();
+        String driverDir = driver.getName();
 
         // 删除用户移除的已有驱动文件
         if (request.getDeletedFileNames() != null && !request.getDeletedFileNames().isEmpty()) {
@@ -254,7 +248,7 @@ public class DriverServiceImpl implements DriverService {
                 }
                 String originalName = file.getOriginalFilename();
                 if (originalName == null || originalName.isBlank()) {
-                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名不能为空");
+                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "文件名不能为空");
                 }
                 String lowerName = originalName.toLowerCase();
                 for (String ext : BLOCKED_EXTENSIONS) {
@@ -263,7 +257,7 @@ public class DriverServiceImpl implements DriverService {
                     }
                 }
                 if (existingFileNames.contains(originalName)) {
-                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名已存在: " + originalName);
+                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "文件名已存在: " + originalName);
                 }
 
                 MessageDigest digest;
@@ -294,7 +288,7 @@ public class DriverServiceImpl implements DriverService {
         if (request.getDbType() != null) {
             driver.setDbType(request.getDbType().name());
         }
-        // 校验驱动类名：MongoDB 等非 JDBC 类型允许为空；JDBC 类型必填（新值或原值至少一个非空）
+        // 校验驱动类：MongoDB 等非 JDBC 类型允许为空；JDBC 类型必填（新值或原值至少一个非空）
         DbType effectiveDbType = request.getDbType() != null
             ? request.getDbType()
             : DbType.valueOf(driver.getDbType());
@@ -303,7 +297,7 @@ public class DriverServiceImpl implements DriverService {
                 ? request.getDriverClass()
                 : driver.getDriverClass();
             if (!StringUtils.hasText(effectiveDriverClass)) {
-                throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动类名不能为空");
+                throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动类不能为空");
             }
         }
         if (StringUtils.hasText(request.getDriverClass())) {
@@ -338,9 +332,9 @@ public class DriverServiceImpl implements DriverService {
 
         // 存储清理：删除整个驱动目录
         try {
-            driverStore.deleteDriverDir(driver.getObjectKey());
+            driverStore.deleteDriverDir(driver.getName());
         } catch (Exception e) {
-            log.warn("删除驱动目录失败: objectKey={}, error={}", driver.getObjectKey(), e.getMessage());
+            log.warn("删除驱动目录失败: name={}, error={}", driver.getName(), e.getMessage());
         }
     }
 
@@ -367,9 +361,9 @@ public class DriverServiceImpl implements DriverService {
         // 存储清理：删除每个驱动目录
         for (Driver driver : drivers) {
             try {
-                driverStore.deleteDriverDir(driver.getObjectKey());
+                driverStore.deleteDriverDir(driver.getName());
             } catch (Exception e) {
-                log.warn("删除驱动目录失败: objectKey={}, error={}", driver.getObjectKey(), e.getMessage());
+                log.warn("删除驱动目录失败: name={}, error={}", driver.getName(), e.getMessage());
             }
         }
     }
@@ -384,8 +378,42 @@ public class DriverServiceImpl implements DriverService {
 
         List<Driver> drivers = driverMapper.selectList(wrapper);
         return drivers.stream()
-            .map(d -> new DriverOptionResponse(d.getId(), d.getDriverName()))
+            .map(d -> new DriverOptionResponse(d.getId(), d.getName()))
             .toList();
+    }
+
+    @Override
+    public List<String> detectDriverClasses(String id) {
+        Driver driver = loadDriverEntity(id);
+
+        // 获取驱动目录下所有 JAR 的本地路径
+        List<Path> jarPaths = driverStore.listLocalJars(driver.getName());
+
+        List<String> result = new ArrayList<>();
+        for (Path jarPath : jarPaths) {
+            try (JarFile jarFile = new JarFile(jarPath.toFile())) {
+                ZipEntry entry = jarFile.getEntry(SERVICES_DRIVER_ENTRY);
+                if (entry == null) {
+                    continue;
+                }
+                try (InputStream is = jarFile.getInputStream(entry)) {
+                    String content = new String(is.readAllBytes()).strip();
+                    for (String line : content.split("\n")) {
+                        String className = line.strip();
+                        // 跳过空行和注释
+                        if (className.isEmpty() || className.startsWith("#")) {
+                            continue;
+                        }
+                        if (!result.contains(className)) {
+                            result.add(className);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                log.warn("探测驱动类失败: jarPath={}, error={}", jarPath, e.getMessage());
+            }
+        }
+        return result;
     }
 
     // ── 私有辅助方法 ──

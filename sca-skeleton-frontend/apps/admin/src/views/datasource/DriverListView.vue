@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { Driver, DriverFile, DriverPageRequest } from "../../apis/datasource";
+import type { Driver, DriverPageRequest } from "../../apis/datasource";
 import {
   getDriverPageApi,
   getDriverByIdApi,
@@ -101,6 +101,7 @@ const tablePagination = ref({
   descending: false
 });
 const selectedRows = ref<Driver[]>([]);
+const sortState = ref<{ sortBy: string; descending: boolean }>({ sortBy: "", descending: false });
 const jumpToPage = ref<number | null>(null);
 const curPage = ref(1);
 
@@ -108,7 +109,7 @@ const curPage = ref(1);
 const columns = computed<QTableColumn<Driver>[]>(() => [
   {
     name: "driverName",
-    field: "driverName",
+    field: "name",
     label: t("driverMgmt.driverName"),
     align: "left",
     sortable: true
@@ -125,7 +126,7 @@ const columns = computed<QTableColumn<Driver>[]>(() => [
     field: "driverClass",
     label: t("driverMgmt.driverClass"),
     align: "left",
-    sortable: false,
+    sortable: true,
     format: (val: string) => (val ? val : "-")
   },
   {
@@ -133,16 +134,15 @@ const columns = computed<QTableColumn<Driver>[]>(() => [
     field: "files",
     label: t("driverMgmt.driverFiles"),
     align: "left",
-    sortable: false,
-    format: (val: DriverFile[] | undefined) => (val?.length ? t("driverMgmt.driverFilesCount", { count: val.length }) : "-")
+    sortable: true
   },
   {
     name: "fileSize",
     field: "totalFileSize",
     label: t("driverMgmt.fileSize"),
     align: "left",
-    sortable: false,
-    format: (val: number) => (val ? formatFileSize(val) : "-")
+    sortable: true,
+    format: (val: number | string) => (val ? formatFileSize(val) : "-")
   },
   {
     name: "createTime",
@@ -165,8 +165,11 @@ const visibleColumns = ref(columns.value.map((c) => c.name));
 
 // ── 前端列名 → 后端排序列名映射 ──
 const SORT_FIELD_MAP: Record<string, string> = {
-  driverName: "driver_name",
+  driverName: "name",
   dbType: "db_type",
+  driverClass: "driver_class",
+  fileSize: "total_file_size",
+  files: "file_count",
   createTime: "create_time"
 };
 
@@ -197,21 +200,23 @@ async function loadTableData(
   const pageNum = curPage.value || 1;
 
   if (props?.pagination) {
+    sortState.value.sortBy = props.pagination.sortBy ?? "";
+    sortState.value.descending = props.pagination.descending ?? false;
     tablePagination.value.sortBy = props.pagination.sortBy ?? "";
     tablePagination.value.descending = props.pagination.descending ?? false;
   }
 
-  const sortBy = tablePagination.value.sortBy || undefined;
+  const sortBy = sortState.value.sortBy || undefined;
   const sortField = sortBy ? (SORT_FIELD_MAP[sortBy] ?? sortBy) : undefined;
 
   const params: DriverPageRequest = {
     pageNum,
     pageSize,
     dbType: searchForm.dbType || undefined,
-    keyword: searchForm.keyword || undefined
+    keyword: searchForm.keyword || undefined,
+    sortField,
+    sortOrder: sortState.value.sortBy ? (sortState.value.descending ? "desc" : "asc") : undefined
   };
-  // 排序参数后端如未实现可忽略，前端先传递
-  void sortField;
 
   try {
     const result = await getDriverPageApi(params);
@@ -266,6 +271,8 @@ function handleJumpToPage() {
 function handleReset() {
   searchForm.keyword = "";
   searchForm.dbType = undefined;
+  sortState.value.sortBy = "";
+  sortState.value.descending = false;
   tablePagination.value.sortBy = "";
   tablePagination.value.descending = false;
   tablePagination.value.page = 1;
@@ -333,7 +340,7 @@ async function handleEdit(driver: Driver) {
 // 删除
 async function handleDelete(driver: Driver) {
   try {
-    await confirmDialog(t("driverMgmt.deleteConfirm", { name: driver.driverName }));
+    await confirmDialog(t("driverMgmt.deleteConfirm", { name: driver.name }));
   } catch {
     return;
   }
@@ -357,12 +364,13 @@ async function handleDelete(driver: Driver) {
 // 工具函数
 // ═══════════════════════════════════════════════════════════════
 
-function formatFileSize(bytes: number): string {
-  if (!bytes) return "-";
-  if (bytes < 1024) return bytes + " B";
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-  if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + " MB";
-  return (bytes / 1024 / 1024 / 1024).toFixed(2) + " GB";
+function formatFileSize(bytes: number | string): string {
+  const n = Number(bytes);
+  if (!n) return "-";
+  if (n < 1024) return n + " B";
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+  if (n < 1024 * 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + " MB";
+  return (n / 1024 / 1024 / 1024).toFixed(2) + " GB";
 }
 
 function getDbTypeLabel(dbType: string): string {
@@ -535,7 +543,7 @@ onMounted(() => {
         <!-- 驱动名称列 -->
         <template #body-cell-driverName="props">
           <q-td :props="props">
-            <span>{{ props.row.driverName }}</span>
+            <span>{{ props.row.name }}</span>
           </q-td>
         </template>
 
@@ -562,11 +570,11 @@ onMounted(() => {
           </q-td>
         </template>
 
-        <!-- 驱动文件列 -->
+        <!-- 驱动文件列：显示文件名，用“、”分隔，超长截断 -->
         <template #body-cell-files="props">
           <q-td :props="props">
-            <span v-if="props.row.files?.length" class="cursor-pointer">
-              {{ t('driverMgmt.driverFilesCount', { count: props.row.files.length }) }}
+            <span v-if="props.row.files?.length" class="file-names-cell">
+              <span class="file-names-text">{{ props.row.files.map(f => f.fileName).join("、") }}</span>
               <q-tooltip>
                 <div class="q-gutter-y-xs">
                   <div v-for="f in props.row.files" :key="f.fileName" class="row items-center">
@@ -937,9 +945,28 @@ onMounted(() => {
 
 /* 数据库类型徽章 */
 .db-type-badge {
-  font-size: 11px;
-  padding: 3px 10px;
-  font-weight: 500;
+font-size: 11px;
+padding: 3px 10px;
+font-weight: 500;
+}
+
+/* 驱动文件列：文件名超长截断 */
+.file-names-cell {
+display: inline-block;
+max-width: 390px;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+cursor: default;
+}
+
+.file-names-text {
+display: inline-block;
+max-width: 100%;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+vertical-align: bottom;
 }
 
 /* 操作按钮列 */
