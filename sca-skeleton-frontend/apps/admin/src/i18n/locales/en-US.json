@@ -525,7 +525,6 @@
     "dropzoneSubtitle": "Supports multiple JAR files (main driver + dependencies), only .jar, max 500MB each",
     "fileSize": "File Size",
     "totalFileSize": "Total Size",
-    "storageType": "Storage",
     "urlTemplate": "JDBC URL Template",
     "allowedParams": "URL Param Whitelist",
     "status": "Status",

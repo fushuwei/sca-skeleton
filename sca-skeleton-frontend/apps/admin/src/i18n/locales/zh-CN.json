@@ -525,7 +525,6 @@
     "dropzoneSubtitle": "支持上传多个 JAR 文件（主驱动 + 依赖），仅支持 .jar，单个文件最大 500MB",
     "fileSize": "文件大小",
     "totalFileSize": "总大小",
-    "storageType": "存储类型",
     "urlTemplate": "JDBC URL 模板",
     "allowedParams": "URL 参数白名单",
     "status": "状态",
