@@ -9,9 +9,7 @@ import {
   getDriverPageApi,
   getDriverByIdApi,
   deleteDriverApi,
-  batchDeleteDriverApi,
-  enableDriverApi,
-  disableDriverApi
+  batchDeleteDriverApi
 } from "../../apis/datasource";
 import { useConfirmDialog } from "@repo/ui";
 import DbTypeIcon from "../../components/DbTypeIcon.vue";
@@ -37,11 +35,6 @@ const DB_TYPE_OPTIONS = [
   { label: "GaussDB", value: "GAUSSDB" }
 ];
 
-const STATUS_OPTIONS = [
-  { label: "driverMgmt.statusEnabled", value: "enabled" },
-  { label: "driverMgmt.statusDisabled", value: "disabled" }
-];
-
 // ═══════════════════════════════════════════════════════════════
 // 搜索条件
 // ═══════════════════════════════════════════════════════════════
@@ -50,8 +43,7 @@ const searchForm = reactive<DriverPageRequest>({
   pageNum: 1,
   pageSize: 10,
   dbType: undefined,
-  keyword: "",
-  status: undefined
+  keyword: ""
 });
 
 const searchExpanded = ref(true);
@@ -153,20 +145,6 @@ const columns = computed<QTableColumn<Driver>[]>(() => [
     format: (val: number) => (val ? formatFileSize(val) : "-")
   },
   {
-    name: "status",
-    field: "status",
-    label: t("driverMgmt.status"),
-    align: "center",
-    sortable: true
-  },
-  {
-    name: "isBuiltin",
-    field: "isBuiltin",
-    label: t("driverMgmt.isBuiltin"),
-    align: "center",
-    sortable: false
-  },
-  {
     name: "createTime",
     field: "createTime",
     label: t("driverMgmt.createTime"),
@@ -189,7 +167,6 @@ const visibleColumns = ref(columns.value.map((c) => c.name));
 const SORT_FIELD_MAP: Record<string, string> = {
   driverName: "driver_name",
   dbType: "db_type",
-  status: "status",
   createTime: "create_time"
 };
 
@@ -231,8 +208,7 @@ async function loadTableData(
     pageNum,
     pageSize,
     dbType: searchForm.dbType || undefined,
-    keyword: searchForm.keyword || undefined,
-    status: searchForm.status || undefined
+    keyword: searchForm.keyword || undefined
   };
   // 排序参数后端如未实现可忽略，前端先传递
   void sortField;
@@ -290,7 +266,6 @@ function handleJumpToPage() {
 function handleReset() {
   searchForm.keyword = "";
   searchForm.dbType = undefined;
-  searchForm.status = undefined;
   tablePagination.value.sortBy = "";
   tablePagination.value.descending = false;
   tablePagination.value.page = 1;
@@ -310,14 +285,6 @@ function handleCreate() {
 async function handleBatchDelete() {
   if (!selectedRows.value.length) {
     showToast(t("common.selectRowsFirst"), "warning");
-    return;
-  }
-
-  // 内置驱动不允许删除
-  const builtinRows = selectedRows.value.filter((r) => r.isBuiltin === 1);
-  if (builtinRows.length) {
-    const names = builtinRows.map((r) => r.driverName).join(", ");
-    showToast(t("driverMgmt.cannotDeleteBuiltinBatch", { names }), "negative");
     return;
   }
 
@@ -365,11 +332,6 @@ async function handleEdit(driver: Driver) {
 
 // 删除
 async function handleDelete(driver: Driver) {
-  if (driver.isBuiltin === 1) {
-    showToast(t("driverMgmt.cannotDeleteBuiltin"), "negative");
-    return;
-  }
-
   try {
     await confirmDialog(t("driverMgmt.deleteConfirm", { name: driver.driverName }));
   } catch {
@@ -387,26 +349,6 @@ async function handleDelete(driver: Driver) {
   } catch (error) {
     if (!isNotificationHandled(error)) {
       showToast(t("common.deleteFail"), "negative");
-    }
-  }
-}
-
-// 启用/禁用切换
-async function handleToggleStatus(driver: Driver) {
-  const targetStatus = driver.status === "enabled" ? "disabled" : "enabled";
-  const api = targetStatus === "enabled" ? enableDriverApi : disableDriverApi;
-  const tipKey = targetStatus === "enabled" ? "common.operationSuccess" : "common.operationSuccess";
-  try {
-    const result = await api(driver.id);
-    if (result.code === 10_000) {
-      showToast(t(tipKey), "positive");
-      loadTableData();
-    } else {
-      showToast(result.message || t("common.operationFail"), "negative");
-    }
-  } catch (error) {
-    if (!isNotificationHandled(error)) {
-      showToast(t("common.operationFail"), "negative");
     }
   }
 }
@@ -513,29 +455,6 @@ onMounted(() => {
                       <q-item-label>{{ scope.opt.label }}</q-item-label>
                     </q-item-section>
                   </q-item>
-                </template>
-              </q-select>
-            </div>
-            <div class="col-auto">
-              <q-select
-                v-model="searchForm.status"
-                filled
-                square
-                dense
-                :options="STATUS_OPTIONS"
-                :option-label="(o: { label: string; value: string } | undefined) => (o ? t(o.label) : '')"
-                option-value="value"
-                emit-value
-                map-options
-                hide-bottom-space
-                clearable
-                transition-show="jump-up"
-                transition-hide="jump-down"
-                class="status-select"
-                popup-content-class="status-select-popup"
-              >
-                <template v-if="!searchForm.status" v-slot:selected>
-                  <span class="status-placeholder">{{ t('driverMgmt.statusPlaceholder') }}</span>
                 </template>
               </q-select>
             </div>
@@ -655,29 +574,6 @@ onMounted(() => {
           </q-td>
         </template>
 
-        <!-- 状态列 -->
-        <template #body-cell-status="props">
-          <q-td :props="props">
-            <q-badge
-              :color="props.row.status === 'enabled' ? 'green' : 'grey'"
-              :label="props.row.status === 'enabled' ? t('driverMgmt.statusEnabled') : t('driverMgmt.statusDisabled')"
-            />
-          </q-td>
-        </template>
-
-        <!-- 内置列 -->
-        <template #body-cell-isBuiltin="props">
-          <q-td :props="props">
-            <q-badge
-              v-if="props.row.isBuiltin === 1"
-              color="deep-orange-2"
-              text-color="deep-orange-9"
-              :label="t('driverMgmt.isBuiltin')"
-            />
-            <span v-else class="text-grey-5">-</span>
-          </q-td>
-        </template>
-
         <!-- 操作列 -->
         <template #body-cell-actions="props">
           <q-td :props="props" class="q-gutter-x-xs actions-cell">
@@ -699,7 +595,6 @@ onMounted(() => {
               size="sm"
               color="primary"
               icon="sym_r_edit"
-              :disable="props.row.isBuiltin === 1"
               @click.stop="handleEdit(props.row)"
             >
               <q-tooltip>{{ t("common.edit") }}</q-tooltip>
@@ -709,20 +604,8 @@ onMounted(() => {
               dense
               round
               size="sm"
-              :color="props.row.status === 'enabled' ? 'orange' : 'green'"
-              :icon="props.row.status === 'enabled' ? 'sym_r_block' : 'sym_r_check_circle'"
-              @click.stop="handleToggleStatus(props.row)"
-            >
-              <q-tooltip>{{ props.row.status === 'enabled' ? t('common.disable') : t('common.enable') }}</q-tooltip>
-            </q-btn>
-            <q-btn
-              flat
-              dense
-              round
-              size="sm"
               color="negative"
               icon="sym_r_delete"
-              :disable="props.row.isBuiltin === 1"
               @click.stop="handleDelete(props.row)"
             >
               <q-tooltip>{{ t("common.delete") }}</q-tooltip>

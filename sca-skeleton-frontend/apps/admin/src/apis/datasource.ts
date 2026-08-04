@@ -23,8 +23,6 @@ export interface Driver {
   storageType: string;
   urlTemplate: string;
   allowedParams: string;
-  status: string;
-  isBuiltin: number;
   remark: string;
   version: number;
   createTime: string;
@@ -73,7 +71,6 @@ export interface DbTypeOption {
 export interface DriverPageRequest {
   dbType?: string;
   keyword?: string;
-  status?: string;
   pageNum: number;
   pageSize: number;
 }
@@ -168,16 +165,6 @@ export async function deleteDriverApi(id: string): Promise<ApiEnvelope<null>> {
 /** 批量删除驱动 */
 export async function batchDeleteDriverApi(ids: string[]): Promise<ApiEnvelope<null>> {
   return request<null>({ method: "POST", url: "/ds/driver/batch/delete", data: ids });
-}
-
-/** 启用驱动 */
-export async function enableDriverApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: `/ds/driver/${id}/enable` });
-}
-
-/** 禁用驱动 */
-export async function disableDriverApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: `/ds/driver/${id}/disable` });
 }
 
 /** 查询驱动选项列表 */
