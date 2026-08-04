@@ -543,7 +543,6 @@
     "dbTypeRequired": "请选择数据库类型",
     "jarFileRequired": "请添加驱动文件",
     "removeFile": "移除",
-    "driverClassManual": "未探测到驱动类，请手动输入",
     "deleteConfirm": "确认删除驱动「{name}」？",
     "batchDeleteConfirm": "确认删除选中的 {count} 个驱动？删除后不可恢复。",
     "cannotDeleteBuiltin": "内置驱动不允许删除",

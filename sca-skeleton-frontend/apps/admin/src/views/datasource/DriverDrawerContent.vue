@@ -163,7 +163,6 @@ const BLOCKED_EXTENSIONS = [
   ".exe", ".dll", ".so", ".dylib", ".msi", ".scr"  // 可执行/二进制文件
 ];
 const detectedClasses = ref<string[]>([]);
-const detecting = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 const fileInputKey = ref(0);
 const dragActive = ref(false);
@@ -265,15 +264,10 @@ async function addFiles(picked: File[]) {
 
 // 客户端探测驱动类（读取 JAR 内 META-INF/services/java.sql.Driver，不上传文件）
 async function refreshDetectedClasses() {
-  detecting.value = true;
-  try {
-    detectedClasses.value = await detectDriverClassesInJars(jarFiles.value);
-    // 驱动类名为空时自动回填第一个探测结果
-    if (!form.driverClass && detectedClasses.value.length) {
-      form.driverClass = detectedClasses.value[0];
-    }
-  } finally {
-    detecting.value = false;
+  detectedClasses.value = await detectDriverClassesInJars(jarFiles.value);
+  // 驱动类名为空时自动回填第一个探测结果
+  if (!form.driverClass && detectedClasses.value.length) {
+    form.driverClass = detectedClasses.value[0];
   }
 }
 
@@ -623,9 +617,6 @@ function formatFileSize(bytes: number): string {
                 </q-badge>
               </div>
             </div>
-            <div v-else-if="!detecting" class="file-detected file-detected--manual">
-              {{ t('driverMgmt.driverClassManual') }}
-            </div>
           </template>
         </div>
 
@@ -883,10 +874,6 @@ function formatFileSize(bytes: number): string {
 .file-detected__list {
   display: flex;
   flex-wrap: wrap;
-}
-.file-detected--manual {
-  color: #9aa3af;
-  font-size: 12px;
 }
 
 /* 修复 prefix 右侧多余间距 */
