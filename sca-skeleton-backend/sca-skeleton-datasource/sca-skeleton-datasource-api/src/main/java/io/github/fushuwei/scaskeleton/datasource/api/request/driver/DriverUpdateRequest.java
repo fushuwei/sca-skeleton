@@ -34,9 +34,6 @@ public class DriverUpdateRequest implements Serializable {
     /** JDBC URL 模板 */
     private String urlTemplate;
 
-    /** URL 参数白名单（JSON） */
-    private String allowedParams;
-
     /** 备注 */
     private String remark;
 

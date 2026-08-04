@@ -22,7 +22,6 @@ export interface Driver {
   objectKey: string;
   storageType: string;
   urlTemplate: string;
-  allowedParams: string;
   remark: string;
   version: number;
   createTime: string;

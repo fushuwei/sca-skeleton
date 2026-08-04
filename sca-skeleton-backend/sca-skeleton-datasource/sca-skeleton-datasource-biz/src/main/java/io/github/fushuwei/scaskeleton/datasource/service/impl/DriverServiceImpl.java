@@ -312,9 +312,6 @@ public class DriverServiceImpl implements DriverService {
         if (StringUtils.hasText(request.getUrlTemplate())) {
             driver.setUrlTemplate(request.getUrlTemplate());
         }
-        if (StringUtils.hasText(request.getAllowedParams())) {
-            driver.setAllowedParams(request.getAllowedParams());
-        }
         if (StringUtils.hasText(request.getRemark())) {
             driver.setRemark(request.getRemark());
         }

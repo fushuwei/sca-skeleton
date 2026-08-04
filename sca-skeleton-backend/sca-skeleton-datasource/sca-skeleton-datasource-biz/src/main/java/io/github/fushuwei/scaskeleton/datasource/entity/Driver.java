@@ -41,9 +41,6 @@ public class Driver extends BaseEntity {
     /** JDBC URL 前缀模板 */
     private String urlTemplate;
 
-    /** URL 参数白名单（JSON） */
-    private String allowedParams;
-
     /** 备注 */
     private String remark;
 

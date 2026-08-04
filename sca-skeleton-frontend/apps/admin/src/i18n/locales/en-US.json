@@ -528,7 +528,6 @@
     "fileSize": "File Size",
     "totalFileSize": "Total Size",
     "urlTemplate": "JDBC URL Template",
-    "allowedParams": "URL Param Whitelist",
     "remark": "Remark",
     "createTime": "Created At",
     "keywordPlaceholder": "Search by driver name / class",
@@ -543,7 +542,6 @@
     "saveSuccess": "Saved successfully",
     "saveFail": "Failed to save",
     "driverNameExists": "Driver name already exists",
-    "allowedParamsHint": "JSON array, e.g. [\"useSSL\", \"serverTimezone\"]",
     "addMoreFiles": "Add more files (click or drag)",
     "clearFiles": "Clear"
   },

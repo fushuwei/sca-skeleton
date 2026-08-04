@@ -74,7 +74,6 @@ const form = reactive({
   driverName: "",
   driverClass: "",
   urlTemplate: "",
-  allowedParams: "",
   remark: "",
   fileSize: 0 as number,
   version: 0 as number | undefined
@@ -190,7 +189,6 @@ function resetForm() {
   form.driverName = "";
   form.driverClass = "";
   form.urlTemplate = "";
-  form.allowedParams = "";
   form.remark = "";
   form.fileSize = 0;
   form.version = 0;
@@ -210,7 +208,6 @@ function initForm() {
     form.driverName = props.driver.driverName;
     form.driverClass = props.driver.driverClass;
     form.urlTemplate = props.driver.urlTemplate || "";
-    form.allowedParams = props.driver.allowedParams || "";
     form.remark = props.driver.remark || "";
     form.fileSize = props.driver.totalFileSize || 0;
     form.version = props.driver.version;
@@ -376,7 +373,6 @@ async function handleSave() {
       dbType: form.dbType,
       driverClass: form.driverClass || undefined,
       urlTemplate: form.urlTemplate || undefined,
-      allowedParams: form.allowedParams || undefined,
       remark: form.remark || undefined
     };
 
@@ -407,7 +403,6 @@ async function handleSave() {
     dbType: form.dbType || undefined,
     driverClass: form.driverClass || undefined,
     urlTemplate: form.urlTemplate || undefined,
-    allowedParams: form.allowedParams || undefined,
     remark: form.remark || undefined,
     deletedFileNames: deletedFileNames.value.size > 0 ? [...deletedFileNames.value] : undefined
   };
@@ -646,21 +641,6 @@ function formatFileSize(bytes: number): string {
             square
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
-            hide-bottom-space
-          />
-        </div>
-        <!-- URL 参数白名单 -->
-        <div class="col-12">
-          <q-input
-            v-model="form.allowedParams"
-            :label="t('driverMgmt.allowedParams')"
-            filled
-            square
-            type="textarea"
-            rows="2"
-            :disable="drawerReadonly"
-            :readonly="drawerReadonly"
-            :hint="t('driverMgmt.allowedParamsHint')"
             hide-bottom-space
           />
         </div>
