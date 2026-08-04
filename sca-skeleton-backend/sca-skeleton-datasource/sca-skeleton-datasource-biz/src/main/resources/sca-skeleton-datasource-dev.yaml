@@ -28,6 +28,16 @@ spring:
       # 整个上传请求的最大大小：21MB，请求里除了文件本身，还带着驱动名称等表单字段和少量协议包装开销，所以比文件上限多留 1MB，避免恰好 20MB 的文件被误拒
       max-request-size: 21MB
 
+# 上传超限时的优雅兜底（关键修复）
+# 当请求超过 max-request-size 触发 MaxUploadSizeExceededException 时，异常发生在请求体仍在上传的中途，
+# Tomcat 需要先"吞掉"剩余未消费的请求体才能把错误响应发回客户端。
+# Tomcat 默认 max-swallow-size=2MB：剩余未读部分一旦超过该值，Tomcat 会直接断开连接（reset），
+# 导致 GlobalExceptionHandler 已生成的 JSON 错误响应无法送达，浏览器表现为 ERR_CONNECTION_RESET / "网络异常"。
+# 设为 -1 表示不限制吞掉剩余请求体，确保超限时能返回标准 JSON 错误而不是重置连接（会多读/丢弃一段上行数据，换取可靠报错）。
+server:
+  tomcat:
+    max-swallow-size: -1
+
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
   type-aliases-package: io.github.fushuwei.scaskeleton.datasource.entity
