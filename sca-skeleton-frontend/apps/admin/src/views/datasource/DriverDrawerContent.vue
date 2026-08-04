@@ -5,8 +5,7 @@ import { showToast, isNotificationHandled } from "@repo/shared";
 import type { Driver } from "../../apis/datasource";
 import {
   createDriverApi,
-  updateDriverApi,
-  checkDriverNameExistsApi
+  updateDriverApi
 } from "../../apis/datasource";
 import { detectDriverClassesInJars } from "../../utils/driverClassDetector";
 import DbTypeIcon from "../../components/DbTypeIcon.vue";
@@ -24,7 +23,6 @@ const emit = defineEmits<{
 }>();
 
 const drawerReadonly = computed(() => props.mode === "view");
-const isEdit = computed(() => props.mode === "edit");
 
 // ── 数据库类型选项（与后端 DbType 枚举一致） ──
 const DB_TYPE_OPTIONS = [
@@ -41,8 +39,6 @@ const DB_TYPE_OPTIONS = [
 ];
 
 const formLoading = ref(false);
-// 提交（含文件上传）进度：0-100，到 100 后切换为不定进度（服务端处理阶段）
-const uploadPercent = ref(0);
 
 const form = reactive({
   id: "",
@@ -56,42 +52,9 @@ const form = reactive({
   version: 0 as number | undefined
 });
 
-// ── 驱动名称唯一性异步校验（仅新增模式，失焦触发） ──
-const nameChecking = ref(false);
-let nameCheckSeq = 0;
-
-async function validateDriverNameUnique(value: string): Promise<boolean | string> {
-  const name = value?.trim();
-  if (!name) {
-    // 空值由必填规则负责提示
-    return true;
-  }
-  const seq = ++nameCheckSeq;
-  nameChecking.value = true;
-  try {
-    const result = await checkDriverNameExistsApi(name);
-    if (seq !== nameCheckSeq) {
-      // 已有更新的校验请求，丢弃过期结果
-      return true;
-    }
-    if (result.code === 10_000 && result.data === true) {
-      return t("driverMgmt.driverNameExists");
-    }
-    return true;
-  } catch {
-    // 检查请求失败时不阻塞用户，最终由提交时的后端校验兜底
-    return true;
-  } finally {
-    if (seq === nameCheckSeq) {
-      nameChecking.value = false;
-    }
-  }
-}
-
 const formRules = computed(() => ({
   driverName: [
-    (v: string) => !!v?.trim() || t("driverMgmt.driverNameRequired"),
-    ...(props.mode === "add" ? [validateDriverNameUnique] : [])
+    (v: string) => !!v?.trim() || t("driverMgmt.driverNameRequired")
   ],
   dbType: [(v: string) => !!v || t("driverMgmt.dbTypeRequired")],
   driverClass: [(v: string) => !!v?.trim() || t("driverMgmt.driverClassRequired")]
@@ -260,10 +223,7 @@ async function handleSave() {
 
     try {
       formLoading.value = true;
-      uploadPercent.value = 0;
-      const result = await createDriverApi(data, [...jarFiles.value], (percent) => {
-        uploadPercent.value = percent;
-      });
+      const result = await createDriverApi(data, [...jarFiles.value]);
       if (result.code === 10_000) {
         showToast(t("driverMgmt.saveSuccess"), "positive");
         emit("saved");
@@ -285,6 +245,8 @@ async function handleSave() {
     id: form.id,
     version: form.version,
     driverName: form.driverName,
+    dbType: form.dbType || undefined,
+    driverClass: form.driverClass || undefined,
     urlTemplate: form.urlTemplate || undefined,
     allowedParams: form.allowedParams || undefined,
     remark: form.remark || undefined
@@ -331,10 +293,8 @@ function formatFileSize(bytes: number): string {
             square
             :rules="formRules.driverName"
             lazy-rules
-            :loading="nameChecking"
-            :disable="isEdit || drawerReadonly"
+            :disable="drawerReadonly"
             :readonly="drawerReadonly"
-            :hint="t('driverMgmt.driverNameHint')"
             hide-bottom-space
             class="required-field"
           />
@@ -350,7 +310,7 @@ function formatFileSize(bytes: number): string {
             emit-value
             map-options
             :rules="formRules.dbType"
-            :disable="isEdit || drawerReadonly"
+            :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
             class="required-field"
@@ -527,7 +487,7 @@ function formatFileSize(bytes: number): string {
             filled
             square
             :rules="formRules.driverClass"
-            :disable="isEdit || drawerReadonly"
+            :disable="drawerReadonly"
             :readonly="drawerReadonly"
             :hint="t('driverMgmt.driverClassHint')"
             hide-bottom-space
@@ -581,15 +541,6 @@ function formatFileSize(bytes: number): string {
 
       <!-- 底部操作按钮 -->
       <div v-if="!drawerReadonly" class="driver-drawer-footer">
-        <q-linear-progress
-          v-if="formLoading && props.mode === 'add'"
-          :value="uploadPercent / 100"
-          :indeterminate="uploadPercent >= 100"
-          color="primary"
-          height="3px"
-          rounded
-          class="q-mb-md"
-        />
         <div class="row justify-end q-gutter-sm">
           <q-btn
             color="grey-7"

@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.datasource.api.request.driver;
 
+import io.github.fushuwei.scaskeleton.datasource.api.enums.DbType;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -22,6 +23,12 @@ public class DriverUpdateRequest implements Serializable {
 
     /** 驱动名称 */
     private String driverName;
+
+    /** 数据库类型 */
+    private DbType dbType;
+
+    /** JDBC Driver 全限定类名 */
+    private String driverClass;
 
     /** JDBC URL 模板 */
     private String urlTemplate;

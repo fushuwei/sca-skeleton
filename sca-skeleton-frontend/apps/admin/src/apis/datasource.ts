@@ -110,8 +110,7 @@ export async function getDriverByIdApi(id: string): Promise<ApiEnvelope<Driver>>
 /** 新增驱动（表单字段 + 驱动文件随同一次 multipart 请求提交） */
 export async function createDriverApi(
   data: Record<string, unknown>,
-  files: File[],
-  onUploadProgress?: (percent: number) => void
+  files: File[]
 ): Promise<ApiEnvelope<null>> {
   const formData = new FormData();
   formData.append("driver", new Blob([JSON.stringify(data)], { type: "application/json" }));
@@ -123,23 +122,7 @@ export async function createDriverApi(
     url: "/ds/driver/create",
     data: formData,
     // 上传耗时取决于文件大小与带宽，禁用单请求超时（由网关/Nginx 超时兜底）
-    timeout: 0,
-    onUploadProgress: (e) => {
-      if (onUploadProgress && e.total) {
-        onUploadProgress(Math.round((e.loaded / e.total) * 100));
-      }
-    }
-  });
-}
-
-/** 检查驱动名称是否已存在（驱动名称作为目录名，全局唯一） */
-export async function checkDriverNameExistsApi(
-  driverName: string
-): Promise<ApiEnvelope<boolean>> {
-  return request<boolean>({
-    method: "GET",
-    url: "/ds/driver/name/exists",
-    params: { driverName }
+    timeout: 0
   });
 }
 

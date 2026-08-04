@@ -43,13 +43,13 @@ import java.util.stream.Collectors;
 /**
  * 驱动管理 Service 实现。
  * <p>
- * 采用目录式管理：每个驱动记录对应一个目录 drivers/{driverName}/，
+ * 采用目录式管理：每个驱动记录对应一个目录 {driverName}/，
  * 目录下存放驱动文件 + 依赖 JAR，加载时用一个 URLClassLoader 全部加载。
  * <p>
  * 驱动文件元数据存储在 ds_driver_file 表，一个驱动可关联多个文件。
  * <p>
  * 创建流程：表单字段与驱动文件随同一次 multipart 请求提交 → 校验驱动名称唯一 →
- * 文件直接写入正式目录 drivers/{driverName}/ → 落库 + 落文件表。
+ * 文件直接写入正式目录 {basePath}/{driverName}/ → 落库 + 落文件表。
  * 不再使用临时目录，表单未提交即不产生任何服务端文件，避免脏数据。
  *
  * @author Fu Wei
@@ -58,8 +58,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class DriverServiceImpl implements DriverService {
-
-    private static final String DRIVER_DIR_PREFIX = "drivers/";
 
     private final DriverMapper driverMapper;
     private final DriverFileMapper driverFileMapper;
@@ -98,7 +96,7 @@ public class DriverServiceImpl implements DriverService {
     /**
      * 创建驱动（表单字段 + 驱动文件随同一次 multipart 请求提交）。
      * <p>
-     * 校验驱动名称唯一后，文件直接写入正式目录 drivers/{driverName}/，落库驱动主表与文件表。
+     * 校验驱动名称唯一后，文件直接写入正式目录 {basePath}/{driverName}/，落库驱动主表与文件表。
      * 未提交表单时服务端不产生任何文件，不存在脏数据问题。
      */
     @Override
@@ -131,7 +129,7 @@ public class DriverServiceImpl implements DriverService {
             throw new BusinessException(ResultCode.VALIDATION_ERROR, "请上传驱动文件");
         }
 
-        String driverDir = DRIVER_DIR_PREFIX + request.getDriverName();
+        String driverDir = request.getDriverName();
 
         // 写入驱动文件（单次流式读取，同步计算 SHA-256）
         List<DriverFile> driverFiles = new ArrayList<>();
@@ -175,8 +173,7 @@ public class DriverServiceImpl implements DriverService {
         log.info("创建驱动成功: driverName={}, fileCount={}", request.getDriverName(), driverFiles.size());
     }
 
-    @Override
-    public boolean existsByDriverName(String driverName) {
+    private boolean existsByDriverName(String driverName) {
         if (!StringUtils.hasText(driverName)) {
             return false;
         }
@@ -189,8 +186,21 @@ public class DriverServiceImpl implements DriverService {
     public void updateDriver(DriverUpdateRequest request) {
         Driver driver = loadDriverEntity(request.getId());
 
-        if (StringUtils.hasText(request.getDriverName())) {
+        // 驱动名称变更：校验唯一性 + 重命名存储目录 + 更新 objectKey
+        if (StringUtils.hasText(request.getDriverName()) && !request.getDriverName().equals(driver.getDriverName())) {
+            if (existsByDriverName(request.getDriverName())) {
+                throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动名称已存在: " + request.getDriverName());
+            }
+            driverStore.renameDriverDir(driver.getObjectKey(), request.getDriverName());
+            driver.setObjectKey(request.getDriverName());
             driver.setDriverName(request.getDriverName());
+        }
+
+        if (request.getDbType() != null) {
+            driver.setDbType(request.getDbType().name());
+        }
+        if (StringUtils.hasText(request.getDriverClass())) {
+            driver.setDriverClass(request.getDriverClass());
         }
         if (StringUtils.hasText(request.getUrlTemplate())) {
             driver.setUrlTemplate(request.getUrlTemplate());

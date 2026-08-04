@@ -60,13 +60,6 @@ public class DriverController {
         return Result.ok();
     }
 
-    @Operation(summary = "检查驱动名称是否已存在")
-    @GetMapping("/name/exists")
-    @RequiresPermission("sys:datasource:driver:add")
-    public Result<Boolean> nameExists(@RequestParam String driverName) {
-        return Result.ok(driverService.existsByDriverName(driverName));
-    }
-
     @Operation(summary = "编辑驱动")
     @PostMapping("/update")
     @RequiresPermission("sys:datasource:driver:edit")

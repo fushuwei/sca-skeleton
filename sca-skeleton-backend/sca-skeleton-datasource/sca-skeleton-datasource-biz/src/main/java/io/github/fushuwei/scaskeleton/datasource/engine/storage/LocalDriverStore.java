@@ -14,7 +14,7 @@ import java.util.stream.Stream;
  * 本地文件系统驱动存储实现。
  * <p>
  * 采用目录式管理：每个驱动记录对应一个本地目录，目录下存放驱动主 JAR + 所有依赖 JAR。
- * 存储路径：{basePath}/drivers/{driverName}/{fileName}.jar
+ * 存储路径：{basePath}/{driverName}/{fileName}.jar
  *
  * @author Fu Wei
  */
@@ -81,11 +81,26 @@ public class LocalDriverStore implements DriverStore {
         }
     }
 
+    @Override
+    public void renameDriverDir(String oldDriverDir, String newDriverDir) {
+        Path oldPath = resolveDriverDirPath(oldDriverDir);
+        Path newPath = resolveDriverDirPath(newDriverDir);
+        if (!Files.exists(oldPath)) {
+            throw new RuntimeException("源驱动目录不存在: " + oldDriverDir);
+        }
+        try {
+            Files.createDirectories(newPath.getParent());
+            Files.move(oldPath, newPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException("重命名驱动目录失败: " + oldDriverDir + " -> " + newDriverDir, e);
+        }
+    }
+
     /**
      * 解析驱动目录的完整本地路径。
      * <p>
-     * driverDir 格式：drivers/{driverName}
-     * 本地路径：{basePath}/drivers/{driverName}
+     * driverDir 格式：{driverName}
+     * 本地路径：{basePath}/{driverName}
      */
     private Path resolveDriverDirPath(String driverDir) {
         return basePath.resolve(driverDir);

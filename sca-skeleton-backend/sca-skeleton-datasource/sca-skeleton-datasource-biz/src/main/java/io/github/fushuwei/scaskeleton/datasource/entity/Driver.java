@@ -32,7 +32,7 @@ public class Driver extends BaseEntity {
     /** JDBC Driver 全限定类名 */
     private String driverClass;
 
-    /** 驱动目录键（drivers/{driverName}，目录下存放驱动文件 + 依赖） */
+    /** 驱动目录键（{driverName}，目录下存放驱动文件 + 依赖） */
     private String objectKey;
 
     /** 存储类型（local/minio） */

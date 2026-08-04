@@ -552,7 +552,6 @@
     "saveSuccess": "Saved successfully",
     "saveFail": "Failed to save",
     "driverNameExists": "Driver name already exists",
-    "driverNameHint": "Used as directory name; cannot be changed after creation",
     "driverClassHint": "e.g. com.mysql.cj.jdbc.Driver",
     "urlTemplateHint": "e.g. jdbc:mysql://{host}:{port}/{database}",
     "allowedParamsHint": "JSON array, e.g. [\"useSSL\", \"serverTimezone\"]",

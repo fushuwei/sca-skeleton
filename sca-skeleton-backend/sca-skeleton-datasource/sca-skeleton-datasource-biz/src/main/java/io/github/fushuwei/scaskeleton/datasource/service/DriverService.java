@@ -27,11 +27,6 @@ public interface DriverService {
      */
     void createDriver(DriverCreateRequest request, MultipartFile[] files);
 
-    /**
-     * 检查驱动名称是否已存在（驱动名称作为目录名，全局唯一）。
-     */
-    boolean existsByDriverName(String driverName);
-
     void updateDriver(DriverUpdateRequest request);
 
     void deleteDriver(String id);

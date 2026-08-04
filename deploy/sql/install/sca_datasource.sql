@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `ds_driver` (
     `db_type`         VARCHAR(50)     NOT NULL                        COMMENT '数据库类型',
     `driver_name`     VARCHAR(200)    NOT NULL                        COMMENT '驱动名称',
     `driver_class`    VARCHAR(255)    NOT NULL                        COMMENT 'JDBC Driver 全限定类名',
-    `object_key`      VARCHAR(500)    NOT NULL                        COMMENT '驱动目录键（drivers/{driverName}，目录下存放驱动文件 + 依赖）',
+    `object_key`      VARCHAR(500)    NOT NULL                        COMMENT '驱动目录键（{driverName}，目录下存放驱动文件 + 依赖）',
     `storage_type`    VARCHAR(10)     NOT NULL DEFAULT 'local'        COMMENT '存储类型（local 本地存储，minio 对象存储）',
     `url_template`    VARCHAR(500)    DEFAULT NULL                    COMMENT 'JDBC URL 前缀模板',
     `allowed_params`  JSON            DEFAULT NULL                    COMMENT 'URL 参数白名单（JSON 格式）',

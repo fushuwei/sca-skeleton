@@ -552,7 +552,6 @@
     "saveSuccess": "保存成功",
     "saveFail": "保存失败",
     "driverNameExists": "驱动名称已存在",
-    "driverNameHint": "驱动名称作为目录名，创建后不可修改",
     "driverClassHint": "如 com.mysql.cj.jdbc.Driver",
     "urlTemplateHint": "如 jdbc:mysql://{host}:{port}/{database}",
     "allowedParamsHint": "JSON 数组，如 [\"useSSL\", \"serverTimezone\"]",
