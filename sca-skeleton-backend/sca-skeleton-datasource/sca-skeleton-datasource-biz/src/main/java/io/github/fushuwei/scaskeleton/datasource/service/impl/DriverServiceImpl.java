@@ -300,7 +300,7 @@ public class DriverServiceImpl implements DriverService {
         if (request.getDbType() != null) {
             driver.setDbType(request.getDbType().name());
         }
-        // 驱动类名：MongoDB 等非 JDBC 类型无需驱动类名（清空）；JDBC 类型必填（新值或原值至少一个非空）
+        // 校验驱动类名：MongoDB 等非 JDBC 类型允许为空；JDBC 类型必填（新值或原值至少一个非空）
         DbType effectiveDbType = request.getDbType() != null
             ? request.getDbType()
             : DbType.valueOf(driver.getDbType());
@@ -311,12 +311,9 @@ public class DriverServiceImpl implements DriverService {
             if (!StringUtils.hasText(effectiveDriverClass)) {
                 throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动类名不能为空");
             }
-            if (StringUtils.hasText(request.getDriverClass())) {
-                driver.setDriverClass(request.getDriverClass());
-            }
-        } else {
-            // 非 JDBC 类型（如 MongoDB），清空驱动类名
-            driver.setDriverClass(null);
+        }
+        if (StringUtils.hasText(request.getDriverClass())) {
+            driver.setDriverClass(request.getDriverClass());
         }
         if (StringUtils.hasText(request.getUrlTemplate())) {
             driver.setUrlTemplate(request.getUrlTemplate());

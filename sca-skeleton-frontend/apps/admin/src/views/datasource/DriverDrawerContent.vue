@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import type { QInput } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { Driver } from "../../apis/datasource";
 import {
@@ -27,6 +28,9 @@ const drawerReadonly = computed(() => props.mode === "view");
 
 // MongoDB 使用官方 driver（MongoClients.create），无需 JDBC 驱动类名
 const isMongoDb = computed(() => form.dbType === "MONGODB");
+
+// 驱动类名输入框引用（切换数据库类型时重置校验状态，清除残留的错误提示）
+const driverClassInputRef = ref<QInput | null>(null);
 
 // ── 数据库类型选项（与后端 DbType 枚举一致） ──
 const DB_TYPE_OPTIONS = [
@@ -130,6 +134,13 @@ const formRules = computed(() => ({
     ? []
     : [(v: string) => !!v?.trim() || t("driverMgmt.driverClassRequired")]
 }));
+
+// 切换数据库类型时重置驱动类名校验状态：
+// Quasar q-input 缓存校验结果，rules 从必填变为 [] 后旧错误不会自动清除，
+// 需要手动 resetValidation() 消除残留的红色边框和感叹号
+watch(isMongoDb, () => {
+  driverClassInputRef.value?.resetValidation();
+});
 
 // 选择数据库类型时自动填充默认 JDBC URL 模板：
 // 仅当模板为空或当前值仍为某类型的默认模板时覆盖，保留用户自定义内容
@@ -595,6 +606,7 @@ function formatFileSize(bytes: number): string {
         <!-- 驱动类名 -->
         <div class="col-12">
           <q-input
+            ref="driverClassInputRef"
             v-model.trim="form.driverClass"
             :label="t('driverMgmt.driverClass')"
             filled
