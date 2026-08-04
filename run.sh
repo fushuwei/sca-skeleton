@@ -7,7 +7,7 @@
 #
 # 阶段（不传则依次执行全部）：
 #   build-backend    构建 JAR 包并部署到 ./bin/
-#   start-backend    启动 gateway / auth / system 三个后端服务
+#   start-backend    启动 gateway / auth / system / datasource 四个后端服务
 #   build-frontend   构建前端 admin / portal dist
 #   deploy-frontend  部署前端 dist 到 nginx 容器目录并 reload
 #   all              上述全部（默认）
@@ -32,6 +32,7 @@ NGINX_HTML="/data/docker/containers/nginx/html"
 GATEWAY_JAR="sca-skeleton-gateway-1.0.0.jar"
 AUTH_JAR="sca-skeleton-auth-1.0.0.jar"
 SYSTEM_JAR="sca-skeleton-system-biz-1.0.0.jar"
+DATASOURCE_JAR="sca-skeleton-datasource-biz-1.0.0.jar"
 
 # ---------------- 工具函数 ----------------
 log()  { echo -e "\033[32m[deploy]\033[0m $*"; }
@@ -68,6 +69,8 @@ build_backend() {
   cp ./sca-skeleton-auth/target/${AUTH_JAR} "${BIN_DIR}/"
   rm -rf "${BIN_DIR}/${SYSTEM_JAR}"
   cp ./sca-skeleton-system/sca-skeleton-system-biz/target/${SYSTEM_JAR} "${BIN_DIR}/"
+  rm -rf "${BIN_DIR}/${DATASOURCE_JAR}"
+  cp ./sca-skeleton-datasource/sca-skeleton-datasource-biz/target/${DATASOURCE_JAR} "${BIN_DIR}/"
 }
 
 # ---------------- 阶段 2：启动后端服务 ----------------
@@ -90,7 +93,12 @@ start_backend() {
   sleep 1
   nohup java -jar "./bin/${SYSTEM_JAR}" > ./logs/system.log 2>&1 &
 
-  log "后端服务已启动，日志：${LOG_DIR}/{gateway,auth,system}.log"
+  log "启动 datasource 服务"
+  pkill -9 -f "./bin/${DATASOURCE_JAR}" 2>/dev/null || true
+  sleep 1
+  nohup java -jar "./bin/${DATASOURCE_JAR}" > ./logs/datasource.log 2>&1 &
+
+  log "后端服务已启动，日志：${LOG_DIR}/{gateway,auth,system,datasource}.log"
 }
 
 # ---------------- 阶段 3：构建前端 ----------------
