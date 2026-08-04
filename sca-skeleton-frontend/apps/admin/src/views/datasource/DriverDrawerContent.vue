@@ -526,6 +526,16 @@ function formatFileSize(bytes: number): string {
 
           <!-- 已选文件列表：在上传区下方独立展示 -->
           <div v-if="hasFiles" :class="['file-card', { 'q-mt-sm': !drawerReadonly }]">
+            <div class="file-card__head">
+              <span>
+                {{ t('driverMgmt.driverFilesCount', { count: displayFiles.length }) }}
+                · {{ t('driverMgmt.totalFileSize') }} {{ formatFileSize(totalFileSize) }}
+              </span>
+              <span v-if="!drawerReadonly" class="file-card__clear" @click="clearFiles">
+                {{ t('driverMgmt.clearFiles') }}
+              </span>
+            </div>
+
             <div class="file-card__rows">
               <div
                 v-for="file in displayFiles"
@@ -554,16 +564,6 @@ function formatFileSize(bytes: number): string {
                   <q-tooltip>{{ t('driverMgmt.removeFile') }}</q-tooltip>
                 </q-btn>
               </div>
-            </div>
-
-            <div class="file-card__foot">
-              <span>
-                {{ t('driverMgmt.driverFilesCount', { count: displayFiles.length }) }}
-                · {{ t('driverMgmt.totalFileSize') }} {{ formatFileSize(totalFileSize) }}
-              </span>
-              <span v-if="!drawerReadonly" class="file-card__clear" @click="clearFiles">
-                {{ t('driverMgmt.clearFiles') }}
-              </span>
             </div>
           </div>
 
@@ -761,13 +761,14 @@ function formatFileSize(bytes: number): string {
   max-height: 220px;
   overflow-y: auto;
 }
-.file-card__foot {
+.file-card__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
   font-size: 12px;
   color: #9aa3af;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 .file-card__clear {
   cursor: pointer;

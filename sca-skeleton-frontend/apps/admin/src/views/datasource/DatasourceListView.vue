@@ -1266,57 +1266,7 @@ onMounted(async () => {
   padding: 0 16px;
 }
 
-/* 列表页暗色模式 */
-.body--dark .search-area {
-  background: #1e1e1e !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .search-area-header {
-  background: #252525 !important;
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .search-area-title,
-.body--dark .search-collapse-btn {
-  color: rgba(255, 255, 255, 0.87) !important;
-}
-
-.body--dark .search-collapse-btn:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .status-select .q-field__native {
-  color: rgba(255, 255, 255, 0.87) !important;
-}
-
-.body--dark .datasource-table {
-  background: #1e1e1e !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .datasource-table thead tr th {
-  color: rgba(255, 255, 255, 0.8) !important;
-  background: #252525 !important;
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .datasource-table tbody td {
-  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
-}
-
-.body--dark .datasource-table tbody tr:hover td {
-  background: #1d2120 !important;
-}
-
-.body--dark .datasource-table tbody tr.q-tr--selected td {
-  background: #1c2323 !important;
-}
-
-.body--dark .datasource-table .q-table__bottom {
-  background: #1e1e1e !important;
-  border-top-color: rgba(255, 255, 255, 0.08) !important;
-}
+/* 列表页暗色模式已迁移至全局 admin-layout-dark.scss */
 
 /* 抽屉暗色模式 */
 .body--dark .datasource-local-drawer {

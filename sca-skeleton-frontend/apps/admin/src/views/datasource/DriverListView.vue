@@ -542,10 +542,15 @@ onMounted(() => {
         <!-- 数据库类型列 -->
         <template #body-cell-dbType="props">
           <q-td :props="props">
-            <div class="row items-center no-wrap">
-              <DbTypeIcon :db-type="props.row.dbType" :size="18" class="q-mr-xs" />
-              <q-badge color="blue-2" text-color="blue-9" :label="getDbTypeLabel(props.row.dbType)" />
-            </div>
+            <q-badge
+              v-if="props.value"
+              color="blue-2"
+              text-color="blue-9"
+              :label="getDbTypeLabel(props.row.dbType)"
+              rounded
+              class="db-type-badge"
+            />
+            <span v-else class="text-grey-5">-</span>
           </q-td>
         </template>
 
@@ -930,6 +935,13 @@ onMounted(() => {
   font-size: 12px;
 }
 
+/* 数据库类型徽章 */
+.db-type-badge {
+  font-size: 11px;
+  padding: 3px 10px;
+  font-weight: 500;
+}
+
 /* 操作按钮列 */
 .actions-cell {
   white-space: nowrap;
@@ -1137,57 +1149,7 @@ onMounted(() => {
   padding: 0 16px;
 }
 
-/* 列表页暗色模式 */
-.body--dark .search-area {
-  background: #1e1e1e !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .search-area-header {
-  background: #252525 !important;
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .search-area-title,
-.body--dark .search-collapse-btn {
-  color: rgba(255, 255, 255, 0.87) !important;
-}
-
-.body--dark .search-collapse-btn:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .status-select .q-field__native {
-  color: rgba(255, 255, 255, 0.87) !important;
-}
-
-.body--dark .driver-table {
-  background: #1e1e1e !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .driver-table thead tr th {
-  color: rgba(255, 255, 255, 0.8) !important;
-  background: #252525 !important;
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .driver-table tbody td {
-  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
-}
-
-.body--dark .driver-table tbody tr:hover td {
-  background: #1d2120 !important;
-}
-
-.body--dark .driver-table tbody tr.q-tr--selected td {
-  background: #1c2323 !important;
-}
-
-.body--dark .driver-table .q-table__bottom {
-  background: #1e1e1e !important;
-  border-top-color: rgba(255, 255, 255, 0.08) !important;
-}
+/* 列表页暗色模式已迁移至全局 admin-layout-dark.scss */
 
 /* 抽屉暗色模式 */
 .body--dark .driver-local-drawer {
