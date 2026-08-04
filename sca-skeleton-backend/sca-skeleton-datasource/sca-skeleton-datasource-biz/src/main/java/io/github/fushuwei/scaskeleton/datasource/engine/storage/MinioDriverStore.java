@@ -57,12 +57,4 @@ public class MinioDriverStore implements DriverStore {
         // 实际删除由 DriverServiceImpl 在驱动记录中保存 jarList 后逐个调用 deleteObject 完成。
         log.warn("MinioDriverStore.deleteDriverDir 需 MinioUtils.listObjects 支持，当前为空操作: {}", driverDir);
     }
-
-    @Override
-    public void renameDriverDir(String fromDriverDir, String toDriverDir) {
-        // MinIO 无 rename 操作，需要 listObjects + 复制 + 删除。
-        // 当前暂不支持，待 MinioUtils 补充 listObjects 后实现。
-        throw new UnsupportedOperationException(
-            "MinioDriverStore.renameDriverDir 暂未实现，需先在 MinioUtils 补充 listObjects 能力");
-    }
 }

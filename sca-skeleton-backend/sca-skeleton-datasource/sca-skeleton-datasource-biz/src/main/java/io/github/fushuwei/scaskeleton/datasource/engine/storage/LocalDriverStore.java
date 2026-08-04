@@ -81,33 +81,6 @@ public class LocalDriverStore implements DriverStore {
         }
     }
 
-    @Override
-    public void renameDriverDir(String fromDriverDir, String toDriverDir) {
-        Path fromPath = resolveDriverDirPath(fromDriverDir);
-        Path toPath = resolveDriverDirPath(toDriverDir);
-        if (!Files.exists(fromPath)) {
-            throw new RuntimeException("源驱动目录不存在: " + fromDriverDir);
-        }
-        try {
-            Files.createDirectories(toPath.getParent());
-            // 如果目标目录已存在（如重传），先删除
-            if (Files.exists(toPath)) {
-                try (Stream<Path> walk = Files.walk(toPath)) {
-                    walk.sorted(java.util.Comparator.reverseOrder())
-                        .forEach(p -> {
-                            try {
-                                Files.deleteIfExists(p);
-                            } catch (IOException ignored) {
-                            }
-                        });
-                }
-            }
-            Files.move(fromPath, toPath);
-        } catch (IOException e) {
-            throw new RuntimeException("重命名驱动目录失败: " + fromDriverDir + " -> " + toDriverDir, e);
-        }
-    }
-
     /**
      * 解析驱动目录的完整本地路径。
      * <p>

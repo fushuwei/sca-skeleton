@@ -56,14 +56,4 @@ public interface DriverStore {
      * @param driverDir 驱动目录键
      */
     void deleteDriverDir(String driverDir);
-
-    /**
-     * 重命名驱动目录（本地场景优化，MinIO 场景为空操作）。
-     * <p>
-     * 用于创建驱动时把临时目录 drivers/_temp/{uploadId}/ 重命名为正式目录 drivers/{driverName}/。
-     *
-     * @param fromDriverDir 源目录键
-     * @param toDriverDir   目标目录键
-     */
-    void renameDriverDir(String fromDriverDir, String toDriverDir);
 }

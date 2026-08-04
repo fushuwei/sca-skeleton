@@ -12,9 +12,7 @@ import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverUpdate
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverFileResponse;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverOptionResponse;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverResponse;
-import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverUploadResponse;
 import io.github.fushuwei.scaskeleton.datasource.converter.DriverConverter;
-import io.github.fushuwei.scaskeleton.datasource.engine.driver.DriverClassDetector;
 import io.github.fushuwei.scaskeleton.datasource.engine.storage.DriverStore;
 import io.github.fushuwei.scaskeleton.datasource.engine.storage.DriverStoreProperties;
 import io.github.fushuwei.scaskeleton.datasource.entity.Driver;
@@ -32,16 +30,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -52,8 +48,9 @@ import java.util.stream.Collectors;
  * <p>
  * 驱动文件元数据存储在 ds_driver_file 表，一个驱动可关联多个文件。
  * <p>
- * 上传流程：支持多文件上传 → 临时存到 drivers/_temp/{uploadId}/ → 探测驱动类 → 返回 uploadId。
- * 创建流程：用 driverName 作为目录名 → 把临时目录重命名为 drivers/{driverName}/ → 落库 + 落文件表。
+ * 创建流程：表单字段与驱动文件随同一次 multipart 请求提交 → 校验驱动名称唯一 →
+ * 文件直接写入正式目录 drivers/{driverName}/ → 落库 + 落文件表。
+ * 不再使用临时目录，表单未提交即不产生任何服务端文件，避免脏数据。
  *
  * @author Fu Wei
  */
@@ -62,7 +59,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DriverServiceImpl implements DriverService {
 
-    private static final String TEMP_DIR_PREFIX = "drivers/_temp/";
     private static final String DRIVER_DIR_PREFIX = "drivers/";
 
     private final DriverMapper driverMapper;
@@ -100,84 +96,67 @@ public class DriverServiceImpl implements DriverService {
     }
 
     /**
-     * 上传驱动文件（支持多文件）。
+     * 创建驱动（表单字段 + 驱动文件随同一次 multipart 请求提交）。
      * <p>
-     * 上传的文件会临时存到 drivers/_temp/{uploadId}/ 目录，前端拿到 uploadId + 探测到的 driverClass 后回填到创建表单。
-     * 创建驱动时用 driverName 作为正式目录名，把临时目录重命名为 drivers/{driverName}/。
+     * 校验驱动名称唯一后，文件直接写入正式目录 drivers/{driverName}/，落库驱动主表与文件表。
+     * 未提交表单时服务端不产生任何文件，不存在脏数据问题。
      */
     @Override
-    public DriverUploadResponse uploadDriver(DbType dbType, MultipartFile[] files) {
-        if (files == null || files.length == 0) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "上传文件不能为空");
+    @Transactional(rollbackFor = Exception.class)
+    public void createDriver(DriverCreateRequest request, MultipartFile[] files) {
+        // 校验驱动名称唯一（作为目录名必须唯一）
+        if (existsByDriverName(request.getDriverName())) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动名称已存在: " + request.getDriverName());
         }
 
-        // 生成上传批次 ID 作为临时目录名
-        String uploadId = UUID.randomUUID().toString().replace("-", "");
-        String tempDriverDir = TEMP_DIR_PREFIX + uploadId;
-
-        List<String> jarFileNames = new ArrayList<>();
-        long totalSize = 0;
-        List<Path> localJarPaths = new ArrayList<>();
-
-        for (MultipartFile file : files) {
-            if (file == null || file.isEmpty()) {
-                continue;
+        // 校验驱动文件
+        List<MultipartFile> validFiles = new ArrayList<>();
+        Set<String> fileNames = new HashSet<>();
+        if (files != null) {
+            for (MultipartFile file : files) {
+                if (file == null || file.isEmpty()) {
+                    continue;
+                }
+                String originalName = file.getOriginalFilename();
+                if (originalName == null || !originalName.endsWith(".jar")) {
+                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "仅支持 .jar 文件: " + originalName);
+                }
+                if (!fileNames.add(originalName)) {
+                    throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动文件名重复: " + originalName);
+                }
+                validFiles.add(file);
             }
-            String originalName = file.getOriginalFilename();
-            if (originalName == null || !originalName.endsWith(".jar")) {
-                throw new BusinessException(ResultCode.VALIDATION_ERROR, "仅支持 .jar 文件: " + originalName);
-            }
+        }
+        if (validFiles.isEmpty()) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "请上传驱动文件");
+        }
 
-            // 存储到临时目录
-            try (InputStream is = file.getInputStream()) {
-                driverStore.putJar(tempDriverDir, originalName, is, file.getSize());
+        String driverDir = DRIVER_DIR_PREFIX + request.getDriverName();
+
+        // 写入驱动文件（单次流式读取，同步计算 SHA-256）
+        List<DriverFile> driverFiles = new ArrayList<>();
+        int sortOrder = 0;
+        for (MultipartFile file : validFiles) {
+            MessageDigest digest;
+            try {
+                digest = MessageDigest.getInstance("SHA-256");
+            } catch (NoSuchAlgorithmException e) {
+                throw new BusinessException(ResultCode.FAILURE, "SHA-256 算法不可用");
+            }
+            try (InputStream is = file.getInputStream();
+                 DigestInputStream dis = new DigestInputStream(is, digest)) {
+                driverStore.putJar(driverDir, file.getOriginalFilename(), dis, file.getSize());
             } catch (IOException e) {
                 throw new BusinessException(ResultCode.FAILURE, "存储驱动文件失败: " + e.getMessage());
             }
 
-            jarFileNames.add(originalName);
-            totalSize += file.getSize();
+            DriverFile driverFile = new DriverFile();
+            driverFile.setFileName(file.getOriginalFilename());
+            driverFile.setFileSize(file.getSize());
+            driverFile.setSha256(HexFormat.of().formatHex(digest.digest()));
+            driverFile.setSortOrder(sortOrder++);
+            driverFiles.add(driverFile);
         }
-
-        if (jarFileNames.isEmpty()) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "没有有效的驱动文件");
-        }
-
-        // 获取本地路径用于探测驱动类
-        localJarPaths.addAll(driverStore.listLocalJars(tempDriverDir));
-        Path[] jarPathArray = localJarPaths.toArray(new Path[0]);
-
-        List<String> detectedClasses = DriverClassDetector.detectDriverClasses(jarPathArray);
-        String driverClass = detectedClasses.isEmpty() ? null : detectedClasses.get(0);
-
-        DriverUploadResponse response = new DriverUploadResponse();
-        response.setUploadId(uploadId);
-        response.setFileSize(totalSize);
-        response.setJarFileNames(jarFileNames);
-        response.setDetectedDriverClasses(detectedClasses);
-        response.setDriverClass(driverClass);
-        return response;
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void createDriver(DriverCreateRequest request) {
-        // 校验驱动名称唯一（作为目录名必须唯一）
-        long existCount = driverMapper.selectCount(new LambdaQueryWrapper<Driver>()
-            .eq(Driver::getDriverName, request.getDriverName()));
-        if (existCount > 0) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "驱动名称已存在: " + request.getDriverName());
-        }
-
-        // 临时目录 → 正式目录
-        String tempDriverDir = TEMP_DIR_PREFIX + request.getUploadId();
-        String driverDir = DRIVER_DIR_PREFIX + request.getDriverName();
-
-        // 获取临时目录下文件信息（用于落库文件表）
-        List<Path> jarPaths = driverStore.listLocalJars(tempDriverDir);
-
-        // 重命名临时目录为正式目录
-        driverStore.renameDriverDir(tempDriverDir, driverDir);
 
         // 落库驱动主表
         Driver driver = driverConverter.toDriver(request);
@@ -189,23 +168,20 @@ public class DriverServiceImpl implements DriverService {
         driverMapper.insert(driver);
 
         // 落库驱动文件表（逐个文件记录元数据）
-        long totalSize = 0;
-        int sortOrder = 0;
-        for (Path jarPath : jarPaths) {
-            DriverFile driverFile = new DriverFile();
+        for (DriverFile driverFile : driverFiles) {
             driverFile.setDriverId(driver.getId());
-            driverFile.setFileName(jarPath.getFileName().toString());
-            try {
-                driverFile.setFileSize(Files.size(jarPath));
-                totalSize += Files.size(jarPath);
-            } catch (IOException e) {
-                driverFile.setFileSize(0L);
-            }
-            driverFile.setSha256(computeSha256(jarPath));
-            driverFile.setSortOrder(sortOrder++);
             driverFileMapper.insert(driverFile);
         }
-        log.info("创建驱动成功: driverName={}, fileCount={}", request.getDriverName(), jarPaths.size());
+        log.info("创建驱动成功: driverName={}, fileCount={}", request.getDriverName(), driverFiles.size());
+    }
+
+    @Override
+    public boolean existsByDriverName(String driverName) {
+        if (!StringUtils.hasText(driverName)) {
+            return false;
+        }
+        return driverMapper.selectCount(new LambdaQueryWrapper<Driver>()
+            .eq(Driver::getDriverName, driverName)) > 0;
     }
 
     @Override
@@ -347,30 +323,5 @@ public class DriverServiceImpl implements DriverService {
             throw new BusinessException(ResultCode.NOT_FOUND, "驱动不存在");
         }
         return driver;
-    }
-
-    /**
-     * 计算文件的 SHA256 校验值。
-     */
-    private String computeSha256(Path filePath) {
-        try (InputStream is = Files.newInputStream(filePath)) {
-            return computeSha256(is);
-        } catch (IOException e) {
-            throw new BusinessException(ResultCode.FAILURE, "计算 SHA256 失败: " + e.getMessage());
-        }
-    }
-
-    private String computeSha256(InputStream is) throws IOException {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] buffer = new byte[8192];
-            int n;
-            while ((n = is.read(buffer)) != -1) {
-                digest.update(buffer, 0, n);
-            }
-            return HexFormat.of().formatHex(digest.digest());
-        } catch (NoSuchAlgorithmException e) {
-            throw new IOException("SHA-256 算法不可用", e);
-        }
     }
 }

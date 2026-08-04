@@ -64,7 +64,7 @@ export const materialSymbolsCodepoints: Record<string, number> = {
   "block": 61580,
   "check_circle": 61630,
   "database_search": 62350,
-  "attach_file": 57894,
+  "upload_file": 59900,
   "play_arrow": 57399,
   "code": 59503,
   "table_chart": 57957,

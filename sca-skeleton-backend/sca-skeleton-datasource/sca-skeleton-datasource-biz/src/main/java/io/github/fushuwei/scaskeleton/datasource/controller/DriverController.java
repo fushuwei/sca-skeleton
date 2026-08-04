@@ -9,7 +9,6 @@ import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverPageRe
 import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverUpdateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverOptionResponse;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverResponse;
-import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverUploadResponse;
 import io.github.fushuwei.scaskeleton.datasource.service.DriverService;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
 import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
@@ -51,22 +50,21 @@ public class DriverController {
         return Result.ok(driverService.getDriverById(id));
     }
 
-    @Operation(summary = "新增驱动")
-    @PostMapping("/create")
+    @Operation(summary = "新增驱动（表单字段 + 驱动文件随同一次 multipart 请求提交）")
+    @PostMapping(value = "/create", consumes = "multipart/form-data")
     @RequiresPermission("sys:datasource:driver:add")
     @OperationLog(module = "驱动管理", action = "新增驱动")
-    public Result<Void> create(@Validated @RequestBody DriverCreateRequest request) {
-        driverService.createDriver(request);
+    public Result<Void> create(@Validated @RequestPart("driver") DriverCreateRequest request,
+                               @RequestPart("files") MultipartFile[] files) {
+        driverService.createDriver(request, files);
         return Result.ok();
     }
 
-    @Operation(summary = "上传驱动 JAR 文件（支持多文件）")
-    @PostMapping("/upload")
+    @Operation(summary = "检查驱动名称是否已存在")
+    @GetMapping("/name/exists")
     @RequiresPermission("sys:datasource:driver:add")
-    @OperationLog(module = "驱动管理", action = "上传驱动JAR")
-    public Result<DriverUploadResponse> upload(@RequestParam DbType dbType,
-                                               @RequestParam("files") MultipartFile[] files) {
-        return Result.ok(driverService.uploadDriver(dbType, files));
+    public Result<Boolean> nameExists(@RequestParam String driverName) {
+        return Result.ok(driverService.existsByDriverName(driverName));
     }
 
     @Operation(summary = "编辑驱动")

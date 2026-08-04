@@ -7,7 +7,6 @@ import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverPageRe
 import io.github.fushuwei.scaskeleton.datasource.api.request.driver.DriverUpdateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverOptionResponse;
 import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverResponse;
-import io.github.fushuwei.scaskeleton.datasource.api.response.driver.DriverUploadResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -23,9 +22,15 @@ public interface DriverService {
 
     DriverResponse getDriverById(String id);
 
-    DriverUploadResponse uploadDriver(DbType dbType, MultipartFile[] files);
+    /**
+     * 创建驱动（表单字段 + 驱动文件随同一次 multipart 请求提交）。
+     */
+    void createDriver(DriverCreateRequest request, MultipartFile[] files);
 
-    void createDriver(DriverCreateRequest request);
+    /**
+     * 检查驱动名称是否已存在（驱动名称作为目录名，全局唯一）。
+     */
+    boolean existsByDriverName(String driverName);
 
     void updateDriver(DriverUpdateRequest request);
 
