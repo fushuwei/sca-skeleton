@@ -90,7 +90,7 @@ const form = reactive({
   dbType: "",
   driverId: "",
   host: "",
-  port: 3306 as number,
+  port: 3306 as number | null,
   databaseName: "",
   username: "",
   password: "",
@@ -104,7 +104,7 @@ const formRules = computed(() => ({
   dbType: [(v: string) => !!v || t("datasourceMgmt.dbTypeRequired")],
   driverId: [(v: string) => !!v || t("datasourceMgmt.driverRequired")],
   host: [(v: string) => !!v?.trim() || t("datasourceMgmt.hostRequired")],
-  port: [(v: number) => !!v || t("datasourceMgmt.portRequired")],
+  port: [(v: number | null) => !!v || t("datasourceMgmt.portRequired")],
   databaseName: [(v: string) => !!v?.trim() || t("datasourceMgmt.databaseNameRequired")],
   username: [(v: string) => !!v?.trim() || t("datasourceMgmt.usernameRequired")],
   password: props.mode === "add"
@@ -167,10 +167,10 @@ async function onDbTypeChange(dbType: string) {
   await loadDriverOptions(dbType);
 }
 
-// 端口输入：常规文本框，仅允许输入数字
+// 端口输入：常规文本框，仅允许输入数字；清空时显示空白而非 0
 function onPortInput(v: string | number | null) {
   const digits = String(v ?? "").replace(/\D/g, "");
-  form.port = digits ? Number(digits) : 0;
+  form.port = digits ? Number(digits) : null;
 }
 
 function handleClose() {
@@ -185,7 +185,7 @@ async function handleSave() {
     dbType: form.dbType,
     driverId: form.driverId || undefined,
     host: form.host,
-    port: form.port,
+    port: form.port ?? undefined,
     databaseName: form.databaseName || undefined,
     username: form.username,
     connectionParams: form.connectionParams || undefined,
