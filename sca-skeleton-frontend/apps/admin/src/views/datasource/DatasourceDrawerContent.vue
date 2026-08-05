@@ -226,7 +226,7 @@ onMounted(() => {
     <q-form class="datasource-drawer-form" @submit="handleSave">
       <div class="row q-col-gutter-md">
         <!-- 数据源名称 -->
-        <div class="col-12 col-md-6">
+        <div class="col-12">
           <q-input
             v-model.trim="form.name"
             :label="t('datasourceMgmt.name')"
@@ -275,7 +275,7 @@ onMounted(() => {
           </q-select>
         </div>
         <!-- 关联驱动 -->
-        <div class="col-12">
+        <div class="col-12 col-md-6">
           <q-select
             v-model="form.driverId"
             :label="t('datasourceMgmt.driverId')"
@@ -291,7 +291,7 @@ onMounted(() => {
           />
         </div>
         <!-- 主机地址 -->
-        <div class="col-12 col-md-8">
+        <div class="col-12 col-md-6">
           <q-input
             v-model.trim="form.host"
             :label="t('datasourceMgmt.host')"
@@ -305,7 +305,7 @@ onMounted(() => {
           />
         </div>
         <!-- 端口 -->
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6">
           <q-input
             v-model.number="form.port"
             :label="t('datasourceMgmt.port')"
@@ -320,7 +320,7 @@ onMounted(() => {
           />
         </div>
         <!-- 数据库名 -->
-        <div class="col-12 col-md-6">
+        <div class="col-12">
           <q-input
             v-model.trim="form.databaseName"
             :label="t('datasourceMgmt.databaseName')"
@@ -346,7 +346,7 @@ onMounted(() => {
           />
         </div>
         <!-- 密码 -->
-        <div class="col-12">
+        <div class="col-12 col-md-6">
           <q-input
             v-model="form.password"
             :label="isEdit ? t('datasourceMgmt.password') + '（' + t('datasourceMgmt.passwordEditHint') + '）' : t('datasourceMgmt.password')"
