@@ -102,8 +102,10 @@ const form = reactive({
 const formRules = computed(() => ({
   name: [(v: string) => !!v?.trim() || t("datasourceMgmt.nameRequired")],
   dbType: [(v: string) => !!v || t("datasourceMgmt.dbTypeRequired")],
+  driverId: [(v: string) => !!v || t("datasourceMgmt.driverRequired")],
   host: [(v: string) => !!v?.trim() || t("datasourceMgmt.hostRequired")],
   port: [(v: number) => !!v || t("datasourceMgmt.portRequired")],
+  databaseName: [(v: string) => !!v?.trim() || t("datasourceMgmt.databaseNameRequired")],
   username: [(v: string) => !!v?.trim() || t("datasourceMgmt.usernameRequired")],
   password: props.mode === "add"
     ? [(v: string) => !!v?.trim() || t("datasourceMgmt.passwordRequired")]
@@ -163,6 +165,12 @@ async function onDbTypeChange(dbType: string) {
   // 清空已选驱动（不同 dbType 的驱动不通用）
   form.driverId = "";
   await loadDriverOptions(dbType);
+}
+
+// 端口输入：常规文本框，仅允许输入数字
+function onPortInput(v: string | number | null) {
+  const digits = String(v ?? "").replace(/\D/g, "");
+  form.port = digits ? Number(digits) : 0;
 }
 
 function handleClose() {
@@ -284,10 +292,12 @@ onMounted(() => {
             :options="driverOptions"
             emit-value
             map-options
+            :rules="formRules.driverId"
             :loading="driverLoading"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
+            class="required-field"
           />
         </div>
         <!-- 主机地址 -->
@@ -307,11 +317,11 @@ onMounted(() => {
         <!-- 端口 -->
         <div class="col-12 col-md-6">
           <q-input
-            v-model.number="form.port"
+            :model-value="form.port"
+            @update:model-value="onPortInput"
             :label="t('datasourceMgmt.port')"
             filled
             square
-            type="number"
             :rules="formRules.port"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
@@ -326,9 +336,11 @@ onMounted(() => {
             :label="t('datasourceMgmt.databaseName')"
             filled
             square
+            :rules="formRules.databaseName"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
+            class="required-field"
           />
         </div>
         <!-- 用户名 -->
