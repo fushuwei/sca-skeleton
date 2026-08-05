@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from "vue";
+import { ref, reactive, computed, watch, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { Datasource, DbTypeOption, DriverOption } from "../../apis/datasource";
@@ -104,7 +104,10 @@ const formRules = computed(() => ({
   dbType: [(v: string) => !!v || t("datasourceMgmt.dbTypeRequired")],
   driverId: [(v: string) => !!v || t("datasourceMgmt.driverRequired")],
   host: [(v: string) => !!v?.trim() || t("datasourceMgmt.hostRequired")],
-  port: [(v: number | null) => !!v || t("datasourceMgmt.portRequired")],
+  port: [
+    (v: number | null) => !!v || t("datasourceMgmt.portRequired"),
+    (v: number | null) => (v != null && v >= 1 && v <= 65535) || t("datasourceMgmt.portRangeError")
+  ],
   databaseName: [(v: string) => !!v?.trim() || t("datasourceMgmt.databaseNameRequired")],
   username: [(v: string) => !!v?.trim() || t("datasourceMgmt.usernameRequired")],
   password: props.mode === "add"
@@ -167,10 +170,45 @@ async function onDbTypeChange(dbType: string) {
   await loadDriverOptions(dbType);
 }
 
-// 端口输入：常规文本框，仅允许输入数字；清空时显示空白而非 0
+// 端口输入框组件引用（用于同步原生 input 值，清除 IME 漏网的字符）
+const portInputRef = ref<{ $el: HTMLElement } | null>(null);
+
+// ── 端口输入过滤（三层防护） ──
+// 第 1 层：keydown 拦截 IME 输入法和非数字字符
+function onPortKeydown(e: KeyboardEvent) {
+  // 拦截中文输入法（IME）组合：keyCode 229 表示 IME 正在处理，
+  // key === "Process" 表示 IME 即将启动
+  if (e.isComposing || e.keyCode === 229 || e.key === "Process") {
+    e.preventDefault();
+    return;
+  }
+  // 允许功能键
+  const controlKeys = ["Backspace", "Delete", "Tab", "Escape", "Enter", "Home", "End", "ArrowLeft", "ArrowRight"];
+  if (controlKeys.includes(e.key)) return;
+  // 允许 Ctrl/Cmd 快捷键（全选/复制/粘贴/剪切/撤销/重做）
+  if ((e.ctrlKey || e.metaKey) && /^[acvxzy]$/i.test(e.key)) return;
+  // 只允许数字 0-9
+  if (!/^\d$/.test(e.key)) {
+    e.preventDefault();
+  }
+}
+
+// 第 2 层：@update:model-value 过滤非数字字符
+// 第 3 层：当检测到非数字字符时，通过 nextTick 同步原生 input DOM 值
 function onPortInput(v: string | number | null) {
-  const digits = String(v ?? "").replace(/\D/g, "");
+  const raw = String(v ?? "");
+  const digits = raw.replace(/\D/g, "");
   form.port = digits ? Number(digits) : null;
+  // 当原始值包含非数字字符时，form.port 可能与之前相同（如 3306中文 → 3306），
+  // Vue 不会触发重渲染，中文残留在 DOM 中。此处手动同步原生 input 值。
+  if (raw !== digits) {
+    nextTick(() => {
+      const el = portInputRef.value?.$el?.querySelector?.("input") as HTMLInputElement | null;
+      if (el && el.value !== digits) {
+        el.value = digits;
+      }
+    });
+  }
 }
 
 function handleClose() {
@@ -317,8 +355,12 @@ onMounted(() => {
         <!-- 端口 -->
         <div class="col-12 col-md-6">
           <q-input
+            ref="portInputRef"
             :model-value="form.port"
             @update:model-value="onPortInput"
+            @keydown="onPortKeydown"
+            type="text"
+            inputmode="numeric"
             :label="t('datasourceMgmt.port')"
             filled
             square

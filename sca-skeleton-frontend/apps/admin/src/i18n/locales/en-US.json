@@ -583,6 +583,7 @@
     "dbTypeRequired": "Please select database type",
     "hostRequired": "Please input host",
     "portRequired": "Please input port",
+    "portRangeError": "Port must be between 1 and 65535",
     "databaseNameRequired": "Please input database",
     "usernameRequired": "Please input username",
     "passwordRequired": "Please input password",

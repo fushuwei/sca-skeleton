@@ -583,6 +583,7 @@
     "dbTypeRequired": "请选择数据库类型",
     "hostRequired": "请输入主机地址",
     "portRequired": "请输入端口",
+    "portRangeError": "端口范围 1-65535",
     "databaseNameRequired": "请输入数据库",
     "usernameRequired": "请输入用户名",
     "passwordRequired": "请输入密码",
