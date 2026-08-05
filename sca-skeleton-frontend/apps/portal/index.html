@@ -40,6 +40,9 @@
         border-radius: 100%;
         border: 3px solid transparent;
         border-top-color: #1976d2;
+        /* 显式声明，避免 Quasar normalize 的 *:before { box-sizing: inherit }
+           在 CSS 异步加载时改变 pseudo-element 尺寸，导致刷新闪烁两个大小 */
+        box-sizing: border-box;
       }
 
       .app-loader-spinner:before {

@@ -828,6 +828,8 @@
     border-radius: 100%;
     border: 3px solid transparent;
     border-top-color: var(--md-sys-color-primary, #1976d2);
+    /* 与 index.html #app-loading 保持 100% 一致：显式声明 box-sizing */
+    box-sizing: border-box;
 }
 
 .page-loader .spinner:before {
