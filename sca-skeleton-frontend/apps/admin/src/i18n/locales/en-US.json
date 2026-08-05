@@ -542,8 +542,7 @@
     "saveSuccess": "Saved successfully",
     "saveFail": "Failed to save",
     "driverNameExists": "Driver name already exists",
-    "addMoreFiles": "Add more files (click or drag)",
-    "clearFiles": "Clear"
+    "addMoreFiles": "Add more files (click or drag)"
   },
   "datasourceMgmt": {
     "createDatasource": "Add Datasource",

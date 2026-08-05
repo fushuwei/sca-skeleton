@@ -542,8 +542,7 @@
     "saveSuccess": "保存成功",
     "saveFail": "保存失败",
     "driverNameExists": "驱动名称已存在",
-    "addMoreFiles": "添加更多文件（点击或拖拽）",
-    "clearFiles": "清空"
+    "addMoreFiles": "添加更多文件（点击或拖拽）"
   },
   "datasourceMgmt": {
     "createDatasource": "添加数据源",

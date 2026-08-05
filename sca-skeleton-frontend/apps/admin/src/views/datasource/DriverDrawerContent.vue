@@ -331,18 +331,6 @@ function removeFile(name: string) {
   void refreshDriverClassOptions();
 }
 
-// 清空全部文件
-function clearFiles() {
-  if (formLoading.value) return;
-  jarFiles.value = [];
-  // 编辑模式下标记所有已有文件为删除
-  for (const name of existingFileNames.value) {
-    deletedFileNames.value.add(name);
-  }
-  deletedFileNames.value = new Set(deletedFileNames.value);
-  refreshDriverClassOptions();
-}
-
 // 统一的文件展示列表（合并已有文件 + 新增文件）
 interface DisplayFile {
   name: string;
@@ -552,13 +540,6 @@ function formatFileSize(bytes: number | string): string {
               <span v-if="hasFiles" class="upload-panel__summary">
                 {{ t('driverMgmt.driverFilesCount', { count: displayFiles.length }) }}
                 · {{ t('driverMgmt.totalFileSize') }} {{ formatFileSize(totalFileSize) }}
-                <span
-                  v-if="!drawerReadonly"
-                  class="upload-panel__clear"
-                  @click="clearFiles"
-                >
-                  {{ t('driverMgmt.clearFiles') }}
-                </span>
               </span>
             </div>
 
@@ -773,14 +754,6 @@ function formatFileSize(bytes: number | string): string {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.upload-panel__clear {
-  margin-left: 8px;
-  cursor: pointer;
-  transition: color 0.15s ease;
-}
-.upload-panel__clear:hover {
-  color: var(--q-negative);
 }
 
 /* 上传触发区：面板内唯一点击入口，无独立边框 */
