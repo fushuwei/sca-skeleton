@@ -157,6 +157,23 @@ export const usePortalAuthStore = defineStore("portal-auth", {
       this.dynamicReady = true;
     },
     /**
+     * 重置全部认证状态到未登录态（内存 + localStorage）。
+     *
+     * 单一清理入口：logout() 和路由守卫认证失败时均调用此方法，
+     * 避免多处复制清理逻辑导致字段遗漏。
+     */
+    resetState(): void {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
+      localStorage.removeItem(MENUS_STORAGE_KEY);
+      this.token = "";
+      this.refreshToken = "";
+      this.permissions = [];
+      this.menus = [];
+      this.profile = null;
+      this.dynamicReady = false;
+    },
+    /**
      * 退出登录：吊销令牌并清除本地状态。
      */
     async logout(router: Router): Promise<void> {
@@ -171,15 +188,7 @@ export const usePortalAuthStore = defineStore("portal-auth", {
         void revokeOAuthToken(config, refreshToken, "refresh_token");
       }
 
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-      localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
-      localStorage.removeItem(MENUS_STORAGE_KEY);
-      this.token = "";
-      this.refreshToken = "";
-      this.permissions = [];
-      this.menus = [];
-      this.profile = null;
-      this.dynamicReady = false;
+      this.resetState();
 
       await router.push({ name: "Login" });
     }

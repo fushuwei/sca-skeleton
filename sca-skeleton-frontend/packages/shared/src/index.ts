@@ -15,6 +15,8 @@ export {
   RETRY_DELAY_MS
 } from "./router/guard-utils";
 export type { TransientRetryState } from "./router/guard-utils";
+export { createAuthGuard } from "./router/auth-guard";
+export type { AuthGuardStore, AuthGuardConfig } from "./router/auth-guard";
 
 export {
   loginWithPassword,

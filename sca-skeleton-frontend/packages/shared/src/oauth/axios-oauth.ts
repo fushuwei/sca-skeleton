@@ -74,21 +74,26 @@ interface TaggedError extends Error {
 }
 
 /**
- * 构造一个"瞬时网络/中止"的错误，同时打上 `_notificationHandled`（避免调用方重复弹提示）
- * 与 `_transient`（标记为可重试的瞬时故障，如断网、浏览器导航中止、超时）。
+ * 构造一个"瞬时网络/中止"的错误，打上 `_transient` 标记（可重试的瞬时故障，如断网、浏览器导航中止、超时）。
  * <p>
- * 与 {@link rejectHandled} 的区别：该标记允许路由守卫等调用方把此类错误当作"可重试、勿登出"，
- * 而 403/500 等真实 HTTP 错误只使用 {@link rejectHandled}（不视为瞬时故障）。
+ * 注意：此函数不设置 `_notificationHandled`。是否已弹通知取决于调用方：
+ * - 响应拦截器在调用 {@link rejectTransient} 前已调用 showNotification，由 rejectTransient 补设标记；
+ * - handleUnauthorized / oauthRequest 直接使用本函数，未弹通知，因此不设标记。
  */
 function buildTransientError(message: string): TaggedError {
   const err = new Error(message) as TaggedError;
-  err._notificationHandled = true;
   err._transient = true;
   return err;
 }
 
+/**
+ * 响应拦截器专用：构造瞬时错误并标记已弹通知（调用前已执行 showNotification），
+ * 然后以 reject 返回。
+ */
 function rejectTransient(message: string): Promise<never> {
-  return Promise.reject(buildTransientError(message));
+  const err = buildTransientError(message);
+  err._notificationHandled = true;
+  return Promise.reject(err);
 }
 
 /**

@@ -9,5 +9,8 @@
     "@zxcvbn-ts/language-common": "^4.1.2",
     "@zxcvbn-ts/language-zh": "^4.1.1",
     "axios": "1.15.2"
+  },
+  "devDependencies": {
+    "vue-router": "5.0.6"
   }
 }
