@@ -57,7 +57,7 @@ public class Datasource extends BaseEntity {
     /** 是否启用（0否 1是） */
     private Integer isEnabled;
 
-    /** 状态（online 在线、offline 离线、error 异常） */
+    /** 状态（normal 正常、offline 离线、error 异常） */
     private String status;
 
     /** 最近连接错误信息 */

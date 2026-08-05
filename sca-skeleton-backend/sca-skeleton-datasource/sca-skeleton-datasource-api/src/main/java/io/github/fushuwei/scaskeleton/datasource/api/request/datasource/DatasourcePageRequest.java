@@ -25,7 +25,7 @@ public class DatasourcePageRequest implements Serializable {
     /** 是否启用（1/0） */
     private Integer isEnabled;
 
-    /** 连接状态（online 在线、offline 离线、error 异常，可选筛选） */
+    /** 连接状态（normal 正常、offline 离线、error 异常，可选筛选） */
     private String status;
 
     /** 页码 */

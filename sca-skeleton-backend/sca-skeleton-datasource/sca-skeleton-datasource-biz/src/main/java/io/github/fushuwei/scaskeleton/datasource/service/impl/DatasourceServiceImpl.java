@@ -280,7 +280,7 @@ public class DatasourceServiceImpl implements DatasourceService {
                 }
             }
             // 连接成功：更新运行态
-            updateStatus(ds, "online", null);
+            updateStatus(ds, "normal", null);
             log.info("测试连接成功: datasourceId={}, jdbcUrl={}", id, jdbcUrl);
             return buildResponse(ds, driver);
         } catch (Exception e) {
@@ -364,7 +364,7 @@ public class DatasourceServiceImpl implements DatasourceService {
      */
     private void updateStatus(Datasource ds, String status, String errorMsg) {
         ds.setStatus(status);
-        if ("online".equals(status)) {
+        if ("normal".equals(status)) {
             ds.setErrorMsg(null);
         } else {
             ds.setErrorMsg(StringUtils.hasText(errorMsg) ? errorMsg : "未知错误");

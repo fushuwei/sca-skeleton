@@ -566,7 +566,7 @@
     "enabledStatus": "启用",
     "disabledStatus": "禁用",
     "connectionState": "运行态",
-    "stateOnline": "在线",
+    "stateOnline": "正常",
     "stateOffline": "离线",
     "stateError": "异常",
     "driverName": "驱动名称",

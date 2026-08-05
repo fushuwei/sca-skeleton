@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `ds_datasource` (
     `connection_params` TEXT            DEFAULT NULL                    COMMENT '连接参数（JSON 格式，仅允许白名单内 key）',
     `pool_config`       JSON            DEFAULT NULL                    COMMENT '连接池配置（JSON 格式）',
     `is_enabled`        TINYINT(1)      NOT NULL DEFAULT 1              COMMENT '是否启用（0否 1是）',
-    `status`            VARCHAR(10)     DEFAULT 'offline'               COMMENT '状态（online 在线、offline 离线、error 异常）',
+    `status`            VARCHAR(10)     DEFAULT 'offline'               COMMENT '状态（normal 正常、offline 离线、error 异常）',
     `error_msg`         TEXT            DEFAULT NULL                    COMMENT '最后连接错误信息',
     `remark`            TEXT            DEFAULT NULL                    COMMENT '备注',
     `version`           INT             NOT NULL DEFAULT 0              COMMENT '乐观锁版本号',

@@ -61,7 +61,7 @@ const ENABLED_OPTIONS = [
 ];
 
 const STATUS_OPTIONS = [
-  { label: "datasourceMgmt.stateOnline", value: "online" },
+  { label: "datasourceMgmt.stateOnline", value: "normal" },
   { label: "datasourceMgmt.stateOffline", value: "offline" },
   { label: "datasourceMgmt.stateError", value: "error" }
 ];
@@ -416,7 +416,7 @@ async function handleTest(datasource: Datasource) {
     const result = await testDatasourceApi(datasource.id);
     if (result.code === 10_000) {
       const state = result.data?.connectionState;
-      if (state === "online") {
+      if (state === "normal") {
         showToast(t("datasourceMgmt.testSuccess"), "positive");
       } else {
         const errMsg = result.data?.errorMsg || t("datasourceMgmt.testFail");
@@ -467,11 +467,11 @@ function getDbTypeLabel(dbType: string): string {
 }
 
 function getStateColor(s: string): string {
-  return s === "online" ? "green" : s === "error" ? "red" : "grey";
+  return s === "normal" ? "green" : s === "error" ? "red" : "grey";
 }
 
 function getStateLabel(s: string): string {
-  return s === "online" ? t("datasourceMgmt.stateOnline")
+  return s === "normal" ? t("datasourceMgmt.stateOnline")
     : s === "error" ? t("datasourceMgmt.stateError")
     : t("datasourceMgmt.stateOffline");
 }

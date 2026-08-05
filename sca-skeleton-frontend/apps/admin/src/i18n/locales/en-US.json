@@ -566,7 +566,7 @@
     "enabledStatus": "Enabled",
     "disabledStatus": "Disabled",
     "connectionState": "State",
-    "stateOnline": "Online",
+    "stateOnline": "Normal",
     "stateOffline": "Offline",
     "stateError": "Error",
     "driverName": "Driver",
