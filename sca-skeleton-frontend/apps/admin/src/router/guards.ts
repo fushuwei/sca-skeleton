@@ -1,5 +1,5 @@
 import type { Router } from "vue-router";
-import { refreshAccessToken } from "@repo/shared";
+import { refreshAccessToken, isNotificationHandled } from "@repo/shared";
 import { getAdminOAuthConfig } from "../config/oauth";
 import { WHITE_LIST_ROUTE_NAMES } from "./routes";
 import { useAuthStore } from "../stores/auth";
@@ -31,7 +31,13 @@ async function trySilentRefresh(): Promise<boolean> {
     const authStore = useAuthStore();
     authStore.syncOAuthTokens(tokenResponse.access_token, tokenResponse.refresh_token);
     return true;
-  } catch {
+  } catch (error) {
+    // 网络异常或浏览器中止请求（如 Firefox 快速刷新 abort fetch）：
+    // 非真正的 refresh_token 失效，保留令牌让下次刷新重试
+    if (error instanceof TypeError) {
+      return false;
+    }
+    // 后端明确拒绝（refresh_token 已失效）：清除令牌
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(MENUS_STORAGE_KEY);
@@ -74,8 +80,13 @@ export function setupRouterGuards(router: Router): void {
       if (!authStore.profile || authStore.profile.isSuperadmin === undefined) {
         try {
           await authStore.fetchProfile();
-        } catch {
-          // profile 拉取失败视为登录态失效
+        } catch (error) {
+          // 网络异常或浏览器中止请求（如 Firefox 快速刷新 abort fetch）：
+          // 非认证失败，保留令牌避免误登出，中止当前导航
+          if (isNotificationHandled(error)) {
+            return false;
+          }
+          // 真正的认证失败（401 且 refresh 也失败）：清除令牌，重定向到登录页
           authStore.token = "";
           authStore.refreshToken = "";
           authStore.profile = null;
