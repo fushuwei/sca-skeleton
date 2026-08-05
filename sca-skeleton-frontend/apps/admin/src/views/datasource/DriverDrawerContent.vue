@@ -528,45 +528,65 @@ function formatFileSize(bytes: number | string): string {
           </q-select>
         </div>
 
-        <!-- ── 文件（add 和 edit 模式共用同一上传区） ── -->
-        <div class="col-12 driver-files-section">
-          <div class="text-caption text-grey-8 q-mb-xs">
-            {{ t('driverMgmt.driverFiles') }}<span class="text-negative"> *</span>
-          </div>
-
-          <!-- 上传区：添加 / 编辑模式下始终展示（文件列表在下方独立展示） -->
+        <!-- ── 文件（add 和 edit 模式共用同一上传区）：一体化上传面板 ── -->
+        <!-- 标签、上传触发区、文件列表收在同一个虚线面板内，整体传达"一个上传组件"的心智 -->
+        <div class="col-12">
           <div
-            v-if="!drawerReadonly"
-            class="file-dropzone"
-            :class="{ 'file-dropzone--drag': dragActive }"
-            role="button"
-            tabindex="0"
-            :aria-label="t('driverMgmt.dropzoneTitle')"
-            @click="triggerFilePick"
-            @keydown.enter.prevent="triggerFilePick"
-            @keydown.space.prevent="triggerFilePick"
+            class="upload-panel"
+            :class="{
+              'upload-panel--drag': dragActive,
+              'upload-panel--readonly': drawerReadonly
+            }"
             @dragover.prevent="dragActive = true"
             @dragleave="dragActive = false"
             @drop.prevent="onDrop"
           >
-            <q-icon name="sym_r_cloud_upload" size="50px" class="file-dropzone__icon" />
-            <div class="file-dropzone__title">{{ t('driverMgmt.dropzoneTitle') }}</div>
-            <div class="file-dropzone__subtitle">{{ t('driverMgmt.dropzoneSubtitle') }}</div>
-          </div>
-
-          <!-- 已选文件列表：在上传区下方独立展示 -->
-          <div v-if="hasFiles" :class="['file-card', { 'q-mt-sm': !drawerReadonly }]">
-            <div class="file-card__head">
-              <span>
+            <!-- 面板头：左侧字段标签，右侧文件汇总与清空（有文件时展示） -->
+            <div
+              class="upload-panel__head"
+              :class="{ 'upload-panel__head--border': !drawerReadonly || hasFiles }"
+            >
+              <span class="upload-panel__label">
+                {{ t('driverMgmt.driverFiles') }}<span class="text-negative"> *</span>
+              </span>
+              <span v-if="hasFiles" class="upload-panel__summary">
                 {{ t('driverMgmt.driverFilesCount', { count: displayFiles.length }) }}
                 · {{ t('driverMgmt.totalFileSize') }} {{ formatFileSize(totalFileSize) }}
-              </span>
-              <span v-if="!drawerReadonly" class="file-card__clear" @click="clearFiles">
-                {{ t('driverMgmt.clearFiles') }}
+                <span
+                  v-if="!drawerReadonly"
+                  class="upload-panel__clear"
+                  @click="clearFiles"
+                >
+                  {{ t('driverMgmt.clearFiles') }}
+                </span>
               </span>
             </div>
 
-            <div class="file-card__rows">
+            <!-- 上传触发区：无文件时为大尺寸引导态，有文件后收敛为紧凑的"继续添加"入口 -->
+            <div
+              v-if="!drawerReadonly"
+              class="upload-panel__dropzone"
+              :class="{ 'upload-panel__dropzone--compact': hasFiles }"
+              role="button"
+              tabindex="0"
+              :aria-label="hasFiles ? t('driverMgmt.addMoreFiles') : t('driverMgmt.dropzoneTitle')"
+              @click="triggerFilePick"
+              @keydown.enter.prevent="triggerFilePick"
+              @keydown.space.prevent="triggerFilePick"
+            >
+              <template v-if="!hasFiles">
+                <q-icon name="sym_r_cloud_upload" size="44px" class="upload-panel__icon" />
+                <div class="upload-panel__title">{{ t('driverMgmt.dropzoneTitle') }}</div>
+                <div class="upload-panel__subtitle">{{ t('driverMgmt.dropzoneSubtitle') }}</div>
+              </template>
+              <template v-else>
+                <q-icon name="sym_r_add" size="18px" />
+                <span>{{ t('driverMgmt.addMoreFiles') }}</span>
+              </template>
+            </div>
+
+            <!-- 文件列表：与上传触发区同处一个面板，用细分隔线区隔 -->
+            <div v-if="hasFiles" class="upload-panel__list">
               <div
                 v-for="file in displayFiles"
                 :key="file.name"
@@ -595,17 +615,17 @@ function formatFileSize(bytes: number | string): string {
                 </q-btn>
               </div>
             </div>
-          </div>
 
-          <!-- 隐藏的文件选择器（由上传区点击触发，可多次追加） -->
-          <input
-            ref="fileInput"
-            :key="fileInputKey"
-            type="file"
-            multiple
-            class="hidden-file-input"
-            @change="onFilesChange"
-          />
+            <!-- 隐藏的文件选择器（由上传区点击触发，可多次追加） -->
+            <input
+              ref="fileInput"
+              :key="fileInputKey"
+              type="file"
+              multiple
+              class="hidden-file-input"
+              @change="onFilesChange"
+            />
+          </div>
         </div>
 
         <!-- 驱动类（下拉框，仅允许从探测结果中选择，不允许手动输入） -->
@@ -711,76 +731,108 @@ function formatFileSize(bytes: number | string): string {
   display: none;
 }
 
-/* ── 文件区 ── */
-.driver-files-section {
-  margin-top: 4px;
-}
-
-/* 拖拽上传区：整个区域即唯一点击入口 */
-.file-dropzone {
+/* ── 一体化上传面板：标签 + 上传触发区 + 文件列表共享同一边框与背景 ── */
+.upload-panel {
   border: 1.5px dashed #c8cfd8;
   border-radius: 8px;
   background: #fafbfc;
-  padding: 32px 16px;
-  text-align: center;
-  cursor: pointer;
-  outline: none;
+  overflow: hidden;
   transition: border-color 0.2s ease, background 0.2s ease;
 }
-.file-dropzone:hover,
-.file-dropzone:focus-visible {
-  border-color: #1976d2;
-  background: #f5f9ff;
+/* 只读态：实线边框、白底，弱化为信息展示卡片 */
+.upload-panel--readonly {
+  border-style: solid;
+  border-color: #e4e7ec;
+  background: #fff;
 }
-.file-dropzone--drag {
+.upload-panel--drag {
   border-color: #1976d2;
   background: #eef4ff;
 }
-.file-dropzone--drag .file-dropzone__icon {
-  transform: translateY(-2px);
+
+/* 面板头：左侧字段标签，右侧汇总信息 */
+.upload-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
 }
-.file-dropzone__icon {
+.upload-panel__head--border {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.upload-panel__label {
+  font-size: 12px;
+  color: #757575;
+  flex-shrink: 0;
+}
+.upload-panel__summary {
+  font-size: 12px;
+  color: #9aa3af;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.upload-panel__clear {
+  margin-left: 8px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.upload-panel__clear:hover {
+  color: var(--q-negative);
+}
+
+/* 上传触发区：面板内唯一点击入口，无独立边框 */
+.upload-panel__dropzone {
+  padding: 26px 16px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.2s ease;
+}
+.upload-panel__dropzone:hover,
+.upload-panel__dropzone:focus-visible {
+  background: #f5f9ff;
+}
+.upload-panel--drag .upload-panel__dropzone {
+  background: #eef4ff;
+}
+.upload-panel__icon {
   color: #1976d2;
   transition: transform 0.2s ease;
 }
-.file-dropzone__title {
+.upload-panel--drag .upload-panel__icon {
+  transform: translateY(-2px);
+}
+.upload-panel__title {
   margin-top: 8px;
   font-size: 14px;
   font-weight: 600;
   color: rgba(0, 0, 0, 0.8);
 }
-.file-dropzone__subtitle {
+.upload-panel__subtitle {
   margin-top: 2px;
   font-size: 12px;
   color: #9aa3af;
 }
 
-/* 已选文件列表卡片：文件行 + 汇总行，单一边框 */
-.file-card {
-  border: 1px solid #e4e7ec;
-  border-radius: 8px;
-  background: #fff;
-  overflow: hidden;
-}
-.file-card__rows {
-  max-height: 220px;
-  overflow-y: auto;
-}
-.file-card__head {
+/* 有文件后的紧凑添加入口 */
+.upload-panel__dropzone--compact {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  font-size: 12px;
-  color: #9aa3af;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  font-size: 13px;
+  color: #1976d2;
 }
-.file-card__clear {
-  cursor: pointer;
-  transition: color 0.15s ease;
-}
-.file-card__clear:hover {
-  color: var(--q-negative);
+
+/* 文件列表：与触发区共用面板边框，顶部细分隔线 */
+.upload-panel__list {
+  max-height: 220px;
+  overflow-y: auto;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* 文件行 */
@@ -794,7 +846,7 @@ function formatFileSize(bytes: number | string): string {
   border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 .file-row:hover {
-  background: #fafbfc;
+  background: rgba(25, 118, 210, 0.04);
 }
 .file-row__icon {
   color: #1976d2;
@@ -862,23 +914,37 @@ function formatFileSize(bytes: number | string): string {
   border-top-color: rgba(255, 255, 255, 0.08);
 }
 
-/* 上传区暗色模式 */
-.body--dark .file-dropzone {
+/* 一体化上传面板暗色模式 */
+.body--dark .upload-panel {
   background: #252525;
   border-color: rgba(255, 255, 255, 0.18);
 }
-.body--dark .file-dropzone:hover,
-.body--dark .file-dropzone:focus-visible,
-.body--dark .file-dropzone--drag {
+.body--dark .upload-panel--readonly {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.body--dark .upload-panel--drag {
   border-color: #80cbc4;
   background: #2a2f2e;
 }
-.body--dark .file-dropzone__title {
+.body--dark .upload-panel__head--border {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+.body--dark .upload-panel__label {
+  color: rgba(255, 255, 255, 0.55);
+}
+.body--dark .upload-panel__dropzone:hover,
+.body--dark .upload-panel__dropzone:focus-visible,
+.body--dark .upload-panel--drag .upload-panel__dropzone {
+  background: #2a2f2e;
+}
+.body--dark .upload-panel__title {
   color: rgba(255, 255, 255, 0.85);
 }
-.body--dark .file-card {
-  background: #252525;
-  border-color: rgba(255, 255, 255, 0.08);
+.body--dark .upload-panel__dropzone--compact {
+  color: #80cbc4;
+}
+.body--dark .upload-panel__list {
+  border-top-color: rgba(255, 255, 255, 0.08);
 }
 .body--dark .file-row:hover {
   background: #2c2c2c;

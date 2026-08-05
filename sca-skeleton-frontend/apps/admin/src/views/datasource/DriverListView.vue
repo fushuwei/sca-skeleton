@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { Driver, DriverPageRequest } from "../../apis/datasource";
+import type { Driver, DriverFile, DriverPageRequest } from "../../apis/datasource";
 import {
   getDriverPageApi,
   getDriverByIdApi,
@@ -573,7 +573,7 @@ onMounted(() => {
         <template #body-cell-files="props">
           <q-td :props="props">
             <span v-if="props.row.files?.length" class="file-names-cell">
-              <span class="file-names-text">{{ props.row.files.map(f => f.fileName).join("、") }}</span>
+              <span class="file-names-text">{{ props.row.files.map((f: DriverFile) => f.fileName).join("、") }}</span>
               <q-tooltip>
                 <div class="q-gutter-y-xs">
                   <div v-for="f in props.row.files" :key="f.fileName" class="row items-center">
