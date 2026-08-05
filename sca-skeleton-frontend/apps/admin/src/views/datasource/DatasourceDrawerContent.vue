@@ -90,7 +90,7 @@ const form = reactive({
   dbType: "",
   driverId: "",
   host: "",
-  port: 3306 as number | null,
+  port: null as number | null,
   databaseName: "",
   username: "",
   password: "",
@@ -118,7 +118,7 @@ function resetForm() {
   form.dbType = "";
   form.driverId = "";
   form.host = "";
-  form.port = 3306;
+  form.port = null;
   form.databaseName = "";
   form.username = "";
   form.password = "";
@@ -136,7 +136,7 @@ function initForm() {
     form.dbType = props.datasource.dbType;
     form.driverId = props.datasource.driverId;
     form.host = props.datasource.host;
-    form.port = props.datasource.port ?? 3306;
+    form.port = props.datasource.port ?? null;
     form.databaseName = props.datasource.databaseName || "";
     form.username = props.datasource.username;
     form.password = ""; // 编辑时密码留空，表示不修改
