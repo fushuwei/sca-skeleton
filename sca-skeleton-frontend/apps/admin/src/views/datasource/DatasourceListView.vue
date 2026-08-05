@@ -60,6 +60,12 @@ const ENABLED_OPTIONS = [
   { label: "datasourceMgmt.disabledStatus", value: 0 }
 ];
 
+const STATUS_OPTIONS = [
+  { label: "datasourceMgmt.stateOnline", value: "online" },
+  { label: "datasourceMgmt.stateOffline", value: "offline" },
+  { label: "datasourceMgmt.stateError", value: "error" }
+];
+
 // ═══════════════════════════════════════════════════════════════
 // 搜索条件
 // ═══════════════════════════════════════════════════════════════
@@ -69,7 +75,8 @@ const searchForm = reactive<DatasourcePageRequest>({
   pageSize: 10,
   dbType: undefined,
   keyword: "",
-  enabled: undefined
+  enabled: undefined,
+  status: undefined
 });
 
 const searchExpanded = ref(true);
@@ -254,7 +261,8 @@ async function loadTableData(
     pageSize,
     dbType: searchForm.dbType || undefined,
     keyword: searchForm.keyword || undefined,
-    enabled: searchForm.enabled ?? undefined
+    enabled: searchForm.enabled ?? undefined,
+    status: searchForm.status || undefined
   };
 
   try {
@@ -311,6 +319,7 @@ function handleReset() {
   searchForm.keyword = "";
   searchForm.dbType = undefined;
   searchForm.enabled = undefined;
+  searchForm.status = undefined;
   tablePagination.value.sortBy = "";
   tablePagination.value.descending = false;
   tablePagination.value.page = 1;
@@ -575,6 +584,29 @@ onMounted(async () => {
               >
                 <template v-if="searchForm.enabled === undefined || searchForm.enabled === null" v-slot:selected>
                   <span class="status-placeholder">{{ t('datasourceMgmt.enabledPlaceholder') }}</span>
+                </template>
+              </q-select>
+            </div>
+            <div class="col-auto">
+              <q-select
+                v-model="searchForm.status"
+                filled
+                square
+                dense
+                :options="STATUS_OPTIONS"
+                :option-label="(o: { label: string; value: string } | undefined) => (o ? t(o.label) : '')"
+                option-value="value"
+                emit-value
+                map-options
+                hide-bottom-space
+                clearable
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                class="status-select"
+                popup-content-class="status-select-popup"
+              >
+                <template v-if="searchForm.status === undefined || searchForm.status === null || searchForm.status === ''" v-slot:selected>
+                  <span class="status-placeholder">{{ t('datasourceMgmt.statusPlaceholder') }}</span>
                 </template>
               </q-select>
             </div>

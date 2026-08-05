@@ -88,6 +88,9 @@ public class DatasourceServiceImpl implements DatasourceService {
         if (request.getIsEnabled() != null) {
             wrapper.eq(Datasource::getIsEnabled, request.getIsEnabled());
         }
+        if (StringUtils.hasText(request.getStatus())) {
+            wrapper.eq(Datasource::getStatus, request.getStatus());
+        }
         if (StringUtils.hasText(request.getKeyword())) {
             wrapper.and(w -> w.like(Datasource::getName, request.getKeyword())
                 .or().like(Datasource::getHost, request.getKeyword()));

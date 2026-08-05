@@ -84,6 +84,7 @@ export interface DatasourcePageRequest {
   dbType?: string;
   keyword?: string;
   enabled?: number;
+  status?: string;
   pageNum: number;
   pageSize: number;
 }
