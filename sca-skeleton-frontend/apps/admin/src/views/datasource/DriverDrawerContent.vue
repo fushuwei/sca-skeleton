@@ -607,7 +607,7 @@ function formatFileSize(bytes: number | string): string {
                   size="sm"
                   color="grey"
                   class="file-row__remove"
-                  icon="sym_r_close"
+                  icon="sym_r_delete"
                   :aria-label="t('driverMgmt.removeFile')"
                   @click="removeFile(file.name)"
                 >
