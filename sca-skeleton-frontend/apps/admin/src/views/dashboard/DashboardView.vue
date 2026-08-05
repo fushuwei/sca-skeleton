@@ -178,7 +178,7 @@ const loadingDVisible = ref(false);
               color="blue-7"
               class="full-width notify-test-btn"
               padding="sm md"
-              label="效果A：单环旋转（当前全局）"
+              label="效果A：单环旋转（对比方案）"
               @click="loadingAVisible = true"
             />
           </div>
@@ -189,7 +189,7 @@ const loadingDVisible = ref(false);
               color="deep-orange-7"
               class="full-width notify-test-btn"
               padding="sm md"
-              label="效果B：双环叠放（对比方案）"
+              label="效果B：双环叠放（当前全局）"
               @click="loadingBVisible = true"
             />
           </div>
@@ -220,13 +220,13 @@ const loadingDVisible = ref(false);
     </q-card>
   </div>
 
-  <!-- Loading 效果A：单环旋转（当前全局 loading） -->
+  <!-- Loading 效果A：单环旋转（对比方案） -->
   <div v-if="loadingAVisible" class="loading-overlay" @click="loadingAVisible = false">
     <div class="loading-overlay__spinner-a"></div>
     <div class="loading-overlay__text">正在加载...</div>
   </div>
 
-  <!-- Loading 效果B：双环叠放（对比方案） -->
+  <!-- Loading 效果B：双环叠放（当前全局 loading） -->
   <div v-if="loadingBVisible" class="loading-overlay" @click="loadingBVisible = false">
     <div class="loading-overlay__spinner-b"></div>
     <div class="loading-overlay__text">正在加载...</div>
@@ -305,7 +305,7 @@ const loadingDVisible = ref(false);
   font-family: system-ui, -apple-system, sans-serif;
 }
 
-/* 效果A：单环旋转（当前全局 loading） */
+/* 效果A：单环旋转（对比方案） */
 .loading-overlay__spinner-a {
   box-sizing: content-box;
   width: 40px;
@@ -322,7 +322,7 @@ const loadingDVisible = ref(false);
   }
 }
 
-/* 效果B：双环叠放（对比方案） */
+/* 效果B：双环叠放（当前全局 loading） */
 .loading-overlay__spinner-b {
   --clr: #1976d2;
   box-sizing: border-box;
