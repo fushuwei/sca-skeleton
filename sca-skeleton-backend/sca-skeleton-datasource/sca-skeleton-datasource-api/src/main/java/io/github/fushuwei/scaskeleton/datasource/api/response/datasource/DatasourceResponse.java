@@ -33,10 +33,10 @@ public class DatasourceResponse implements Serializable {
     private String password;
     private String connectionParams;
     private String poolConfig;
-    private Integer enabled;
-    private String connectionState;
+    private Integer isEnabled;
+    private String status;
     private String errorMsg;
-    private LocalDateTime lastConnectTime;
+    private String remark;
     private Integer version;
     private LocalDateTime createTime;
 }

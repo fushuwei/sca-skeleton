@@ -208,7 +208,7 @@ public class QueryServiceImpl implements QueryService {
     private Properties buildConnectionProps(Datasource ds) {
         Properties props = new Properties();
         props.setProperty("user", ds.getUsername());
-        props.setProperty("password", credentialCipher.decrypt(ds.getPasswordCipher()));
+        props.setProperty("password", credentialCipher.decrypt(ds.getPassword()));
         return props;
     }
 

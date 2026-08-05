@@ -14,6 +14,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface DatasourceConverter {
 
+    @Mapping(target = "password", ignore = true)
     Datasource toDatasource(DatasourceCreateRequest request);
 
     @Mapping(target = "driverName", ignore = true)

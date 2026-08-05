@@ -6,8 +6,6 @@ import io.github.fushuwei.scaskeleton.mybatis.base.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.time.LocalDateTime;
-
 /**
  * 数据源实体类
  * <p>
@@ -29,7 +27,7 @@ public class Datasource extends BaseEntity {
     /** 数据库类型枚举 */
     private String dbType;
 
-    /** 关联驱动 ID（指向 ds_driver.id） */
+    /** 驱动ID */
     private String driverId;
 
     /** 数据库主机地址 */
@@ -45,7 +43,7 @@ public class Datasource extends BaseEntity {
     private String username;
 
     /** 数据库密码（AES-GCM 加密存储） */
-    private String passwordCipher;
+    private String password;
 
     /** 密钥版本号 */
     private String cipherVersion;
@@ -56,17 +54,17 @@ public class Datasource extends BaseEntity {
     /** 连接池配置（JSON） */
     private String poolConfig;
 
-    /** 管理态（1 启用，0 禁用） */
-    private Integer enabled;
+    /** 是否启用（0否 1是） */
+    private Integer isEnabled;
 
-    /** 运行态（offline/online/error） */
-    private String connectionState;
+    /** 状态（online 在线、offline 离线、error 异常） */
+    private String status;
 
     /** 最近连接错误信息 */
     private String errorMsg;
 
-    /** 最后连接时间 */
-    private LocalDateTime lastConnectTime;
+    /** 备注 */
+    private String remark;
 
     /** 乐观锁版本号 */
     @Version

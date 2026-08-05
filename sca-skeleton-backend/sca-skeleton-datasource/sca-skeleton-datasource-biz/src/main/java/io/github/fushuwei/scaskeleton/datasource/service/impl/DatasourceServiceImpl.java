@@ -35,7 +35,6 @@ import org.springframework.util.StringUtils;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -86,8 +85,8 @@ public class DatasourceServiceImpl implements DatasourceService {
         if (StringUtils.hasText(request.getDbType())) {
             wrapper.eq(Datasource::getDbType, request.getDbType());
         }
-        if (request.getEnabled() != null) {
-            wrapper.eq(Datasource::getEnabled, request.getEnabled());
+        if (request.getIsEnabled() != null) {
+            wrapper.eq(Datasource::getIsEnabled, request.getIsEnabled());
         }
         if (StringUtils.hasText(request.getKeyword())) {
             wrapper.and(w -> w.like(Datasource::getName, request.getKeyword())
@@ -136,11 +135,12 @@ public class DatasourceServiceImpl implements DatasourceService {
         Datasource datasource = datasourceConverter.toDatasource(request);
         datasource.setId(UuidUtils.nextSimpleStr());
         datasource.setDbType(request.getDbType().name());
-        datasource.setEnabled(1);
-        datasource.setConnectionState("offline");
+        datasource.setIsEnabled(1);
+        datasource.setStatus("offline");
         // AES-GCM 加密凭据
-        datasource.setPasswordCipher(credentialCipher.encrypt(request.getPassword()));
+        datasource.setPassword(credentialCipher.encrypt(request.getPassword()));
         datasource.setCipherVersion(credentialCipher.currentCipherVersion());
+        datasource.setRemark(request.getRemark());
         datasourceMapper.insert(datasource);
     }
 
@@ -177,8 +177,11 @@ public class DatasourceServiceImpl implements DatasourceService {
             datasource.setUsername(request.getUsername());
         }
         if (StringUtils.hasText(request.getPassword())) {
-            datasource.setPasswordCipher(credentialCipher.encrypt(request.getPassword()));
+            datasource.setPassword(credentialCipher.encrypt(request.getPassword()));
             datasource.setCipherVersion(credentialCipher.currentCipherVersion());
+        }
+        if (request.getRemark() != null) {
+            datasource.setRemark(request.getRemark());
         }
         if (StringUtils.hasText(request.getConnectionParams())) {
             datasource.setConnectionParams(request.getConnectionParams());
@@ -220,7 +223,7 @@ public class DatasourceServiceImpl implements DatasourceService {
     @Override
     public void changeEnabled(String id, Integer enabled) {
         Datasource datasource = loadDatasourceEntity(id);
-        datasource.setEnabled(enabled);
+        datasource.setIsEnabled(enabled);
         int affectedRows = datasourceMapper.updateById(datasource);
         if (affectedRows == 0) {
             throw new BusinessException(ResultCode.VERSION_CONFLICT);
@@ -255,7 +258,7 @@ public class DatasourceServiceImpl implements DatasourceService {
             instance = driverLifecycle.acquire(driver.getId(), driver.getDriverClass(), jarPaths);
         } catch (Exception e) {
             log.warn("加载驱动失败: datasourceId={}, error={}", id, e.getMessage());
-            updateConnectionState(ds, "error", "加载驱动失败: " + e.getMessage());
+            updateStatus(ds, "error", "加载驱动失败: " + e.getMessage());
             throw new BusinessException("加载驱动失败: " + e.getMessage());
         }
 
@@ -274,12 +277,12 @@ public class DatasourceServiceImpl implements DatasourceService {
                 }
             }
             // 连接成功：更新运行态
-            updateConnectionState(ds, "online", null);
+            updateStatus(ds, "online", null);
             log.info("测试连接成功: datasourceId={}, jdbcUrl={}", id, jdbcUrl);
             return buildResponse(ds, driver);
         } catch (Exception e) {
             log.warn("测试连接失败: datasourceId={}, error={}", id, e.getMessage());
-            updateConnectionState(ds, "error", e.getMessage());
+            updateStatus(ds, "error", e.getMessage());
             throw new BusinessException("连接失败: " + e.getMessage());
         } finally {
             driverLifecycle.release(driver.getId());
@@ -349,17 +352,16 @@ public class DatasourceServiceImpl implements DatasourceService {
     private Properties buildConnectionProps(Datasource ds) {
         Properties props = new Properties();
         props.setProperty("user", ds.getUsername());
-        props.setProperty("password", credentialCipher.decrypt(ds.getPasswordCipher()));
+        props.setProperty("password", credentialCipher.decrypt(ds.getPassword()));
         return props;
     }
 
     /**
-     * 更新数据源运行态（best-effort，不掩盖原始异常）。
+     * 更新数据源状态（best-effort，不掩盖原始异常）。
      */
-    private void updateConnectionState(Datasource ds, String state, String errorMsg) {
-        ds.setConnectionState(state);
-        if ("online".equals(state)) {
-            ds.setLastConnectTime(LocalDateTime.now());
+    private void updateStatus(Datasource ds, String status, String errorMsg) {
+        ds.setStatus(status);
+        if ("online".equals(status)) {
             ds.setErrorMsg(null);
         } else {
             ds.setErrorMsg(StringUtils.hasText(errorMsg) ? errorMsg : "未知错误");

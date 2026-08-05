@@ -22,8 +22,8 @@ public class DatasourcePageRequest implements Serializable {
     /** 关键字搜索（名称/主机） */
     private String keyword;
 
-    /** 启用状态（1/0） */
-    private Integer enabled;
+    /** 是否启用（1/0） */
+    private Integer isEnabled;
 
     /** 页码 */
     private Integer pageNum = 1;

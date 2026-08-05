@@ -46,4 +46,7 @@ public class DatasourceCreateRequest implements Serializable {
 
     /** 连接池配置（JSON） */
     private String poolConfig;
+
+    /** 备注 */
+    private String remark;
 }
