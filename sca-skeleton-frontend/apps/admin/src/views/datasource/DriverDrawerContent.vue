@@ -184,8 +184,6 @@ const dragActive = ref(false);
 // ── 驱动类下拉框选项 ──
 // 所有候选驱动类（合并已有文件的 driverClasses + 新上传文件的客户端探测结果）
 const driverClassOptions = ref<string[]>([]);
-// 过滤后的选项（供 q-select 展示）
-const filteredDriverClassOptions = ref<string[]>([]);
 
 function resetForm() {
   form.id = "";
@@ -200,7 +198,6 @@ function resetForm() {
   existingFileNames.value = [];
   deletedFileNames.value = new Set();
   driverClassOptions.value = [];
-  filteredDriverClassOptions.value = [];
   fileInputKey.value++;
   lastCheckedName = "";
 }
@@ -282,9 +279,15 @@ async function addFiles(picked: File[]) {
 }
 
 // 刷新驱动类下拉选项
-// 合并来源：1. 已有文件的 driverClasses（后端入库时探测写入） 2. 新上传文件的客户端探测结果
+// 合并来源：1. 当前已选驱动类（确保编辑回显时选项一定包含当前值）
+//          2. 已有文件的 driverClasses（后端入库时探测写入） 3. 新上传文件的客户端探测结果
 async function refreshDriverClassOptions() {
   const merged = new Set<string>();
+
+  // 当前已选驱动类（确保编辑回显时，下拉选项中一定包含当前值）
+  if (form.driverClass) {
+    merged.add(form.driverClass.trim());
+  }
 
   // 已有文件（未删除）的驱动类
   if (props.driver?.files) {
@@ -305,7 +308,6 @@ async function refreshDriverClassOptions() {
   }
 
   driverClassOptions.value = [...merged];
-  filteredDriverClassOptions.value = [...driverClassOptions.value];
 
   // 驱动类为空时自动回填第一个探测结果
   if (!form.driverClass && driverClassOptions.value.length) {
@@ -339,30 +341,6 @@ function clearFiles() {
   }
   deletedFileNames.value = new Set(deletedFileNames.value);
   refreshDriverClassOptions();
-}
-
-// q-select 过滤回调
-function filterDriverClasses(val: string, update: (fn: () => void) => void) {
-  update(() => {
-    if (!val) {
-      filteredDriverClassOptions.value = [...driverClassOptions.value];
-    } else {
-      const needle = val.toLowerCase();
-      filteredDriverClassOptions.value = driverClassOptions.value.filter(
-        (v) => v.toLowerCase().includes(needle)
-      );
-    }
-  });
-}
-
-// q-select 允许手动输入自定义值（探测失败时用户可手动填写）
-function onNewDriverClassValue(val: string, done: (val: string, mode: "add" | "toggle" | undefined) => void) {
-  if (!val.trim()) return;
-  const trimmed = val.trim();
-  if (!driverClassOptions.value.includes(trimmed)) {
-    driverClassOptions.value.push(trimmed);
-  }
-  done(trimmed, "add");
 }
 
 // 统一的文件展示列表（合并已有文件 + 新增文件）
@@ -630,7 +608,7 @@ function formatFileSize(bytes: number | string): string {
           />
         </div>
 
-        <!-- 驱动类（下拉框，支持过滤和手动输入） -->
+        <!-- 驱动类（下拉框，仅允许从探测结果中选择，不允许手动输入） -->
         <div class="col-12">
           <q-select
             ref="driverClassSelectRef"
@@ -638,13 +616,7 @@ function formatFileSize(bytes: number | string): string {
             :label="t('driverMgmt.driverClass')"
             filled
             square
-            :options="filteredDriverClassOptions"
-            use-input
-            fill-input
-            hide-selected
-            input-debounce="0"
-            @filter="filterDriverClasses"
-            @new-value="onNewDriverClassValue"
+            :options="driverClassOptions"
             :rules="formRules.driverClass"
             :disable="drawerReadonly"
             hide-bottom-space
