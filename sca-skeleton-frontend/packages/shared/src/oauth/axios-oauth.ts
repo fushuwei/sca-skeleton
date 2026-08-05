@@ -36,7 +36,12 @@ interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _oauthRetried?: boolean;
 }
 
-let refreshPromise: Promise<string | null> | null = null;
+/** refresh 尝试的结果：区分"瞬时网络失败（勿登出）"与"令牌失效（应登出）"。 */
+type RefreshOutcome =
+  | { ok: true; accessToken: string }
+  | { ok: false; transient: boolean };
+
+let refreshPromise: Promise<RefreshOutcome> | null = null;
 
 /**
  * 解析 HTTP 错误提示文案：优先走注入的 {@link OAuthAxiosOptions.translate}（i18n），
@@ -62,22 +67,64 @@ function rejectHandled(message: string): Promise<never> {
   return Promise.reject(handled);
 }
 
-async function refreshAccessTokenOnce(options: OAuthAxiosOptions): Promise<string | null> {
+/** Error 上附加的内部标记类型。 */
+interface TaggedError extends Error {
+  _notificationHandled?: boolean;
+  _transient?: boolean;
+}
+
+/**
+ * 构造一个"瞬时网络/中止"的错误，同时打上 `_notificationHandled`（避免调用方重复弹提示）
+ * 与 `_transient`（标记为可重试的瞬时故障，如断网、浏览器导航中止、超时）。
+ * <p>
+ * 与 {@link rejectHandled} 的区别：该标记允许路由守卫等调用方把此类错误当作"可重试、勿登出"，
+ * 而 403/500 等真实 HTTP 错误只使用 {@link rejectHandled}（不视为瞬时故障）。
+ */
+function buildTransientError(message: string): TaggedError {
+  const err = new Error(message) as TaggedError;
+  err._notificationHandled = true;
+  err._transient = true;
+  return err;
+}
+
+function rejectTransient(message: string): Promise<never> {
+  return Promise.reject(buildTransientError(message));
+}
+
+/**
+ * 判定错误是否为"瞬时网络 / 浏览器中止"（应重试而非登出）。
+ *
+ * 命中条件：
+ * - 原生 `fetch`（如 refreshAccessToken）在网络错误 / 导航中止时抛出 `TypeError`；
+ * - axios 拦截器将"无响应 / 超时"包装为带 `_transient` 标记的 Error。
+ *
+ * 真实 HTTP 错误（403 / 500 等）与认证失败（401）不匹配，按非瞬态处理。
+ */
+export function isTransientNetworkError(error: unknown): boolean {
+  if (error instanceof TypeError) {
+    return true;
+  }
+  return error instanceof Error && (error as TaggedError)._transient === true;
+}
+
+async function refreshAccessTokenOnce(options: OAuthAxiosOptions): Promise<RefreshOutcome> {
   if (refreshPromise) {
     return refreshPromise;
   }
   refreshPromise = (async () => {
     const refreshToken = options.getRefreshToken();
     if (!refreshToken) {
-      return null;
+      // 无 refresh_token：不可能续期，视为"令牌失效"（非瞬态），由调用方走登出逻辑
+      return { ok: false, transient: false };
     }
     try {
       const tokenResponse = await refreshAccessToken(options.getOAuthConfig(), refreshToken);
       options.setTokens(tokenResponse.access_token, tokenResponse.refresh_token);
       options.onTokensUpdated?.(tokenResponse.access_token, tokenResponse.refresh_token);
-      return tokenResponse.access_token;
-    } catch {
-      return null;
+      return { ok: true, accessToken: tokenResponse.access_token };
+    } catch (error) {
+      // 瞬时网络 / 浏览器中止：不是刷新令牌失效，调用方应保留令牌、跳过清令牌副作用
+      return { ok: false, transient: isTransientNetworkError(error) };
     } finally {
       refreshPromise = null;
     }
@@ -109,14 +156,19 @@ export function createOAuthAxiosInstance(
     config: RetryableRequestConfig | undefined
   ): Promise<unknown> {
     if (config && !config._oauthRetried) {
-      const newAccessToken = await refreshAccessTokenOnce(options);
-      if (newAccessToken) {
+      const outcome = await refreshAccessTokenOnce(options);
+      if (outcome.ok) {
         config._oauthRetried = true;
-        config.headers.set("Authorization", `Bearer ${newAccessToken}`);
+        config.headers.set("Authorization", `Bearer ${outcome.accessToken}`);
         return instance.request(config);
       }
+      // 瞬时网络/中止（非令牌失效）：保留令牌、不跳转，抛可重试错误
+      if (outcome.transient) {
+        const msg = resolveMessage(options, "api.networkError", "网络异常，请稍后重试");
+        return Promise.reject(buildTransientError(msg));
+      }
     }
-    // 令牌刷新失败：仅当本地仍有令牌时清理并跳转登录，避免并发 401 重复触发副作用。
+    // 令牌刷新失败（或请求已被重试过）：仅当本地仍有令牌时清理并跳转登录，避免并发 401 重复触发副作用。
     // 多个并发 401 共享同一个 refreshPromise，resolve 后同步逐个执行本分支：
     // 第一个调用 clearTokens() 后 localStorage 被清空，后续调用 getAccessToken() 返回 null，跳过副作用。
     if (options.getAccessToken()) {
@@ -136,16 +188,18 @@ export function createOAuthAxiosInstance(
       }
       // 请求超时：axios 置 error.code 为 ECONNABORTED，message 形如 "timeout of 10000ms exceeded"。
       // 必须在 401 之后、无 response 分支之前判断，避免把超时错误泄漏为英文原始 message。
+      // 标记为 _transient，供路由守卫识别为"可重试、勿登出"的瞬时故障。
       if (error.code === "ECONNABORTED" || /timeout/i.test(error.message ?? "")) {
         const msg = resolveMessage(options, "api.timeout", "请求超时，请稍后重试");
         options.showNotification?.("negative", msg);
-        return rejectHandled(msg);
+        return rejectTransient(msg);
       }
-      // 无 response：网络断开 / DNS 失败 / 请求未发出等，此前会把英文 "Network Error" 弹给用户。
+      // 无 response：网络断开 / DNS 失败 / 请求未发出 / 浏览器导航中止等，此前会把英文 "Network Error" 弹给用户。
+      // 标记为 _transient，供路由守卫识别为"可重试、勿登出"的瞬时故障。
       if (!error.response) {
         const msg = resolveMessage(options, "api.networkError", "网络异常，请稍后重试");
         options.showNotification?.("negative", msg);
-        return rejectHandled(msg);
+        return rejectTransient(msg);
       }
       if (error.response.status === 403) {
         const msg = resolveMessage(options, "api.forbidden", "权限不足，无法访问该功能");
@@ -188,10 +242,15 @@ export async function oauthRequest<T>(
   }
   if (payload.code === unauthorizedCode) {
     const retriedConfig = { ...(config as RetryableRequestConfig), _oauthRetried: false };
-    const newAccessToken = await refreshAccessTokenOnce(options);
-    if (newAccessToken && !retriedConfig._oauthRetried) {
+    const outcome = await refreshAccessTokenOnce(options);
+    if (outcome.ok && !retriedConfig._oauthRetried) {
       retriedConfig._oauthRetried = true;
       return oauthRequest(instance, options, retriedConfig);
+    }
+    // 瞬时网络/中止（非令牌失效）：保留令牌，抛可重试错误，避免误登出
+    if (!outcome.ok && outcome.transient) {
+      const msg = resolveMessage(options, "api.networkError", "网络异常，请稍后重试");
+      throw buildTransientError(msg);
     }
     // 令牌刷新失败：仅当本地仍有令牌时清理并跳转登录，避免并发重复触发副作用
     if (options.getAccessToken()) {
