@@ -18,7 +18,7 @@ import lombok.EqualsAndHashCode;
 @TableName("ds_driver_file")
 public class DriverFile extends BaseEntity {
 
-    /** 关联驱动ID */
+    /** 驱动ID */
     private String driverId;
 
     /** 文件名（上传时的原始文件名） */

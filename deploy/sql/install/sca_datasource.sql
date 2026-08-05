@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `ds_driver` (
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ds_driver_file` (
     `id`              VARCHAR(64)     NOT NULL                        COMMENT '主键ID，唯一标识',
-    `driver_id`       VARCHAR(64)     NOT NULL                        COMMENT '关联驱动ID',
+    `driver_id`       VARCHAR(64)     NOT NULL                        COMMENT '驱动ID',
     `file_name`       VARCHAR(255)    NOT NULL                        COMMENT '文件名（上传时的原始文件名）',
     `file_size`       BIGINT          DEFAULT NULL                    COMMENT '文件大小（字节）',
     `sha256`          VARCHAR(64)     NOT NULL                        COMMENT '文件 SHA256 校验值',

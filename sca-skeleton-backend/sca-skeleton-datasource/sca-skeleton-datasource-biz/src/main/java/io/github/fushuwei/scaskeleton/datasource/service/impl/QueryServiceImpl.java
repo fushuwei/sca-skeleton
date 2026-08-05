@@ -222,11 +222,11 @@ public class QueryServiceImpl implements QueryService {
 
     private Driver loadDriverEntity(String driverId) {
         if (!StringUtils.hasText(driverId)) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "数据源未关联驱动，请先配置驱动");
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "数据源未配置驱动");
         }
         Driver driver = driverMapper.selectById(driverId);
         if (driver == null) {
-            throw new BusinessException(ResultCode.NOT_FOUND, "关联驱动不存在");
+            throw new BusinessException(ResultCode.NOT_FOUND, "驱动不存在");
         }
         return driver;
     }

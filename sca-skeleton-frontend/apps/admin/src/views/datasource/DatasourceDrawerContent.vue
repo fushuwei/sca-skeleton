@@ -274,7 +274,7 @@ onMounted(() => {
             </template>
           </q-select>
         </div>
-        <!-- 关联驱动 -->
+        <!-- 驱动 -->
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.driverId"
