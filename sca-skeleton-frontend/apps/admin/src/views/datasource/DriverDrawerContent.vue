@@ -459,7 +459,8 @@ function formatFileSize(bytes: number | string): string {
 
 <template>
   <div class="driver-drawer-content">
-    <q-form class="driver-drawer-form" @submit="handleSave">
+    <!-- 中间内容区（唯一滚动区）：表单字段 -->
+    <q-form id="driver-drawer-form" class="driver-drawer-form driver-drawer-main" @submit="handleSave">
       <div class="row q-col-gutter-md">
         <!-- 驱动名称 -->
         <div class="col-12 col-md-6">
@@ -652,45 +653,58 @@ function formatFileSize(bytes: number | string): string {
           />
         </div>
       </div>
-
-      <!-- 底部操作按钮 -->
-      <div v-if="!drawerReadonly" class="driver-drawer-footer">
-        <div class="row justify-end q-gutter-sm">
-          <q-btn
-            color="grey-7"
-            outline
-            no-caps
-            class="drawer-action-btn"
-            @click="handleClose"
-          >
-            {{ t('common.cancel') }}
-          </q-btn>
-          <q-btn
-            type="submit"
-            color="primary"
-            unelevated
-            no-caps
-            :loading="formLoading"
-            class="drawer-action-btn"
-          >
-            {{ t('common.confirm') }}
-          </q-btn>
-        </div>
-      </div>
     </q-form>
+
+    <!-- 底部操作栏：固定第三段，不随内容滚动；按钮直接挂在页脚容器上，间距由 CSS gap 控制 -->
+    <div v-if="!drawerReadonly" class="driver-drawer-footer row items-center justify-end no-wrap">
+      <q-btn
+        color="grey-7"
+        outline
+        no-caps
+        class="drawer-action-btn"
+        @click="handleClose"
+      >
+        {{ t('common.cancel') }}
+      </q-btn>
+      <q-btn
+        type="submit"
+        form="driver-drawer-form"
+        color="primary"
+        unelevated
+        no-caps
+        :loading="formLoading"
+        class="drawer-action-btn"
+      >
+        {{ t('common.confirm') }}
+      </q-btn>
+    </div>
   </div>
 </template>
 
 <style scoped>
+/* 三段式抽屉布局：外层 .driver-drawer-body 不再滚动，
+   中间内容区（q-form.driver-drawer-main）独立滚动，底部操作栏固定为第三段 */
 .driver-drawer-content {
-  padding: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
+/* 中间内容区：唯一的滚动区域 */
+.driver-drawer-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 16px 12px;
+}
+
+/* 底部操作栏：固定第三段，不参与内容滚动（与数据源抽屉页脚结构一致：按钮直接子元素，gap 控制间距） */
 .driver-drawer-footer {
   flex-shrink: 0;
-  padding: 12px 0 0;
+  gap: 8px;
+  padding: 14px 16px;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
-  margin-top: 16px;
 }
 
 .drawer-action-btn {
@@ -882,7 +896,7 @@ function formatFileSize(bytes: number | string): string {
   border-color: #80cbc4;
 }
 
-/* 抽屉底部按钮区域分隔线 */
+/* 抽屉底部操作栏分隔线 */
 .body--dark .driver-drawer-footer {
   border-top-color: rgba(255, 255, 255, 0.08);
 }

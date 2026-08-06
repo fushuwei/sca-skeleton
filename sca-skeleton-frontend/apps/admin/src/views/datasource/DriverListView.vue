@@ -1133,10 +1133,14 @@ vertical-align: bottom;
   background: rgba(128, 128, 128, 0.2);
 }
 
+/* 内容区容器：本身不滚动（三段式布局），滚动职责下沉到内部 .driver-drawer-main */
 .driver-drawer-body {
   flex: 1 1 auto;
-  overflow-y: auto;
-  padding: 16px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
 }
 
 /* 抽屉滑入/滑出动画 */
