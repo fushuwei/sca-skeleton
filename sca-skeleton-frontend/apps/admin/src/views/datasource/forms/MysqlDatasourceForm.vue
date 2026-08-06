@@ -130,6 +130,16 @@ interface ParamRow {
 
 const paramRows = ref<ParamRow[]>([{ key: "", value: "" }]);
 
+/** 高级配置手风琴展开状态（两组独立、可同时展开）：
+ *  默认收起以降低高级配置的视觉噪音；已有保存的连接参数时自动展开参数组 */
+const paramsExpanded = ref(false);
+const poolExpanded = ref(false);
+
+/** 已配置参数个数（不含空录入行），用于手风琴组头摘要徽标 */
+const paramRowCount = computed(
+  () => paramRows.value.filter((row) => row.key.trim() !== "").length
+);
+
 /** 规范化参数行：参数名清空的行自动删除；末尾始终保留唯一一行空录入行 */
 function normalizeParamRows() {
   if (readonlyMode.value) return;
@@ -167,6 +177,19 @@ function paramKeyRules(rowIndex: number) {
       );
     }
   ];
+}
+
+/** 参数是否存在非法（非法字符 / 重名）：校验失败时据此自动展开连接参数组，确保错误提示可见 */
+function hasParamErrors(): boolean {
+  const seen = new Set<string>();
+  for (const row of paramRows.value) {
+    if (/[&=\s]/.test(row.key)) return true;
+    const k = row.key.trim();
+    if (!k) continue;
+    if (seen.has(k)) return true;
+    seen.add(k);
+  }
+  return false;
 }
 
 /** 解析已保存的连接参数为行：优先 JSON 对象，兜底兼容历史 query string（k1=v1&k2=v2） */
@@ -215,6 +238,8 @@ function resetForm() {
   form.password = "";
   form.version = 0;
   paramRows.value = [{ key: "", value: "" }];
+  paramsExpanded.value = false;
+  poolExpanded.value = false;
   for (const key of Object.keys(poolConfig)) {
     poolConfig[key] = POOL_DEFAULTS[key];
   }
@@ -244,6 +269,8 @@ function initForm() {
     paramRows.value = readonlyMode.value
       ? paramDataRows
       : [...paramDataRows, { key: "", value: "" }];
+    // 已有保存的参数时自动展开“连接参数”组，便于直观核对配置
+    paramsExpanded.value = paramDataRows.length > 0;
     // 连接池配置：库内为 JSON 字符串，解析回固定字段；缺失或非法的键回退默认值，
     // 白名单外的历史配置项不展示（保存时丢弃）
     for (const key of Object.keys(poolConfig)) {
@@ -344,7 +371,13 @@ const jdbcUrlPreview = computed(() => {
 
 // ── 契约方法（defineExpose） ──
 async function validate(): Promise<boolean> {
-  return formRef.value ? formRef.value.validate() : false;
+  if (!formRef.value) return false;
+  const ok = await formRef.value.validate();
+  // 参数非法时自动展开“连接参数”组，确保错误提示可见
+  if (!ok && hasParamErrors()) {
+    paramsExpanded.value = true;
+  }
+  return ok;
 }
 
 function getPayload(): DatasourceFormPayload {
@@ -525,71 +558,104 @@ defineExpose({ validate, getPayload, isDirty });
           class="ds-jdbc-url-preview"
         />
       </div>
-      <!-- 连接参数：多行 key/value 录入（文本框无标题，以占位符引导）——
-           参数名清空的行自动删除；末尾始终保留一行空录入行；录入行未输参数名时参数值只读；
-           面板沿用与连接池配置相同的一体化设计语言 -->
+      <!-- 高级配置手风琴（连接参数 / 连接池配置）：参照左侧菜单导航的 q-expansion-item 交互范式，
+           针对表单场景重新调色——白底圆角卡片、图标徽章、标题+副标题、悬停态与展开主题色强调；
+           两组相互独立，可同时展开多个。
+           连接参数：多行 key/value 录入（无标题占位符引导），参数名清空即删行，末尾常驻一行空录入行 -->
       <div class="col-12">
-        <div class="ds-group-panel">
-          <div class="ds-group-panel__head">
-            <span class="ds-group-panel__label">{{ t('datasourceMgmt.connectionParams') }}</span>
-          </div>
-          <div class="ds-group-panel__body">
-            <div v-for="(row, index) in paramRows" :key="index" class="row q-col-gutter-md ds-param-row">
-              <div class="col-6">
-                <q-input
-                  v-model="row.key"
-                  filled
-                  square
-                  :placeholder="t('datasourceMgmt.connectionParamKeyPlaceholder')"
-                  :rules="readonlyMode ? [] : paramKeyRules(index)"
-                  :readonly="readonlyMode"
-                  hide-bottom-space
-                  :class="{ 'ds-param-borderless': readonlyMode }"
-                  @update:model-value="normalizeParamRows"
-                />
+        <div class="ds-adv-accordion">
+          <!-- 连接参数组 -->
+          <q-expansion-item
+            v-model="paramsExpanded"
+            dense-toggle
+            class="ds-adv-item"
+            expand-icon="sym_r_expand_more"
+            expand-icon-class="ds-adv-chevron"
+          >
+            <template #header>
+              <div class="ds-adv-head">
+                <span class="ds-adv-head__icon">
+                  <q-icon name="sym_r_tune" size="18px" />
+                </span>
+                <span class="ds-adv-head__text">
+                  <span class="ds-adv-head__label">{{ t('datasourceMgmt.connectionParams') }}</span>
+                  <span class="ds-adv-head__caption">{{ t('datasourceMgmt.connectionParamsCaption') }}</span>
+                </span>
+                <span v-if="paramRowCount > 0" class="ds-adv-head__badge">
+                  {{ t('datasourceMgmt.paramsConfiguredCount', { n: paramRowCount }) }}
+                </span>
               </div>
-              <div class="col-6">
-                <q-input
-                  v-model="row.value"
-                  filled
-                  square
-                  :placeholder="t('datasourceMgmt.connectionParamValuePlaceholder')"
-                  :readonly="readonlyMode || row.key.trim() === ''"
-                  hide-bottom-space
-                  :class="{ 'ds-param-borderless': readonlyMode || row.key.trim() === '' }"
-                  @update:model-value="normalizeParamRows"
-                />
+            </template>
+            <div class="ds-adv-body">
+              <div v-for="(row, index) in paramRows" :key="index" class="row q-col-gutter-md ds-param-row">
+                <div class="col-6">
+                  <q-input
+                    v-model="row.key"
+                    filled
+                    square
+                    :placeholder="t('datasourceMgmt.connectionParamKeyPlaceholder')"
+                    :rules="readonlyMode ? [] : paramKeyRules(index)"
+                    :readonly="readonlyMode"
+                    hide-bottom-space
+                    :class="{ 'ds-param-borderless': readonlyMode }"
+                    @update:model-value="normalizeParamRows"
+                  />
+                </div>
+                <div class="col-6">
+                  <q-input
+                    v-model="row.value"
+                    filled
+                    square
+                    :placeholder="t('datasourceMgmt.connectionParamValuePlaceholder')"
+                    :readonly="readonlyMode || row.key.trim() === ''"
+                    hide-bottom-space
+                    :class="{ 'ds-param-borderless': readonlyMode || row.key.trim() === '' }"
+                    @update:model-value="normalizeParamRows"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-      <!-- 连接池配置：借鉴驱动上传面板的一体化设计语言——
-           浅底圆角卡片 + 面板头（分组标签 + 细分隔线）+ 内容区，整体传达“一个组件”的心智 -->
-      <div class="col-12">
-        <div class="ds-group-panel">
-          <div class="ds-group-panel__head">
-            <span class="ds-group-panel__label">{{ t('datasourceMgmt.poolSectionTitle') }}</span>
-          </div>
-          <div class="ds-group-panel__body">
-            <div class="row q-col-gutter-md">
-              <div v-for="field in POOL_FIELDS" :key="field.key" class="col-6">
-                <q-input
-                  :model-value="poolConfig[field.key]"
-                  @update:model-value="(v) => onPoolInput(field.key, v)"
-                  @keydown="onNumericKeydown"
-                  type="text"
-                  inputmode="numeric"
-                  :label="t(field.labelKey)"
-                  filled
-                  square
-                  :disable="readonlyMode"
-                  :readonly="readonlyMode"
-                  hide-bottom-space
-                />
+          </q-expansion-item>
+          <q-separator />
+          <!-- 连接池配置组：固定白名单字段，预填 HikariCP 官方默认值 -->
+          <q-expansion-item
+            v-model="poolExpanded"
+            dense-toggle
+            class="ds-adv-item"
+            expand-icon="sym_r_expand_more"
+            expand-icon-class="ds-adv-chevron"
+          >
+            <template #header>
+              <div class="ds-adv-head">
+                <span class="ds-adv-head__icon">
+                  <q-icon name="sym_r_speed" size="18px" />
+                </span>
+                <span class="ds-adv-head__text">
+                  <span class="ds-adv-head__label">{{ t('datasourceMgmt.poolSectionTitle') }}</span>
+                  <span class="ds-adv-head__caption">{{ t('datasourceMgmt.poolConfigCaption') }}</span>
+                </span>
+              </div>
+            </template>
+            <div class="ds-adv-body">
+              <div class="row q-col-gutter-md">
+                <div v-for="field in POOL_FIELDS" :key="field.key" class="col-6">
+                  <q-input
+                    :model-value="poolConfig[field.key]"
+                    @update:model-value="(v) => onPoolInput(field.key, v)"
+                    @keydown="onNumericKeydown"
+                    type="text"
+                    inputmode="numeric"
+                    :label="t(field.labelKey)"
+                    filled
+                    square
+                    :disable="readonlyMode"
+                    :readonly="readonlyMode"
+                    hide-bottom-space
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          </q-expansion-item>
         </div>
       </div>
     </div>
@@ -627,29 +693,103 @@ defineExpose({ validate, getPayload, isDirty });
   border: none;
 }
 
-/* 分组面板（连接参数 / 连接池配置）：与驱动上传面板同构的一体化卡片——
-   浅底圆角容器，面板头收拢分组标签并以细分隔线与内容区区隔 */
-.ds-group-panel {
+/* 高级配置手风琴：一张白底圆角卡片内嵌两个独立的 q-expansion-item 分组（可同时展开多个）。
+   交互范式参照左侧菜单导航，配色适配表单场景：
+   图标徽章 + 标题/副标题双行头部 + 悬停淡染 + 展开时主题色强调 */
+.ds-adv-accordion {
   border: 1px solid #e4e7ec;
-  border-radius: 8px;
-  background: #fafbfc;
+  border-radius: 10px;
+  background: #fff;
   overflow: hidden;
 }
 
-.ds-group-panel__head {
+/* 组头行：加大点击区域，悬停淡染提供可交互反馈 */
+.ds-adv-item :deep(.q-expansion-item__container > .q-item) {
+  padding: 12px 16px;
+  min-height: 56px;
+  transition: background 0.2s;
+}
+
+.ds-adv-item :deep(.q-expansion-item__container > .q-item:hover) {
+  background: rgba(0, 0, 0, 0.025);
+}
+
+.ds-adv-head {
   display: flex;
   align-items: center;
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.ds-group-panel__label {
+/* 图标徽章：主题色淡底圆角方块，与左侧导航的模块图标同构 */
+.ds-adv-head__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  margin-right: 12px;
+  border-radius: 8px;
+  background: rgba(0, 150, 136, 0.08);
+  color: #00796b;
+  transition: background 0.2s;
+}
+
+.ds-adv-head__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ds-adv-head__label {
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.82);
+  transition: color 0.2s;
+}
+
+.ds-adv-head__caption {
   font-size: 12px;
-  color: #757575;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.45);
 }
 
-.ds-group-panel__body {
-  padding: 12px;
+/* 摘要徽标：已配置 N 项，收起时仍可见配置状态 */
+.ds-adv-head__badge {
+  flex: none;
+  margin-left: auto;
+  margin-right: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #00796b;
+  background: rgba(0, 150, 136, 0.1);
+  white-space: nowrap;
+}
+
+.ds-adv-chevron {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* 展开态强调：标题与箭头切换为主题色，图标徽章底色加深 */
+.ds-adv-item.q-expansion-item--expanded .ds-adv-head__label {
+  color: #00796b;
+}
+
+.ds-adv-item.q-expansion-item--expanded .ds-adv-head__icon {
+  background: rgba(0, 150, 136, 0.16);
+}
+
+.ds-adv-item.q-expansion-item--expanded .ds-adv-chevron {
+  color: #00796b;
+}
+
+/* 内容区：与组头以发丝线分隔 */
+.ds-adv-body {
+  padding: 14px 16px 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* 连接参数多行之间的纵向间距 */
@@ -658,22 +798,54 @@ defineExpose({ validate, getPayload, isDirty });
 }
 </style>
 
-<!-- 非 scoped：预览框与连接池面板暗色模式适配 -->
+<!-- 非 scoped：预览框与高级配置手风琴暗色模式适配 -->
 <style>
 .body--dark .ds-form-mysql .ds-jdbc-url-preview .q-field__native {
   color: rgba(255, 255, 255, 0.75);
 }
 
-.body--dark .ds-form-mysql .ds-group-panel {
+/* 手风琴卡片暗色适配 */
+.body--dark .ds-form-mysql .ds-adv-accordion {
   background: #252525;
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-.body--dark .ds-form-mysql .ds-group-panel__head {
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+.body--dark .ds-form-mysql .ds-adv-item .q-expansion-item__container > .q-item:hover {
+  background: rgba(255, 255, 255, 0.04);
 }
 
-.body--dark .ds-form-mysql .ds-group-panel__label {
-  color: rgba(255, 255, 255, 0.55);
+.body--dark .ds-form-mysql .ds-adv-head__label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.body--dark .ds-form-mysql .ds-adv-head__caption {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.body--dark .ds-form-mysql .ds-adv-head__icon {
+  background: rgba(0, 150, 136, 0.18);
+  color: #4db6ac;
+}
+
+.body--dark .ds-form-mysql .ds-adv-head__badge {
+  background: rgba(0, 150, 136, 0.2);
+  color: #4db6ac;
+}
+
+.body--dark .ds-form-mysql .ds-adv-chevron {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.body--dark .ds-form-mysql .ds-adv-item.q-expansion-item--expanded .ds-adv-head__label,
+.body--dark .ds-form-mysql .ds-adv-item.q-expansion-item--expanded .ds-adv-chevron {
+  color: #4db6ac;
+}
+
+.body--dark .ds-form-mysql .ds-adv-item.q-expansion-item--expanded .ds-adv-head__icon {
+  background: rgba(0, 150, 136, 0.28);
+}
+
+.body--dark .ds-form-mysql .ds-adv-body {
+  border-top-color: rgba(255, 255, 255, 0.08);
 }
 </style>
