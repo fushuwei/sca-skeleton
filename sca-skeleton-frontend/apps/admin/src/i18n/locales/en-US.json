@@ -601,6 +601,7 @@
     "comingSoon": "Coming soon",
     "lastSelected": "Last used",
     "changeType": "Change Type",
+    "prevStep": "Previous",
     "changeTypeConfirm": "Filled content will be lost. Are you sure you want to change the datasource type?",
     "typeImmutableHint": "Type is immutable",
     "formNotSupported": "This datasource type is not supported yet",

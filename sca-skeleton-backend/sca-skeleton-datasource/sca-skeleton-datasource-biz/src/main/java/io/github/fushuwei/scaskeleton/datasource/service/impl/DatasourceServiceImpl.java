@@ -11,6 +11,7 @@ import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
 import io.github.fushuwei.scaskeleton.datasource.api.enums.DbType;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceCreateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourcePageRequest;
+import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceTestConfigRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceUpdateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DatasourceResponse;
 import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DbTypeOptionResponse;
@@ -281,6 +282,60 @@ public class DatasourceServiceImpl implements DatasourceService {
         } catch (Exception e) {
             log.warn("测试连接失败: datasourceId={}, error={}", id, e.getMessage());
             updateStatus(ds, "error", e.getMessage());
+            throw new BusinessException("连接失败: " + e.getMessage());
+        } finally {
+            driverLifecycle.release(driver.getId());
+        }
+    }
+
+    @Override
+    public void testConnectionByConfig(DatasourceTestConfigRequest request) {
+        // 驱动一致性校验 + 加载驱动与方言
+        validateDriverConsistency(request.getDriverId(), request.getDbType());
+        Driver driver = loadDriverEntity(request.getDriverId());
+        Dialect dialect = dialectRegistry.get(request.getDbType());
+
+        // 密码：优先用表单输入；编辑模式留空时回退库内已保存的密码
+        String password = request.getPassword();
+        if (!StringUtils.hasText(password)) {
+            if (!StringUtils.hasText(request.getId())) {
+                throw new BusinessException(ResultCode.VALIDATION_ERROR, "密码不能为空");
+            }
+            Datasource stored = loadDatasourceEntity(request.getId());
+            password = credentialCipher.decrypt(stored.getPassword());
+        }
+
+        // 加载驱动实例（不落库、不更新状态）
+        DriverInstance instance;
+        try {
+            Path[] jarPaths = driverStore.listLocalJars(driver.getName()).toArray(new Path[0]);
+            instance = driverLifecycle.acquire(driver.getId(), driver.getDriverClass(), jarPaths);
+        } catch (Exception e) {
+            log.warn("加载驱动失败: driverId={}, error={}", driver.getId(), e.getMessage());
+            throw new BusinessException("加载驱动失败: " + e.getMessage());
+        }
+
+        String jdbcUrl = dialect.buildJdbcUrl(request.getHost(), request.getPort(),
+            request.getDatabaseName(), toQueryString(request.getConnectionParams()));
+        Properties props = new Properties();
+        props.setProperty("user", request.getUsername());
+        props.setProperty("password", password);
+
+        try {
+            try (Connection conn = instance.connect(jdbcUrl, props)) {
+                if (conn == null) {
+                    throw new BusinessException("驱动无法识别 JDBC URL: " + jdbcUrl);
+                }
+                // 执行心跳 SQL
+                try (var stmt = conn.createStatement()) {
+                    stmt.execute(dialect.pingSql());
+                }
+            }
+            log.info("测试连接配置成功: jdbcUrl={}", jdbcUrl);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("测试连接配置失败: jdbcUrl={}, error={}", jdbcUrl, e.getMessage());
             throw new BusinessException("连接失败: " + e.getMessage());
         } finally {
             driverLifecycle.release(driver.getId());

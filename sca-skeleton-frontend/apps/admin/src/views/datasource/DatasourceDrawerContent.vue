@@ -18,7 +18,8 @@ import type { Datasource, DbTypeOption } from "../../apis/datasource";
 import {
   createDatasourceApi,
   updateDatasourceApi,
-  getDbTypesApi
+  getDbTypesApi,
+  testDatasourceConfigApi
 } from "../../apis/datasource";
 import DbTypeIcon from "../../components/DbTypeIcon.vue";
 import DatasourceTypeGallery from "./forms/DatasourceTypeGallery.vue";
@@ -97,6 +98,7 @@ function formApi(): DatasourceTypeFormExpose | null {
 }
 
 const formLoading = ref(false);
+const testLoading = ref(false);
 
 // ── 第一步 → 第二步 ──
 function handleSelectType(dbType: string) {
@@ -124,6 +126,46 @@ async function handleChangeType() {
 
 function handleClose() {
   emit("close");
+}
+
+/** 测试当前表单配置的连接（不落库）：先过表单校验，再提交连接相关字段 */
+async function handleTestConnection() {
+  if (drawerReadonly.value) return;
+  const api = formApi();
+  if (!api) return;
+
+  const valid = await api.validate();
+  if (!valid) return;
+
+  const payload = api.getPayload();
+  // 编辑模式密码留空时由后端回退库内已保存的密码
+  const testData: Record<string, unknown> = {
+    id: payload.id,
+    dbType: payload.dbType,
+    driverId: payload.driverId,
+    host: payload.host,
+    port: payload.port,
+    databaseName: payload.databaseName,
+    username: payload.username,
+    password: payload.password,
+    connectionParams: payload.connectionParams
+  };
+
+  try {
+    testLoading.value = true;
+    const result = await testDatasourceConfigApi(testData);
+    if (result.code === 10_000) {
+      showToast(t("datasourceMgmt.testSuccess"), "positive");
+    } else {
+      showToast(result.message || t("datasourceMgmt.testFail"), "negative");
+    }
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("datasourceMgmt.testFail"), "negative");
+    }
+  } finally {
+    testLoading.value = false;
+  }
 }
 
 async function handleSave() {
@@ -240,27 +282,51 @@ onMounted(() => {
         {{ t('datasourceMgmt.formNotSupported') }}
       </div>
 
-      <!-- 底部操作按钮 -->
-      <div v-if="!drawerReadonly" class="datasource-drawer-footer row justify-end q-gutter-sm">
-        <q-btn
-          color="grey-7"
-          outline
-          no-caps
-          class="drawer-action-btn"
-          @click="handleClose"
-        >
-          {{ t('common.cancel') }}
-        </q-btn>
-        <q-btn
-          color="primary"
-          unelevated
-          no-caps
-          :loading="formLoading"
-          class="drawer-action-btn"
-          @click="handleSave"
-        >
-          {{ t('common.confirm') }}
-        </q-btn>
+      <!-- 底部操作区：左侧向导回退（上一步），右侧动作簇（测试连接→取消→确定，确定置右突出） -->
+      <div v-if="!drawerReadonly" class="datasource-drawer-footer row items-center justify-between no-wrap">
+        <div>
+          <q-btn
+            v-if="props.mode === 'add'"
+            color="grey-7"
+            outline
+            no-caps
+            class="drawer-action-btn"
+            @click="handleChangeType"
+          >
+            {{ t('datasourceMgmt.prevStep') }}
+          </q-btn>
+        </div>
+        <div class="row q-gutter-sm">
+          <q-btn
+            color="primary"
+            outline
+            no-caps
+            :loading="testLoading"
+            class="drawer-action-btn"
+            @click="handleTestConnection"
+          >
+            {{ t('datasourceMgmt.testConnection') }}
+          </q-btn>
+          <q-btn
+            color="grey-7"
+            outline
+            no-caps
+            class="drawer-action-btn"
+            @click="handleClose"
+          >
+            {{ t('common.cancel') }}
+          </q-btn>
+          <q-btn
+            color="primary"
+            unelevated
+            no-caps
+            :loading="formLoading"
+            class="drawer-action-btn"
+            @click="handleSave"
+          >
+            {{ t('common.confirm') }}
+          </q-btn>
+        </div>
       </div>
     </template>
   </div>

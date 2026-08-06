@@ -247,6 +247,17 @@ export async function testDatasourceApi(
   });
 }
 
+/** 测试未保存的数据源连接配置（表单内「测试连接」，不落库） */
+export async function testDatasourceConfigApi(
+  data: Record<string, unknown>
+): Promise<ApiEnvelope<null>> {
+  return request<null>({
+    method: "POST",
+    url: "/ds/datasource/test-config",
+    data
+  });
+}
+
 /** 启用数据源 */
 export async function enableDatasourceApi(
   id: string

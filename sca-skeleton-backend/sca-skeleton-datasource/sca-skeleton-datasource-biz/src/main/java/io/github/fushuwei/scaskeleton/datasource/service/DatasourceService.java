@@ -1,9 +1,9 @@
 package io.github.fushuwei.scaskeleton.datasource.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import io.github.fushuwei.scaskeleton.datasource.api.enums.DbType;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceCreateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourcePageRequest;
+import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceTestConfigRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceUpdateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DatasourceResponse;
 import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DbTypeOptionResponse;
@@ -35,6 +35,13 @@ public interface DatasourceService {
     void batchDeleteDatasources(List<String> ids);
 
     DatasourceResponse testConnection(String id);
+
+    /**
+     * 测试未保存的连接配置（表单内「测试连接」）：不落库、不更新状态。
+     *
+     * @param request 连接配置（编辑模式密码留空时回退库内密码）
+     */
+    void testConnectionByConfig(DatasourceTestConfigRequest request);
 
     void changeEnabled(String id, Integer enabled);
 

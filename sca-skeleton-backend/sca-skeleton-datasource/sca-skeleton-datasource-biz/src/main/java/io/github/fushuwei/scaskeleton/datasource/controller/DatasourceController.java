@@ -2,10 +2,10 @@ package io.github.fushuwei.scaskeleton.datasource.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.core.result.Result;
-import io.github.fushuwei.scaskeleton.datasource.api.enums.DbType;
 import io.github.fushuwei.scaskeleton.datasource.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceCreateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourcePageRequest;
+import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceTestConfigRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.request.datasource.DatasourceUpdateRequest;
 import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DatasourceResponse;
 import io.github.fushuwei.scaskeleton.datasource.api.response.datasource.DbTypeOptionResponse;
@@ -91,6 +91,15 @@ public class DatasourceController {
     @OperationLog(module = "数据源管理", action = "测试连接")
     public Result<DatasourceResponse> test(@RequestParam String id) {
         return Result.ok(datasourceService.testConnection(id));
+    }
+
+    @Operation(summary = "测试未保存的数据源连接配置")
+    @PostMapping("/test-config")
+    @RequiresPermission("sys:datasource:list")
+    @OperationLog(module = "数据源管理", action = "测试连接配置")
+    public Result<Void> testConfig(@Validated @RequestBody DatasourceTestConfigRequest request) {
+        datasourceService.testConnectionByConfig(request);
+        return Result.ok();
     }
 
     @Operation(summary = "启用数据源")

@@ -601,6 +601,7 @@
     "comingSoon": "即将支持",
     "lastSelected": "上次选择",
     "changeType": "重新选择",
+    "prevStep": "上一步",
     "changeTypeConfirm": "已填写的内容将丢失，确认更换数据源类型？",
     "typeImmutableHint": "类型不可变更",
     "formNotSupported": "暂不支持该数据源类型",
