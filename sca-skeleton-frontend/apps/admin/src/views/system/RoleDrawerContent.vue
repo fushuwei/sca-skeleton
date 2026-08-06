@@ -412,7 +412,8 @@ async function handleSave() {
 
 <template>
   <div class="role-drawer-content">
-    <q-form class="role-drawer-form" @submit="handleSave">
+    <!-- 中间内容区（唯一滚动区）：表单字段 -->
+    <q-form id="role-drawer-form" class="role-drawer-form role-drawer-main" @submit="handleSave">
       <div class="row q-col-gutter-md">
         <!-- 目标租户（仅超管创建时显示） -->
         <div v-if="mode === 'add' && isSuperadmin" class="col-12">
@@ -592,43 +593,58 @@ async function handleSave() {
           </q-scroll-area>
         </div>
       </div>
-
-      <!-- 底部操作按钮 -->
-      <div v-if="!drawerReadonly" class="role-drawer-footer row justify-end q-gutter-sm">
-        <q-btn
-          color="grey-7"
-          outline
-          no-caps
-          class="drawer-action-btn"
-          @click="handleClose"
-        >
-          {{ t('common.cancel') }}
-        </q-btn>
-        <q-btn
-          type="submit"
-          color="primary"
-          unelevated
-          no-caps
-          :loading="formLoading"
-          class="drawer-action-btn"
-        >
-          {{ t('common.confirm') }}
-        </q-btn>
-      </div>
     </q-form>
+
+    <!-- 底部操作栏：固定第三段，不随内容滚动；按钮直接挂在页脚容器上，间距由 CSS gap 控制 -->
+    <div v-if="!drawerReadonly" class="role-drawer-footer row items-center justify-end no-wrap">
+      <q-btn
+        color="grey-7"
+        outline
+        no-caps
+        class="drawer-action-btn"
+        @click="handleClose"
+      >
+        {{ t('common.cancel') }}
+      </q-btn>
+      <q-btn
+        type="submit"
+        form="role-drawer-form"
+        color="primary"
+        unelevated
+        no-caps
+        :loading="formLoading"
+        class="drawer-action-btn"
+      >
+        {{ t('common.confirm') }}
+      </q-btn>
+    </div>
   </div>
 </template>
 
 <style scoped>
+/* 三段式抽屉布局：外层 .role-drawer-body 不再滚动，
+   中间内容区（q-form.role-drawer-main）独立滚动，底部操作栏固定为第三段 */
 .role-drawer-content {
-  padding: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
+/* 中间内容区：唯一的滚动区域 */
+.role-drawer-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 16px 12px;
+}
+
+/* 底部操作栏：固定第三段，不参与内容滚动（按钮直接子元素，gap 控制间距） */
 .role-drawer-footer {
   flex-shrink: 0;
-  padding: 12px 0 0;
+  gap: 8px;
+  padding: 14px 16px;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
-  margin-top: 16px;
 }
 
 .drawer-action-btn {
