@@ -1,7 +1,7 @@
 package io.github.fushuwei.scaskeleton.datasource.service.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.datasource.api.enums.DbType;
@@ -61,8 +61,7 @@ public class QueryServiceImpl implements QueryService {
     private final DialectRegistry dialectRegistry;
     private final CredentialCipher credentialCipher;
     private final DriverStore driverStore;
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private final JsonMapper jsonMapper;
 
     @Override
     public SqlExecuteResponse executeSql(SqlExecuteRequest request) {
@@ -257,7 +256,7 @@ public class QueryServiceImpl implements QueryService {
             return trimmed;
         }
         try {
-            Map<String, Object> params = OBJECT_MAPPER.readValue(trimmed, new TypeReference<>() {});
+            Map<String, Object> params = jsonMapper.readValue(trimmed, new TypeReference<>() {});
             if (params.isEmpty()) {
                 return null;
             }

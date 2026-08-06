@@ -3,8 +3,8 @@ package io.github.fushuwei.scaskeleton.datasource.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.core.uuid.UuidUtils;
@@ -71,8 +71,7 @@ public class DatasourceServiceImpl implements DatasourceService {
     private final DialectRegistry dialectRegistry;
     private final CredentialCipher credentialCipher;
     private final DriverStore driverStore;
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private final JsonMapper jsonMapper;
 
     /**
      * 连接池配置白名单（HikariCP 核心可调参数）。
@@ -508,7 +507,7 @@ public class DatasourceServiceImpl implements DatasourceService {
             return trimmed;
         }
         try {
-            Map<String, Object> params = OBJECT_MAPPER.readValue(trimmed, new TypeReference<>() {});
+            Map<String, Object> params = jsonMapper.readValue(trimmed, new TypeReference<>() {});
             if (params.isEmpty()) {
                 return null;
             }
@@ -553,7 +552,7 @@ public class DatasourceServiceImpl implements DatasourceService {
             }
         }
         try {
-            return OBJECT_MAPPER.writeValueAsString(poolConfig);
+            return jsonMapper.writeValueAsString(poolConfig);
         } catch (Exception e) {
             throw new BusinessException(ResultCode.VALIDATION_ERROR, "连接池配置序列化失败");
         }
