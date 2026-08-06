@@ -2,7 +2,6 @@
 import { ref, reactive, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
-import { useClickOutsideClose } from "../../composables/useClickOutsideClose";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysDept, DeptTreeNode, DeptPageRequest } from "../../types/auth";
@@ -257,7 +256,6 @@ useEscCloseDrawer(drawerOpen);
 const drawerMode = ref<DrawerMode>("add");
 const drawerDept = ref<SysDept | undefined>(undefined);
 
-const { handleMaskMouseDown, handleMaskMouseUp } = useClickOutsideClose(closeDeptDrawer);
 const drawerDefaultParentId = ref<string>("0");
 
 const drawerTitle = computed(() => {
@@ -986,8 +984,7 @@ onMounted(() => {
       <div
         v-if="drawerOpen"
         class="dept-local-drawer-mask"
-        @mousedown="handleMaskMouseDown"
-        @mouseup="handleMaskMouseUp"
+        v-mask-close="closeDeptDrawer"
       >
         <div class="dept-local-drawer">
           <div class="dept-drawer-shell">

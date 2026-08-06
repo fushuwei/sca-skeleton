@@ -2,7 +2,6 @@
 import { ref, reactive, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
-import { useClickOutsideClose } from "../../composables/useClickOutsideClose";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysPermission, PermissionTreeNode, PermissionPageRequest } from "../../types/auth";
@@ -371,7 +370,6 @@ const drawerDefaultParentId = ref<string>("0");
 /** 新建权限时预设的权限域（跟随当前选中的分类节点/业务节点） */
 const drawerDefaultRealm = ref<string>("");
 
-const { handleMaskMouseDown, handleMaskMouseUp } = useClickOutsideClose(closeMenuDrawer);
 useEscCloseDrawer(drawerOpen);
 
 const drawerTitle = computed(() => {
@@ -1230,8 +1228,7 @@ onMounted(() => {
       <div
         v-if="drawerOpen"
         class="permission-local-drawer-mask"
-        @mousedown="handleMaskMouseDown"
-        @mouseup="handleMaskMouseUp"
+        v-mask-close="closeMenuDrawer"
       >
         <div class="permission-local-drawer">
           <div class="permission-drawer-shell">

@@ -26,6 +26,7 @@ import { registerAdminTokenSync, registerAdminTranslator } from "./apis/http";
 import { useAuthStore } from "./stores/auth";
 import { setupQuasarNotify } from "@repo/ui";
 import { createMaterialSymbolsIconMapFn } from "@repo/ui/setup-icon-map";
+import { vMaskClose } from "./directives/maskClose";
 
 const app = createApp(App); // 创建 Vue 应用实例。
 const pinia = createPinia(); // 创建 Pinia 状态管理实例。
@@ -50,6 +51,9 @@ app.use(Quasar, {
     dark: initialDark // `$q.dark` 初始态；头部按钮再 toggle 并持久化。
   }
 }); // 挂载 Quasar。
+
+// 全局指令：点击抽屉蒙层关闭（集中处理 Chrome 拖拽选中误关闭，供所有本地抽屉复用）。
+app.directive("mask-close", vMaskClose);
 
 // Quasar 运行时只读 $q.config.iconMapFn（quasar.client.js:944），但 QuasarUIConfiguration 类型未声明该字段，
 // 放 config 内会 TS 报错。Quasar install 后通过 $q.iconMapFn setter（injectProp 注入）赋值，绕开类型与运行时不一致。

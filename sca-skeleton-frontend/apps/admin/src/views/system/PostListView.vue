@@ -2,7 +2,6 @@
 import { ref, reactive, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
-import { useClickOutsideClose } from "../../composables/useClickOutsideClose";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysPost, PostPageRequest } from "../../types/auth";
@@ -40,8 +39,6 @@ const drawerOpen = ref(false);
 useEscCloseDrawer(drawerOpen);
 const drawerMode = ref<DrawerMode>("add");
 const drawerPost = ref<SysPost | undefined>(undefined);
-
-const { handleMaskMouseDown, handleMaskMouseUp } = useClickOutsideClose(closePostDrawer);
 
 const drawerTitle = computed(() => {
   if (drawerMode.value === "add") return t("postMgmt.addPost");
@@ -592,8 +589,7 @@ onMounted(() => {
       <div
         v-if="drawerOpen"
         class="post-local-drawer-mask"
-        @mousedown="handleMaskMouseDown"
-        @mouseup="handleMaskMouseUp"
+        v-mask-close="closePostDrawer"
       >
         <div class="post-local-drawer">
           <div class="post-drawer-shell">

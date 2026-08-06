@@ -2,7 +2,6 @@
 import { ref, reactive, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
-import { useClickOutsideClose } from "../../composables/useClickOutsideClose";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { Driver, DriverFile, DriverPageRequest } from "../../apis/datasource";
@@ -59,8 +58,6 @@ const drawerOpen = ref(false);
 useEscCloseDrawer(drawerOpen);
 const drawerMode = ref<DrawerMode>("add");
 const drawerDriver = ref<Driver | undefined>(undefined);
-
-const { handleMaskMouseDown, handleMaskMouseUp } = useClickOutsideClose(closeDriverDrawer);
 
 const drawerTitle = computed(() => {
   if (drawerMode.value === "add") return t("driverMgmt.addDriver");
@@ -701,8 +698,7 @@ onMounted(() => {
       <div
         v-if="drawerOpen"
         class="driver-local-drawer-mask"
-        @mousedown="handleMaskMouseDown"
-        @mouseup="handleMaskMouseUp"
+        v-mask-close="closeDriverDrawer"
       >
         <div class="driver-local-drawer">
           <div class="driver-drawer-shell">

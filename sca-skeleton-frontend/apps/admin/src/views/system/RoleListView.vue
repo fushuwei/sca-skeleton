@@ -2,7 +2,6 @@
 import { ref, reactive, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
-import { useClickOutsideClose } from "../../composables/useClickOutsideClose";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysRole, RolePageRequest } from "../../types/auth";
@@ -89,8 +88,6 @@ const drawerOpen = ref(false);
 useEscCloseDrawer(drawerOpen);
 const drawerMode = ref<DrawerMode>("add");
 const drawerRole = ref<SysRole | undefined>(undefined);
-
-const { handleMaskMouseDown, handleMaskMouseUp } = useClickOutsideClose(closeRoleDrawer);
 
 const drawerTitle = computed(() => {
   if (drawerMode.value === "add") return t("roleMgmt.addRole");
@@ -780,8 +777,7 @@ onMounted(() => {
       <div
         v-if="drawerOpen"
         class="role-local-drawer-mask"
-        @mousedown="handleMaskMouseDown"
-        @mouseup="handleMaskMouseUp"
+        v-mask-close="closeRoleDrawer"
       >
         <div class="role-local-drawer">
           <div class="role-drawer-shell">
