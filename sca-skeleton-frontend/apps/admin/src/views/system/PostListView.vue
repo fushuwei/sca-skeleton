@@ -2,6 +2,7 @@
 import { ref, reactive, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
+import { useClickOutsideClose } from "../../composables/useClickOutsideClose";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysPost, PostPageRequest } from "../../types/auth";
@@ -39,6 +40,8 @@ const drawerOpen = ref(false);
 useEscCloseDrawer(drawerOpen);
 const drawerMode = ref<DrawerMode>("add");
 const drawerPost = ref<SysPost | undefined>(undefined);
+
+const { handleMaskMouseDown, handleMaskMouseUp } = useClickOutsideClose(closePostDrawer);
 
 const drawerTitle = computed(() => {
   if (drawerMode.value === "add") return t("postMgmt.addPost");
@@ -586,7 +589,12 @@ onMounted(() => {
   <!-- ═══ 本地右侧抽屉：添加 / 编辑 / 查看岗位 ═══ -->
   <Teleport to="body">
     <Transition name="post-drawer-slide">
-      <div v-if="drawerOpen" class="post-local-drawer-mask" @click.self="closePostDrawer">
+      <div
+        v-if="drawerOpen"
+        class="post-local-drawer-mask"
+        @mousedown="handleMaskMouseDown"
+        @mouseup="handleMaskMouseUp"
+      >
         <div class="post-local-drawer">
           <div class="post-drawer-shell">
             <div class="post-drawer-header row items-center no-wrap">

@@ -2,6 +2,7 @@
 import { ref, reactive, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
+import { useClickOutsideClose } from "../../composables/useClickOutsideClose";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysUser, DeptOption, DeptTreeNode, UserPageRequest } from "../../types/auth";
@@ -300,6 +301,8 @@ const drawerOpen = ref(false);
 useEscCloseDrawer(drawerOpen);
 const drawerMode = ref<DrawerMode>("add");
 const drawerUser = ref<SysUser | undefined>(undefined);
+
+const { handleMaskMouseDown, handleMaskMouseUp } = useClickOutsideClose(closeUserDrawer);
 
 const drawerTitle = computed(() => {
   if (drawerMode.value === "add") return t("user.addUser");
@@ -1261,7 +1264,12 @@ onMounted(() => {
   <!-- ═══ 本地右侧抽屉：添加 / 编辑 / 查看用户 ═══ -->
   <Teleport to="body">
     <Transition name="user-drawer-slide">
-      <div v-if="drawerOpen" class="user-local-drawer-mask" @click.self="closeUserDrawer">
+      <div
+        v-if="drawerOpen"
+        class="user-local-drawer-mask"
+        @mousedown="handleMaskMouseDown"
+        @mouseup="handleMaskMouseUp"
+      >
         <div class="user-local-drawer">
           <div class="user-drawer-shell">
             <div class="user-drawer-header row items-center no-wrap">

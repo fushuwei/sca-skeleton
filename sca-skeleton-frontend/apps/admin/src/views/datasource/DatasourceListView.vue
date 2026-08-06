@@ -2,6 +2,7 @@
 import { ref, reactive, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
+import { useClickOutsideClose } from "../../composables/useClickOutsideClose";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { Datasource, DatasourcePageRequest, DbTypeOption } from "../../apis/datasource";
@@ -91,6 +92,8 @@ const drawerOpen = ref(false);
 useEscCloseDrawer(drawerOpen);
 const drawerMode = ref<DrawerMode>("add");
 const drawerDatasource = ref<Datasource | undefined>(undefined);
+
+const { handleMaskMouseDown, handleMaskMouseUp } = useClickOutsideClose(closeDatasourceDrawer);
 
 const drawerTitle = computed(() => {
   if (drawerMode.value === "add") return t("datasourceMgmt.addDatasource");
@@ -856,7 +859,12 @@ onMounted(async () => {
   <!-- ═══ 本地右侧抽屉：添加 / 编辑 / 查看数据源 ═══ -->
   <Teleport to="body">
     <Transition name="datasource-drawer-slide">
-      <div v-if="drawerOpen" class="datasource-local-drawer-mask" @click.self="closeDatasourceDrawer">
+      <div
+        v-if="drawerOpen"
+        class="datasource-local-drawer-mask"
+        @mousedown="handleMaskMouseDown"
+        @mouseup="handleMaskMouseUp"
+      >
         <div class="datasource-local-drawer">
           <div class="datasource-drawer-shell">
             <div class="datasource-drawer-header row items-center no-wrap">

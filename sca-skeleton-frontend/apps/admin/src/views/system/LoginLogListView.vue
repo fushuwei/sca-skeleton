@@ -2,6 +2,7 @@
 import { ref, reactive, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
+import { useClickOutsideClose } from "../../composables/useClickOutsideClose";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysLoginLog, LoginLogPageRequest } from "../../types/auth";
@@ -89,6 +90,8 @@ const costColorOf = (ms: number): string => {
 const drawerOpen = ref(false);
 useEscCloseDrawer(drawerOpen);
 const detailData = ref<SysLoginLog | null>(null);
+
+const { handleMaskMouseDown, handleMaskMouseUp } = useClickOutsideClose(closeDrawer);
 
 const drawerTitle = computed(() => t("loginLog.detailTitle"));
 const drawerIcon = computed(() => "sym_r_visibility");
@@ -777,7 +780,12 @@ onMounted(() => {
   <!-- ═══ 本地右侧抽屉：查看详情 ═══ -->
   <Teleport to="body">
     <Transition name="log-drawer-slide">
-      <div v-if="drawerOpen" class="log-local-drawer-mask" @click.self="closeDrawer">
+      <div
+        v-if="drawerOpen"
+        class="log-local-drawer-mask"
+        @mousedown="handleMaskMouseDown"
+        @mouseup="handleMaskMouseUp"
+      >
         <div class="log-local-drawer">
           <div class="log-drawer-shell">
             <div class="log-drawer-header row items-center no-wrap">

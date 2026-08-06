@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
+import { useClickOutsideClose } from "../../composables/useClickOutsideClose";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysPermission, PermissionTreeNode, PermissionPageRequest } from "../../types/auth";
@@ -368,6 +370,9 @@ const drawerPermission = ref<SysPermission | undefined>(undefined);
 const drawerDefaultParentId = ref<string>("0");
 /** 新建权限时预设的权限域（跟随当前选中的分类节点/业务节点） */
 const drawerDefaultRealm = ref<string>("");
+
+const { handleMaskMouseDown, handleMaskMouseUp } = useClickOutsideClose(closeMenuDrawer);
+useEscCloseDrawer(drawerOpen);
 
 const drawerTitle = computed(() => {
   if (drawerMode.value === "add") return t("permissionMgmt.addPermission");
@@ -1222,7 +1227,12 @@ onMounted(() => {
   <!-- ═══ 本地右侧抽屉：添加 / 编辑 / 查看权限 ═══ -->
   <Teleport to="body">
     <Transition name="permission-drawer-slide">
-      <div v-if="drawerOpen" class="permission-local-drawer-mask" @click.self="closeMenuDrawer">
+      <div
+        v-if="drawerOpen"
+        class="permission-local-drawer-mask"
+        @mousedown="handleMaskMouseDown"
+        @mouseup="handleMaskMouseUp"
+      >
         <div class="permission-local-drawer">
           <div class="permission-drawer-shell">
             <div class="permission-drawer-header row items-center no-wrap">

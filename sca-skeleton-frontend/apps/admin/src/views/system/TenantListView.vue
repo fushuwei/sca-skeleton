@@ -2,6 +2,7 @@
 import { ref, reactive, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useEscCloseDrawer } from "../../composables/useEscCloseDrawer";
+import { useClickOutsideClose } from "../../composables/useClickOutsideClose";
 import type { QTableColumn } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysTenant, TenantPackageOption, TenantPageRequest } from "../../types/auth";
@@ -104,6 +105,8 @@ const drawerOpen = ref(false);
 useEscCloseDrawer(drawerOpen);
 const drawerMode = ref<DrawerMode>("add");
 const drawerTenant = ref<SysTenant | undefined>(undefined);
+
+const { handleMaskMouseDown, handleMaskMouseUp } = useClickOutsideClose(closeTenantDrawer);
 
 const drawerTitle = computed(() => {
   if (drawerMode.value === "add") return t("tenantMgmt.addTenant");
@@ -803,7 +806,12 @@ onMounted(() => {
   <!-- ═══ 本地右侧抽屉：添加 / 编辑 / 查看租户 ═══ -->
   <Teleport to="body">
     <Transition name="tenant-drawer-slide">
-      <div v-if="drawerOpen" class="tenant-local-drawer-mask" @click.self="closeTenantDrawer">
+      <div
+        v-if="drawerOpen"
+        class="tenant-local-drawer-mask"
+        @mousedown="handleMaskMouseDown"
+        @mouseup="handleMaskMouseUp"
+      >
         <div class="tenant-local-drawer">
           <div class="tenant-drawer-shell">
             <div class="tenant-drawer-header row items-center no-wrap">
