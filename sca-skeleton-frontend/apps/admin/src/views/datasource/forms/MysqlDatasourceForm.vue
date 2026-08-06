@@ -587,7 +587,7 @@ defineExpose({ validate, getPayload, isDirty });
               </div>
             </template>
             <div class="ds-adv-body">
-              <div v-for="(row, index) in paramRows" :key="index" class="row q-col-gutter-md ds-param-row">
+              <div v-for="(row, index) in paramRows" :key="index" class="row q-col-gutter-x-md ds-param-row">
                 <div class="col-6">
                   <q-input
                     v-model="row.key"
@@ -792,7 +792,8 @@ defineExpose({ validate, getPayload, isDirty });
   border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-/* 连接参数多行之间的纵向间距 */
+/* 连接参数多行之间的纵向间距（行内横向间距由 q-col-gutter-x-md 提供；
+   注意不能用 q-col-gutter-md，其纵向 padding 会让行间距叠加过大） */
 .ds-param-row + .ds-param-row {
   margin-top: 10px;
 }
