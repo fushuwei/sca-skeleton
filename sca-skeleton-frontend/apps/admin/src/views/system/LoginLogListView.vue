@@ -779,8 +779,8 @@ onMounted(() => {
     <Transition name="log-drawer-slide">
       <div
         v-if="drawerOpen"
-        class="log-local-drawer-mask"
         v-mask-close="closeDrawer"
+        class="log-local-drawer-mask"
       >
         <div class="log-local-drawer">
           <div class="log-drawer-shell">

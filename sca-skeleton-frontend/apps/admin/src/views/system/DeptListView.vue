@@ -983,8 +983,8 @@ onMounted(() => {
     <Transition name="dept-drawer-slide">
       <div
         v-if="drawerOpen"
-        class="dept-local-drawer-mask"
         v-mask-close="closeDeptDrawer"
+        class="dept-local-drawer-mask"
       >
         <div class="dept-local-drawer">
           <div class="dept-drawer-shell">

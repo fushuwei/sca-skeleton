@@ -697,8 +697,8 @@ onMounted(() => {
     <Transition name="driver-drawer-slide">
       <div
         v-if="drawerOpen"
-        class="driver-local-drawer-mask"
         v-mask-close="closeDriverDrawer"
+        class="driver-local-drawer-mask"
       >
         <div class="driver-local-drawer">
           <div class="driver-drawer-shell">

@@ -805,8 +805,8 @@ onMounted(() => {
     <Transition name="tenant-drawer-slide">
       <div
         v-if="drawerOpen"
-        class="tenant-local-drawer-mask"
         v-mask-close="closeTenantDrawer"
+        class="tenant-local-drawer-mask"
       >
         <div class="tenant-local-drawer">
           <div class="tenant-drawer-shell">

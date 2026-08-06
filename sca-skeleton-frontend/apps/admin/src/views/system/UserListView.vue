@@ -1263,8 +1263,8 @@ onMounted(() => {
     <Transition name="user-drawer-slide">
       <div
         v-if="drawerOpen"
-        class="user-local-drawer-mask"
         v-mask-close="closeUserDrawer"
+        class="user-local-drawer-mask"
       >
         <div class="user-local-drawer">
           <div class="user-drawer-shell">

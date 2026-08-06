@@ -739,8 +739,8 @@ onMounted(() => {
     <Transition name="pkg-drawer-slide">
       <div
         v-if="drawerOpen"
-        class="pkg-local-drawer-mask"
         v-mask-close="closePkgDrawer"
+        class="pkg-local-drawer-mask"
       >
         <div class="pkg-local-drawer">
           <div class="pkg-drawer-shell">

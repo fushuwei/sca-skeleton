@@ -588,8 +588,8 @@ onMounted(() => {
     <Transition name="post-drawer-slide">
       <div
         v-if="drawerOpen"
-        class="post-local-drawer-mask"
         v-mask-close="closePostDrawer"
+        class="post-local-drawer-mask"
       >
         <div class="post-local-drawer">
           <div class="post-drawer-shell">

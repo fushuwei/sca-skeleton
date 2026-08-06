@@ -858,8 +858,8 @@ onMounted(async () => {
     <Transition name="datasource-drawer-slide">
       <div
         v-if="drawerOpen"
-        class="datasource-local-drawer-mask"
         v-mask-close="closeDatasourceDrawer"
+        class="datasource-local-drawer-mask"
       >
         <div class="datasource-local-drawer">
           <div class="datasource-drawer-shell">

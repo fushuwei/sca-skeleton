@@ -1227,8 +1227,8 @@ onMounted(() => {
     <Transition name="permission-drawer-slide">
       <div
         v-if="drawerOpen"
-        class="permission-local-drawer-mask"
         v-mask-close="closeMenuDrawer"
+        class="permission-local-drawer-mask"
       >
         <div class="permission-local-drawer">
           <div class="permission-drawer-shell">

@@ -776,8 +776,8 @@ onMounted(() => {
     <Transition name="role-drawer-slide">
       <div
         v-if="drawerOpen"
-        class="role-local-drawer-mask"
         v-mask-close="closeRoleDrawer"
+        class="role-local-drawer-mask"
       >
         <div class="role-local-drawer">
           <div class="role-drawer-shell">
