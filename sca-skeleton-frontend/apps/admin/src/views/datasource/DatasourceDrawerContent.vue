@@ -214,14 +214,16 @@ onMounted(() => {
   <div class="datasource-drawer-content">
     <!-- ═══ 第一步：选择数据源类型（仅添加模式） ═══ -->
     <template v-if="step === 'select-type'">
-      <div class="ds-select-type-header">
-        <div class="ds-select-type-title">{{ t('datasourceMgmt.selectDbTypeTitle') }}</div>
-        <div class="ds-select-type-hint">{{ t('datasourceMgmt.selectDbTypeHint') }}</div>
+      <div class="ds-drawer-main">
+        <div class="ds-select-type-header">
+          <div class="ds-select-type-title">{{ t('datasourceMgmt.selectDbTypeTitle') }}</div>
+          <div class="ds-select-type-hint">{{ t('datasourceMgmt.selectDbTypeHint') }}</div>
+        </div>
+
+        <DatasourceTypeGallery :options="dbTypeOptions" @select="handleSelectType" />
       </div>
 
-      <DatasourceTypeGallery :options="dbTypeOptions" @select="handleSelectType" />
-
-      <div class="datasource-drawer-footer row justify-end q-gutter-sm">
+      <div class="datasource-drawer-footer row items-center justify-end no-wrap">
         <q-btn
           color="grey-7"
           outline
@@ -236,53 +238,55 @@ onMounted(() => {
 
     <!-- ═══ 第二步：类型专属表单 ═══ -->
     <template v-else>
-      <!-- 类型展示条：filled 只读文本框（灰色填充、无边框线），内容 = 图标 + 类型名；添加模式附圆形重选图标按钮 -->
-      <q-input
-        :model-value="selectedDbTypeLabel"
-        filled
-        square
-        readonly
-        class="ds-form-type-field q-mb-md"
-      >
-        <template #prepend>
-          <DbTypeIcon :db-type="selectedDbType" :size="22" />
-        </template>
-        <template #append>
-          <q-badge
-            v-if="props.mode !== 'add'"
-            outline
-            color="grey-7"
-            :label="t('datasourceMgmt.typeImmutableHint')"
-            class="ds-form-type-immutable-badge"
-          />
-          <q-btn
-            v-if="props.mode === 'add'"
-            round
-            flat
-            dense
-            color="grey-7"
-            icon="sym_r_swap_horiz"
-            icon-size="20px"
-            @click="handleChangeType"
-          >
-            <q-tooltip>{{ t('datasourceMgmt.changeType') }}</q-tooltip>
-          </q-btn>
-        </template>
-      </q-input>
+      <div class="ds-drawer-main">
+        <!-- 类型展示条：filled 只读文本框（灰色填充、无边框线），内容 = 图标 + 类型名；添加模式附圆形重选图标按钮 -->
+        <q-input
+          :model-value="selectedDbTypeLabel"
+          filled
+          square
+          readonly
+          class="ds-form-type-field q-mb-md"
+        >
+          <template #prepend>
+            <DbTypeIcon :db-type="selectedDbType" :size="22" />
+          </template>
+          <template #append>
+            <q-badge
+              v-if="props.mode !== 'add'"
+              outline
+              color="grey-7"
+              :label="t('datasourceMgmt.typeImmutableHint')"
+              class="ds-form-type-immutable-badge"
+            />
+            <q-btn
+              v-if="props.mode === 'add'"
+              round
+              flat
+              dense
+              color="grey-7"
+              icon="sym_r_swap_horiz"
+              icon-size="20px"
+              @click="handleChangeType"
+            >
+              <q-tooltip>{{ t('datasourceMgmt.changeType') }}</q-tooltip>
+            </q-btn>
+          </template>
+        </q-input>
 
-      <component
-        :is="formComponent"
-        v-if="formComponent"
-        ref="formRef"
-        :key="selectedDbType"
-        :mode="props.mode"
-        :datasource="props.datasource"
-      />
-      <div v-else class="ds-form-not-supported">
-        {{ t('datasourceMgmt.formNotSupported') }}
+        <component
+          :is="formComponent"
+          v-if="formComponent"
+          ref="formRef"
+          :key="selectedDbType"
+          :mode="props.mode"
+          :datasource="props.datasource"
+        />
+        <div v-else class="ds-form-not-supported">
+          {{ t('datasourceMgmt.formNotSupported') }}
+        </div>
       </div>
 
-      <!-- 底部操作区：左侧测试连接，右侧动作簇（上一步→取消→确定，确定置右突出） -->
+      <!-- 底部操作区（固定第三段，不随内容滚动）：左侧测试连接，右侧动作簇（上一步→取消→确定，确定置右突出） -->
       <div v-if="!drawerReadonly" class="datasource-drawer-footer row items-center justify-between no-wrap">
         <div>
           <q-btn
@@ -333,11 +337,21 @@ onMounted(() => {
 </template>
 
 <style scoped>
+/* 三段式抽屉布局：外层 .datasource-drawer-body 不再滚动，
+   中间内容区（.ds-drawer-main）独立滚动，底部操作栏固定为第三段 */
 .datasource-drawer-content {
-  padding: 0;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+}
+
+/* 中间内容区：唯一的滚动区域 */
+.ds-drawer-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 16px 12px;
 }
 
 /* 第一步标题区 */
@@ -385,11 +399,11 @@ onMounted(() => {
   font-size: 13px;
 }
 
+/* 底部操作栏：固定第三段，不参与内容滚动（两步页脚结构与高度保持一致） */
 .datasource-drawer-footer {
   flex-shrink: 0;
-  padding: 12px 0 0;
+  padding: 14px 16px;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
-  margin-top: 16px;
 }
 
 .drawer-action-btn {
@@ -444,7 +458,7 @@ onMounted(() => {
   color: rgba(255, 255, 255, 0.5);
 }
 
-/* 抽屉底部按钮区域分隔线 */
+/* 抽屉底部操作栏分隔线 */
 .body--dark .datasource-drawer-footer {
   border-top-color: rgba(255, 255, 255, 0.08);
 }
