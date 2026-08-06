@@ -194,31 +194,39 @@ onMounted(() => {
 
     <!-- ═══ 第二步：类型专属表单 ═══ -->
     <template v-else>
-      <!-- 类型徽章条：类型固定展示；添加模式可重新选择 -->
-      <div class="ds-form-type-bar row items-center no-wrap">
-        <DbTypeIcon :db-type="selectedDbType" :size="22" class="q-mr-sm" />
-        <span class="ds-form-type-name">{{ selectedDbTypeLabel }}</span>
-        <q-badge
-          v-if="props.mode !== 'add'"
-          outline
-          color="grey-7"
-          :label="t('datasourceMgmt.typeImmutableHint')"
-          class="q-ml-sm ds-form-type-immutable-badge"
-        />
-        <q-space />
-        <q-btn
-          v-if="props.mode === 'add'"
-          flat
-          dense
-          no-caps
-          color="primary"
-          icon="sym_r_swap_horiz"
-          class="ds-form-change-type-btn"
-          @click="handleChangeType"
-        >
-          {{ t('datasourceMgmt.changeType') }}
-        </q-btn>
-      </div>
+      <!-- 类型展示条：filled 只读文本框（灰色填充、无边框线），内容 = 图标 + 类型名；添加模式附圆形重选图标按钮 -->
+      <q-input
+        :model-value="selectedDbTypeLabel"
+        filled
+        square
+        readonly
+        class="ds-form-type-field q-mb-md"
+      >
+        <template #prepend>
+          <DbTypeIcon :db-type="selectedDbType" :size="22" />
+        </template>
+        <template #append>
+          <q-badge
+            v-if="props.mode !== 'add'"
+            outline
+            color="grey-7"
+            :label="t('datasourceMgmt.typeImmutableHint')"
+            class="ds-form-type-immutable-badge"
+          />
+          <q-btn
+            v-if="props.mode === 'add'"
+            round
+            flat
+            dense
+            color="grey-7"
+            icon="sym_r_swap_horiz"
+            icon-size="20px"
+            @click="handleChangeType"
+          >
+            <q-tooltip>{{ t('datasourceMgmt.changeType') }}</q-tooltip>
+          </q-btn>
+        </template>
+      </q-input>
 
       <component
         :is="formComponent"
@@ -283,27 +291,25 @@ onMounted(() => {
   color: rgba(0, 0, 0, 0.5);
 }
 
-/* 第二步类型徽章条 */
-.ds-form-type-bar {
-  padding: 8px 12px;
-  margin-bottom: 16px;
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
+/* 第二步类型展示条（filled 只读：灰色填充、无任何边框线） */
+.ds-form-type-field {
+  margin-top: -4px;
 }
 
-.ds-form-type-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.87);
+.ds-form-type-field.q-field--filled :deep(.q-field__control::before),
+.ds-form-type-field.q-field--filled :deep(.q-field__control::after) {
+  border: none;
+}
+
+/* 类型名加粗突出，作为当前步骤的核心标识 */
+.ds-form-type-field :deep(.q-field__native) {
+  color: #000;
+  font-weight: 700;
 }
 
 .ds-form-type-immutable-badge {
   font-weight: 400;
-}
-
-.ds-form-change-type-btn {
-  font-size: 12px;
+  margin-right: 8px;
 }
 
 .ds-form-not-supported {
@@ -354,19 +360,22 @@ onMounted(() => {
 }
 
 /* 编排器暗色模式 */
-.body--dark .ds-select-type-title,
-.body--dark .ds-form-type-name {
+.body--dark .ds-select-type-title {
   color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .ds-form-type-field .q-field__control {
+  background: #2d2d2d;
+}
+
+.body--dark .ds-form-type-field .q-field__native {
+  color: rgba(255, 255, 255, 0.87);
+  font-weight: 700;
 }
 
 .body--dark .ds-select-type-hint,
 .body--dark .ds-form-not-supported {
   color: rgba(255, 255, 255, 0.5);
-}
-
-.body--dark .ds-form-type-bar {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* 抽屉底部按钮区域分隔线 */

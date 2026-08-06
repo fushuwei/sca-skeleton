@@ -18,6 +18,8 @@ const { t } = useI18n({ useScope: "global" });
 // ── 本表单固定的数据库类型与默认端口 ──
 const DB_TYPE = "MYSQL";
 const DEFAULT_PORT = 3306;
+/** JDBC URL 前缀默认值（驱动未返回 urlTemplate 时使用） */
+const URL_PREFIX_FALLBACK = "jdbc:mysql://";
 
 const props = defineProps<{
   mode: DatasourceFormMode;
@@ -27,8 +29,8 @@ const props = defineProps<{
 const readonlyMode = computed(() => props.mode === "view");
 const isEdit = computed(() => props.mode === "edit");
 
-// ── 驱动选项（按本类型加载） ──
-const driverOptions = ref<{ label: string; value: string }[]>([]);
+// ── 驱动选项（按本类型加载，携带 urlTemplate 供 JDBC URL 预览） ──
+const driverOptions = ref<{ label: string; value: string; urlTemplate?: string }[]>([]);
 const driverLoading = ref(false);
 
 async function loadDriverOptions() {
@@ -38,7 +40,8 @@ async function loadDriverOptions() {
     if (res.code === 10_000 && res.data) {
       driverOptions.value = res.data.map((d: DriverOption) => ({
         label: d.name,
-        value: d.id
+        value: d.id,
+        urlTemplate: d.urlTemplate
       }));
     }
   } catch {
@@ -156,6 +159,46 @@ function onPortInput(v: string | number | null) {
   }
 }
 
+// ── JDBC URL 实时预览（与后端 Dialect.buildJdbcUrl + toQueryString 逻辑保持一致） ──
+
+/** 连接参数转 URL query string：JSON 对象逐键拼接，非 JSON 原样使用（同后端 toQueryString） */
+function toQueryString(params: string): string {
+  const trimmed = params.trim();
+  if (!trimmed) return "";
+  if (!trimmed.startsWith("{")) return trimmed;
+  try {
+    const entries = Object.entries(JSON.parse(trimmed) as Record<string, unknown>);
+    if (entries.length === 0) return "";
+    return entries.map(([k, v]) => `${k}=${v}`).join("&");
+  } catch {
+    // JSON 解析失败时按原始内容展示，交由保存时后端校验提示
+    return trimmed;
+  }
+}
+
+const jdbcUrlPreview = computed(() => {
+  // 未选驱动：显示 MySQL 官方默认 JDBC URL 前缀；选了驱动则以驱动配置的 urlTemplate 为准
+  // （同一类型可能存在多种 URL 写法，以所选驱动的配置为准）
+  const selected = driverOptions.value.find((d) => d.value === form.driverId);
+  let url = selected?.urlTemplate || URL_PREFIX_FALLBACK;
+  const host = form.host.trim();
+  if (host) {
+    url += host;
+    if (form.port != null) {
+      url += `:${form.port}`;
+    }
+  }
+  const dbName = form.databaseName.trim();
+  if (dbName) {
+    url += `/${dbName}`;
+  }
+  const queryString = toQueryString(form.connectionParams || "");
+  if (queryString) {
+    url += `?${queryString}`;
+  }
+  return url;
+});
+
 // ── 契约方法（defineExpose） ──
 async function validate(): Promise<boolean> {
   return formRef.value ? formRef.value.validate() : false;
@@ -196,8 +239,8 @@ defineExpose({ validate, getPayload, isDirty });
 <template>
   <q-form ref="formRef" class="datasource-drawer-form ds-form-mysql">
     <div class="row q-col-gutter-md">
-      <!-- 数据源名称 -->
-      <div class="col-12">
+      <!-- 数据源名称 / 驱动：同行等分 -->
+      <div class="col-6">
         <q-input
           v-model.trim="form.name"
           :label="t('datasourceMgmt.name')"
@@ -210,8 +253,7 @@ defineExpose({ validate, getPayload, isDirty });
           class="required-field"
         />
       </div>
-      <!-- 驱动 -->
-      <div class="col-12">
+      <div class="col-6">
         <q-select
           v-model="form.driverId"
           :label="t('datasourceMgmt.driverId')"
@@ -320,6 +362,20 @@ defineExpose({ validate, getPayload, isDirty });
           </template>
         </q-input>
       </div>
+      <!-- JDBC URL 预览（filled 只读、不可编辑、无标题无占位符）：
+           默认展示 MySQL 官方 URL 前缀，选择驱动后切换为驱动配置的 URL 写法，
+           并随主机/端口/库名/连接参数实时拼装 -->
+      <div class="col-12">
+        <q-input
+          :model-value="jdbcUrlPreview"
+          filled
+          square
+          readonly
+          autogrow
+          hide-bottom-space
+          class="ds-jdbc-url-preview"
+        />
+      </div>
       <!-- 连接参数 -->
       <div class="col-12">
         <q-input
@@ -363,5 +419,25 @@ defineExpose({ validate, getPayload, isDirty });
 
 :deep(.q-field__append > .q-icon:not(.text-negative)) {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* JDBC URL 预览：等宽字体，突出 URL 可读性 */
+.ds-jdbc-url-preview :deep(.q-field__native) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+}
+
+/* JDBC URL 预览框只保留 filled 灰色填充背景，完全去掉底边线
+   （Quasar 默认 filled 有实线底边、filled+readonly 为虚线，均需移除） */
+.ds-jdbc-url-preview.q-field--filled :deep(.q-field__control::before),
+.ds-jdbc-url-preview.q-field--filled :deep(.q-field__control::after) {
+  border: none;
+}
+</style>
+
+<!-- 非 scoped：预览框暗色模式文字颜色 -->
+<style>
+.body--dark .ds-form-mysql .ds-jdbc-url-preview .q-field__native {
+  color: rgba(255, 255, 255, 0.75);
 }
 </style>

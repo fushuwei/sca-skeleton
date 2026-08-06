@@ -388,8 +388,23 @@ public class DriverServiceImpl implements DriverService {
 
         List<Driver> drivers = driverMapper.selectList(wrapper);
         return drivers.stream()
-            .map(d -> new DriverOptionResponse(d.getId(), d.getName()))
+            .map(d -> new DriverOptionResponse(d.getId(), d.getName(), resolveUrlTemplate(d)))
             .toList();
+    }
+
+    /**
+     * 解析驱动的 JDBC URL 前缀模板：驱动自身未配置时回退到所属数据库类型的默认前缀，
+     * 保证前端 JDBC URL 预览始终可用。
+     */
+    private String resolveUrlTemplate(Driver driver) {
+        if (StringUtils.hasText(driver.getUrlTemplate())) {
+            return driver.getUrlTemplate();
+        }
+        try {
+            return DbType.valueOf(driver.getDbType()).getUrlPrefix();
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     // ── 私有辅助方法 ──

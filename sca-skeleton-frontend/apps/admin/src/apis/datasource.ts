@@ -36,6 +36,8 @@ export interface Driver {
 export interface DriverOption {
   id: string;
   name: string;
+  /** JDBC URL 前缀模板（驱动未配置时为所属数据库类型的默认前缀，供前端实时预览 JDBC URL） */
+  urlTemplate?: string;
 }
 
 /** 数据源 */

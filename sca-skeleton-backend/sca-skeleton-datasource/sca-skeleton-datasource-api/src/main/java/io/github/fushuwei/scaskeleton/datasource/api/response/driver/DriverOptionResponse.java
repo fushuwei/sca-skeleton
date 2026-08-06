@@ -20,4 +20,7 @@ public class DriverOptionResponse implements Serializable {
 
     private String id;
     private String name;
+
+    /** JDBC URL 前缀模板（供前端实时预览 JDBC URL） */
+    private String urlTemplate;
 }
