@@ -23,31 +23,37 @@ const URL_PREFIX_FALLBACK = "jdbc:mysql://";
 
 // ── 连接池配置：固定白名单字段（与后端 HikariCP 白名单一一对应）──
 // 普通用户不了解连接池底层配置，故不提供自由 JSON 输入，
-// 而是固定 key/value 表单项：标题为友好中文名，留空即使用系统默认值。
+// 而是固定 key/value 表单项：标题为友好中文名，并预填 HikariCP 官方默认值。
 interface PoolFieldDef {
   /** 提交给后端的配置键（HikariCP 属性名） */
   key: string;
   /** 标题文案 i18n key */
   labelKey: string;
-  /** 占位符：默认值（数字直显或 i18n key） */
-  placeholder?: string;
-  placeholderKey?: string;
 }
 
 const POOL_FIELDS: PoolFieldDef[] = [
-  { key: "maximumPoolSize", labelKey: "datasourceMgmt.poolMaximumPoolSize", placeholder: "10" },
-  { key: "minimumIdle", labelKey: "datasourceMgmt.poolMinimumIdle", placeholderKey: "datasourceMgmt.poolMinimumIdlePlaceholder" },
-  { key: "connectionTimeout", labelKey: "datasourceMgmt.poolConnectionTimeout", placeholder: "30000" },
-  { key: "idleTimeout", labelKey: "datasourceMgmt.poolIdleTimeout", placeholder: "600000" },
-  { key: "maxLifetime", labelKey: "datasourceMgmt.poolMaxLifetime", placeholder: "1800000" }
+  { key: "maximumPoolSize", labelKey: "datasourceMgmt.poolMaximumPoolSize" },
+  { key: "minimumIdle", labelKey: "datasourceMgmt.poolMinimumIdle" },
+  { key: "connectionTimeout", labelKey: "datasourceMgmt.poolConnectionTimeout" },
+  { key: "idleTimeout", labelKey: "datasourceMgmt.poolIdleTimeout" },
+  { key: "maxLifetime", labelKey: "datasourceMgmt.poolMaxLifetime" }
 ];
 
+/** HikariCP 官方默认值：预填到表单，让用户直观看到实际生效的配置 */
+const POOL_DEFAULTS: Record<string, number> = {
+  maximumPoolSize: 10,
+  minimumIdle: 10,
+  connectionTimeout: 30000,
+  idleTimeout: 600000,
+  maxLifetime: 1800000
+};
+
 const poolConfig = reactive<Record<string, number | null>>({
-  maximumPoolSize: null,
-  minimumIdle: null,
-  connectionTimeout: null,
-  idleTimeout: null,
-  maxLifetime: null
+  maximumPoolSize: POOL_DEFAULTS.maximumPoolSize,
+  minimumIdle: POOL_DEFAULTS.minimumIdle,
+  connectionTimeout: POOL_DEFAULTS.connectionTimeout,
+  idleTimeout: POOL_DEFAULTS.idleTimeout,
+  maxLifetime: POOL_DEFAULTS.maxLifetime
 });
 
 const props = defineProps<{
@@ -106,10 +112,26 @@ const formRules = computed(() => ({
   ],
   databaseName: [(v: string) => !!v?.trim() || t("datasourceMgmt.databaseNameRequired")],
   username: [(v: string) => !!v?.trim() || t("datasourceMgmt.usernameRequired")],
+  connectionParams: [
+    (v: string) => isValidJsonParams(v) || t("datasourceMgmt.connectionParamsFormatError")
+  ],
   password: props.mode === "add"
     ? [(v: string) => !!v?.trim() || t("datasourceMgmt.passwordRequired")]
     : []
 }));
+
+/** 连接参数格式校验：允许为空；非空时必须为 JSON 对象 */
+function isValidJsonParams(v: string): boolean {
+  const trimmed = (v || "").trim();
+  if (!trimmed) return true;
+  if (!trimmed.startsWith("{")) return false;
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed);
+  } catch {
+    return false;
+  }
+}
 
 function resetForm() {
   form.id = "";
@@ -123,7 +145,7 @@ function resetForm() {
   form.connectionParams = "";
   form.version = 0;
   for (const key of Object.keys(poolConfig)) {
-    poolConfig[key] = null;
+    poolConfig[key] = POOL_DEFAULTS[key];
   }
   showPwd.value = false;
 }
@@ -147,7 +169,11 @@ function initForm() {
     form.username = props.datasource.username;
     form.password = ""; // 编辑时密码留空，表示不修改
     form.connectionParams = props.datasource.connectionParams || "";
-    // 连接池配置：库内为 JSON 字符串，解析回固定字段；白名单外的历史配置项不展示（保存时丢弃）
+    // 连接池配置：库内为 JSON 字符串，解析回固定字段；缺失或非法的键回退默认值，
+    // 白名单外的历史配置项不展示（保存时丢弃）
+    for (const key of Object.keys(poolConfig)) {
+      poolConfig[key] = POOL_DEFAULTS[key];
+    }
     if (props.datasource.poolConfig) {
       try {
         const parsed = JSON.parse(props.datasource.poolConfig) as Record<string, unknown>;
@@ -158,7 +184,7 @@ function initForm() {
           }
         }
       } catch {
-        // 解析失败视为未配置
+        // 解析失败保持默认值
       }
     }
     form.version = props.datasource.version;
@@ -202,7 +228,7 @@ function onPortInput(v: string | number | null) {
   }
 }
 
-/** 连接池字段输入过滤：仅保留数字，空值表示不配置（使用系统默认值） */
+/** 连接池字段输入过滤：仅保留数字；清空时保存会回退默认值 */
 function onPoolInput(key: string, v: string | number | null) {
   const digits = String(v ?? "").replace(/\D/g, "");
   poolConfig[key] = digits ? Number(digits) : null;
@@ -254,10 +280,11 @@ async function validate(): Promise<boolean> {
 }
 
 function getPayload(): DatasourceFormPayload {
-  // 连接池配置：仅提交已填写的白名单字段，全部留空则不提交（后端用连接池默认值）
-  const poolEntries = POOL_FIELDS
-    .map((field) => [field.key, poolConfig[field.key]] as const)
-    .filter(([, value]) => value != null);
+  // 连接池配置：固定白名单字段全量提交；被清空的字段回退默认值（连接池始终生效，配置总有值）
+  const poolEntries = POOL_FIELDS.map((field) => [
+    field.key,
+    poolConfig[field.key] ?? POOL_DEFAULTS[field.key]
+  ] as const);
 
   const data: Record<string, unknown> = {
     name: form.name,
@@ -268,7 +295,7 @@ function getPayload(): DatasourceFormPayload {
     databaseName: form.databaseName || undefined,
     username: form.username,
     connectionParams: form.connectionParams || undefined,
-    poolConfig: poolEntries.length > 0 ? Object.fromEntries(poolEntries) : undefined
+    poolConfig: Object.fromEntries(poolEntries)
   };
   if (props.mode === "add") {
     data.password = form.password;
@@ -430,7 +457,7 @@ defineExpose({ validate, getPayload, isDirty });
           class="ds-jdbc-url-preview"
         />
       </div>
-      <!-- 连接参数 -->
+      <!-- 连接参数：无常驻提示，格式示例以占位符展示（无默认值，不填即为 null）；非空时校验 JSON 对象格式 -->
       <div class="col-12">
         <q-input
           v-model="form.connectionParams"
@@ -441,32 +468,38 @@ defineExpose({ validate, getPayload, isDirty });
           rows="2"
           :disable="readonlyMode"
           :readonly="readonlyMode"
-          :hint="t('datasourceMgmt.connectionParamsHint')"
+          :rules="formRules.connectionParams"
+          :placeholder="t('datasourceMgmt.connectionParamsPlaceholder')"
           hide-bottom-space
         />
       </div>
-      <!-- 连接池配置：固定白名单 key/value，留空使用系统默认值 -->
+      <!-- 连接池配置：借鉴驱动上传面板的一体化设计语言——
+           浅底圆角卡片 + 面板头（分组标签 + 细分隔线）+ 内容区，整体传达“一个组件”的心智 -->
       <div class="col-12">
-        <div class="ds-pool-section row items-center justify-between">
-          <div class="ds-pool-section-title">{{ t('datasourceMgmt.poolSectionTitle') }}</div>
-          <div class="ds-pool-section-hint">{{ t('datasourceMgmt.poolSectionHint') }}</div>
+        <div class="ds-pool-panel">
+          <div class="ds-pool-panel__head">
+            <span class="ds-pool-panel__label">{{ t('datasourceMgmt.poolSectionTitle') }}</span>
+          </div>
+          <div class="ds-pool-panel__body">
+            <div class="row q-col-gutter-md">
+              <div v-for="field in POOL_FIELDS" :key="field.key" class="col-6">
+                <q-input
+                  :model-value="poolConfig[field.key]"
+                  @update:model-value="(v) => onPoolInput(field.key, v)"
+                  @keydown="onNumericKeydown"
+                  type="text"
+                  inputmode="numeric"
+                  :label="t(field.labelKey)"
+                  filled
+                  square
+                  :disable="readonlyMode"
+                  :readonly="readonlyMode"
+                  hide-bottom-space
+                />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div v-for="field in POOL_FIELDS" :key="field.key" class="col-6">
-        <q-input
-          :model-value="poolConfig[field.key]"
-          @update:model-value="(v) => onPoolInput(field.key, v)"
-          @keydown="onNumericKeydown"
-          type="text"
-          inputmode="numeric"
-          :label="t(field.labelKey)"
-          :placeholder="field.placeholderKey ? t(field.placeholderKey) : field.placeholder"
-          filled
-          square
-          :disable="readonlyMode"
-          :readonly="readonlyMode"
-          hide-bottom-space
-        />
       </div>
     </div>
   </q-form>
@@ -496,34 +529,48 @@ defineExpose({ validate, getPayload, isDirty });
   border: none;
 }
 
-/* 连接池配置分区标题行：左侧标题 + 右侧默认值提示 */
-.ds-pool-section {
-  padding: 4px 0 12px;
+/* 连接池配置面板：与驱动上传面板同构的一体化卡片——
+   浅底圆角容器，面板头收拢分组标签并以细分隔线与内容区区隔 */
+.ds-pool-panel {
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  background: #fafbfc;
+  overflow: hidden;
 }
 
-.ds-pool-section-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.75);
+.ds-pool-panel__head {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.ds-pool-section-hint {
+.ds-pool-panel__label {
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.45);
+  color: #757575;
+}
+
+.ds-pool-panel__body {
+  padding: 12px;
 }
 </style>
 
-<!-- 非 scoped：预览框与连接池分区暗色模式文字颜色 -->
+<!-- 非 scoped：预览框与连接池面板暗色模式适配 -->
 <style>
 .body--dark .ds-form-mysql .ds-jdbc-url-preview .q-field__native {
   color: rgba(255, 255, 255, 0.75);
 }
 
-.body--dark .ds-form-mysql .ds-pool-section-title {
-  color: rgba(255, 255, 255, 0.87);
+.body--dark .ds-form-mysql .ds-pool-panel {
+  background: #252525;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
-.body--dark .ds-form-mysql .ds-pool-section-hint {
-  color: rgba(255, 255, 255, 0.45);
+.body--dark .ds-form-mysql .ds-pool-panel__head {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.body--dark .ds-form-mysql .ds-pool-panel__label {
+  color: rgba(255, 255, 255, 0.55);
 }
 </style>
