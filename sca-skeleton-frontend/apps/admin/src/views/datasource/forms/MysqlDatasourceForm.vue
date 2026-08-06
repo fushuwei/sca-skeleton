@@ -98,7 +98,6 @@ const form = reactive({
   databaseName: "",
   username: "",
   password: "",
-  connectionParams: "",
   version: 0 as number | undefined
 });
 
@@ -112,25 +111,97 @@ const formRules = computed(() => ({
   ],
   databaseName: [(v: string) => !!v?.trim() || t("datasourceMgmt.databaseNameRequired")],
   username: [(v: string) => !!v?.trim() || t("datasourceMgmt.usernameRequired")],
-  connectionParams: [
-    (v: string) => isValidJsonParams(v) || t("datasourceMgmt.connectionParamsFormatError")
-  ],
   password: props.mode === "add"
     ? [(v: string) => !!v?.trim() || t("datasourceMgmt.passwordRequired")]
     : []
 }));
 
-/** 连接参数格式校验：允许为空；非空时必须为 JSON 对象 */
-function isValidJsonParams(v: string): boolean {
-  const trimmed = (v || "").trim();
-  if (!trimmed) return true;
-  if (!trimmed.startsWith("{")) return false;
-  try {
-    const parsed = JSON.parse(trimmed) as unknown;
-    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed);
-  } catch {
-    return false;
+// ── 连接参数：多行 key/value 录入 ──
+// 交互模型：末尾始终保留一行空“录入行”——
+// - 录入行的参数值只读，输入参数名后解锁（避免产生无名参数）；
+// - 录入行参数值一旦填写，自动在末尾追加新的录入行（即“自动新增下一行”）；
+// - 任意行的参数名一旦清空，该行自动删除；
+// 保存时参数名非空的行序列化为 JSON 对象提交（后端契约不变），
+// 并与 JDBC URL 预览保持实时联动。
+interface ParamRow {
+  key: string;
+  value: string;
+}
+
+const paramRows = ref<ParamRow[]>([{ key: "", value: "" }]);
+
+/** 规范化参数行：参数名清空的行自动删除；末尾始终保留唯一一行空录入行 */
+function normalizeParamRows() {
+  if (readonlyMode.value) return;
+  const rows = paramRows.value;
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const isEmptyKey = rows[i].key.trim() === "";
+    const isLast = i === rows.length - 1;
+    // 末尾“名空 + 值空”的行是录入行，保留；其余空名行自动删除
+    if (isEmptyKey && !(isLast && rows[i].value.trim() === "")) {
+      rows.splice(i, 1);
+    }
   }
+  if (rows.length === 0) {
+    rows.push({ key: "", value: "" });
+    return;
+  }
+  // 末尾行名、值均已填写：自动追加新的录入行
+  const last = rows[rows.length - 1];
+  if (last.key.trim() !== "" && last.value.trim() !== "") {
+    rows.push({ key: "", value: "" });
+  }
+}
+
+/** 参数名规则：禁止破坏 JDBC URL query string 的字符（& = 空白）；行内禁止重名 */
+function paramKeyRules(rowIndex: number) {
+  return [
+    (v: string) =>
+      !/[&=\s]/.test(v || "") || t("datasourceMgmt.connectionParamKeyInvalid"),
+    (v: string) => {
+      const k = (v || "").trim();
+      if (!k) return true;
+      return (
+        paramRows.value.findIndex((r) => r.key.trim() === k) === rowIndex ||
+        t("datasourceMgmt.connectionParamKeyDuplicate")
+      );
+    }
+  ];
+}
+
+/** 解析已保存的连接参数为行：优先 JSON 对象，兜底兼容历史 query string（k1=v1&k2=v2） */
+function parseStoredConnectionParams(raw: string): ParamRow[] {
+  const trimmed = (raw || "").trim();
+  if (!trimmed) return [];
+  if (trimmed.startsWith("{")) {
+    try {
+      const obj = JSON.parse(trimmed) as Record<string, unknown>;
+      return Object.entries(obj).map(([k, v]) => ({ key: k, value: String(v ?? "") }));
+    } catch {
+      // 解析失败落入 query string 解析兜底
+    }
+  }
+  return trimmed
+    .split("&")
+    .map((pair) => {
+      const idx = pair.indexOf("=");
+      return idx === -1
+        ? { key: pair.trim(), value: "" }
+        : { key: pair.slice(0, idx).trim(), value: pair.slice(idx + 1).trim() };
+    })
+    .filter((r) => r.key !== "");
+}
+
+/** 参数行序列化为 JSON 对象字符串；无有效行时返回 undefined（不填即为 null） */
+function buildConnectionParamsJson(): string | undefined {
+  const entries: Record<string, string> = {};
+  for (const row of paramRows.value) {
+    const k = row.key.trim();
+    if (k) {
+      entries[k] = row.value.trim();
+    }
+  }
+  return Object.keys(entries).length > 0 ? JSON.stringify(entries) : undefined;
 }
 
 function resetForm() {
@@ -142,8 +213,8 @@ function resetForm() {
   form.databaseName = "";
   form.username = "";
   form.password = "";
-  form.connectionParams = "";
   form.version = 0;
+  paramRows.value = [{ key: "", value: "" }];
   for (const key of Object.keys(poolConfig)) {
     poolConfig[key] = POOL_DEFAULTS[key];
   }
@@ -154,7 +225,7 @@ function resetForm() {
 let initialSnapshot = "";
 
 function snapshot(): string {
-  return JSON.stringify({ form, poolConfig });
+  return JSON.stringify({ form, poolConfig, paramRows: paramRows.value });
 }
 
 function initForm() {
@@ -168,7 +239,11 @@ function initForm() {
     form.databaseName = props.datasource.databaseName || "";
     form.username = props.datasource.username;
     form.password = ""; // 编辑时密码留空，表示不修改
-    form.connectionParams = props.datasource.connectionParams || "";
+    // 连接参数：库内 JSON 对象解析回行；编辑态末尾补一行空录入行，查看态仅展示已存行
+    const paramDataRows = parseStoredConnectionParams(props.datasource.connectionParams || "");
+    paramRows.value = readonlyMode.value
+      ? paramDataRows
+      : [...paramDataRows, { key: "", value: "" }];
     // 连接池配置：库内为 JSON 字符串，解析回固定字段；缺失或非法的键回退默认值，
     // 白名单外的历史配置项不展示（保存时丢弃）
     for (const key of Object.keys(poolConfig)) {
@@ -236,20 +311,13 @@ function onPoolInput(key: string, v: string | number | null) {
 
 // ── JDBC URL 实时预览（与后端 Dialect.buildJdbcUrl + toQueryString 逻辑保持一致） ──
 
-/** 连接参数转 URL query string：JSON 对象逐键拼接，非 JSON 原样使用（同后端 toQueryString） */
-function toQueryString(params: string): string {
-  const trimmed = params.trim();
-  if (!trimmed) return "";
-  if (!trimmed.startsWith("{")) return trimmed;
-  try {
-    const entries = Object.entries(JSON.parse(trimmed) as Record<string, unknown>);
-    if (entries.length === 0) return "";
-    return entries.map(([k, v]) => `${k}=${v}`).join("&");
-  } catch {
-    // JSON 解析失败时按原始内容展示，交由保存时后端校验提示
-    return trimmed;
-  }
-}
+/** 连接参数 → URL query string：按行顺序拼接，跳过参数名为空的行 */
+const paramQueryString = computed(() =>
+  paramRows.value
+    .filter((row) => row.key.trim() !== "")
+    .map((row) => `${row.key.trim()}=${row.value.trim()}`)
+    .join("&")
+);
 
 const jdbcUrlPreview = computed(() => {
   // 未选驱动：显示 MySQL 官方默认 JDBC URL 前缀；选了驱动则以驱动配置的 urlTemplate 为准
@@ -267,7 +335,7 @@ const jdbcUrlPreview = computed(() => {
   if (dbName) {
     url += `/${dbName}`;
   }
-  const queryString = toQueryString(form.connectionParams || "");
+  const queryString = paramQueryString.value;
   if (queryString) {
     url += `?${queryString}`;
   }
@@ -294,7 +362,7 @@ function getPayload(): DatasourceFormPayload {
     port: form.port ?? undefined,
     databaseName: form.databaseName || undefined,
     username: form.username,
-    connectionParams: form.connectionParams || undefined,
+    connectionParams: buildConnectionParamsJson(),
     poolConfig: Object.fromEntries(poolEntries)
   };
   if (props.mode === "add") {
@@ -457,30 +525,51 @@ defineExpose({ validate, getPayload, isDirty });
           class="ds-jdbc-url-preview"
         />
       </div>
-      <!-- 连接参数：无常驻提示，格式示例以占位符展示（无默认值，不填即为 null）；非空时校验 JSON 对象格式 -->
+      <!-- 连接参数：多行 key/value 录入（文本框无标题，以占位符引导）——
+           参数名清空的行自动删除；末尾始终保留一行空录入行；录入行未输参数名时参数值只读；
+           面板沿用与连接池配置相同的一体化设计语言 -->
       <div class="col-12">
-        <q-input
-          v-model="form.connectionParams"
-          :label="t('datasourceMgmt.connectionParams')"
-          filled
-          square
-          type="textarea"
-          rows="2"
-          :disable="readonlyMode"
-          :readonly="readonlyMode"
-          :rules="formRules.connectionParams"
-          :placeholder="t('datasourceMgmt.connectionParamsPlaceholder')"
-          hide-bottom-space
-        />
+        <div class="ds-group-panel">
+          <div class="ds-group-panel__head">
+            <span class="ds-group-panel__label">{{ t('datasourceMgmt.connectionParams') }}</span>
+          </div>
+          <div class="ds-group-panel__body">
+            <div v-for="(row, index) in paramRows" :key="index" class="row q-col-gutter-md ds-param-row">
+              <div class="col-6">
+                <q-input
+                  v-model="row.key"
+                  filled
+                  square
+                  :placeholder="t('datasourceMgmt.connectionParamKeyPlaceholder')"
+                  :rules="readonlyMode ? [] : paramKeyRules(index)"
+                  :readonly="readonlyMode"
+                  hide-bottom-space
+                  @update:model-value="normalizeParamRows"
+                />
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="row.value"
+                  filled
+                  square
+                  :placeholder="t('datasourceMgmt.connectionParamValuePlaceholder')"
+                  :readonly="readonlyMode || row.key.trim() === ''"
+                  hide-bottom-space
+                  @update:model-value="normalizeParamRows"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <!-- 连接池配置：借鉴驱动上传面板的一体化设计语言——
            浅底圆角卡片 + 面板头（分组标签 + 细分隔线）+ 内容区，整体传达“一个组件”的心智 -->
       <div class="col-12">
-        <div class="ds-pool-panel">
-          <div class="ds-pool-panel__head">
-            <span class="ds-pool-panel__label">{{ t('datasourceMgmt.poolSectionTitle') }}</span>
+        <div class="ds-group-panel">
+          <div class="ds-group-panel__head">
+            <span class="ds-group-panel__label">{{ t('datasourceMgmt.poolSectionTitle') }}</span>
           </div>
-          <div class="ds-pool-panel__body">
+          <div class="ds-group-panel__body">
             <div class="row q-col-gutter-md">
               <div v-for="field in POOL_FIELDS" :key="field.key" class="col-6">
                 <q-input
@@ -529,29 +618,34 @@ defineExpose({ validate, getPayload, isDirty });
   border: none;
 }
 
-/* 连接池配置面板：与驱动上传面板同构的一体化卡片——
+/* 分组面板（连接参数 / 连接池配置）：与驱动上传面板同构的一体化卡片——
    浅底圆角容器，面板头收拢分组标签并以细分隔线与内容区区隔 */
-.ds-pool-panel {
+.ds-group-panel {
   border: 1px solid #e4e7ec;
   border-radius: 8px;
   background: #fafbfc;
   overflow: hidden;
 }
 
-.ds-pool-panel__head {
+.ds-group-panel__head {
   display: flex;
   align-items: center;
   padding: 10px 12px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.ds-pool-panel__label {
+.ds-group-panel__label {
   font-size: 12px;
   color: #757575;
 }
 
-.ds-pool-panel__body {
+.ds-group-panel__body {
   padding: 12px;
+}
+
+/* 连接参数多行之间的纵向间距 */
+.ds-param-row + .ds-param-row {
+  margin-top: 10px;
 }
 </style>
 
@@ -561,16 +655,16 @@ defineExpose({ validate, getPayload, isDirty });
   color: rgba(255, 255, 255, 0.75);
 }
 
-.body--dark .ds-form-mysql .ds-pool-panel {
+.body--dark .ds-form-mysql .ds-group-panel {
   background: #252525;
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-.body--dark .ds-form-mysql .ds-pool-panel__head {
+.body--dark .ds-form-mysql .ds-group-panel__head {
   border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 
-.body--dark .ds-form-mysql .ds-pool-panel__label {
+.body--dark .ds-form-mysql .ds-group-panel__label {
   color: rgba(255, 255, 255, 0.55);
 }
 </style>
