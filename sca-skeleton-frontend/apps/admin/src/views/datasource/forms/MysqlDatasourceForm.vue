@@ -544,6 +544,7 @@ defineExpose({ validate, getPayload, isDirty });
                   :rules="readonlyMode ? [] : paramKeyRules(index)"
                   :readonly="readonlyMode"
                   hide-bottom-space
+                  :class="{ 'ds-param-borderless': readonlyMode }"
                   @update:model-value="normalizeParamRows"
                 />
               </div>
@@ -555,6 +556,7 @@ defineExpose({ validate, getPayload, isDirty });
                   :placeholder="t('datasourceMgmt.connectionParamValuePlaceholder')"
                   :readonly="readonlyMode || row.key.trim() === ''"
                   hide-bottom-space
+                  :class="{ 'ds-param-borderless': readonlyMode || row.key.trim() === '' }"
                   @update:model-value="normalizeParamRows"
                 />
               </div>
@@ -615,6 +617,13 @@ defineExpose({ validate, getPayload, isDirty });
    （Quasar 默认 filled 有实线底边、filled+readonly 为虚线，均需移除） */
 .ds-jdbc-url-preview.q-field--filled :deep(.q-field__control::before),
 .ds-jdbc-url-preview.q-field--filled :deep(.q-field__control::after) {
+  border: none;
+}
+
+/* 只读态参数输入框：与 JDBC URL 预览一致，只保留 filled 灰色填充，
+   移除 Quasar filled+readonly 默认的虚线底边 */
+.ds-param-borderless.q-field--filled :deep(.q-field__control::before),
+.ds-param-borderless.q-field--filled :deep(.q-field__control::after) {
   border: none;
 }
 
