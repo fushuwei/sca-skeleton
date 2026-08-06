@@ -282,21 +282,9 @@ onMounted(() => {
         {{ t('datasourceMgmt.formNotSupported') }}
       </div>
 
-      <!-- 底部操作区：左侧向导回退（上一步），右侧动作簇（测试连接→取消→确定，确定置右突出） -->
+      <!-- 底部操作区：左侧测试连接，右侧动作簇（上一步→取消→确定，确定置右突出） -->
       <div v-if="!drawerReadonly" class="datasource-drawer-footer row items-center justify-between no-wrap">
         <div>
-          <q-btn
-            v-if="props.mode === 'add'"
-            color="grey-7"
-            outline
-            no-caps
-            class="drawer-action-btn"
-            @click="handleChangeType"
-          >
-            {{ t('datasourceMgmt.prevStep') }}
-          </q-btn>
-        </div>
-        <div class="row q-gutter-sm">
           <q-btn
             color="primary"
             outline
@@ -306,6 +294,18 @@ onMounted(() => {
             @click="handleTestConnection"
           >
             {{ t('datasourceMgmt.testConnection') }}
+          </q-btn>
+        </div>
+        <div class="row q-gutter-sm">
+          <q-btn
+            v-if="props.mode === 'add'"
+            color="grey-7"
+            outline
+            no-caps
+            class="drawer-action-btn"
+            @click="handleChangeType"
+          >
+            {{ t('datasourceMgmt.prevStep') }}
           </q-btn>
           <q-btn
             color="grey-7"
