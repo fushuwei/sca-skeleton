@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * 数据源连接配置测试请求（表单未保存时的「测试连接」）。
@@ -44,6 +45,6 @@ public class DatasourceTestConfigRequest implements Serializable {
     /** 密码（编辑模式留空时使用库内已保存的密码） */
     private String password;
 
-    /** JDBC 连接参数（JSON 或 query string） */
-    private String connectionParams;
+    /** JDBC 连接参数（结构化 key/value，与创建/编辑表单提交体对齐） */
+    private Map<String, Object> connectionParams;
 }

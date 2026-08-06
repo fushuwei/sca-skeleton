@@ -42,8 +42,8 @@ public class DatasourceCreateRequest implements Serializable {
     @NotBlank(message = "密码不能为空")
     private String password;
 
-    /** JDBC 连接参数（JSON） */
-    private String connectionParams;
+    /** JDBC 连接参数（结构化 key/value，后端序列化为 JSON 存储） */
+    private Map<String, Object> connectionParams;
 
     /** 连接池配置（结构化 key/value，后端白名单校验后序列化为 JSON 存储） */
     private Map<String, Object> poolConfig;

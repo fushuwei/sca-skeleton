@@ -215,8 +215,8 @@ function parseStoredConnectionParams(raw: string): ParamRow[] {
     .filter((r) => r.key !== "");
 }
 
-/** 参数行序列化为 JSON 对象字符串；无有效行时返回 undefined（不填即为 null） */
-function buildConnectionParamsJson(): string | undefined {
+/** 参数行组装为结构化键值对对象（与连接池配置一致，后端序列化为 JSON 存储）；无有效行时返回 undefined（不填即为 null） */
+function buildConnectionParams(): Record<string, string> | undefined {
   const entries: Record<string, string> = {};
   for (const row of paramRows.value) {
     const k = row.key.trim();
@@ -224,7 +224,7 @@ function buildConnectionParamsJson(): string | undefined {
       entries[k] = row.value.trim();
     }
   }
-  return Object.keys(entries).length > 0 ? JSON.stringify(entries) : undefined;
+  return Object.keys(entries).length > 0 ? entries : undefined;
 }
 
 function resetForm() {
@@ -395,7 +395,7 @@ function getPayload(): DatasourceFormPayload {
     port: form.port ?? undefined,
     databaseName: form.databaseName || undefined,
     username: form.username,
-    connectionParams: buildConnectionParamsJson(),
+    connectionParams: buildConnectionParams(),
     poolConfig: Object.fromEntries(poolEntries)
   };
   if (props.mode === "add") {

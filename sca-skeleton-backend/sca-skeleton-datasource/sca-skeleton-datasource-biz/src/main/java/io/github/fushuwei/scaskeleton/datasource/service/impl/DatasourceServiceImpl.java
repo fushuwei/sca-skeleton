@@ -153,6 +153,7 @@ public class DatasourceServiceImpl implements DatasourceService {
         datasource.setPassword(credentialCipher.encrypt(request.getPassword()));
         datasource.setCipherVersion(credentialCipher.currentCipherVersion());
         datasource.setRemark(request.getRemark());
+        datasource.setConnectionParams(serializeConnectionParams(request.getConnectionParams()));
         datasource.setPoolConfig(serializePoolConfig(request.getPoolConfig()));
         datasourceMapper.insert(datasource);
     }
@@ -191,8 +192,8 @@ public class DatasourceServiceImpl implements DatasourceService {
         if (request.getRemark() != null) {
             datasource.setRemark(request.getRemark());
         }
-        if (StringUtils.hasText(request.getConnectionParams())) {
-            datasource.setConnectionParams(request.getConnectionParams());
+        if (request.getConnectionParams() != null && !request.getConnectionParams().isEmpty()) {
+            datasource.setConnectionParams(serializeConnectionParams(request.getConnectionParams()));
         }
         if (request.getPoolConfig() != null && !request.getPoolConfig().isEmpty()) {
             datasource.setPoolConfig(serializePoolConfig(request.getPoolConfig()));
@@ -490,6 +491,26 @@ public class DatasourceServiceImpl implements DatasourceService {
     }
 
     /**
+     * 将连接参数（结构化 key/value）拼接为 JDBC URL query string。
+     * <p>
+     * 用于表单未保存时的「测试连接」：请求体直接传键值对，
+     * 如 {@code {"useSSL": false}} → {@code useSSL=false}。
+     */
+    private String toQueryString(Map<String, Object> params) {
+        if (params == null || params.isEmpty()) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            if (sb.length() > 0) {
+                sb.append("&");
+            }
+            sb.append(entry.getKey()).append("=").append(entry.getValue());
+        }
+        return sb.toString();
+    }
+
+    /**
      * 将 connectionParams 转换为 JDBC URL query string。
      * <p>
      * 兼容两种输入格式：
@@ -522,6 +543,25 @@ public class DatasourceServiceImpl implements DatasourceService {
         } catch (Exception e) {
             log.warn("解析连接参数 JSON 失败，按原始格式使用: {}", trimmed);
             return trimmed;
+        }
+    }
+
+    /**
+     * 将连接参数（结构化 key/value）序列化为 JSON 字符串存储。
+     * <p>
+     * 与连接池配置链路一致：前端传键值对，后端序列化入库，
+     * 避免前端手写 JSON 字符串出错。
+     *
+     * @return JSON 字符串；入参为 null/空时返回 null（不填即为空）
+     */
+    private String serializeConnectionParams(Map<String, Object> connectionParams) {
+        if (connectionParams == null || connectionParams.isEmpty()) {
+            return null;
+        }
+        try {
+            return jsonMapper.writeValueAsString(connectionParams);
+        } catch (Exception e) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "连接参数序列化失败");
         }
     }
 
