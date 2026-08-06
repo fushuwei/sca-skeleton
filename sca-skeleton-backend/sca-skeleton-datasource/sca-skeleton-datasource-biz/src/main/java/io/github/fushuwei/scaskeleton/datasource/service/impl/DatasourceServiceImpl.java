@@ -74,6 +74,15 @@ public class DatasourceServiceImpl implements DatasourceService {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+    /**
+     * 连接池配置白名单（HikariCP 核心可调参数）。
+     * <p>
+     * 前端以固定 key/value 表单提交，仅允许白名单内的 key，
+     * 后端校验后序列化为 JSON 存储，避免用户手写 JSON 出错。
+     */
+    private static final Set<String> POOL_CONFIG_ALLOWED_KEYS = Set.of(
+        "maximumPoolSize", "minimumIdle", "connectionTimeout", "idleTimeout", "maxLifetime");
+
     // ============================================================
     // CRUD
     // ============================================================
@@ -145,6 +154,7 @@ public class DatasourceServiceImpl implements DatasourceService {
         datasource.setPassword(credentialCipher.encrypt(request.getPassword()));
         datasource.setCipherVersion(credentialCipher.currentCipherVersion());
         datasource.setRemark(request.getRemark());
+        datasource.setPoolConfig(serializePoolConfig(request.getPoolConfig()));
         datasourceMapper.insert(datasource);
     }
 
@@ -185,8 +195,8 @@ public class DatasourceServiceImpl implements DatasourceService {
         if (StringUtils.hasText(request.getConnectionParams())) {
             datasource.setConnectionParams(request.getConnectionParams());
         }
-        if (StringUtils.hasText(request.getPoolConfig())) {
-            datasource.setPoolConfig(request.getPoolConfig());
+        if (request.getPoolConfig() != null && !request.getPoolConfig().isEmpty()) {
+            datasource.setPoolConfig(serializePoolConfig(request.getPoolConfig()));
         }
         datasource.setVersion(request.getVersion());
 
@@ -513,6 +523,39 @@ public class DatasourceServiceImpl implements DatasourceService {
         } catch (Exception e) {
             log.warn("解析连接参数 JSON 失败，按原始格式使用: {}", trimmed);
             return trimmed;
+        }
+    }
+
+    /**
+     * 连接池配置白名单校验 + JSON 序列化。
+     * <p>
+     * 前端以固定 key/value 表单提交结构化配置，本方法负责：
+     * <ol>
+     *   <li>key 白名单校验（仅允许 HikariCP 核心可调参数）；</li>
+     *   <li>value 正整数校验（个数与毫秒时长均为正整数）；</li>
+     *   <li>序列化为 JSON 字符串存储。</li>
+     * </ol>
+     *
+     * @return JSON 字符串；入参为 null/空时返回 null（使用连接池默认值）
+     */
+    private String serializePoolConfig(Map<String, Object> poolConfig) {
+        if (poolConfig == null || poolConfig.isEmpty()) {
+            return null;
+        }
+        for (Map.Entry<String, Object> entry : poolConfig.entrySet()) {
+            String key = entry.getKey();
+            if (!POOL_CONFIG_ALLOWED_KEYS.contains(key)) {
+                throw new BusinessException(ResultCode.VALIDATION_ERROR, "不支持的连接池配置项: " + key);
+            }
+            Object value = entry.getValue();
+            if (!(value instanceof Number number) || number.longValue() <= 0) {
+                throw new BusinessException(ResultCode.VALIDATION_ERROR, "连接池配置项 " + key + " 需为正整数");
+            }
+        }
+        try {
+            return OBJECT_MAPPER.writeValueAsString(poolConfig);
+        } catch (Exception e) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "连接池配置序列化失败");
         }
     }
 

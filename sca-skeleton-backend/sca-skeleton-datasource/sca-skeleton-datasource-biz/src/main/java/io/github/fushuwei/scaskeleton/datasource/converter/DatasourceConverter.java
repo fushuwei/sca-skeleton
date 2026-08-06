@@ -15,6 +15,7 @@ import org.mapstruct.Mapping;
 public interface DatasourceConverter {
 
     @Mapping(target = "password", ignore = true)
+    @Mapping(target = "poolConfig", ignore = true)
     Datasource toDatasource(DatasourceCreateRequest request);
 
     @Mapping(target = "driverName", ignore = true)

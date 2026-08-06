@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * 数据源新增请求
@@ -44,8 +45,8 @@ public class DatasourceCreateRequest implements Serializable {
     /** JDBC 连接参数（JSON） */
     private String connectionParams;
 
-    /** 连接池配置（JSON） */
-    private String poolConfig;
+    /** 连接池配置（结构化 key/value，后端白名单校验后序列化为 JSON 存储） */
+    private Map<String, Object> poolConfig;
 
     /** 备注 */
     private String remark;

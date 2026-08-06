@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * 数据源更新请求
@@ -36,7 +37,9 @@ public class DatasourceUpdateRequest implements Serializable {
     private String password;
 
     private String connectionParams;
-    private String poolConfig;
+
+    /** 连接池配置（结构化 key/value，后端白名单校验后序列化为 JSON 存储） */
+    private Map<String, Object> poolConfig;
 
     /** 备注 */
     private String remark;

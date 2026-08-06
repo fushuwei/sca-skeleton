@@ -21,6 +21,35 @@ const DEFAULT_PORT = 3306;
 /** JDBC URL 前缀默认值（驱动未返回 urlTemplate 时使用） */
 const URL_PREFIX_FALLBACK = "jdbc:mysql://";
 
+// ── 连接池配置：固定白名单字段（与后端 HikariCP 白名单一一对应）──
+// 普通用户不了解连接池底层配置，故不提供自由 JSON 输入，
+// 而是固定 key/value 表单项：标题为友好中文名，留空即使用系统默认值。
+interface PoolFieldDef {
+  /** 提交给后端的配置键（HikariCP 属性名） */
+  key: string;
+  /** 标题文案 i18n key */
+  labelKey: string;
+  /** 占位符：默认值（数字直显或 i18n key） */
+  placeholder?: string;
+  placeholderKey?: string;
+}
+
+const POOL_FIELDS: PoolFieldDef[] = [
+  { key: "maximumPoolSize", labelKey: "datasourceMgmt.poolMaximumPoolSize", placeholder: "10" },
+  { key: "minimumIdle", labelKey: "datasourceMgmt.poolMinimumIdle", placeholderKey: "datasourceMgmt.poolMinimumIdlePlaceholder" },
+  { key: "connectionTimeout", labelKey: "datasourceMgmt.poolConnectionTimeout", placeholder: "30000" },
+  { key: "idleTimeout", labelKey: "datasourceMgmt.poolIdleTimeout", placeholder: "600000" },
+  { key: "maxLifetime", labelKey: "datasourceMgmt.poolMaxLifetime", placeholder: "1800000" }
+];
+
+const poolConfig = reactive<Record<string, number | null>>({
+  maximumPoolSize: null,
+  minimumIdle: null,
+  connectionTimeout: null,
+  idleTimeout: null,
+  maxLifetime: null
+});
+
 const props = defineProps<{
   mode: DatasourceFormMode;
   datasource?: Datasource;
@@ -64,7 +93,6 @@ const form = reactive({
   username: "",
   password: "",
   connectionParams: "",
-  poolConfig: "",
   version: 0 as number | undefined
 });
 
@@ -93,8 +121,10 @@ function resetForm() {
   form.username = "";
   form.password = "";
   form.connectionParams = "";
-  form.poolConfig = "";
   form.version = 0;
+  for (const key of Object.keys(poolConfig)) {
+    poolConfig[key] = null;
+  }
   showPwd.value = false;
 }
 
@@ -102,7 +132,7 @@ function resetForm() {
 let initialSnapshot = "";
 
 function snapshot(): string {
-  return JSON.stringify(form);
+  return JSON.stringify({ form, poolConfig });
 }
 
 function initForm() {
@@ -117,7 +147,20 @@ function initForm() {
     form.username = props.datasource.username;
     form.password = ""; // 编辑时密码留空，表示不修改
     form.connectionParams = props.datasource.connectionParams || "";
-    form.poolConfig = props.datasource.poolConfig || "";
+    // 连接池配置：库内为 JSON 字符串，解析回固定字段；白名单外的历史配置项不展示（保存时丢弃）
+    if (props.datasource.poolConfig) {
+      try {
+        const parsed = JSON.parse(props.datasource.poolConfig) as Record<string, unknown>;
+        for (const key of Object.keys(poolConfig)) {
+          const v = parsed[key];
+          if (typeof v === "number" && v > 0) {
+            poolConfig[key] = v;
+          }
+        }
+      } catch {
+        // 解析失败视为未配置
+      }
+    }
     form.version = props.datasource.version;
   }
   void loadDriverOptions();
@@ -126,11 +169,11 @@ function initForm() {
 
 watch(() => props.datasource, initForm, { immediate: true });
 
-// ── 端口输入过滤（三层防护） ──
+// ── 端口 / 连接池数字输入过滤 ──
 const portInputRef = ref<{ $el: HTMLElement } | null>(null);
 
-// 第 1 层：keydown 拦截 IME 输入法和非数字字符
-function onPortKeydown(e: KeyboardEvent) {
+// 第 1 层：keydown 拦截 IME 输入法和非数字字符（端口与各连接池字段共用）
+function onNumericKeydown(e: KeyboardEvent) {
   if (e.isComposing || e.keyCode === 229 || e.key === "Process") {
     e.preventDefault();
     return;
@@ -157,6 +200,12 @@ function onPortInput(v: string | number | null) {
       }
     });
   }
+}
+
+/** 连接池字段输入过滤：仅保留数字，空值表示不配置（使用系统默认值） */
+function onPoolInput(key: string, v: string | number | null) {
+  const digits = String(v ?? "").replace(/\D/g, "");
+  poolConfig[key] = digits ? Number(digits) : null;
 }
 
 // ── JDBC URL 实时预览（与后端 Dialect.buildJdbcUrl + toQueryString 逻辑保持一致） ──
@@ -205,6 +254,11 @@ async function validate(): Promise<boolean> {
 }
 
 function getPayload(): DatasourceFormPayload {
+  // 连接池配置：仅提交已填写的白名单字段，全部留空则不提交（后端用连接池默认值）
+  const poolEntries = POOL_FIELDS
+    .map((field) => [field.key, poolConfig[field.key]] as const)
+    .filter(([, value]) => value != null);
+
   const data: Record<string, unknown> = {
     name: form.name,
     dbType: DB_TYPE,
@@ -214,7 +268,7 @@ function getPayload(): DatasourceFormPayload {
     databaseName: form.databaseName || undefined,
     username: form.username,
     connectionParams: form.connectionParams || undefined,
-    poolConfig: form.poolConfig || undefined
+    poolConfig: poolEntries.length > 0 ? Object.fromEntries(poolEntries) : undefined
   };
   if (props.mode === "add") {
     data.password = form.password;
@@ -297,7 +351,7 @@ defineExpose({ validate, getPayload, isDirty });
           ref="portInputRef"
           :model-value="form.port"
           @update:model-value="onPortInput"
-          @keydown="onPortKeydown"
+          @keydown="onNumericKeydown"
           type="text"
           inputmode="numeric"
           :label="t('datasourceMgmt.port')"
@@ -391,18 +445,26 @@ defineExpose({ validate, getPayload, isDirty });
           hide-bottom-space
         />
       </div>
-      <!-- 连接池配置 -->
+      <!-- 连接池配置：固定白名单 key/value，留空使用系统默认值 -->
       <div class="col-12">
+        <div class="ds-pool-section row items-center justify-between">
+          <div class="ds-pool-section-title">{{ t('datasourceMgmt.poolSectionTitle') }}</div>
+          <div class="ds-pool-section-hint">{{ t('datasourceMgmt.poolSectionHint') }}</div>
+        </div>
+      </div>
+      <div v-for="field in POOL_FIELDS" :key="field.key" class="col-6">
         <q-input
-          v-model="form.poolConfig"
-          :label="t('datasourceMgmt.poolConfig')"
+          :model-value="poolConfig[field.key]"
+          @update:model-value="(v) => onPoolInput(field.key, v)"
+          @keydown="onNumericKeydown"
+          type="text"
+          inputmode="numeric"
+          :label="t(field.labelKey)"
+          :placeholder="field.placeholderKey ? t(field.placeholderKey) : field.placeholder"
           filled
           square
-          type="textarea"
-          rows="2"
           :disable="readonlyMode"
           :readonly="readonlyMode"
-          :hint="t('datasourceMgmt.poolConfigHint')"
           hide-bottom-space
         />
       </div>
@@ -433,11 +495,35 @@ defineExpose({ validate, getPayload, isDirty });
 .ds-jdbc-url-preview.q-field--filled :deep(.q-field__control::after) {
   border: none;
 }
+
+/* 连接池配置分区标题行：左侧标题 + 右侧默认值提示 */
+.ds-pool-section {
+  padding: 4px 0 12px;
+}
+
+.ds-pool-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.ds-pool-section-hint {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+}
 </style>
 
-<!-- 非 scoped：预览框暗色模式文字颜色 -->
+<!-- 非 scoped：预览框与连接池分区暗色模式文字颜色 -->
 <style>
 .body--dark .ds-form-mysql .ds-jdbc-url-preview .q-field__native {
   color: rgba(255, 255, 255, 0.75);
+}
+
+.body--dark .ds-form-mysql .ds-pool-section-title {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .ds-form-mysql .ds-pool-section-hint {
+  color: rgba(255, 255, 255, 0.45);
 }
 </style>
