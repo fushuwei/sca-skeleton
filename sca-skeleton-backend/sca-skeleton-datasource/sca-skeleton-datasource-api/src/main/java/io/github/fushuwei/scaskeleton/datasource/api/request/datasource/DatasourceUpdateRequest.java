@@ -1,6 +1,5 @@
 package io.github.fushuwei.scaskeleton.datasource.api.request.datasource;
 
-import io.github.fushuwei.scaskeleton.datasource.api.enums.DbType;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -11,6 +10,9 @@ import java.io.Serializable;
  * 数据源更新请求
  * <p>
  * password 为空表示不修改密码，非空才更新。
+ * <p>
+ * 注意：本请求不接收 dbType —— 数据源类型创建后不可变更，
+ * 更新时一律以库内记录的 dbType 为准（前后端双重约束）。
  *
  * @author Fu Wei
  */
@@ -24,7 +26,6 @@ public class DatasourceUpdateRequest implements Serializable {
     private String id;
 
     private String name;
-    private DbType dbType;
     private String driverId;
     private String host;
     private Integer port;

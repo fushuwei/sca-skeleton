@@ -152,17 +152,12 @@ public class DatasourceServiceImpl implements DatasourceService {
     public void updateDatasource(DatasourceUpdateRequest request) {
         Datasource datasource = loadDatasourceEntity(request.getId());
 
-        // 驱动一致性校验（合并请求与现有值后的最终 dbType）
-        DbType effectiveDbType = request.getDbType() != null
-            ? request.getDbType()
-            : DbType.valueOf(datasource.getDbType());
+        // 数据源类型创建后不可变更：驱动一致性校验一律以库内记录的 dbType 为准
+        DbType effectiveDbType = DbType.valueOf(datasource.getDbType());
         validateDriverConsistency(request.getDriverId(), effectiveDbType);
 
         if (StringUtils.hasText(request.getName())) {
             datasource.setName(request.getName());
-        }
-        if (request.getDbType() != null) {
-            datasource.setDbType(request.getDbType().name());
         }
         if (StringUtils.hasText(request.getDriverId())) {
             datasource.setDriverId(request.getDriverId());

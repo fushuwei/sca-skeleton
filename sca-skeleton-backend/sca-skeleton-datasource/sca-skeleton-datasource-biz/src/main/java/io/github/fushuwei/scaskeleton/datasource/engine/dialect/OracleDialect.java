@@ -13,13 +13,20 @@ import java.util.List;
 /**
  * Oracle 方言。
  * <p>
- * Oracle URL 使用 Service Name 格式：{@code jdbc:oracle:thin:@//host:port/service}。
+ * Oracle URL 支持两种形态（由 connectionParams 内置键 {@code oracleUrlMode} 标记）：
+ * <ul>
+ *   <li>服务名（默认）：{@code jdbc:oracle:thin:@//host:port/service}</li>
+ *   <li>SID（{@code oracleUrlMode=SID}）：{@code jdbc:oracle:thin:@host:port:SID}</li>
+ * </ul>
  * Oracle 没有「数据库」概念（一个实例即一个库），listDatabases 返回实例名。
  *
  * @author Fu Wei
  */
 @Component
 public class OracleDialect extends AbstractJdbcDialect {
+
+    /** connectionParams 中标记 SID 形态的内置键值对（与前端 Oracle 表单约定一致） */
+    private static final String URL_MODE_SID = "oracleUrlMode=SID";
 
     @Override
     public DbType dbType() {
@@ -33,7 +40,16 @@ public class OracleDialect extends AbstractJdbcDialect {
 
     @Override
     public String buildJdbcUrl(String host, int port, String databaseName, String connectionParams) {
-        // Oracle 使用 //host:port/service 格式（Service Name）
+        // SID 形态：jdbc:oracle:thin:@host:port:SID
+        if (connectionParams != null && connectionParams.contains(URL_MODE_SID)) {
+            StringBuilder url = new StringBuilder("jdbc:oracle:thin:@");
+            url.append(host).append(":").append(port);
+            if (databaseName != null && !databaseName.isEmpty()) {
+                url.append(":").append(databaseName);
+            }
+            return url.toString();
+        }
+        // 服务名形态（默认）：//host:port/service
         StringBuilder url = new StringBuilder();
         url.append(urlPrefix()).append(host).append(":").append(port);
         if (databaseName != null && !databaseName.isEmpty()) {

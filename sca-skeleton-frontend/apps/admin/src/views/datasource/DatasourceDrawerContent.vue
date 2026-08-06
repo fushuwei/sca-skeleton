@@ -1,17 +1,32 @@
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted, nextTick } from "vue";
+/**
+ * 数据源抽屉编排器（添加 / 编辑 / 查看）。
+ *
+ * 两步式添加流程：
+ * - 第一步：类型选择面板（DatasourceTypeGallery），先确定数据源类型；
+ * - 第二步：按注册表（DatasourceFormRegistry）渲染该类型对应的完整表单。
+ * 编辑/查看直接进入第二步，类型只读不可变更（后端更新接口同样不接受 dbType）。
+ *
+ * 编排器职责：步骤切换、类型徽章、保存请求（调用表单契约方法）。
+ * 字段与排版完全由各类型表单组件自行负责。
+ */
+import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { Datasource, DbTypeOption, DriverOption } from "../../apis/datasource";
+import { useConfirmDialog } from "@repo/ui";
+import type { Datasource, DbTypeOption } from "../../apis/datasource";
 import {
   createDatasourceApi,
   updateDatasourceApi,
-  getDriverOptionsApi,
   getDbTypesApi
 } from "../../apis/datasource";
 import DbTypeIcon from "../../components/DbTypeIcon.vue";
+import DatasourceTypeGallery from "./forms/DatasourceTypeGallery.vue";
+import { resolveDatasourceForm, LAST_SELECTED_DB_TYPE_KEY } from "./forms/DatasourceFormRegistry";
+import type { DbTypeCardOption, DatasourceTypeFormExpose } from "./forms/types";
 
 const { t } = useI18n({ useScope: "global" });
+const { confirmDialog } = useConfirmDialog();
 
 const props = defineProps<{
   mode: "add" | "edit" | "view";
@@ -24,10 +39,17 @@ const emit = defineEmits<{
 }>();
 
 const drawerReadonly = computed(() => props.mode === "view");
-const isEdit = computed(() => props.mode === "edit");
+
+// ── 两步式状态 ──
+type DrawerStep = "select-type" | "form";
+
+const step = ref<DrawerStep>(props.mode === "add" ? "select-type" : "form");
+const selectedDbType = ref<string>(
+  props.mode === "add" ? "" : (props.datasource?.dbType ?? "")
+);
 
 // ── 数据库类型选项（异步加载，含降级） ──
-const dbTypeOptions = ref<{ label: string; value: string; defaultPort: number }[]>([]);
+const dbTypeOptions = ref<DbTypeCardOption[]>([]);
 
 async function loadDbTypeOptions() {
   try {
@@ -52,163 +74,52 @@ async function loadDbTypeOptions() {
     { label: "Kingbase", value: "KINGBASE", defaultPort: 54321 },
     { label: "MongoDB", value: "MONGODB", defaultPort: 27017 },
     { label: "ClickHouse", value: "CLICKHOUSE", defaultPort: 8123 },
-    { label: "OceanBase", value: "OCEANBASE", defaultPort: 2883 },
-    { label: "GaussDB", value: "GAUSSDB", defaultPort: 5432 }
+    { label: "OceanBase", value: "OCEANBASE", defaultPort: 2881 },
+    { label: "GaussDB", value: "GAUSSDB", defaultPort: 8000 }
   ];
 }
 
-// ── 驱动选项（根据 dbType 异步加载） ──
-const driverOptions = ref<{ label: string; value: string }[]>([]);
-const driverLoading = ref(false);
+const selectedDbTypeLabel = computed(() =>
+  dbTypeOptions.value.find((o) => o.value === selectedDbType.value)?.label
+  ?? selectedDbType.value
+);
 
-async function loadDriverOptions(dbType?: string) {
-  if (!dbType) {
-    driverOptions.value = [];
-    return;
-  }
-  driverLoading.value = true;
-  try {
-    const res = await getDriverOptionsApi(dbType);
-    if (res.code === 10_000 && res.data) {
-      driverOptions.value = res.data.map((d: DriverOption) => ({
-        label: d.name,
-        value: d.id
-      }));
-    }
-  } catch {
-    // 静默失败，下拉为空
-  } finally {
-    driverLoading.value = false;
-  }
+// ── 类型表单（注册表解析 + 契约调用） ──
+const formComponent = computed(() =>
+  selectedDbType.value ? resolveDatasourceForm(selectedDbType.value) : undefined
+);
+
+// 动态组件 ref 类型宽松，经 formApi() 收敛为契约类型
+const formRef = ref<unknown>(null);
+
+function formApi(): DatasourceTypeFormExpose | null {
+  return (formRef.value as DatasourceTypeFormExpose | null) ?? null;
 }
 
 const formLoading = ref(false);
-const showPwd = ref(false);
-const form = reactive({
-  id: "",
-  name: "",
-  dbType: "",
-  driverId: "",
-  host: "",
-  port: null as number | null,
-  databaseName: "",
-  username: "",
-  password: "",
-  connectionParams: "",
-  poolConfig: "",
-  version: 0 as number | undefined
-});
 
-const formRules = computed(() => ({
-  name: [(v: string) => !!v?.trim() || t("datasourceMgmt.nameRequired")],
-  dbType: [(v: string) => !!v || t("datasourceMgmt.dbTypeRequired")],
-  driverId: [(v: string) => !!v || t("datasourceMgmt.driverRequired")],
-  host: [(v: string) => !!v?.trim() || t("datasourceMgmt.hostRequired")],
-  port: [
-    (v: number | null) => !!v || t("datasourceMgmt.portRequired"),
-    (v: number | null) => (v != null && v >= 1 && v <= 65535) || t("datasourceMgmt.portRangeError")
-  ],
-  databaseName: [(v: string) => !!v?.trim() || t("datasourceMgmt.databaseNameRequired")],
-  username: [(v: string) => !!v?.trim() || t("datasourceMgmt.usernameRequired")],
-  password: props.mode === "add"
-    ? [(v: string) => !!v?.trim() || t("datasourceMgmt.passwordRequired")]
-    : []
-}));
-
-function resetForm() {
-  form.id = "";
-  form.name = "";
-  form.dbType = "";
-  form.driverId = "";
-  form.host = "";
-  form.port = null;
-  form.databaseName = "";
-  form.username = "";
-  form.password = "";
-  form.connectionParams = "";
-  form.poolConfig = "";
-  form.version = 0;
-  showPwd.value = false;
+// ── 第一步 → 第二步 ──
+function handleSelectType(dbType: string) {
+  selectedDbType.value = dbType;
+  step.value = "form";
+  try {
+    localStorage.setItem(LAST_SELECTED_DB_TYPE_KEY, dbType);
+  } catch {
+    // localStorage 不可用时不影响主流程
+  }
 }
 
-function initForm() {
-  resetForm();
-  if (props.datasource) {
-    form.id = props.datasource.id;
-    form.name = props.datasource.name;
-    form.dbType = props.datasource.dbType;
-    form.driverId = props.datasource.driverId;
-    form.host = props.datasource.host;
-    form.port = props.datasource.port ?? null;
-    form.databaseName = props.datasource.databaseName || "";
-    form.username = props.datasource.username;
-    form.password = ""; // 编辑时密码留空，表示不修改
-    form.connectionParams = props.datasource.connectionParams || "";
-    form.poolConfig = props.datasource.poolConfig || "";
-    form.version = props.datasource.version;
-    // 编辑/查看时加载对应 dbType 的驱动选项
-    if (props.datasource.dbType) {
-      loadDriverOptions(props.datasource.dbType);
+// ── 第二步 → 第一步（重新选择类型，脏数据需确认） ──
+async function handleChangeType() {
+  const api = formApi();
+  if (api?.isDirty()) {
+    try {
+      await confirmDialog(t("datasourceMgmt.changeTypeConfirm"));
+    } catch {
+      return;
     }
-  } else {
-    driverOptions.value = [];
   }
-}
-
-watch(() => props.datasource, initForm, { immediate: true });
-
-// ── 数据库类型变更：自动填充默认端口 + 重新加载驱动选项 ──
-async function onDbTypeChange(dbType: string) {
-  if (drawerReadonly.value) return;
-  // 自动填充默认端口（仅当端口为空或为旧默认值时）
-  const option = dbTypeOptions.value.find((o) => o.value === dbType);
-  if (option) {
-    form.port = option.defaultPort;
-  }
-  // 清空已选驱动（不同 dbType 的驱动不通用）
-  form.driverId = "";
-  await loadDriverOptions(dbType);
-}
-
-// 端口输入框组件引用（用于同步原生 input 值，清除 IME 漏网的字符）
-const portInputRef = ref<{ $el: HTMLElement } | null>(null);
-
-// ── 端口输入过滤（三层防护） ──
-// 第 1 层：keydown 拦截 IME 输入法和非数字字符
-function onPortKeydown(e: KeyboardEvent) {
-  // 拦截中文输入法（IME）组合：keyCode 229 表示 IME 正在处理，
-  // key === "Process" 表示 IME 即将启动
-  if (e.isComposing || e.keyCode === 229 || e.key === "Process") {
-    e.preventDefault();
-    return;
-  }
-  // 允许功能键
-  const controlKeys = ["Backspace", "Delete", "Tab", "Escape", "Enter", "Home", "End", "ArrowLeft", "ArrowRight"];
-  if (controlKeys.includes(e.key)) return;
-  // 允许 Ctrl/Cmd 快捷键（全选/复制/粘贴/剪切/撤销/重做）
-  if ((e.ctrlKey || e.metaKey) && /^[acvxzy]$/i.test(e.key)) return;
-  // 只允许数字 0-9
-  if (!/^\d$/.test(e.key)) {
-    e.preventDefault();
-  }
-}
-
-// 第 2 层：@update:model-value 过滤非数字字符
-// 第 3 层：当检测到非数字字符时，通过 nextTick 同步原生 input DOM 值
-function onPortInput(v: string | number | null) {
-  const raw = String(v ?? "");
-  const digits = raw.replace(/\D/g, "");
-  form.port = digits ? Number(digits) : null;
-  // 当原始值包含非数字字符时，form.port 可能与之前相同（如 3306中文 → 3306），
-  // Vue 不会触发重渲染，中文残留在 DOM 中。此处手动同步原生 input 值。
-  if (raw !== digits) {
-    nextTick(() => {
-      const el = portInputRef.value?.$el?.querySelector?.("input") as HTMLInputElement | null;
-      if (el && el.value !== digits) {
-        el.value = digits;
-      }
-    });
-  }
+  step.value = "select-type";
 }
 
 function handleClose() {
@@ -217,35 +128,18 @@ function handleClose() {
 
 async function handleSave() {
   if (drawerReadonly.value) return;
+  const api = formApi();
+  if (!api) return;
 
-  const data: Record<string, unknown> = {
-    name: form.name,
-    dbType: form.dbType,
-    driverId: form.driverId || undefined,
-    host: form.host,
-    port: form.port ?? undefined,
-    databaseName: form.databaseName || undefined,
-    username: form.username,
-    connectionParams: form.connectionParams || undefined,
-    poolConfig: form.poolConfig || undefined
-  };
+  const valid = await api.validate();
+  if (!valid) return;
 
-  if (props.mode === "add") {
-    data.password = form.password;
-  } else {
-    data.id = form.id;
-    data.version = form.version;
-    // 编辑时密码留空表示不修改
-    if (form.password) {
-      data.password = form.password;
-    }
-  }
-
+  const payload = api.getPayload();
   try {
     formLoading.value = true;
     const result = props.mode === "add"
-      ? await createDatasourceApi(data)
-      : await updateDatasourceApi(data);
+      ? await createDatasourceApi(payload)
+      : await updateDatasourceApi(payload);
 
     if (result.code === 10_000) {
       showToast(t("datasourceMgmt.saveSuccess"), "positive");
@@ -262,6 +156,13 @@ async function handleSave() {
   }
 }
 
+// 编辑/查看场景下 datasource 变化时重置步骤
+watch(() => props.datasource, (ds) => {
+  if (props.mode === "add") return;
+  selectedDbType.value = ds?.dbType ?? "";
+  step.value = "form";
+});
+
 onMounted(() => {
   loadDbTypeOptions();
 });
@@ -269,190 +170,66 @@ onMounted(() => {
 
 <template>
   <div class="datasource-drawer-content">
-    <q-form class="datasource-drawer-form" @submit="handleSave">
-      <div class="row q-col-gutter-md">
-        <!-- 数据源名称 -->
-        <div class="col-12">
-          <q-input
-            v-model.trim="form.name"
-            :label="t('datasourceMgmt.name')"
-            filled
-            square
-            :rules="formRules.name"
-            :disable="drawerReadonly"
-            :readonly="drawerReadonly"
-            hide-bottom-space
-            class="required-field"
-          />
-        </div>
-        <!-- 数据库类型 -->
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="form.dbType"
-            :label="t('datasourceMgmt.dbType')"
-            filled
-            square
-            :options="dbTypeOptions"
-            emit-value
-            map-options
-            :rules="formRules.dbType"
-            :disable="isEdit || drawerReadonly"
-            :readonly="drawerReadonly"
-            hide-bottom-space
-            class="required-field"
-            @update:model-value="onDbTypeChange"
-          >
-            <template v-slot:selected-item="scope">
-              <div v-if="scope.opt" class="row items-center no-wrap">
-                <DbTypeIcon :db-type="scope.opt.value" :size="20" class="q-mr-xs" />
-                <span>{{ scope.opt.label }}</span>
-              </div>
-            </template>
-            <template v-slot:option="scope">
-              <q-item v-bind="scope.itemProps">
-                <q-item-section avatar style="min-width: auto; padding-right: 8px;">
-                  <DbTypeIcon :db-type="scope.opt.value" :size="20" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ scope.opt.label }}</q-item-label>
-                </q-item-section>
-              </q-item>
-            </template>
-          </q-select>
-        </div>
-        <!-- 驱动 -->
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="form.driverId"
-            :label="t('datasourceMgmt.driverId')"
-            filled
-            square
-            :options="driverOptions"
-            emit-value
-            map-options
-            :rules="formRules.driverId"
-            :loading="driverLoading"
-            :disable="drawerReadonly"
-            :readonly="drawerReadonly"
-            hide-bottom-space
-            class="required-field"
-          />
-        </div>
-        <!-- 主机地址 -->
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model.trim="form.host"
-            :label="t('datasourceMgmt.host')"
-            filled
-            square
-            :rules="formRules.host"
-            :disable="drawerReadonly"
-            :readonly="drawerReadonly"
-            hide-bottom-space
-            class="required-field"
-          />
-        </div>
-        <!-- 端口 -->
-        <div class="col-12 col-md-6">
-          <q-input
-            ref="portInputRef"
-            :model-value="form.port"
-            @update:model-value="onPortInput"
-            @keydown="onPortKeydown"
-            type="text"
-            inputmode="numeric"
-            :label="t('datasourceMgmt.port')"
-            filled
-            square
-            :rules="formRules.port"
-            :disable="drawerReadonly"
-            :readonly="drawerReadonly"
-            hide-bottom-space
-            class="required-field"
-          />
-        </div>
-        <!-- 数据库名 -->
-        <div class="col-12">
-          <q-input
-            v-model.trim="form.databaseName"
-            :label="t('datasourceMgmt.databaseName')"
-            filled
-            square
-            :rules="formRules.databaseName"
-            :disable="drawerReadonly"
-            :readonly="drawerReadonly"
-            hide-bottom-space
-            class="required-field"
-          />
-        </div>
-        <!-- 用户名 -->
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model.trim="form.username"
-            :label="t('datasourceMgmt.username')"
-            filled
-            square
-            :rules="formRules.username"
-            :disable="drawerReadonly"
-            :readonly="drawerReadonly"
-            hide-bottom-space
-            class="required-field"
-          />
-        </div>
-        <!-- 密码 -->
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="form.password"
-            :label="isEdit ? t('datasourceMgmt.password') + '（' + t('datasourceMgmt.passwordEditHint') + '）' : t('datasourceMgmt.password')"
-            filled
-            square
-            :type="showPwd ? 'text' : 'password'"
-            :rules="formRules.password"
-            :disable="drawerReadonly"
-            :readonly="drawerReadonly"
-            hide-bottom-space
-            :class="{ 'required-field': props.mode === 'add' }"
-          >
-            <template #append>
-              <q-icon
-                :name="showPwd ? 'sym_r_visibility' : 'sym_r_visibility_off'"
-                class="cursor-pointer"
-                color="grey-7"
-                @click="showPwd = !showPwd"
-              />
-            </template>
-          </q-input>
-        </div>
-        <!-- 连接参数 -->
-        <div class="col-12">
-          <q-input
-            v-model="form.connectionParams"
-            :label="t('datasourceMgmt.connectionParams')"
-            filled
-            square
-            type="textarea"
-            rows="2"
-            :disable="drawerReadonly"
-            :readonly="drawerReadonly"
-            :hint="t('datasourceMgmt.connectionParamsHint')"
-            hide-bottom-space
-          />
-        </div>
-        <!-- 连接池配置 -->
-        <div class="col-12">
-          <q-input
-            v-model="form.poolConfig"
-            :label="t('datasourceMgmt.poolConfig')"
-            filled
-            square
-            type="textarea"
-            rows="2"
-            :disable="drawerReadonly"
-            :readonly="drawerReadonly"
-            :hint="t('datasourceMgmt.poolConfigHint')"
-            hide-bottom-space
-          />
-        </div>
+    <!-- ═══ 第一步：选择数据源类型（仅添加模式） ═══ -->
+    <template v-if="step === 'select-type'">
+      <div class="ds-select-type-header">
+        <div class="ds-select-type-title">{{ t('datasourceMgmt.selectDbTypeTitle') }}</div>
+        <div class="ds-select-type-hint">{{ t('datasourceMgmt.selectDbTypeHint') }}</div>
+      </div>
+
+      <DatasourceTypeGallery :options="dbTypeOptions" @select="handleSelectType" />
+
+      <div class="datasource-drawer-footer row justify-end q-gutter-sm">
+        <q-btn
+          color="grey-7"
+          outline
+          no-caps
+          class="drawer-action-btn"
+          @click="handleClose"
+        >
+          {{ t('common.cancel') }}
+        </q-btn>
+      </div>
+    </template>
+
+    <!-- ═══ 第二步：类型专属表单 ═══ -->
+    <template v-else>
+      <!-- 类型徽章条：类型固定展示；添加模式可重新选择 -->
+      <div class="ds-form-type-bar row items-center no-wrap">
+        <DbTypeIcon :db-type="selectedDbType" :size="22" class="q-mr-sm" />
+        <span class="ds-form-type-name">{{ selectedDbTypeLabel }}</span>
+        <q-badge
+          v-if="props.mode !== 'add'"
+          outline
+          color="grey-7"
+          :label="t('datasourceMgmt.typeImmutableHint')"
+          class="q-ml-sm ds-form-type-immutable-badge"
+        />
+        <q-space />
+        <q-btn
+          v-if="props.mode === 'add'"
+          flat
+          dense
+          no-caps
+          color="primary"
+          icon="sym_r_swap_horiz"
+          class="ds-form-change-type-btn"
+          @click="handleChangeType"
+        >
+          {{ t('datasourceMgmt.changeType') }}
+        </q-btn>
+      </div>
+
+      <component
+        :is="formComponent"
+        v-if="formComponent"
+        ref="formRef"
+        :key="selectedDbType"
+        :mode="props.mode"
+        :datasource="props.datasource"
+      />
+      <div v-else class="ds-form-not-supported">
+        {{ t('datasourceMgmt.formNotSupported') }}
       </div>
 
       <!-- 底部操作按钮 -->
@@ -467,23 +244,73 @@ onMounted(() => {
           {{ t('common.cancel') }}
         </q-btn>
         <q-btn
-          type="submit"
           color="primary"
           unelevated
           no-caps
           :loading="formLoading"
           class="drawer-action-btn"
+          @click="handleSave"
         >
           {{ t('common.confirm') }}
         </q-btn>
       </div>
-    </q-form>
+    </template>
   </div>
 </template>
 
 <style scoped>
 .datasource-drawer-content {
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+/* 第一步标题区 */
+.ds-select-type-header {
+  margin-bottom: 16px;
+}
+
+.ds-select-type-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+  margin-bottom: 4px;
+}
+
+.ds-select-type-hint {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* 第二步类型徽章条 */
+.ds-form-type-bar {
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+}
+
+.ds-form-type-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.ds-form-type-immutable-badge {
+  font-weight: 400;
+}
+
+.ds-form-change-type-btn {
+  font-size: 12px;
+}
+
+.ds-form-not-supported {
+  padding: 40px 0;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 13px;
 }
 
 .datasource-drawer-footer {
@@ -496,24 +323,10 @@ onMounted(() => {
 .drawer-action-btn {
   min-width: 72px;
 }
-
-/* 必填项星号红色高亮 */
-.required-field :deep(.q-field__label::after) {
-  content: " *";
-  color: var(--q-negative);
-}
-
-:deep(.q-field__append > .q-icon:not(.text-negative)) {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* 修复 prefix 右侧多余间距 */
-:deep(.q-field__prefix) {
-  padding-right: 0 !important;
-}
 </style>
 
 <style>
+/* 类型表单暗色模式（表单根元素统一挂 .datasource-drawer-form 类） */
 .body--dark .datasource-drawer-form .q-field__control {
   background: #2d2d2d;
 }
@@ -538,6 +351,22 @@ onMounted(() => {
 
 .body--dark .datasource-drawer-form .q-field--focused .q-field__control::after {
   border-color: #80cbc4;
+}
+
+/* 编排器暗色模式 */
+.body--dark .ds-select-type-title,
+.body--dark .ds-form-type-name {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .ds-select-type-hint,
+.body--dark .ds-form-not-supported {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.body--dark .ds-form-type-bar {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* 抽屉底部按钮区域分隔线 */
