@@ -2,7 +2,6 @@ package io.github.fushuwei.scaskeleton.datasource.engine.dialect;
 
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.datasource.api.enums.DbType;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumMap;
@@ -18,7 +17,6 @@ import java.util.Map;
  * @author Fu Wei
  */
 @Component
-@RequiredArgsConstructor
 public class DialectRegistry {
 
     private final Map<DbType, Dialect> dialects = new EnumMap<>(DbType.class);
