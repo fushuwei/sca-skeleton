@@ -136,10 +136,7 @@ function nodeIcon(node: TreeNode): string {
   return NODE_ICON[node.kind];
 }
 
-/** 节点图标颜色 — 与部门树一致：选中 primary，未选中 grey-7 */
-function nodeColor(node: TreeNode): string {
-  return selectedKey.value === node.key ? "primary" : "grey-7";
-}
+/** 节点图标颜色 — 通过 CSS color: inherit 与文字颜色保持一致，无需 Quasar 颜色类 */
 
 /** 是否在节点上显示计数徽章 — 分类节点始终显示（含 0），其余不显示 */
 function showCount(node: TreeNode): boolean {
@@ -454,7 +451,6 @@ async function copyToClipboard(text: string) {
             :name="nodeIcon(node)"
             size="20px"
             class="q-mr-sm cursor-pointer db-tree-icon"
-            :color="nodeColor(node)"
             @click.stop="toggleNode(node)"
           />
           <span class="db-tree-label ellipsis" :title="node.label">{{ node.label }}</span>

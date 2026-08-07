@@ -1553,32 +1553,59 @@ onMounted(() => {
 
 /* ═══ 暗色模式 — 按钮 / 标签页 / 拖拽手柄等补全 ═══ */
 
-/* 结果/消息 标签页 — 未选中态文字 */
-.body--dark .sq-result-tabs :deep(.q-tab) {
-  color: rgba(255, 255, 255, 0.6) !important;
+/* ── 输入框 & 下拉（与驱动管理 .body--dark .driver-list-shell 保持一致） ── */
+.body--dark .sq-ds-select :deep(.q-field--filled .q-field__control),
+.body--dark .sq-maxrows-select :deep(.q-field--filled .q-field__control),
+.body--dark .sq-filter-input :deep(.q-field--filled .q-field__control) {
+  background: #2d2d2d !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-.body--dark .sq-result-tabs :deep(.q-tab--active) {
-  color: #4db6ac !important;
+.body--dark .sq-ds-select :deep(.q-field--filled .q-field__native),
+.body--dark .sq-maxrows-select :deep(.q-field--filled .q-field__native),
+.body--dark .sq-filter-input :deep(.q-field--filled .q-field__native) {
+  color: rgba(255, 255, 255, 0.87) !important;
 }
 
-/* 操作栏 outline 按钮 — 暗色下用更亮的色阶 */
-.body--dark .sq-opbar :deep(.q-btn--outline .q-btn__wrapper) {
-  color: rgba(255, 255, 255, 0.85) !important;
+.body--dark .sq-ds-select :deep(.q-field--filled .q-field__label),
+.body--dark .sq-maxrows-select :deep(.q-field--filled .q-field__label),
+.body--dark .sq-filter-input :deep(.q-field--filled .q-field__label) {
+  color: rgba(255, 255, 255, 0.55) !important;
 }
 
+.body--dark .sq-ds-select :deep(.q-field__append),
+.body--dark .sq-ds-select :deep(.q-field__prepend),
+.body--dark .sq-maxrows-select :deep(.q-field__append),
+.body--dark .sq-maxrows-select :deep(.q-field__prepend),
+.body--dark .sq-filter-input :deep(.q-field__append),
+.body--dark .sq-filter-input :deep(.q-field__prepend) {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+.body--dark .sq-ds-select.status-select :deep(.q-field__native) {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+/* ── 操作栏按钮（与驱动管理 .toolbar-area 按钮保持一致） ── */
+
+/* unelevated 按钮（"执行"）— 暗色下用 teal 色调 */
+.body--dark .sq-opbar :deep(.q-btn--unelevated:not(.q-btn--outline)) {
+  background: rgba(0, 150, 136, 0.85) !important;
+}
+
+.body--dark .sq-opbar :deep(.q-btn--unelevated:not(.q-btn--outline):hover) {
+  background: rgba(0, 150, 136, 1) !important;
+}
+
+/* outline 按钮（"格式化SQL"、"清空"）— 暗色下用更亮的色阶 */
 .body--dark .sq-opbar :deep(.q-btn--outline) {
   border-color: rgba(255, 255, 255, 0.22) !important;
+  color: rgba(255, 255, 255, 0.87) !important;
+  background: transparent !important;
 }
 
-/* 导出按钮 — 暗色下 primary 偏暗，改用亮色 */
-.body--dark .sq-export-btn {
-  color: #4db6ac !important;
-}
-
-/* 拖拽手柄图标 */
-.body--dark .sq-split-grip {
-  color: rgba(255, 255, 255, 0.35) !important;
+.body--dark .sq-opbar :deep(.q-btn--outline:hover) {
+  background: rgba(255, 255, 255, 0.06) !important;
 }
 
 /* 操作栏图标颜色 */
@@ -1586,9 +1613,47 @@ onMounted(() => {
   color: inherit !important;
 }
 
-/* 左侧面板工具区图标 */
+/* ── 结果/消息 标签页 ── */
+.body--dark .sq-result-tabs :deep(.q-tab) {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.body--dark .sq-result-tabs :deep(.q-tab:hover) {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.body--dark .sq-result-tabs :deep(.q-tab--active) {
+  color: #4db6ac !important;
+}
+
+.body--dark .sq-result-tabs :deep(.q-tab .q-icon) {
+  color: inherit !important;
+}
+
+/* ── 导出按钮 ── */
+.body--dark .sq-export-btn {
+  color: #4db6ac !important;
+}
+
+/* ── 拖拽手柄图标 ── */
+.body--dark .sq-split-grip {
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* ── 左侧面板工具区图标 ── */
 .body--dark .sq-filter-input :deep(.q-icon) {
   color: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* ── 左侧面板折叠按钮图标 ── */
+.body--dark .left-panel-toggle-btn,
+.body--dark .left-panel-collapse-btn {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .left-panel-toggle-btn:hover,
+.body--dark .left-panel-collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
 }
 </style>
 
