@@ -361,7 +361,7 @@ public class DatasourceServiceImpl implements DatasourceService {
     }
 
     // ============================================================
-    // 元数据浏览（库/表/字段）
+    // 元数据浏览（库/表/视图/函数/存储过程/同义词/字段）
     // ============================================================
 
     @Override
@@ -373,6 +373,30 @@ public class DatasourceServiceImpl implements DatasourceService {
     public List<String> listTables(String datasourceId, String database) {
         return executeQuery(datasourceId, (conn, dialect, ds) ->
             dialect.listTables(conn, StringUtils.hasText(database) ? database : null));
+    }
+
+    @Override
+    public List<String> listViews(String datasourceId, String database) {
+        return executeQuery(datasourceId, (conn, dialect, ds) ->
+            dialect.listViews(conn, StringUtils.hasText(database) ? database : null));
+    }
+
+    @Override
+    public List<String> listFunctions(String datasourceId, String database) {
+        return executeQuery(datasourceId, (conn, dialect, ds) ->
+            dialect.listFunctions(conn, StringUtils.hasText(database) ? database : null));
+    }
+
+    @Override
+    public List<String> listProcedures(String datasourceId, String database) {
+        return executeQuery(datasourceId, (conn, dialect, ds) ->
+            dialect.listProcedures(conn, StringUtils.hasText(database) ? database : null));
+    }
+
+    @Override
+    public List<String> listSynonyms(String datasourceId, String database) {
+        return executeQuery(datasourceId, (conn, dialect, ds) ->
+            dialect.listSynonyms(conn, StringUtils.hasText(database) ? database : null));
     }
 
     @Override

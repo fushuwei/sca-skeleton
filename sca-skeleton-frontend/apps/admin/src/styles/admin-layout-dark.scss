@@ -2339,65 +2339,154 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
- * SqlQueryView — 数据查询页面深色模式
+ * SqlQueryView — 数据查询工作台深色模式
+ * 表单控件（status-select / q-input / q-table / q-tabs）由 Quasar 深色模式自动适配
  * ═══════════════════════════════════════════════════════════════ */
 
-.body--dark .sql-query-shell {
-  /* 控制栏 */
-  .control-bar {
+.body--dark .sql-workbench {
+  /* 分栏 */
+  .sq-split .q-splitter__separator,
+  .sq-split-v .q-splitter__separator {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .sq-split-grip {
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  /* 左侧面板 */
+  .sq-left {
+    background: #1a1a1a;
+  }
+
+  .sq-left-head,
+  .sq-left-tools {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .sq-left-head-icon {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .sq-left-head-title {
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .sq-tool-btn {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  /* 操作栏与面板 */
+  .sq-opbar {
     background: #1e1e1e;
-    border-color: rgba(255, 255, 255, 0.12);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
   }
 
-  /* 输入框 & 下拉 */
-  .q-field--filled .q-field__control {
-    background: #2d2d2d !important;
-    border-color: rgba(255, 255, 255, 0.12);
+  .sq-pane {
+    background: #1e1e1e;
   }
 
-  .q-field--filled .q-field__native,
-  .q-field--filled .q-field__input {
-    color: rgba(255, 255, 255, 0.87);
+  .sq-pane-head,
+  .sq-result-head {
+    background: #232323;
+    border-bottom-color: rgba(255, 255, 255, 0.08);
   }
 
-  .q-field--filled .q-field__label {
+  .sq-pane-head-icon {
     color: rgba(255, 255, 255, 0.55);
   }
 
-  .q-field .q-field__append,
-  .q-field .q-field__prepend {
+  .sq-pane-head-title {
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .sq-readonly-badge {
+    background: rgba(255, 193, 7, 0.12);
+    color: #ffd54f;
+  }
+
+  .sq-kbd-hint {
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  /* 结果统计 */
+  .sq-stat {
     color: rgba(255, 255, 255, 0.55);
   }
 
-  .status-select .q-field__native {
-    color: rgba(255, 255, 255, 0.87) !important;
+  .sq-stat--warn {
+    color: #ffb74d;
   }
 
-  /* 操作按钮 */
-  .action-btn.q-btn--unelevated {
-    background: rgba(0, 150, 136, 0.85) !important;
+  /* 结果表格 */
+  .sq-null {
+    color: rgba(255, 255, 255, 0.3);
   }
 
-  .action-btn.q-btn--unelevated:hover {
-    background: rgba(0, 150, 136, 1) !important;
+  .sq-no-data {
+    color: rgba(255, 255, 255, 0.4);
   }
 
-  .action-btn.q-btn--outline {
-    border-color: rgba(255, 255, 255, 0.2) !important;
-    color: rgba(255, 255, 255, 0.87) !important;
-    background: transparent !important;
+  /* 空态 */
+  .sq-empty-icon {
+    color: rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.06);
   }
 
-  .action-btn.q-btn--outline:hover {
-    background: rgba(255, 255, 255, 0.06) !important;
+  .sq-empty-title {
+    color: rgba(255, 255, 255, 0.72);
   }
 
-  .text-grey-5,
-  .text-grey-6 {
-    color: rgba(255, 255, 255, 0.45) !important;
+  .sq-empty-desc {
+    color: rgba(255, 255, 255, 0.42);
   }
 
-  .text-grey-7 {
-    color: rgba(255, 255, 255, 0.55) !important;
+  /* 执行消息 */
+  .sq-msg {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .sq-msg-time {
+    color: rgba(255, 255, 255, 0.38);
+  }
+
+  .sq-msg-text {
+    color: rgba(255, 255, 255, 0.82);
+  }
+
+  .sq-msg--ok .sq-msg-icon {
+    color: #81c784;
+  }
+
+  .sq-msg--fail .sq-msg-icon {
+    color: #ef5350;
+  }
+
+  .sq-msg--fail .sq-msg-text {
+    color: #ef9a9a;
+  }
+
+  .sq-msg-sql {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.55);
+  }
+}
+
+/* 对象浏览树深色模式 */
+.body--dark .db-tree {
+  .db-tree-state {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .db-tree-node-label {
+    color: rgba(255, 255, 255, 0.82);
+  }
+
+  .db-tree-node--empty .db-tree-node-label {
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  .db-tree-ctx-avatar {
+    color: rgba(255, 255, 255, 0.55);
   }
 }

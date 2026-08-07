@@ -87,6 +87,39 @@ public class OracleDialect extends AbstractJdbcDialect {
     }
 
     @Override
+    public List<String> listViews(Connection conn, String databaseName) throws SQLException {
+        return super.listViews(conn, null);
+    }
+
+    @Override
+    public List<String> listFunctions(Connection conn, String databaseName) throws SQLException {
+        // Oracle 以当前 schema（=用户名）为命名空间，避免查出系统包内置函数
+        return queryFunctions(conn, null, conn.getSchema());
+    }
+
+    @Override
+    public List<String> listProcedures(Connection conn, String databaseName) throws SQLException {
+        return queryProcedures(conn, null, conn.getSchema());
+    }
+
+    @Override
+    public List<String> listSynonyms(Connection conn, String databaseName) throws SQLException {
+        // 同义词为 Oracle 特有概念，取当前用户可见的同义词
+        List<String> synonyms = new ArrayList<>();
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                 "SELECT synonym_name FROM user_synonyms ORDER BY synonym_name")) {
+            while (rs.next()) {
+                synonyms.add(rs.getString(1));
+            }
+        } catch (SQLException e) {
+            // 无权限访问 user_synonyms 时返回空列表，不影响其他节点浏览
+            return new ArrayList<>();
+        }
+        return synonyms;
+    }
+
+    @Override
     public List<String> listColumns(Connection conn, String databaseName, String tableName) throws SQLException {
         return super.listColumns(conn, null, tableName);
     }

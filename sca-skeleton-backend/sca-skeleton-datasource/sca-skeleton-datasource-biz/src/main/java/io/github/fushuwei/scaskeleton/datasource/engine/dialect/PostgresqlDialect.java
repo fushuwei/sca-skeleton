@@ -51,6 +51,22 @@ public class PostgresqlDialect extends AbstractJdbcDialect {
     }
 
     @Override
+    public List<String> listViews(Connection conn, String databaseName) throws SQLException {
+        return super.listViews(conn, null);
+    }
+
+    @Override
+    public List<String> listFunctions(Connection conn, String databaseName) throws SQLException {
+        // PG 以当前 schema 为命名空间，避免查出 pg_catalog 内置函数
+        return queryFunctions(conn, null, conn.getSchema());
+    }
+
+    @Override
+    public List<String> listProcedures(Connection conn, String databaseName) throws SQLException {
+        return queryProcedures(conn, null, conn.getSchema());
+    }
+
+    @Override
     public List<String> listColumns(Connection conn, String databaseName, String tableName) throws SQLException {
         return super.listColumns(conn, null, tableName);
     }

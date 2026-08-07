@@ -141,6 +141,34 @@ public class DatasourceController {
         return Result.ok(datasourceService.listTables(id, database));
     }
 
+    @Operation(summary = "查询数据源下的视图列表")
+    @GetMapping("/{id}/views")
+    @RequiresPermission("sys:datasource:list")
+    public Result<List<String>> views(@PathVariable String id, @RequestParam(required = false) String database) {
+        return Result.ok(datasourceService.listViews(id, database));
+    }
+
+    @Operation(summary = "查询数据源下的函数列表")
+    @GetMapping("/{id}/functions")
+    @RequiresPermission("sys:datasource:list")
+    public Result<List<String>> functions(@PathVariable String id, @RequestParam(required = false) String database) {
+        return Result.ok(datasourceService.listFunctions(id, database));
+    }
+
+    @Operation(summary = "查询数据源下的存储过程列表")
+    @GetMapping("/{id}/procedures")
+    @RequiresPermission("sys:datasource:list")
+    public Result<List<String>> procedures(@PathVariable String id, @RequestParam(required = false) String database) {
+        return Result.ok(datasourceService.listProcedures(id, database));
+    }
+
+    @Operation(summary = "查询数据源下的同义词列表")
+    @GetMapping("/{id}/synonyms")
+    @RequiresPermission("sys:datasource:list")
+    public Result<List<String>> synonyms(@PathVariable String id, @RequestParam(required = false) String database) {
+        return Result.ok(datasourceService.listSynonyms(id, database));
+    }
+
     @Operation(summary = "查询表字段列表")
     @GetMapping("/{id}/columns")
     @RequiresPermission("sys:datasource:list")

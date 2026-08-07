@@ -51,5 +51,13 @@ public interface DatasourceService {
 
     List<String> listTables(String datasourceId, String database);
 
+    List<String> listViews(String datasourceId, String database);
+
+    List<String> listFunctions(String datasourceId, String database);
+
+    List<String> listProcedures(String datasourceId, String database);
+
+    List<String> listSynonyms(String datasourceId, String database);
+
     List<String> listColumns(String datasourceId, String database, String table);
 }

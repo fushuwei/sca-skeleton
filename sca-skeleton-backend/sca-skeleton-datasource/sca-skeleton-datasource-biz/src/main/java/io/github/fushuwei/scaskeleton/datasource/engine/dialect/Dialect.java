@@ -51,6 +51,44 @@ public interface Dialect {
     List<String> listTables(Connection conn, String databaseName) throws SQLException;
 
     /**
+     * 列出指定数据库下的视图。
+     *
+     * @param conn         JDBC 连接
+     * @param databaseName 数据库名（可为 null，表示当前库）
+     * @return 视图名列表
+     */
+    List<String> listViews(Connection conn, String databaseName) throws SQLException;
+
+    /**
+     * 列出指定数据库下的函数。
+     *
+     * @param conn         JDBC 连接
+     * @param databaseName 数据库名（可为 null，表示当前库）
+     * @return 函数名列表
+     */
+    List<String> listFunctions(Connection conn, String databaseName) throws SQLException;
+
+    /**
+     * 列出指定数据库下的存储过程。
+     *
+     * @param conn         JDBC 连接
+     * @param databaseName 数据库名（可为 null，表示当前库）
+     * @return 存储过程名列表
+     */
+    List<String> listProcedures(Connection conn, String databaseName) throws SQLException;
+
+    /**
+     * 列出指定数据库下的同义词。
+     * <p>
+     * 仅 Oracle 等数据库存在同义词概念，无此概念的数据库返回空列表。
+     *
+     * @param conn         JDBC 连接
+     * @param databaseName 数据库名（可为 null，表示当前库）
+     * @return 同义词名列表
+     */
+    List<String> listSynonyms(Connection conn, String databaseName) throws SQLException;
+
+    /**
      * 列出指定表的字段。
      *
      * @param conn         JDBC 连接

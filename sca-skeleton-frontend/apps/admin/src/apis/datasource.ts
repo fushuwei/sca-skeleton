@@ -299,6 +299,54 @@ export async function getTablesApi(
   });
 }
 
+/** 查询数据源下的视图列表 */
+export async function getViewsApi(
+  datasourceId: string,
+  database?: string
+): Promise<ApiEnvelope<string[]>> {
+  return request<string[]>({
+    method: "GET",
+    url: `/ds/datasource/${datasourceId}/views`,
+    params: { database }
+  });
+}
+
+/** 查询数据源下的函数列表 */
+export async function getFunctionsApi(
+  datasourceId: string,
+  database?: string
+): Promise<ApiEnvelope<string[]>> {
+  return request<string[]>({
+    method: "GET",
+    url: `/ds/datasource/${datasourceId}/functions`,
+    params: { database }
+  });
+}
+
+/** 查询数据源下的存储过程列表 */
+export async function getProceduresApi(
+  datasourceId: string,
+  database?: string
+): Promise<ApiEnvelope<string[]>> {
+  return request<string[]>({
+    method: "GET",
+    url: `/ds/datasource/${datasourceId}/procedures`,
+    params: { database }
+  });
+}
+
+/** 查询数据源下的同义词列表（仅 Oracle 等支持，其余返回空） */
+export async function getSynonymsApi(
+  datasourceId: string,
+  database?: string
+): Promise<ApiEnvelope<string[]>> {
+  return request<string[]>({
+    method: "GET",
+    url: `/ds/datasource/${datasourceId}/synonyms`,
+    params: { database }
+  });
+}
+
 /** 查询表字段列表 */
 export async function getColumnsApi(
   datasourceId: string,
