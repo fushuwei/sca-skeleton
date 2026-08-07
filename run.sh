@@ -8,6 +8,7 @@
 # 阶段（不传则依次执行全部）：
 #   build-backend    构建 JAR 包并部署到 ./bin/
 #   start-backend    启动 gateway / auth / system / datasource 四个后端服务
+#   install-frontend 安装前端依赖（pnpm install）
 #   build-frontend   构建前端 admin / portal dist
 #   deploy-frontend  部署前端 dist 到 nginx 容器目录并 reload
 #   all              上述全部（默认）
@@ -101,18 +102,22 @@ start_backend() {
   log "后端服务已启动，日志：${LOG_DIR}/{gateway,auth,system,datasource}.log"
 }
 
-# ---------------- 阶段 3：构建前端 ----------------
-build_frontend() {
+# ---------------- 阶段 3：安装前端依赖 ----------------
+install_frontend() {
   log "安装前端依赖"
   cd "${FRONTEND_DIR}"
   pnpm install --frozen-lockfile
+}
 
+# ---------------- 阶段 4：构建前端 ----------------
+build_frontend() {
   log "构建前端 admin / portal dist"
+  cd "${FRONTEND_DIR}"
   pnpm build:admin
   pnpm build:portal
 }
 
-# ---------------- 阶段 4：部署前端到 nginx 并 reload ----------------
+# ---------------- 阶段 5：部署前端到 nginx 并 reload ----------------
 deploy_frontend() {
   log "部署 admin dist → ${NGINX_HTML}/admin/"
   rm -rf "${NGINX_HTML}/admin/"*
@@ -144,18 +149,22 @@ main() {
     build-frontend)
       build_frontend
       ;;
+    install-frontend)
+      install_frontend
+      ;;
     deploy-frontend)
       deploy_frontend
       ;;
     all)
       build_backend
       start_backend
+      install_frontend
       build_frontend
       deploy_frontend
       ;;
     *)
       err "未知阶段：${stage}"
-      echo "用法：$0 {build-backend|start-backend|build-frontend|deploy-frontend|all}"
+      echo "用法：$0 {build-backend|start-backend|install-frontend|build-frontend|deploy-frontend|all}"
       exit 1
       ;;
   esac
