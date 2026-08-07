@@ -3,15 +3,14 @@ import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Dark } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
+import { format } from "sql-formatter";
 import type { Datasource, SqlExecuteResponse } from "../../apis/datasource";
 import { getDatasourcePageApi, executeSqlApi } from "../../apis/datasource";
 import SqlCodeEditor from "./sql-query/SqlCodeEditor.vue";
 import DbObjectTree from "./sql-query/DbObjectTree.vue";
+import DbTypeIcon from "../../components/DbTypeIcon.vue";
 
 const { t } = useI18n({ useScope: "global" });
-
-const isMac = /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent);
-const execShortcut = isMac ? "⌘ + Enter" : "Ctrl + Enter";
 
 // ============================================================
 // 工作台偏好持久化
@@ -84,7 +83,7 @@ async function loadDatasourceOptions() {
     });
     if (res.code === 10_000 && res.data) {
       datasourceOptions.value = res.data.records.map((ds: Datasource) => ({
-        label: `${ds.name} (${ds.dbType})`,
+        label: ds.name,
         value: ds.id,
         dbType: ds.dbType,
         databaseName: ds.databaseName
@@ -133,7 +132,7 @@ const editorRef = ref<InstanceType<typeof SqlCodeEditor>>();
 const sqlContent = ref(prefs.sql || "");
 const schemaMap = ref<Record<string, string[]>>({});
 
-const MAX_ROWS_OPTIONS = [100, 500, 1000, 2000, 5000, 10_000];
+const MAX_ROWS_OPTIONS = [5, 10, 20, 30, 50, 100, 200, 500, 1000];
 const maxRows = ref<number>(prefs.maxRows && MAX_ROWS_OPTIONS.includes(prefs.maxRows) ? prefs.maxRows : 1000);
 
 const executing = ref(false);
@@ -226,6 +225,46 @@ function handleClear() {
   editorRef.value?.focus();
 }
 
+// ── SQL 格式化 ──
+
+/** dbType → sql-formatter 语言枚举 */
+function formatterLanguageOf(dbType: string): "sql" | "mysql" | "postgresql" | "mariadb" | "sqlite" | "tsql" | "plsql" | "bigquery" | "redshift" {
+  switch (dbType) {
+    case "MYSQL":
+    case "CLICKHOUSE":
+      return "mysql";
+    case "POSTGRESQL":
+    case "GAUSSDB":
+    case "KINGBASE":
+      return "postgresql";
+    case "ORACLE":
+    case "DAMENG":
+      return "plsql";
+    case "SQLSERVER":
+      return "tsql";
+    default:
+      return "sql";
+  }
+}
+
+function handleFormatSql() {
+  if (!sqlContent.value.trim()) {
+    showToast(t("sqlQuery.sqlRequired"), "negative");
+    return;
+  }
+  try {
+    const formatted = format(sqlContent.value, {
+      language: formatterLanguageOf(currentDbType.value),
+      tabWidth: 2,
+      keywordCase: "upper"
+    });
+    sqlContent.value = formatted;
+    showToast(t("sqlQuery.formatSuccess"), "positive");
+  } catch {
+    showToast(t("sqlQuery.formatFail"), "negative");
+  }
+}
+
 // ── 对象树联动 ──
 
 function handleTreeRun(sql: string) {
@@ -312,7 +351,7 @@ function handleExport() {
 // ============================================================
 
 const sidebarVisible = ref(prefs.sidebarVisible ?? true);
-const sidebarWidth = ref(prefs.sidebarWidth || 270);
+const sidebarWidth = ref(prefs.sidebarWidth || 300);
 const editorPct = ref(prefs.editorPct || 45);
 /** 拖拽进行中标记：为 true 时禁用 width 过渡，保证拖拽跟手不卡顿 */
 const isResizing = ref(false);
@@ -345,7 +384,7 @@ function beginResize(e: PointerEvent) {
 
 function onResizeMove(e: PointerEvent) {
   const delta = e.clientX - resizeStartX;
-  sidebarWidth.value = Math.round(Math.min(420, Math.max(200, resizeStartWidth + delta)));
+  sidebarWidth.value = Math.round(Math.min(430, Math.max(300, resizeStartWidth + delta)));
 }
 
 function endResize() {
@@ -392,7 +431,7 @@ onMounted(() => {
         <!-- 头部：标题 + 折叠按钮 -->
         <div class="left-panel-header">
           <div class="left-panel-header-title row items-center no-wrap">
-            <q-icon name="sym_r_account_tree" size="20px" class="q-mr-xs" />
+            <q-icon name="sym_r_database_search" size="20px" class="q-mr-xs" />
             <span>{{ t("sqlQuery.explorer") }}</span>
           </div>
           <q-btn
@@ -428,8 +467,20 @@ onMounted(() => {
             class="status-select sq-ds-select"
             popup-content-class="status-select-popup"
           >
-            <template v-if="!selectedDatasource" v-slot:selected>
-              <span class="status-placeholder">{{ t('sqlQuery.datasourcePlaceholder') }}</span>
+            <template v-slot:selected>
+              <div v-if="currentDatasource" class="row items-center no-wrap">
+                <DbTypeIcon :db-type="currentDatasource.dbType" :size="18" class="q-mr-xs" />
+                <span class="ellipsis">{{ currentDatasource.label }}</span>
+              </div>
+              <span v-else class="status-placeholder">{{ t('sqlQuery.datasourcePlaceholder') }}</span>
+            </template>
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps">
+                <q-item-section avatar style="min-width: auto; padding-right: 8px;">
+                  <DbTypeIcon :db-type="scope.opt.dbType" :size="18" />
+                </q-item-section>
+                <q-item-section>{{ scope.opt.label }}</q-item-section>
+              </q-item>
             </template>
           </q-select>
 
@@ -491,48 +542,40 @@ onMounted(() => {
       <!-- 操作栏 -->
       <div class="sq-opbar">
         <q-btn
-          flat
-          dense
-          round
-          size="sm"
-          :icon="sidebarVisible ? 'sym_r_left_panel_close' : 'sym_r_left_panel_open'"
-          class="sq-tool-btn"
-          @click="toggleSidebar"
+          outline
+          no-caps
+          color="blue-6"
+          class="sq-op-btn"
+          @click="handleFormatSql"
         >
-          <q-tooltip>{{ t('sqlQuery.explorer') }}</q-tooltip>
+          <q-icon name="sym_r_format_align_left" size="20px" class="q-mr-xs" />
+          {{ t('sqlQuery.formatSql') }}
         </q-btn>
-
-        <q-separator vertical inset spaced />
 
         <q-btn
           unelevated
           no-caps
           color="primary"
           :loading="executing"
-          class="sq-exec-btn"
+          class="sq-op-btn"
           @click="handleExecute"
         >
-          <q-icon name="sym_r_play_arrow" size="18px" class="q-mr-xs" />
+          <q-icon name="sym_r_play_arrow" size="20px" class="q-mr-xs" />
           {{ executing ? t('sqlQuery.executing') : t('sqlQuery.execute') }}
-          <q-tooltip>{{ execShortcut }}</q-tooltip>
         </q-btn>
 
         <q-btn
           outline
-          dense
           no-caps
-          color="grey-7"
-          icon="sym_r_delete_sweep"
-          :label="t('sqlQuery.clear')"
+          color="deep-orange-6"
+          class="sq-op-btn"
           @click="handleClear"
-        />
+        >
+          <q-icon name="sym_r_delete_forever" size="20px" class="q-mr-xs" />
+          {{ t('sqlQuery.clear') }}
+        </q-btn>
 
         <q-space />
-
-        <q-badge color="amber-3" text-color="amber-10" class="sq-readonly-badge">
-          {{ t('sqlQuery.onlyRead') }}
-          <q-tooltip>{{ t('sqlQuery.onlyReadTip') }}</q-tooltip>
-        </q-badge>
 
         <q-select
           v-model="maxRows"
@@ -561,8 +604,6 @@ onMounted(() => {
             <div class="sq-pane-head">
               <q-icon name="sym_r_code" size="20px" class="sq-pane-head-icon" />
               <span class="sq-pane-head-title">{{ t('sqlQuery.sqlEditor') }}</span>
-              <q-space />
-              <span class="sq-kbd-hint">{{ execShortcut }}</span>
             </div>
             <div class="sq-editor-body">
               <SqlCodeEditor
@@ -603,11 +644,18 @@ onMounted(() => {
                 indicator-color="primary"
                 class="sq-result-tabs"
               >
-                <q-tab name="result" icon="sym_r_table_chart" :label="t('sqlQuery.result')" />
+                <q-tab name="result" @click="">
+                  <div class="row items-center no-wrap">
+                    <q-icon name="sym_r_table_chart" size="20px" class="q-mr-xs" />
+                    <span>{{ t('sqlQuery.result') }}</span>
+                  </div>
+                </q-tab>
                 <q-tab name="messages" @click="openMessagesTab">
-                  <q-icon name="sym_r_terminal" size="16px" class="q-mr-xs" />
-                  <span>{{ t('sqlQuery.messages') }}</span>
-                  <span v-if="unreadError" class="sq-tab-dot" />
+                  <div class="row items-center no-wrap">
+                    <q-icon name="sym_r_terminal" size="20px" class="q-mr-xs" />
+                    <span>{{ t('sqlQuery.messages') }}</span>
+                    <span v-if="unreadError" class="sq-tab-dot" />
+                  </div>
                 </q-tab>
               </q-tabs>
 
@@ -671,7 +719,7 @@ onMounted(() => {
                   </div>
                   <div class="sq-empty-title">{{ t('sqlQuery.emptyTitle') }}</div>
                   <div class="sq-empty-desc">
-                    {{ t('sqlQuery.emptyDesc', { key: execShortcut }) }}
+                    {{ t('sqlQuery.emptyDesc') }}
                   </div>
                 </div>
               </q-tab-panel>
@@ -872,15 +920,10 @@ onMounted(() => {
   margin-bottom: 8px;
 }
 
-.sq-exec-btn {
+.sq-op-btn {
   height: 32px;
   padding: 0 14px;
   font-size: 13px;
-}
-
-.sq-readonly-badge {
-  font-size: 11px;
-  padding: 2px 8px;
 }
 
 .sq-maxrows-select {
@@ -963,12 +1006,6 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 600;
   color: rgba(0, 0, 0, 0.87);
-}
-
-.sq-kbd-hint {
-  font-size: 11px;
-  color: rgba(0, 0, 0, 0.38);
-  font-family: "SF Mono", "Monaco", "Menlo", "Consolas", monospace;
 }
 
 .sq-editor-body {
@@ -1196,10 +1233,6 @@ onMounted(() => {
 .body--dark .sq-pane-head-icon,
 .body--dark .sq-tool-btn {
   color: rgba(255, 255, 255, 0.55) !important;
-}
-
-.body--dark .sq-kbd-hint {
-  color: rgba(255, 255, 255, 0.38) !important;
 }
 
 .body--dark .sq-stat {

@@ -644,6 +644,9 @@
     "maxRowsTip": "查询结果最多返回该行数",
     "execute": "执行",
     "executing": "执行中...",
+    "formatSql": "格式化",
+    "formatSuccess": "SQL 已格式化",
+    "formatFail": "格式化失败",
     "clear": "清空",
     "result": "结果",
     "messages": "消息",
@@ -677,7 +680,7 @@
     "copySuccess": "已复制到剪贴板",
     "copyFail": "复制失败",
     "emptyTitle": "开始你的查询",
-    "emptyDesc": "选择左侧数据源，编写 SQL 后按 {key} 执行",
+    "emptyDesc": "选择左侧数据源，编写 SQL 后点击执行",
     "msgSuccess": "查询成功：返回 {count} 行，耗时 {ms} ms",
     "msgFail": "执行失败：{message}"
   }

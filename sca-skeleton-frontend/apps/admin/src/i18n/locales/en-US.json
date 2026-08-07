@@ -644,6 +644,9 @@
     "maxRowsTip": "Query results are limited to this number of rows",
     "execute": "Execute",
     "executing": "Executing...",
+    "formatSql": "Format",
+    "formatSuccess": "SQL formatted",
+    "formatFail": "Format failed",
     "clear": "Clear",
     "result": "Result",
     "messages": "Messages",
@@ -677,7 +680,7 @@
     "copySuccess": "Copied to clipboard",
     "copyFail": "Copy failed",
     "emptyTitle": "Start Your Query",
-    "emptyDesc": "Select a datasource, write SQL, then press {key} to execute",
+    "emptyDesc": "Select a datasource, write SQL, then click Execute",
     "msgSuccess": "Query succeeded: {count} rows in {ms} ms",
     "msgFail": "Execution failed: {message}"
   }

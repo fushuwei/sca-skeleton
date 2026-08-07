@@ -38,7 +38,7 @@ const selectedMenuId = ref<string>("");
 let lastSelectedMenuId = "";
 /** 初始展开所有分类节点 */
 const menuTreeExpanded = ref<string[]>(REALM_GROUPS.map((g) => realmGroupId(g.realm)));
-const leftPanelWidth = ref(260);
+const leftPanelWidth = ref(300);
 const leftPanelCollapsed = ref(false);
 /** 拖拽进行中标记：为 true 时禁用 width 过渡，保证拖拽跟手不卡顿 */
 const isResizing = ref(false);
@@ -279,7 +279,7 @@ function beginResize(e: PointerEvent) {
 
 function onResizeMove(e: PointerEvent) {
   const delta = e.clientX - resizeStartX;
-  leftPanelWidth.value = Math.round(Math.min(420, Math.max(200, resizeStartWidth + delta)));
+  leftPanelWidth.value = Math.round(Math.min(430, Math.max(300, resizeStartWidth + delta)));
 }
 
 function endResize() {
