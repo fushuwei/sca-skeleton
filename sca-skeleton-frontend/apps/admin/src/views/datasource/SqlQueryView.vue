@@ -132,8 +132,8 @@ const editorRef = ref<InstanceType<typeof SqlCodeEditor>>();
 const sqlContent = ref(prefs.sql || "");
 const schemaMap = ref<Record<string, string[]>>({});
 
-const MAX_ROWS_OPTIONS = [5, 10, 20, 30, 50, 100, 200, 500, 1000];
-const maxRows = ref<number>(prefs.maxRows && MAX_ROWS_OPTIONS.includes(prefs.maxRows) ? prefs.maxRows : 1000);
+const MAX_ROWS_OPTIONS = [10, 20, 50, 100, 200, 500, 1000];
+const maxRows = ref<number>(prefs.maxRows && MAX_ROWS_OPTIONS.includes(prefs.maxRows) ? prefs.maxRows : 100);
 
 const executing = ref(false);
 const queryResult = ref<SqlExecuteResponse | null>(null);
@@ -149,20 +149,16 @@ interface ExecMessage {
 }
 
 const messages = ref<ExecMessage[]>([]);
-const messagesEl = ref<HTMLElement>();
 const unreadError = ref(false);
 let messageId = 0;
 
 function pushMessage(ok: boolean, text: string, sql?: string) {
-  messages.value.push({
+  messages.value.unshift({
     id: ++messageId,
     time: new Date().toTimeString().slice(0, 8),
     ok,
     text,
     sql: sql && sql.length > 500 ? sql.slice(0, 500) + " …" : sql
-  });
-  void nextTick(() => {
-    messagesEl.value?.scrollTo({ top: messagesEl.value.scrollHeight });
   });
 }
 
@@ -259,9 +255,11 @@ function handleFormatSql() {
       keywordCase: "upper"
     });
     sqlContent.value = formatted;
-    showToast(t("sqlQuery.formatSuccess"), "positive");
-  } catch {
-    showToast(t("sqlQuery.formatFail"), "negative");
+  } catch (error) {
+    const reason = error instanceof Error && error.message
+      ? error.message
+      : t("sqlQuery.formatFail");
+    showToast(t("sqlQuery.formatFail") + ": " + reason, "negative");
   }
 }
 
@@ -306,10 +304,6 @@ const resultColumns = computed<ResultColumn[]>(() => {
   }
   return columns;
 });
-
-const isTruncated = computed(() =>
-  !!queryResult.value && queryResult.value.rowCount >= maxRows.value
-);
 
 // ============================================================
 // 导出 CSV
@@ -664,10 +658,6 @@ onMounted(() => {
               <template v-if="queryResult">
                 <span class="sq-stat">{{ t('sqlQuery.rowCount', { count: queryResult.rowCount }) }}</span>
                 <span class="sq-stat">{{ t('sqlQuery.costMs', { ms: queryResult.costMs }) }}</span>
-                <span v-if="isTruncated" class="sq-stat sq-stat--warn">
-                  <q-icon name="sym_r_info" size="13px" class="q-mr-xs" />
-                  {{ t('sqlQuery.truncated', { max: maxRows }) }}
-                </span>
                 <q-btn
                   v-if="queryResult.rows.length"
                   flat
@@ -726,7 +716,7 @@ onMounted(() => {
 
               <!-- 执行消息 -->
               <q-tab-panel name="messages" class="sq-messages-panel">
-                <div ref="messagesEl" class="sq-messages">
+                <div class="sq-messages">
                   <div
                     v-for="msg in messages"
                     :key="msg.id"
@@ -1053,10 +1043,6 @@ onMounted(() => {
   align-items: center;
 }
 
-.sq-stat--warn {
-  color: #b26a00;
-}
-
 /* 结果/消息面板 */
 .sq-result-panels {
   flex: 1 1 auto;
@@ -1075,16 +1061,72 @@ onMounted(() => {
   padding: 0;
 }
 
-/* 结果表格 */
+/* 结果表格 — 与用户管理页面 .user-table 保持一致 */
 .sq-result-table {
   flex: 1 1 auto;
   min-height: 0;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0;
+}
+
+.sq-result-table :deep(.q-table__top) {
+  display: none;
+}
+
+.sq-result-table :deep(.q-table__container) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .sq-result-table :deep(.q-table__middle) {
   flex: 1 1 0;
   min-height: 0;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overscroll-behavior: none;
+}
+
+.sq-result-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.sq-result-table :deep(.q-table__middle > table) {
+  flex: 0 0 auto;
+}
+
+.sq-result-table :deep(thead tr th) {
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  color: rgba(0, 0, 0, 0.8) !important;
+  background: #fafafa !important;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.sq-result-table :deep(thead tr:first-child th) {
+  border-top: none;
+}
+
+.sq-result-table :deep(tbody tr:hover td) {
+  background: rgba(0, 121, 107, 0.03) !important;
+}
+
+.sq-result-table :deep(tbody td) {
+  font-size: 13px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+.sq-result-table :deep(.q-table__bottom) {
+  padding: 3px 16px 4px;
+  font-size: 13px;
+  min-height: 42px;
+  background: #fff;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .sq-null {
@@ -1241,6 +1283,30 @@ onMounted(() => {
 
 .body--dark .sq-null {
   color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.body--dark .sq-result-table {
+  background: #1e1e1e !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .sq-result-table :deep(thead tr th) {
+  background: #252525 !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .sq-result-table :deep(tbody tr:hover td) {
+  background: rgba(0, 121, 107, 0.06) !important;
+}
+
+.body--dark .sq-result-table :deep(tbody td) {
+  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.body--dark .sq-result-table :deep(.q-table__bottom) {
+  background: #1e1e1e !important;
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 .body--dark .sq-no-data {
