@@ -4,6 +4,11 @@
     "notFoundDesc": "您访问的页面可能已被移除或暂时不可用",
     "backHome": "返回首页"
   },
+  "dashboard": {
+    "comingSoonStatus": "开发进行中",
+    "comingSoonTitle": "功能开发中，敬请期待",
+    "comingSoonDesc": "工作台正在紧锣密鼓地建设中，即将为您呈现数据总览与快捷入口。在此之前，欢迎通过左侧菜单探索已上线的功能。"
+  },
   "common": {
     "all": "全部",
     "search": "搜索",

@@ -4,6 +4,11 @@
     "notFoundDesc": "The page you are looking for may have been removed or is temporarily unavailable",
     "backHome": "Back to Home"
   },
+  "dashboard": {
+    "comingSoonStatus": "In Progress",
+    "comingSoonTitle": "Coming Soon",
+    "comingSoonDesc": "The workbench is under active development — data overview and quick entries are on the way. Meanwhile, feel free to explore available features from the left menu."
+  },
   "common": {
     "all": "All",
     "search": "Search",
