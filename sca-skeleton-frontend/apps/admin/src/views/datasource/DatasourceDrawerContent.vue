@@ -252,10 +252,11 @@ onMounted(() => {
           </template>
           <template #append>
             <q-badge
-              v-if="props.mode !== 'add'"
-              outline
-              color="grey-7"
+              v-if="props.mode === 'edit'"
+              color="blue-2"
+              text-color="blue-9"
               :label="t('datasourceMgmt.typeImmutableHint')"
+              rounded
               class="ds-form-type-immutable-badge"
             />
             <q-btn
@@ -388,7 +389,9 @@ onMounted(() => {
 }
 
 .ds-form-type-immutable-badge {
-  font-weight: 400;
+  font-size: 11px;
+  padding: 3px 10px;
+  font-weight: 500;
   margin-right: 8px;
 }
 

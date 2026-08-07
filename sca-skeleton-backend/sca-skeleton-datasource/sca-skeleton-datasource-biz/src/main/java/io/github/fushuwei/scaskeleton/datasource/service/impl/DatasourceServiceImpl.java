@@ -33,6 +33,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.net.NoRouteToHostException;
+import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -139,7 +141,6 @@ public class DatasourceServiceImpl implements DatasourceService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void createDatasource(DatasourceCreateRequest request) {
         // 驱动一致性校验
         validateDriverConsistency(request.getDriverId(), request.getDbType());
@@ -148,7 +149,6 @@ public class DatasourceServiceImpl implements DatasourceService {
         datasource.setId(UuidUtils.nextSimpleStr());
         datasource.setDbType(request.getDbType().name());
         datasource.setIsEnabled(1);
-        datasource.setStatus("offline");
         // AES-GCM 加密凭据
         datasource.setPassword(credentialCipher.encrypt(request.getPassword()));
         datasource.setCipherVersion(credentialCipher.currentCipherVersion());
@@ -156,6 +156,9 @@ public class DatasourceServiceImpl implements DatasourceService {
         datasource.setConnectionParams(serializeConnectionParams(request.getConnectionParams()));
         datasource.setPoolConfig(serializePoolConfig(request.getPoolConfig()));
         datasourceMapper.insert(datasource);
+
+        // 创建后自动测试连接，动态判定初始状态
+        autoTestAndSetStatus(datasource);
     }
 
     @Override
@@ -291,7 +294,8 @@ public class DatasourceServiceImpl implements DatasourceService {
             return buildResponse(ds, driver);
         } catch (Exception e) {
             log.warn("测试连接失败: datasourceId={}, error={}", id, e.getMessage());
-            updateStatus(ds, "error", e.getMessage());
+            String status = classifyConnectionStatus(e);
+            updateStatus(ds, status, e.getMessage());
             throw new BusinessException("连接失败: " + e.getMessage());
         } finally {
             driverLifecycle.release(driver.getId());
@@ -417,6 +421,82 @@ public class DatasourceServiceImpl implements DatasourceService {
         props.setProperty("user", ds.getUsername());
         props.setProperty("password", credentialCipher.decrypt(ds.getPassword()));
         return props;
+    }
+
+    /**
+     * 创建数据源后自动测试连接，动态判定初始状态。
+     * <p>
+     * 走与 testConnection 相同的流程：加载驱动 → 直连 → 心跳 SQL。
+     * 根据结果设置 normal / error / offline 状态。best-effort：测试失败
+     * 不抛异常，仅在 errorMsg 中记录原因，避免阻断创建流程。
+     */
+    private void autoTestAndSetStatus(Datasource ds) {
+        String status;
+        String errorMsg = null;
+        Driver driver = null;
+        DriverInstance instance = null;
+        try {
+            driver = loadDriverEntity(ds.getDriverId());
+            Dialect dialect = dialectRegistry.get(parseDbType(ds.getDbType()));
+            Path[] jarPaths = driverStore.listLocalJars(driver.getName()).toArray(new Path[0]);
+            instance = driverLifecycle.acquire(driver.getId(), driver.getDriverClass(), jarPaths);
+            String jdbcUrl = dialect.buildJdbcUrl(ds.getHost(), ds.getPort(),
+                ds.getDatabaseName(), toQueryString(ds.getConnectionParams()));
+            Properties props = buildConnectionProps(ds);
+            try (Connection conn = instance.connect(jdbcUrl, props)) {
+                if (conn == null) {
+                    throw new SQLException("驱动无法识别 JDBC URL: " + jdbcUrl);
+                }
+                try (var stmt = conn.createStatement()) {
+                    stmt.execute(dialect.pingSql());
+                }
+            }
+            status = "normal";
+            log.info("创建后自动测试连接成功: datasourceId={}", ds.getId());
+        } catch (Exception e) {
+            status = classifyConnectionStatus(e);
+            errorMsg = e.getMessage();
+            log.warn("创建后自动测试连接失败: datasourceId={}, status={}, error={}",
+                ds.getId(), status, errorMsg);
+        } finally {
+            if (driver != null) {
+                driverLifecycle.release(driver.getId());
+            }
+        }
+        ds.setStatus(status);
+        ds.setErrorMsg("normal".equals(status) ? null : errorMsg);
+        try {
+            datasourceMapper.updateById(ds);
+        } catch (Exception e) {
+            log.warn("创建后更新数据源状态失败: id={}, error={}", ds.getId(), e.getMessage());
+        }
+    }
+
+    /**
+     * 根据异常类型判定连接状态。
+     * <p>
+     * 三态语义：
+     * <ul>
+     *   <li><b>offline</b>：主机名无法解析（UnknownHostException）或无路由到主机
+     *       （NoRouteToHostException），明确属于网络不可达。</li>
+     *   <li><b>error</b>：其余所有异常，包括连接超时、连接被拒绝（可能是权限不足、
+     *       端口未开放、认证失败、库不存在等），一律归为异常状态。</li>
+     * </ul>
+     * 不依赖 ping/telnet，直接分析 driver.connect() 抛出的异常根因即可区分。
+     *
+     * @param e 连接过程中抛出的异常
+     * @return "offline" 或 "error"
+     */
+    private String classifyConnectionStatus(Exception e) {
+        Throwable cause = e;
+        while (cause != null) {
+            if (cause instanceof UnknownHostException
+                || cause instanceof NoRouteToHostException) {
+                return "offline";
+            }
+            cause = cause.getCause();
+        }
+        return "error";
     }
 
     /**
