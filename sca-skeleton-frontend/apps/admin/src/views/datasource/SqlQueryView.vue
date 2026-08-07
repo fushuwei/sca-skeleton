@@ -48,7 +48,7 @@ function savePrefs() {
       sql: sqlContent.value,
       maxRows: maxRows.value,
       sidebarVisible: sidebarVisible.value,
-      sidebarWidth: sidebarWidth.value || prefs.sidebarWidth,
+      sidebarWidth: sidebarWidth.value,
       editorPct: editorPct.value
     };
     try {
@@ -308,30 +308,50 @@ function handleExport() {
 }
 
 // ============================================================
-// 面板布局（可拖拽分栏）
+// 面板布局（左面板宽度 + 编辑器/结果纵向分栏）
 // ============================================================
 
 const sidebarVisible = ref(prefs.sidebarVisible ?? true);
-const sidebarWidth = ref(prefs.sidebarVisible === false ? 0 : prefs.sidebarWidth || 270);
+const sidebarWidth = ref(prefs.sidebarWidth || 270);
 const editorPct = ref(prefs.editorPct || 45);
 
 function toggleSidebar() {
   sidebarVisible.value = !sidebarVisible.value;
-  sidebarWidth.value = sidebarVisible.value ? prefs.sidebarWidth || 270 : 0;
 }
 
-watch(
-  sidebarWidth,
-  (width) => {
-    if (width > 0) {
-      sidebarVisible.value = true;
-      prefs.sidebarWidth = width;
-    } else {
-      // 拖拽分栏到最左侧等价于折叠侧栏
-      sidebarVisible.value = false;
-    }
+watch(sidebarWidth, (width) => {
+  if (width > 0) {
+    prefs.sidebarWidth = width;
   }
-);
+});
+
+/** 左侧面板拖拽调整宽度 */
+let resizeStartX = 0;
+let resizeStartWidth = 0;
+
+function beginResize(e: PointerEvent) {
+  e.preventDefault();
+  resizeStartX = e.clientX;
+  resizeStartWidth = sidebarWidth.value;
+  window.addEventListener("pointermove", onResizeMove, { capture: true });
+  window.addEventListener("pointerup", endResize, { capture: true });
+  window.addEventListener("pointercancel", endResize, { capture: true });
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+}
+
+function onResizeMove(e: PointerEvent) {
+  const delta = e.clientX - resizeStartX;
+  sidebarWidth.value = Math.min(420, Math.max(200, resizeStartWidth + delta));
+}
+
+function endResize() {
+  window.removeEventListener("pointermove", onResizeMove, { capture: true });
+  window.removeEventListener("pointerup", endResize, { capture: true });
+  window.removeEventListener("pointercancel", endResize, { capture: true });
+  document.body.style.cursor = "";
+  document.body.style.userSelect = "";
+}
 
 watch(
   [selectedDatasource, sqlContent, maxRows, sidebarVisible, sidebarWidth, editorPct],
@@ -345,394 +365,432 @@ onMounted(() => {
 
 <template>
   <div class="sql-workbench">
-    <q-splitter
-      v-model="sidebarWidth"
-      unit="px"
-      :limits="[0, 420]"
-      class="sq-split"
-    >
-      <!-- ══ 左侧：对象浏览（标题工具栏 + 对象树） ══ -->
-      <template #before>
-        <aside v-show="sidebarVisible" class="sq-left">
-          <div class="sq-left-head">
-            <q-icon name="sym_r_account_tree" size="16px" class="sq-left-head-icon" />
-            <span class="sq-left-head-title">{{ t('sqlQuery.explorer') }}</span>
+    <!-- ═══ 左侧：对象浏览 ═══ -->
+    <div class="left-panel" :class="{ 'left-panel--collapsed': !sidebarVisible }">
+      <!-- 折叠状态仅展示竖向提示条 -->
+      <div v-if="!sidebarVisible" class="left-panel-collapsed-bar">
+        <q-btn
+          flat
+          dense
+          round
+          icon="sym_r_chevron_right"
+          size="20px"
+          class="left-panel-toggle-btn"
+          @click="toggleSidebar"
+        >
+          <q-tooltip anchor="center right" self="center left">{{
+            t("sqlQuery.expandExplorer")
+          }}</q-tooltip>
+        </q-btn>
+      </div>
+
+      <template v-else>
+        <!-- 头部：标题 + 折叠按钮 -->
+        <div class="left-panel-header">
+          <div class="left-panel-header-title row items-center no-wrap">
+            <q-icon name="sym_r_account_tree" size="20px" class="q-mr-xs" />
+            <span>{{ t("sqlQuery.explorer") }}</span>
           </div>
-
-          <div class="sq-left-tools">
-            <q-select
-              v-model="selectedDatasource"
-              filled
-              square
-              dense
-              :options="datasourceOptions"
-              :loading="datasourceLoading"
-              option-label="label"
-              option-value="value"
-              emit-value
-              map-options
-              hide-bottom-space
-              clearable
-              transition-show="jump-up"
-              transition-hide="jump-down"
-              class="status-select sq-ds-select"
-              popup-content-class="status-select-popup"
-            >
-              <template v-if="!selectedDatasource" v-slot:selected>
-                <span class="status-placeholder">{{ t('sqlQuery.datasourcePlaceholder') }}</span>
-              </template>
-            </q-select>
-
-            <q-btn
-              flat
-              dense
-              round
-              size="sm"
-              icon="sym_r_refresh"
-              class="sq-tool-btn"
-              :loading="datasourceLoading"
-              @click="loadDatasourceOptions(); refreshTree()"
-            >
-              <q-tooltip>{{ t('sqlQuery.datasourceRefresh') }}</q-tooltip>
-            </q-btn>
-
-            <q-input
-              v-model="treeFilter"
-              filled
-              square
-              dense
-              clearable
-              hide-bottom-space
-              :placeholder="t('sqlQuery.treeFilterPlaceholder')"
-              class="sq-filter-input"
-            >
-              <template #prepend>
-                <q-icon name="sym_r_search" size="16px" />
-              </template>
-            </q-input>
-          </div>
-
-          <div class="sq-left-body">
-            <DbObjectTree
-              ref="treePanelRef"
-              :datasource-id="selectedDatasource"
-              :db-type="currentDbType"
-              :database="currentDatabase"
-              :max-rows="maxRows"
-              :filter="treeFilter"
-              @run="handleTreeRun"
-              @insert="handleInsert"
-              @schema-change="handleSchemaChange"
-            />
-          </div>
-        </aside>
-      </template>
-
-      <template #separator>
-        <div class="sq-split-grip sq-split-grip--v">
-          <q-icon name="sym_r_drag_indicator" size="11px" />
-        </div>
-      </template>
-
-      <!-- ══ 右侧：操作栏 + SQL 编辑器 + 查询结果 ══ -->
-      <template #after>
-        <div class="sq-right">
-          <!-- 操作栏 -->
-          <div class="sq-opbar">
-            <q-btn
-              flat
-              dense
-              round
-              size="sm"
-              :icon="sidebarVisible ? 'sym_r_left_panel_close' : 'sym_r_left_panel_open'"
-              class="sq-tool-btn"
-              @click="toggleSidebar"
-            >
-              <q-tooltip>{{ t('sqlQuery.explorer') }}</q-tooltip>
-            </q-btn>
-
-            <q-separator vertical inset spaced />
-
-            <q-btn
-              unelevated
-              no-caps
-              color="primary"
-              :loading="executing"
-              class="sq-exec-btn"
-              @click="handleExecute"
-            >
-              <q-icon name="sym_r_play_arrow" size="18px" class="q-mr-xs" />
-              {{ executing ? t('sqlQuery.executing') : t('sqlQuery.execute') }}
-              <q-tooltip>{{ execShortcut }}</q-tooltip>
-            </q-btn>
-
-            <q-btn
-              outline
-              dense
-              no-caps
-              color="grey-7"
-              icon="sym_r_delete_sweep"
-              :label="t('sqlQuery.clear')"
-              @click="handleClear"
-            />
-
-            <q-space />
-
-            <q-badge color="amber-3" text-color="amber-10" class="sq-readonly-badge">
-              {{ t('sqlQuery.onlyRead') }}
-              <q-tooltip>{{ t('sqlQuery.onlyReadTip') }}</q-tooltip>
-            </q-badge>
-
-            <q-select
-              v-model="maxRows"
-              filled
-              square
-              dense
-              :options="MAX_ROWS_OPTIONS"
-              :prefix="t('sqlQuery.maxRows')"
-              hide-bottom-space
-              class="status-select sq-maxrows-select"
-              popup-content-class="status-select-popup"
-            >
-              <q-tooltip>{{ t('sqlQuery.maxRowsTip') }}</q-tooltip>
-            </q-select>
-          </div>
-
-          <!-- 编辑器 / 结果 纵向分栏 -->
-          <q-splitter
-            v-model="editorPct"
-            horizontal
-            :limits="[20, 80]"
-            class="sq-split-v"
+          <q-btn
+            flat
+            dense
+            round
+            size="20px"
+            icon="sym_r_chevron_left"
+            class="left-panel-collapse-btn"
+            @click="toggleSidebar"
           >
-            <template #before>
-              <section class="sq-pane sq-editor-pane">
-                <div class="sq-pane-head">
-                  <q-icon name="sym_r_code" size="15px" class="sq-pane-head-icon" />
-                  <span class="sq-pane-head-title">{{ t('sqlQuery.sqlEditor') }}</span>
-                  <q-space />
-                  <span class="sq-kbd-hint">{{ execShortcut }}</span>
-                </div>
-                <div class="sq-editor-body">
-                  <SqlCodeEditor
-                    ref="editorRef"
-                    v-model="sqlContent"
-                    :db-type="currentDbType"
-                    :dark="dark"
-                    :placeholder-text="t('sqlQuery.sqlPlaceholder')"
-                    :schema="schemaMap"
-                    @execute="handleExecute"
-                  />
-                </div>
-              </section>
-            </template>
-
-            <template #separator>
-              <div class="sq-split-grip sq-split-grip--h">
-                <q-icon name="sym_r_drag_indicator" size="11px" />
-              </div>
-            </template>
-
-            <template #after>
-              <section class="sq-pane sq-result-pane">
-                <q-linear-progress
-                  v-if="executing"
-                  indeterminate
-                  color="primary"
-                  class="sq-progress"
-                />
-
-                <div class="sq-result-head">
-                  <q-tabs
-                    v-model="resultTab"
-                    dense
-                    align="left"
-                    no-caps
-                    active-color="primary"
-                    indicator-color="primary"
-                    class="sq-result-tabs"
-                  >
-                    <q-tab name="result" icon="sym_r_table_chart" :label="t('sqlQuery.result')" />
-                    <q-tab name="messages" @click="openMessagesTab">
-                      <q-icon name="sym_r_terminal" size="16px" class="q-mr-xs" />
-                      <span>{{ t('sqlQuery.messages') }}</span>
-                      <span v-if="unreadError" class="sq-tab-dot" />
-                    </q-tab>
-                  </q-tabs>
-
-                  <q-space />
-
-                  <template v-if="queryResult">
-                    <span class="sq-stat">{{ t('sqlQuery.rowCount', { count: queryResult.rowCount }) }}</span>
-                    <span class="sq-stat">{{ t('sqlQuery.costMs', { ms: queryResult.costMs }) }}</span>
-                    <span v-if="isTruncated" class="sq-stat sq-stat--warn">
-                      <q-icon name="sym_r_info" size="13px" class="q-mr-xs" />
-                      {{ t('sqlQuery.truncated', { max: maxRows }) }}
-                    </span>
-                    <q-btn
-                      v-if="queryResult.rows.length"
-                      flat
-                      dense
-                      no-caps
-                      size="sm"
-                      color="primary"
-                      icon="sym_r_download"
-                      :label="t('sqlQuery.export')"
-                      @click="handleExport"
-                    />
-                  </template>
-                </div>
-
-                <q-tab-panels v-model="resultTab" class="sq-result-panels">
-                  <!-- 结果表格 -->
-                  <q-tab-panel name="result" class="sq-result-panel">
-                    <q-table
-                      v-if="queryResult"
-                      :key="resultNonce"
-                      flat
-                      dense
-                      :rows="queryResult.rows"
-                      :columns="resultColumns"
-                      row-key="__rowIndex"
-                      :loading="executing"
-                      :pagination="{ rowsPerPage: 100 }"
-                      :rows-per-page-options="[20, 50, 100, 200]"
-                      class="sq-result-table"
-                    >
-                      <template #body-cell="props">
-                        <q-td :props="props">
-                          <span
-                            v-if="props.value === null || props.value === undefined"
-                            class="sq-null"
-                          >NULL</span>
-                          <template v-else>{{ props.value }}</template>
-                        </q-td>
-                      </template>
-                      <template #no-data>
-                        <div class="sq-no-data">{{ t('common.noData') }}</div>
-                      </template>
-                    </q-table>
-
-                    <!-- 欢迎空态 -->
-                    <div v-else class="sq-empty">
-                      <div class="sq-empty-icon">
-                        <q-icon name="sym_r_manage_search" size="34px" />
-                      </div>
-                      <div class="sq-empty-title">{{ t('sqlQuery.emptyTitle') }}</div>
-                      <div class="sq-empty-desc">
-                        {{ t('sqlQuery.emptyDesc', { key: execShortcut }) }}
-                      </div>
-                    </div>
-                  </q-tab-panel>
-
-                  <!-- 执行消息 -->
-                  <q-tab-panel name="messages" class="sq-messages-panel">
-                    <div ref="messagesEl" class="sq-messages">
-                      <div
-                        v-for="msg in messages"
-                        :key="msg.id"
-                        class="sq-msg"
-                        :class="msg.ok ? 'sq-msg--ok' : 'sq-msg--fail'"
-                      >
-                        <div class="sq-msg-line">
-                          <q-icon
-                            :name="msg.ok ? 'sym_r_check_circle' : 'sym_r_error'"
-                            size="15px"
-                            class="sq-msg-icon"
-                          />
-                          <span class="sq-msg-time">{{ msg.time }}</span>
-                          <span class="sq-msg-text">{{ msg.text }}</span>
-                        </div>
-                        <div v-if="msg.sql" class="sq-msg-sql">{{ msg.sql }}</div>
-                      </div>
-                      <div v-if="!messages.length" class="sq-no-data">
-                        {{ t('common.noData') }}
-                      </div>
-                    </div>
-                  </q-tab-panel>
-                </q-tab-panels>
-              </section>
-            </template>
-          </q-splitter>
+            <q-tooltip>{{ t("sqlQuery.collapseExplorer") }}</q-tooltip>
+          </q-btn>
         </div>
+
+        <!-- 工具区：数据源选择 + 刷新 + 筛选 -->
+        <div class="left-panel-tools">
+          <q-select
+            v-model="selectedDatasource"
+            filled
+            square
+            dense
+            :options="datasourceOptions"
+            :loading="datasourceLoading"
+            option-label="label"
+            option-value="value"
+            emit-value
+            map-options
+            hide-bottom-space
+            clearable
+            transition-show="jump-up"
+            transition-hide="jump-down"
+            class="status-select sq-ds-select"
+            popup-content-class="status-select-popup"
+          >
+            <template v-if="!selectedDatasource" v-slot:selected>
+              <span class="status-placeholder">{{ t('sqlQuery.datasourcePlaceholder') }}</span>
+            </template>
+          </q-select>
+
+          <q-btn
+            flat
+            dense
+            round
+            size="sm"
+            icon="sym_r_refresh"
+            class="sq-tool-btn"
+            :loading="datasourceLoading"
+            @click="loadDatasourceOptions(); refreshTree()"
+          >
+            <q-tooltip>{{ t('sqlQuery.datasourceRefresh') }}</q-tooltip>
+          </q-btn>
+
+          <q-input
+            v-model="treeFilter"
+            filled
+            square
+            dense
+            clearable
+            hide-bottom-space
+            :placeholder="t('sqlQuery.treeFilterPlaceholder')"
+            class="sq-filter-input"
+          >
+            <template #prepend>
+              <q-icon name="sym_r_search" size="16px" />
+            </template>
+          </q-input>
+        </div>
+
+        <!-- 对象树 -->
+        <q-scroll-area class="left-panel-scroll">
+          <DbObjectTree
+            ref="treePanelRef"
+            :datasource-id="selectedDatasource"
+            :db-type="currentDbType"
+            :database="currentDatabase"
+            :max-rows="maxRows"
+            :filter="treeFilter"
+            @run="handleTreeRun"
+            @insert="handleInsert"
+            @schema-change="handleSchemaChange"
+          />
+        </q-scroll-area>
       </template>
-    </q-splitter>
+
+      <!-- 拖拽调整宽度手柄 -->
+      <div
+        v-if="sidebarVisible"
+        class="left-panel-resize-handle"
+        @pointerdown.prevent="beginResize"
+      />
+    </div>
+
+    <!-- ═══ 右侧：操作栏 + SQL 编辑器 + 查询结果 ═══ -->
+    <div class="right-panel">
+      <!-- 操作栏 -->
+      <div class="sq-opbar">
+        <q-btn
+          flat
+          dense
+          round
+          size="sm"
+          :icon="sidebarVisible ? 'sym_r_left_panel_close' : 'sym_r_left_panel_open'"
+          class="sq-tool-btn"
+          @click="toggleSidebar"
+        >
+          <q-tooltip>{{ t('sqlQuery.explorer') }}</q-tooltip>
+        </q-btn>
+
+        <q-separator vertical inset spaced />
+
+        <q-btn
+          unelevated
+          no-caps
+          color="primary"
+          :loading="executing"
+          class="sq-exec-btn"
+          @click="handleExecute"
+        >
+          <q-icon name="sym_r_play_arrow" size="18px" class="q-mr-xs" />
+          {{ executing ? t('sqlQuery.executing') : t('sqlQuery.execute') }}
+          <q-tooltip>{{ execShortcut }}</q-tooltip>
+        </q-btn>
+
+        <q-btn
+          outline
+          dense
+          no-caps
+          color="grey-7"
+          icon="sym_r_delete_sweep"
+          :label="t('sqlQuery.clear')"
+          @click="handleClear"
+        />
+
+        <q-space />
+
+        <q-badge color="amber-3" text-color="amber-10" class="sq-readonly-badge">
+          {{ t('sqlQuery.onlyRead') }}
+          <q-tooltip>{{ t('sqlQuery.onlyReadTip') }}</q-tooltip>
+        </q-badge>
+
+        <q-select
+          v-model="maxRows"
+          filled
+          square
+          dense
+          :options="MAX_ROWS_OPTIONS"
+          :prefix="t('sqlQuery.maxRows')"
+          hide-bottom-space
+          class="status-select sq-maxrows-select"
+          popup-content-class="status-select-popup"
+        >
+          <q-tooltip>{{ t('sqlQuery.maxRowsTip') }}</q-tooltip>
+        </q-select>
+      </div>
+
+      <!-- 编辑器 / 结果 纵向分栏 -->
+      <q-splitter
+        v-model="editorPct"
+        horizontal
+        :limits="[20, 80]"
+        class="sq-split-v"
+      >
+        <template #before>
+          <section class="sq-pane sq-editor-pane">
+            <div class="sq-pane-head">
+              <q-icon name="sym_r_code" size="20px" class="sq-pane-head-icon" />
+              <span class="sq-pane-head-title">{{ t('sqlQuery.sqlEditor') }}</span>
+              <q-space />
+              <span class="sq-kbd-hint">{{ execShortcut }}</span>
+            </div>
+            <div class="sq-editor-body">
+              <SqlCodeEditor
+                ref="editorRef"
+                v-model="sqlContent"
+                :db-type="currentDbType"
+                :dark="dark"
+                :placeholder-text="t('sqlQuery.sqlPlaceholder')"
+                :schema="schemaMap"
+                @execute="handleExecute"
+              />
+            </div>
+          </section>
+        </template>
+
+        <template #separator>
+          <div class="sq-split-grip sq-split-grip--h">
+            <q-icon name="sym_r_drag_indicator" size="11px" />
+          </div>
+        </template>
+
+        <template #after>
+          <section class="sq-pane sq-result-pane">
+            <q-linear-progress
+              v-if="executing"
+              indeterminate
+              color="primary"
+              class="sq-progress"
+            />
+
+            <div class="sq-result-head">
+              <q-tabs
+                v-model="resultTab"
+                dense
+                align="left"
+                no-caps
+                active-color="primary"
+                indicator-color="primary"
+                class="sq-result-tabs"
+              >
+                <q-tab name="result" icon="sym_r_table_chart" :label="t('sqlQuery.result')" />
+                <q-tab name="messages" @click="openMessagesTab">
+                  <q-icon name="sym_r_terminal" size="16px" class="q-mr-xs" />
+                  <span>{{ t('sqlQuery.messages') }}</span>
+                  <span v-if="unreadError" class="sq-tab-dot" />
+                </q-tab>
+              </q-tabs>
+
+              <q-space />
+
+              <template v-if="queryResult">
+                <span class="sq-stat">{{ t('sqlQuery.rowCount', { count: queryResult.rowCount }) }}</span>
+                <span class="sq-stat">{{ t('sqlQuery.costMs', { ms: queryResult.costMs }) }}</span>
+                <span v-if="isTruncated" class="sq-stat sq-stat--warn">
+                  <q-icon name="sym_r_info" size="13px" class="q-mr-xs" />
+                  {{ t('sqlQuery.truncated', { max: maxRows }) }}
+                </span>
+                <q-btn
+                  v-if="queryResult.rows.length"
+                  flat
+                  dense
+                  no-caps
+                  size="sm"
+                  color="primary"
+                  icon="sym_r_download"
+                  :label="t('sqlQuery.export')"
+                  @click="handleExport"
+                />
+              </template>
+            </div>
+
+            <q-tab-panels v-model="resultTab" class="sq-result-panels">
+              <!-- 结果表格 -->
+              <q-tab-panel name="result" class="sq-result-panel">
+                <q-table
+                  v-if="queryResult"
+                  :key="resultNonce"
+                  flat
+                  dense
+                  :rows="queryResult.rows"
+                  :columns="resultColumns"
+                  row-key="__rowIndex"
+                  :loading="executing"
+                  :pagination="{ rowsPerPage: 100 }"
+                  :rows-per-page-options="[20, 50, 100, 200]"
+                  class="sq-result-table"
+                >
+                  <template #body-cell="props">
+                    <q-td :props="props">
+                      <span
+                        v-if="props.value === null || props.value === undefined"
+                        class="sq-null"
+                      >NULL</span>
+                      <template v-else>{{ props.value }}</template>
+                    </q-td>
+                  </template>
+                  <template #no-data>
+                    <div class="sq-no-data">{{ t('common.noData') }}</div>
+                  </template>
+                </q-table>
+
+                <!-- 欢迎空态 -->
+                <div v-else class="sq-empty">
+                  <div class="sq-empty-icon">
+                    <q-icon name="sym_r_manage_search" size="34px" />
+                  </div>
+                  <div class="sq-empty-title">{{ t('sqlQuery.emptyTitle') }}</div>
+                  <div class="sq-empty-desc">
+                    {{ t('sqlQuery.emptyDesc', { key: execShortcut }) }}
+                  </div>
+                </div>
+              </q-tab-panel>
+
+              <!-- 执行消息 -->
+              <q-tab-panel name="messages" class="sq-messages-panel">
+                <div ref="messagesEl" class="sq-messages">
+                  <div
+                    v-for="msg in messages"
+                    :key="msg.id"
+                    class="sq-msg"
+                    :class="msg.ok ? 'sq-msg--ok' : 'sq-msg--fail'"
+                  >
+                    <div class="sq-msg-line">
+                      <q-icon
+                        :name="msg.ok ? 'sym_r_check_circle' : 'sym_r_error'"
+                        size="15px"
+                        class="sq-msg-icon"
+                      />
+                      <span class="sq-msg-time">{{ msg.time }}</span>
+                      <span class="sq-msg-text">{{ msg.text }}</span>
+                    </div>
+                    <div v-if="msg.sql" class="sq-msg-sql">{{ msg.sql }}</div>
+                  </div>
+                  <div v-if="!messages.length" class="sq-no-data">
+                    {{ t('common.noData') }}
+                  </div>
+                </div>
+              </q-tab-panel>
+            </q-tab-panels>
+          </section>
+        </template>
+      </q-splitter>
+    </div>
   </div>
 </template>
 
 <style scoped>
-/* ═══ 工作台壳层（高度与系统列表页约定一致，保证面板始终撑满视口） ═══ */
+/* ═══ 工作台壳层 — 与用户管理页面 .user-list-shell 保持一致 ═══ */
 .sql-workbench {
   display: flex;
   height: calc(100vh - 64px - 40px - 44px - 16px);
-  min-height: 560px;
+  min-height: 0;
+  gap: 8px;
 }
 
-.sq-split {
-  width: 100%;
+/* ═══ 左侧面板 — 与用户管理页面 .left-panel 保持一致 ═══ */
+.left-panel {
+  position: relative;
+  flex-shrink: 0;
+  width: v-bind(sidebarWidth + 'px');
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0;
+  overflow: hidden;
+  transition: width 0.22s ease;
 }
 
-.sq-split,
-.sq-split :deep(.q-splitter__panel),
-.sq-split-v,
-.sq-split-v :deep(.q-splitter__panel) {
-  height: 100%;
+.left-panel--collapsed {
+  width: 40px;
+  min-width: 40px;
+  background: #fafafa;
 }
 
-.sq-split :deep(.q-splitter__separator) {
-  width: 5px;
-  background: rgba(0, 0, 0, 0.08);
-}
-
-.sq-split-v :deep(.q-splitter__separator) {
-  height: 5px;
-  background: rgba(0, 0, 0, 0.08);
-}
-
-.sq-split-grip {
+.left-panel-collapsed-bar {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
-  color: rgba(0, 0, 0, 0.35);
+  height: 40px;
 }
 
-.sq-split-grip--v {
-  writing-mode: vertical-lr;
+/* ═══ 图标按钮 — 与用户管理页面 .left-panel-collapse-btn 保持一致 ═══ */
+.left-panel-toggle-btn,
+.left-panel-collapse-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  color: rgba(0, 0, 0, 0.87);
+  border-radius: 50%;
 }
 
-/* ═══ 左侧面板：对象浏览 ═══ */
-.sq-left {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-width: 0;
-  min-height: 320px;
-  background: #fafbfc;
+.left-panel-toggle-btn :deep(.q-btn__wrapper),
+.left-panel-collapse-btn :deep(.q-btn__wrapper) {
+  min-height: 32px;
+  padding: 0;
 }
 
-.sq-left-head {
+.left-panel-toggle-btn :deep(.q-icon.material-symbols-rounded),
+.left-panel-toggle-btn :deep(.material-symbols-rounded),
+.left-panel-collapse-btn :deep(.q-icon.material-symbols-rounded),
+.left-panel-collapse-btn :deep(.material-symbols-rounded) {
+  font-size: 20px !important;
+}
+
+.left-panel-toggle-btn:hover,
+.left-panel-collapse-btn:hover {
+  background: rgba(128, 128, 128, 0.28);
+}
+
+/* 左侧面板头部 */
+.left-panel-header {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
-  height: 38px;
-  padding: 0 12px;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 8px 0 12px;
+  background: #fafafa;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.sq-left-head-icon {
-  color: rgba(0, 0, 0, 0.55);
+.left-panel-header-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
 }
 
-.sq-left-head-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.75);
-}
-
-.sq-left-tools {
+/* 左侧面板工具区 */
+.left-panel-tools {
   flex-shrink: 0;
   display: flex;
   flex-wrap: wrap;
@@ -747,26 +805,53 @@ onMounted(() => {
   min-width: 0;
 }
 
+.sq-ds-select.status-select :deep(.q-field__control) {
+  min-height: 32px;
+  min-width: 0;
+}
+
 .sq-filter-input {
   flex: 1 1 100%;
+}
+
+.sq-filter-input :deep(.q-field__control) {
+  min-height: 32px;
 }
 
 .sq-tool-btn {
   color: rgba(0, 0, 0, 0.55);
 }
 
-.sq-left-body {
+/* 左侧面板滚动区 */
+.left-panel-scroll {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
 }
 
-/* ═══ 右侧面板 ═══ */
-.sq-right {
+/* 拖拽手柄 */
+.left-panel-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 10;
+  touch-action: none;
+}
+
+.left-panel-resize-handle:hover,
+.left-panel-resize-handle:active {
+  background: none;
+}
+
+/* ═══ 右侧面板 — 与用户管理页面 .right-panel 保持一致 ═══ */
+.right-panel {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-width: 0;
+  overflow: hidden;
 }
 
 /* 操作栏 */
@@ -776,9 +861,11 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   height: 48px;
-  padding: 0 10px;
+  padding: 0 12px;
   background: #fff;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0;
+  margin-bottom: 8px;
 }
 
 .sq-exec-btn {
@@ -796,9 +883,41 @@ onMounted(() => {
   width: 190px;
 }
 
+.sq-maxrows-select.status-select :deep(.q-field__control) {
+  min-height: 32px;
+  min-width: 0;
+}
+
+/* 纵向分栏 */
 .sq-split-v {
   flex: 1 1 auto;
   min-height: 0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.sq-split-v,
+.sq-split-v :deep(.q-splitter__panel) {
+  height: 100%;
+}
+
+.sq-split-v :deep(.q-splitter__separator) {
+  height: 5px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.sq-split-grip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.sq-split-grip--h {
+  flex-direction: row;
 }
 
 /* 面板通用 */
@@ -820,14 +939,15 @@ onMounted(() => {
   min-height: 220px;
 }
 
+/* 面板头部 — 与用户管理页面 .search-area-header 保持一致 */
 .sq-pane-head {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
-  padding: 0 12px;
-  background: #fafbfc;
+  height: 40px;
+  padding: 0 8px 0 12px;
+  background: #fafafa;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
@@ -836,9 +956,9 @@ onMounted(() => {
 }
 
 .sq-pane-head-title {
-  font-size: 12px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.72);
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
 }
 
 .sq-kbd-hint {
@@ -860,14 +980,14 @@ onMounted(() => {
   z-index: 10;
 }
 
-/* 结果面板头：标签 + 统计 */
+/* 结果面板头：标签 + 统计 — 与 .sq-pane-head 保持一致 */
 .sq-result-head {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  height: 38px;
-  padding-right: 12px;
-  background: #fafbfc;
+  height: 40px;
+  padding: 0 8px 0 12px;
+  background: #fafafa;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
@@ -914,7 +1034,7 @@ onMounted(() => {
   padding: 0;
 }
 
-/* 结果表格（与系统列表页 q-table 规范一致） */
+/* 结果表格 */
 .sq-result-table {
   flex: 1 1 auto;
   min-height: 0;
@@ -1026,5 +1146,105 @@ onMounted(() => {
   color: rgba(0, 0, 0, 0.55);
   white-space: pre-wrap;
   word-break: break-all;
+}
+
+/* ═══ 暗色模式 — 与用户管理页面设计令牌保持一致 ═══ */
+.body--dark .left-panel,
+.body--dark .sq-opbar,
+.body--dark .sq-split-v,
+.body--dark .sq-pane {
+  background: #1e1e1e !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .left-panel-header,
+.body--dark .sq-pane-head,
+.body--dark .sq-result-head {
+  background: #252525 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .left-panel-header-title,
+.body--dark .sq-pane-head-title {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .left-panel-toggle-btn,
+.body--dark .left-panel-collapse-btn,
+.body--dark .sq-tool-btn {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .left-panel-toggle-btn:hover,
+.body--dark .left-panel-collapse-btn:hover,
+.body--dark .sq-tool-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .left-panel--collapsed {
+  background: #252525 !important;
+}
+
+.body--dark .sq-split-v :deep(.q-splitter__separator) {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .sq-pane-head-icon,
+.body--dark .sq-tool-btn {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+.body--dark .sq-kbd-hint {
+  color: rgba(255, 255, 255, 0.38) !important;
+}
+
+.body--dark .sq-stat {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+.body--dark .sq-null {
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.body--dark .sq-no-data {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.body--dark .sq-empty-title {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.body--dark .sq-empty-desc {
+  color: rgba(255, 255, 255, 0.42) !important;
+}
+
+.body--dark .sq-empty-icon {
+  color: rgba(255, 255, 255, 0.28) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.body--dark .sq-msg-time {
+  color: rgba(255, 255, 255, 0.38) !important;
+}
+
+.body--dark .sq-msg-text {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.body--dark .sq-msg-sql {
+  background: rgba(255, 255, 255, 0.035) !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+.body--dark .sq-msg {
+  border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+</style>
+
+<!-- 非 scoped：状态选择下拉弹出层（teleport 到 body） -->
+<style>
+.status-select-popup .q-item {
+  min-height: 40px;
+  padding: 0 16px;
 }
 </style>

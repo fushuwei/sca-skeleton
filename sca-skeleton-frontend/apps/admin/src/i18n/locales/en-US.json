@@ -659,6 +659,8 @@
     "onlyReadTip": "Only read-only queries (SELECT / SHOW / DESC / EXPLAIN) are allowed",
     "export": "Export CSV",
     "explorer": "Object Explorer",
+    "collapseExplorer": "Collapse Explorer",
+    "expandExplorer": "Expand Explorer",
     "treeFilterPlaceholder": "Filter objects…",
     "treeNoDatasource": "Select a datasource to browse its objects",
     "treeLoadFail": "Failed to load metadata",

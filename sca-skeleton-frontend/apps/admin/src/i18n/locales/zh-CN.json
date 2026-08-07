@@ -659,6 +659,8 @@
     "onlyReadTip": "仅支持只读查询（SELECT / SHOW / DESC / EXPLAIN）",
     "export": "导出 CSV",
     "explorer": "对象浏览",
+    "collapseExplorer": "收起对象浏览",
+    "expandExplorer": "展开对象浏览",
     "treeFilterPlaceholder": "筛选对象…",
     "treeNoDatasource": "选择数据源后浏览其对象结构",
     "treeLoadFail": "元数据加载失败",
