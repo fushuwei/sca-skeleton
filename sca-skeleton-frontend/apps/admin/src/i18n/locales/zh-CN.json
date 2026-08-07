@@ -565,6 +565,7 @@
     "connectionParamKeyPlaceholder": "请输入参数名称",
     "connectionParamValuePlaceholder": "请输入参数值",
     "connectionParamKeyInvalid": "参数名不能包含空格、& 或 =",
+    "connectionParamValueInvalid": "参数值不能包含空格、& 或 =",
     "connectionParamKeyDuplicate": "参数名重复",
     "connectionParamsCaption": "以 ?key=value 形式拼接到 JDBC URL",
     "poolConfigCaption": "默认值遵循 HikariCP 官方",

@@ -184,14 +184,14 @@ const columns = computed<QTableColumn<Datasource>[]>(() => [
     name: "isEnabled",
     field: "isEnabled",
     label: t("datasourceMgmt.isEnabled"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "status",
     field: "status",
     label: t("datasourceMgmt.status"),
-    align: "center",
+    align: "left",
     sortable: false
   },
   {

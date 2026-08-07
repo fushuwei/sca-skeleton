@@ -13,7 +13,7 @@
  *   （"SID" 表示 SID 形态；缺省为服务名形态），由后端 OracleDialect 解析组装 URL。
  *   该内置键由表单自动维护，不在连接参数输入框中展示给用户。
  */
-import { ref, reactive, computed, watch, nextTick } from "vue";
+import { ref, reactive, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import type { QForm } from "quasar";
 import type { Datasource, DriverOption } from "../../../apis/datasource";
@@ -202,7 +202,6 @@ function initForm() {
 watch(() => props.datasource, initForm, { immediate: true });
 
 // ── 端口输入过滤（三层防护） ──
-const portInputRef = ref<{ $el: HTMLElement } | null>(null);
 
 function onPortKeydown(e: KeyboardEvent) {
   if (e.isComposing || e.keyCode === 229 || e.key === "Process") {
@@ -218,17 +217,8 @@ function onPortKeydown(e: KeyboardEvent) {
 }
 
 function onPortInput(v: string | number | null) {
-  const raw = String(v ?? "");
-  const digits = raw.replace(/\D/g, "");
+  const digits = String(v ?? "").replace(/\D/g, "");
   form.port = digits ? Number(digits) : null;
-  if (raw !== digits) {
-    nextTick(() => {
-      const el = portInputRef.value?.$el?.querySelector?.("input") as HTMLInputElement | null;
-      if (el && el.value !== digits) {
-        el.value = digits;
-      }
-    });
-  }
 }
 
 // ── 契约方法（defineExpose） ──
@@ -346,7 +336,6 @@ defineExpose({ validate, getPayload, isDirty });
       <!-- 端口 -->
       <div class="col-12 col-md-6">
         <q-input
-          ref="portInputRef"
           :model-value="form.port"
           @update:model-value="onPortInput"
           @keydown="onPortKeydown"

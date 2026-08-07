@@ -565,6 +565,7 @@
     "connectionParamKeyPlaceholder": "Enter parameter name",
     "connectionParamValuePlaceholder": "Enter parameter value",
     "connectionParamKeyInvalid": "Parameter name cannot contain spaces, & or =",
+    "connectionParamValueInvalid": "Parameter value cannot contain spaces, & or =",
     "connectionParamKeyDuplicate": "Duplicate parameter name",
     "connectionParamsCaption": "Appended to JDBC URL as ?key=value",
     "poolConfigCaption": "Defaults follow official HikariCP",

@@ -5,7 +5,7 @@
  * 约定：每种数据源类型一个独立表单组件，不做共用字段抽取，
  * 以便各类型自由排版与演进。契约见 ./types.ts。
  */
-import { ref, reactive, computed, watch, nextTick } from "vue";
+import { ref, reactive, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import type { QForm } from "quasar";
 import type { Datasource, DriverOption } from "../../../apis/datasource";
@@ -179,11 +179,20 @@ function paramKeyRules(rowIndex: number) {
   ];
 }
 
+/** 参数值规则：禁止破坏 JDBC URL query string 的字符（& = 空白） */
+function paramValueRules() {
+  return [
+    (v: string) =>
+      !/[&=\s]/.test(v || "") || t("datasourceMgmt.connectionParamValueInvalid")
+  ];
+}
+
 /** 参数是否存在非法（非法字符 / 重名）：校验失败时据此自动展开连接参数组，确保错误提示可见 */
 function hasParamErrors(): boolean {
   const seen = new Set<string>();
   for (const row of paramRows.value) {
     if (/[&=\s]/.test(row.key)) return true;
+    if (/[&=\s]/.test(row.value)) return true;
     const k = row.key.trim();
     if (!k) continue;
     if (seen.has(k)) return true;
@@ -270,7 +279,7 @@ function initForm() {
       ? paramDataRows
       : [...paramDataRows, { key: "", value: "" }];
     // 已有保存的参数时自动展开“连接参数”组，便于直观核对配置
-    paramsExpanded.value = paramDataRows.length > 0;
+    paramsExpanded.value = false;
     // 连接池配置：库内为 JSON 字符串，解析回固定字段；缺失或非法的键回退默认值，
     // 白名单外的历史配置项不展示（保存时丢弃）
     for (const key of Object.keys(poolConfig)) {
@@ -298,7 +307,6 @@ function initForm() {
 watch(() => props.datasource, initForm, { immediate: true });
 
 // ── 端口 / 连接池数字输入过滤 ──
-const portInputRef = ref<{ $el: HTMLElement } | null>(null);
 
 // 第 1 层：keydown 拦截 IME 输入法和非数字字符（端口与各连接池字段共用）
 function onNumericKeydown(e: KeyboardEvent) {
@@ -317,17 +325,8 @@ function onNumericKeydown(e: KeyboardEvent) {
 // 第 2 层：@update:model-value 过滤非数字字符
 // 第 3 层：当检测到非数字字符时，通过 nextTick 同步原生 input DOM 值
 function onPortInput(v: string | number | null) {
-  const raw = String(v ?? "");
-  const digits = raw.replace(/\D/g, "");
+  const digits = String(v ?? "").replace(/\D/g, "");
   form.port = digits ? Number(digits) : null;
-  if (raw !== digits) {
-    nextTick(() => {
-      const el = portInputRef.value?.$el?.querySelector?.("input") as HTMLInputElement | null;
-      if (el && el.value !== digits) {
-        el.value = digits;
-      }
-    });
-  }
 }
 
 /** 连接池字段输入过滤：仅保留数字；清空时保存会回退默认值 */
@@ -347,20 +346,26 @@ const paramQueryString = computed(() =>
 );
 
 const jdbcUrlPreview = computed(() => {
-  // 未选驱动：显示 MySQL 官方默认 JDBC URL 前缀；选了驱动则以驱动配置的 urlTemplate 为准
-  // （同一类型可能存在多种 URL 写法，以所选驱动的配置为准）
   const selected = driverOptions.value.find((d) => d.value === form.driverId);
   let url = selected?.urlTemplate || URL_PREFIX_FALLBACK;
   const host = form.host.trim();
-  if (host) {
-    url += host;
-    if (form.port != null) {
-      url += `:${form.port}`;
-    }
-  }
+  const port = form.port != null ? String(form.port) : "";
   const dbName = form.databaseName.trim();
-  if (dbName) {
-    url += `/${dbName}`;
+  // urlTemplate 可能包含 {host}/{port}/{database} 占位符，也可能只是前缀
+  if (url.includes("{host}")) {
+    url = url.replace("{host}", host)
+      .replace("{port}", port)
+      .replace("{database}", dbName);
+  } else {
+    if (host) {
+      url += host;
+      if (port) {
+        url += `:${port}`;
+      }
+    }
+    if (dbName) {
+      url += `/${dbName}`;
+    }
   }
   const queryString = paramQueryString.value;
   if (queryString) {
@@ -476,7 +481,6 @@ defineExpose({ validate, getPayload, isDirty });
       <!-- 端口 -->
       <div class="col-12 col-md-6">
         <q-input
-          ref="portInputRef"
           :model-value="form.port"
           @update:model-value="onPortInput"
           @keydown="onNumericKeydown"
@@ -553,6 +557,7 @@ defineExpose({ validate, getPayload, isDirty });
           filled
           square
           readonly
+          :disable="readonlyMode"
           autogrow
           hide-bottom-space
           class="ds-jdbc-url-preview"
@@ -607,6 +612,7 @@ defineExpose({ validate, getPayload, isDirty });
                     filled
                     square
                     :placeholder="t('datasourceMgmt.connectionParamValuePlaceholder')"
+                    :rules="readonlyMode ? [] : paramValueRules()"
                     :readonly="readonlyMode || row.key.trim() === ''"
                     hide-bottom-space
                     :class="{ 'ds-param-borderless': readonlyMode || row.key.trim() === '' }"
