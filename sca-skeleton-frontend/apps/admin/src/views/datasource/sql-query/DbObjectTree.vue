@@ -7,8 +7,7 @@ import {
   getViewsApi,
   getFunctionsApi,
   getProceduresApi,
-  getSynonymsApi,
-  getColumnsApi
+  getSynonymsApi
 } from "../../../apis/datasource";
 
 const { t } = useI18n({ useScope: "global" });
@@ -48,7 +47,6 @@ type NodeKind =
   | "function"
   | "procedure"
   | "synonym"
-  | "column"
   | "empty";
 
 type Category = "tables" | "views" | "functions" | "procedures" | "synonyms";
@@ -104,7 +102,6 @@ const NODE_ICON: Record<NodeKind, string> = {
   function: "sym_r_function",
   procedure: "sym_r_code_blocks",
   synonym: "sym_r_match_word",
-  column: "sym_r_tag",
   empty: "sym_r_remove"
 };
 
@@ -126,10 +123,9 @@ const categoryApi: Record<Category, typeof getTablesApi> = {
 
 // ── 节点判断与图标 ──
 
-/** 判断节点是否可展开（有子节点或懒加载） */
+/** 判断节点是否可展开（有子节点或懒加载） — 表/视图不再可展开 */
 function isExpandable(node: TreeNode): boolean {
-  return node.kind === "database" || node.kind === "schema" || node.kind === "category"
-    || node.kind === "table" || node.kind === "view";
+  return node.kind === "database" || node.kind === "schema" || node.kind === "category";
 }
 
 /** 节点图标 — 容器节点（database/schema/category）随展开状态切换 folder/folder_open，对象节点固定 */
@@ -143,6 +139,11 @@ function nodeIcon(node: TreeNode): string {
 /** 节点图标颜色 — 与部门树一致：选中 primary，未选中 grey-7 */
 function nodeColor(node: TreeNode): string {
   return selectedKey.value === node.key ? "primary" : "grey-7";
+}
+
+/** 是否在节点上显示计数徽章 — 分类节点始终显示（含 0），其余不显示 */
+function showCount(node: TreeNode): boolean {
+  return node.kind === "category" && nodeCounts.value[node.key] != null;
 }
 
 // ── 树构建与刷新 ──
@@ -170,9 +171,7 @@ function objectNode(parent: TreeNode, category: Category, name: string): TreeNod
     key: `obj|${parent.database}|${category}|${name}`,
     label: name,
     kind,
-    database: parent.database,
-    // 表/视图可继续展开字段
-    lazy: kind === "table" || kind === "view"
+    database: parent.database
   };
 }
 
@@ -221,6 +220,28 @@ function rebuild() {
   if (database) {
     void nextTick(() => treeRef.value?.setExpanded(`db|${database}`, true));
   }
+  // 预加载各分类的对象数量（并行请求，即使为 0 也显示）
+  loadCategoryCounts(database);
+}
+
+/** 并行拉取 5 个分类的对象数量，填充 nodeCounts */
+async function loadCategoryCounts(database?: string) {
+  const dsId = props.datasourceId;
+  if (!dsId) return;
+  const categories: Category[] = ["tables", "views", "synonyms", "functions", "procedures"];
+  const results = await Promise.allSettled(
+    categories.map((cat) => categoryApi[cat](dsId, database))
+  );
+  const counts: Record<string, number> = {};
+  for (let i = 0; i < categories.length; i++) {
+    const cat = categories[i];
+    const key = `cat|${database ?? ""}|${cat}`;
+    const result = results[i];
+    counts[key] = result.status === "fulfilled" && result.value.code === 10_000 && result.value.data
+      ? result.value.data.length
+      : 0;
+  }
+  nodeCounts.value = { ...nodeCounts.value, ...counts };
 }
 
 defineExpose({ refresh: rebuild });
@@ -262,22 +283,6 @@ async function onLazyLoad({
         : [emptyNode(node)];
       nodeCounts.value = { ...nodeCounts.value, [node.key]: res.data.length };
       done(children);
-    } else if (node.kind === "table" || node.kind === "view") {
-      const res = await getColumnsApi(props.datasourceId!, node.label, node.database);
-      if (res.code !== 10_000 || !res.data) {
-        fail();
-        showToast(res.message || t("sqlQuery.treeLoadFail"), "negative");
-        return;
-      }
-      schemaMap.value[node.label] = res.data;
-      emit("schema-change", { ...schemaMap.value });
-      nodeCounts.value = { ...nodeCounts.value, [node.key]: res.data.length };
-      done(res.data.map<TreeNode>((col) => ({
-        key: `col|${node.database}|${node.label}|${col}`,
-        label: col,
-        kind: "column",
-        database: node.database
-      })));
     } else {
       done([]);
     }
@@ -354,9 +359,7 @@ function onNodeHeaderClick(node: TreeNode) {
 function handleNodeDblClick(node: TreeNode) {
   if (node.kind === "table" || node.kind === "view") {
     emit("run", sampleSql(node.label));
-    // 保持展开状态（双击会触发的第二次 click 可能导致收起）
-    treeRef.value?.setExpanded(node.key, true);
-  } else if (node.kind === "column" || node.kind === "function"
+  } else if (node.kind === "function"
     || node.kind === "procedure" || node.kind === "synonym") {
     emit("insert", node.label);
   } else if (isExpandable(node)) {
@@ -439,7 +442,8 @@ async function copyToClipboard(text: string) {
           class="db-tree-node row items-center no-wrap full-width"
           :class="{
             'db-tree-node--selected': selectedKey === node.key,
-            'db-tree-node--empty': node.kind === 'empty'
+            'db-tree-node--empty': node.kind === 'empty',
+            'db-tree-node--root': node.kind === 'database'
           }"
           @click.stop="onNodeHeaderClick(node)"
         >
@@ -453,8 +457,8 @@ async function copyToClipboard(text: string) {
           <span class="db-tree-label ellipsis" :title="node.label">{{ node.label }}</span>
           <q-space />
           <q-badge
-            v-if="nodeCounts[node.key] != null && nodeCounts[node.key] > 0"
-            color="primary"
+            v-if="showCount(node)"
+            :color="nodeCounts[node.key] > 0 ? 'primary' : 'grey-5'"
             rounded
             class="db-count-badge"
           >
@@ -551,6 +555,11 @@ async function copyToClipboard(text: string) {
 
 .db-tree-node:hover {
   background: rgba(0, 0, 0, 0.04);
+}
+
+/* 根节点（database）字体加粗 */
+.db-tree-node--root .db-tree-label {
+  font-weight: 700;
 }
 
 .db-tree-node--selected {

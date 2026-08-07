@@ -687,6 +687,7 @@ onMounted(() => {
                   color="primary"
                   icon="sym_r_download"
                   :label="t('sqlQuery.export')"
+                  class="sq-export-btn"
                   @click="handleExport"
                 />
               </template>
@@ -1137,6 +1138,11 @@ onMounted(() => {
   margin-left: 14px;
   display: inline-flex;
   align-items: center;
+}
+
+/* 导出按钮 — 与前面统计文案保持间距，避免重叠 */
+.sq-export-btn {
+  margin-left: 16px;
 }
 
 /* 结果/消息面板 */
