@@ -273,7 +273,7 @@ onUnmounted(() => {
             <div class="login-logo">
               <q-icon name="sym_r_admin_panel_settings" class="login-icon logo-icon" />
             </div>
-            <h1 class="md3-display-small login-title">用户登录</h1>
+            <h1 class="md3-display-small login-title">新易云大数据平台</h1>
           </div>
 
           <form @submit.prevent="handleLogin">
