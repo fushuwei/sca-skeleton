@@ -8,6 +8,7 @@ import type { Datasource, SqlExecuteResponse } from "../../apis/datasource";
 import { getDatasourcePageApi, executeSqlApi } from "../../apis/datasource";
 import SqlCodeEditor from "./sql-query/SqlCodeEditor.vue";
 import DbObjectTree from "./sql-query/DbObjectTree.vue";
+import SqCellText from "./sql-query/SqCellText.vue";
 import DbTypeIcon from "../../components/DbTypeIcon.vue";
 
 const { t } = useI18n({ useScope: "global" });
@@ -712,11 +713,7 @@ onMounted(() => {
                 >
                   <template #body-cell="props">
                     <q-td :props="props">
-                      <span
-                        v-if="props.value === null || props.value === undefined"
-                        class="sq-null"
-                      >NULL</span>
-                      <template v-else>{{ props.value }}</template>
+                      <SqCellText :value="props.value" />
                     </q-td>
                   </template>
 
