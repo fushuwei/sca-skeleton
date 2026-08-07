@@ -294,6 +294,7 @@ interface ResultColumn {
   field: string | ((row: Record<string, unknown>) => unknown);
   align: "left" | "right";
   sortable: boolean;
+  style?: string;
 }
 
 const resultColumns = computed<ResultColumn[]>(() => {
@@ -303,7 +304,8 @@ const resultColumns = computed<ResultColumn[]>(() => {
     label: "#",
     field: (row: Record<string, unknown>) => Number(row.__rowIndex) + 1,
     align: "right",
-    sortable: false
+    sortable: false,
+    style: "width: 50px"
   }];
   for (const col of queryResult.value.columns) {
     columns.push({ name: col, label: col, field: col, align: "left", sortable: true });
@@ -1199,6 +1201,7 @@ onMounted(() => {
 
 .sq-result-table :deep(.q-table__middle > table) {
   flex: 0 0 auto;
+  width: auto !important;
 }
 
 .sq-result-table :deep(thead tr th) {
