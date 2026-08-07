@@ -33,6 +33,8 @@ let lastSelectedDeptId = "";
 const deptTreeExpanded = ref<string[]>([ROOT_ID]);
 const leftPanelWidth = ref(260);
 const leftPanelCollapsed = ref(false);
+/** 拖拽进行中标记：为 true 时禁用 width 过渡，保证拖拽跟手不卡顿 */
+const isResizing = ref(false);
 
 /** 将后端返回的扁平部门列表转成树结构 */
 function buildDeptTree(depts: DeptOption[]): DeptTreeNode[] {
@@ -205,22 +207,24 @@ function beginResize(e: PointerEvent) {
   e.preventDefault();
   resizeStartX = e.clientX;
   resizeStartWidth = leftPanelWidth.value;
+  isResizing.value = true;
   window.addEventListener("pointermove", onResizeMove, { capture: true });
   window.addEventListener("pointerup", endResize, { capture: true });
   window.addEventListener("pointercancel", endResize, { capture: true });
-  document.body.style.cursor = "col-resize";
+  document.body.style.cursor = "ew-resize";
   document.body.style.userSelect = "none";
 }
 
 function onResizeMove(e: PointerEvent) {
   const delta = e.clientX - resizeStartX;
-  leftPanelWidth.value = Math.min(420, Math.max(200, resizeStartWidth + delta));
+  leftPanelWidth.value = Math.round(Math.min(420, Math.max(200, resizeStartWidth + delta)));
 }
 
 function endResize() {
   window.removeEventListener("pointermove", onResizeMove, { capture: true });
   window.removeEventListener("pointerup", endResize, { capture: true });
   window.removeEventListener("pointercancel", endResize, { capture: true });
+  isResizing.value = false;
   document.body.style.cursor = "";
   document.body.style.userSelect = "";
 }
@@ -779,7 +783,7 @@ onMounted(() => {
 <template>
   <div class="user-list-shell">
     <!-- ═══ 左侧：部门树 ═══ -->
-    <div class="left-panel" :class="{ 'left-panel--collapsed': leftPanelCollapsed }">
+    <div class="left-panel" :class="{ 'left-panel--collapsed': leftPanelCollapsed, 'left-panel--no-transition': isResizing }">
       <!-- 折叠状态仅展示竖向提示条 -->
       <div v-if="leftPanelCollapsed" class="left-panel-collapsed-bar">
         <q-btn
@@ -1319,6 +1323,11 @@ onMounted(() => {
   border-radius: 0;
   overflow: hidden;
   transition: width 0.22s ease;
+  will-change: width;
+}
+
+.left-panel--no-transition {
+  transition: none !important;
 }
 
 .left-panel--collapsed {
@@ -1483,14 +1492,9 @@ onMounted(() => {
   right: 0;
   bottom: 0;
   width: 6px;
-  cursor: col-resize;
+  cursor: ew-resize;
   z-index: 10;
   touch-action: none;
-}
-
-.left-panel-resize-handle:hover,
-.left-panel-resize-handle:active {
-  background: none;
 }
 
 /* ═══ 右侧面板 ═══ */
