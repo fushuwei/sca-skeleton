@@ -389,11 +389,12 @@ async function copyToClipboard(text: string) {
 .db-tree {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1 1 auto;
   min-height: 0;
 }
 
 .db-tree-state {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   align-items: center;

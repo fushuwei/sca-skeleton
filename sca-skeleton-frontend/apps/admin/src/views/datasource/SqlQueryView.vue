@@ -115,6 +115,13 @@ watch(selectedDatasource, () => {
 const treePanelRef = ref<InstanceType<typeof DbObjectTree>>();
 const treeFilter = ref("");
 
+/** 左侧滚动区内容样式：至少撑满视口高度，使对象树空态提示垂直居中 */
+const treeContentStyle = {
+  minHeight: "100%",
+  display: "flex",
+  flexDirection: "column" as const
+};
+
 function refreshTree() {
   treePanelRef.value?.refresh();
 }
@@ -134,6 +141,9 @@ const executing = ref(false);
 const queryResult = ref<SqlExecuteResponse | null>(null);
 /** 每次成功查询递增，作为结果表 key 重置排序与分页状态 */
 const resultNonce = ref(0);
+/** 结果表客户端分页（分页栏样式与各功能模块列表页保持一致） */
+const resultPagination = ref({ page: 1, rowsPerPage: 100 });
+const resultJumpPage = ref<number | null>(null);
 
 interface ExecMessage {
   id: number;
@@ -190,6 +200,7 @@ async function handleExecute() {
       res.data.rows = res.data.rows.map((row, index) => ({ ...row, __rowIndex: index }));
       queryResult.value = res.data;
       resultNonce.value++;
+      resultPagination.value.page = 1;
       pushMessage(true, t("sqlQuery.msgSuccess", { count: res.data.rowCount, ms: res.data.costMs }), sql);
       resultTab.value = "result";
     } else {
@@ -299,6 +310,23 @@ const resultColumns = computed<ResultColumn[]>(() => {
   }
   return columns;
 });
+
+function onResultPageChange(page: number) {
+  resultPagination.value.page = Number(page);
+}
+
+function onResultRowsPerPageChange() {
+  resultPagination.value.page = 1;
+}
+
+function handleResultJumpPage() {
+  const page = Number(resultJumpPage.value);
+  const maxPage = Math.ceil((queryResult.value?.rows.length ?? 0) / resultPagination.value.rowsPerPage) || 1;
+  if (page && page >= 1 && page <= maxPage) {
+    resultPagination.value.page = page;
+  }
+  resultJumpPage.value = null;
+}
 
 // ============================================================
 // 导出 CSV
@@ -496,7 +524,11 @@ onMounted(() => {
         </div>
 
         <!-- 对象树 -->
-        <q-scroll-area class="left-panel-scroll">
+        <q-scroll-area
+          class="left-panel-scroll"
+          :content-style="treeContentStyle"
+          :content-active-style="treeContentStyle"
+        >
           <DbObjectTree
             ref="treePanelRef"
             :datasource-id="selectedDatasource"
@@ -666,13 +698,12 @@ onMounted(() => {
                 <q-table
                   v-if="queryResult"
                   :key="resultNonce"
+                  v-model:pagination="resultPagination"
                   flat
-                  dense
                   :rows="queryResult.rows"
                   :columns="resultColumns"
                   row-key="__rowIndex"
                   :loading="executing"
-                  :pagination="{ rowsPerPage: 100 }"
                   :rows-per-page-options="[10, 20, 50, 100]"
                   :class="['sq-result-table', { 'sq-result-table--empty': !queryResult.rows.length }]"
                 >
@@ -685,8 +716,67 @@ onMounted(() => {
                       <template v-else>{{ props.value }}</template>
                     </q-td>
                   </template>
+
+                  <!-- 空数据 — 与驱动管理等列表页空态保持一致 -->
                   <template #no-data>
-                    <div class="sq-no-data">{{ t('common.noData') }}</div>
+                    <div class="column items-center justify-center q-py-xl text-grey-7 empty-state-content">
+                      <q-icon name="sym_r_database_search" size="56px" class="q-mb-sm" />
+                      <div class="text-body1 text-weight-medium q-mb-xs">
+                        {{ t('common.noData') }}
+                      </div>
+                      <div class="text-caption text-grey-6">
+                        {{ t('common.noDataHint') }}
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- 自定义底部分页栏 — 与驱动管理等列表页保持一致 -->
+                  <template #bottom="props">
+                    <div class="row items-center full-width table-bottom">
+                      <span>{{ t("common.totalRows", { count: queryResult.rows.length }) }}</span>
+                      <q-space />
+                      <q-pagination
+                        v-model="resultPagination.page"
+                        :max="props.pagesNumber"
+                        :max-pages="7"
+                        size="sm"
+                        color="primary"
+                        boundary-links
+                        direction-links
+                        icon-first="keyboard_double_arrow_left"
+                        icon-prev="keyboard_arrow_left"
+                        icon-next="keyboard_arrow_right"
+                        icon-last="keyboard_double_arrow_right"
+                        @update:model-value="onResultPageChange"
+                      />
+                      <span class="text-caption text-grey-7 q-ml-md q-mr-sm">{{ t("common.rowsPerPageLabel") }}</span>
+                      <q-select
+                        v-model="resultPagination.rowsPerPage"
+                        :options="[10, 20, 50, 100]"
+                        dense
+                        flat
+                        borderless
+                        class="rows-per-page-select"
+                        popup-content-class="rows-per-page-popup"
+                        @update:model-value="onResultRowsPerPageChange"
+                      >
+                        <template #append>
+                          <span class="text-caption">{{ t("common.rowsPerPageUnit") }}</span>
+                        </template>
+                      </q-select>
+                      <span class="text-caption text-grey-7 q-ml-md">{{ t("common.jumpToLabel") }}</span>
+                      <q-input
+                        v-model.number="resultJumpPage"
+                        dense
+                        flat
+                        borderless
+                        class="jump-to-page-input"
+                        input-class="text-center"
+                        :placeholder="String((props.pagesNumber || 1) <= 1 ? 1 : (resultPagination.page >= (props.pagesNumber || 1) ? 1 : resultPagination.page + 1))"
+                        @keyup.enter="handleResultJumpPage"
+                      />
+                      <span class="text-caption text-grey-7">{{ t("common.jumpToUnit") }}</span>
+                    </div>
                   </template>
                 </q-table>
 
@@ -845,13 +935,16 @@ onMounted(() => {
   min-width: 0;
 }
 
+/* 刷新按钮 — 与 clearable 清空按钮（.q-field__focusable-action）交互完全一致：
+   颜色继承字段控件，悬停不变色而是 opacity 0.6 → 1，无背景圆环 */
 .sq-ds-refresh {
-  color: rgba(0, 0, 0, 0.45);
-  transition: color 0.2s;
+  color: inherit;
+  opacity: 0.6;
+  transition: opacity 0.2s;
 }
 
 .sq-ds-refresh:hover {
-  color: var(--q-primary);
+  opacity: 1;
 }
 
 .sq-ds-refresh--loading {
@@ -1167,6 +1260,71 @@ onMounted(() => {
   color: rgba(0, 0, 0, 0.45);
 }
 
+/* 空数据内容 — 与驱动管理等列表页保持一致 */
+.empty-state-content {
+  text-align: center;
+}
+
+/* 分页底栏 — 与驱动管理等列表页保持一致 */
+.table-bottom {
+  min-height: 40px;
+}
+
+.table-bottom :deep(.q-pagination__content .q-btn) {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  font-size: 10px !important;
+}
+
+.table-bottom :deep(.q-pagination__content .q-btn .q-focus-helper) {
+  border-radius: 50%;
+}
+
+.table-bottom :deep(.q-pagination__content .q-btn .q-icon) {
+  font-size: 20px;
+}
+
+.table-bottom :deep(.q-pagination__content .q-btn.q-btn--standard) {
+  font-weight: 700;
+}
+
+.table-bottom :deep(.rows-per-page-select .q-field__control) {
+  min-height: 24px;
+  padding: 0;
+  height: 24px;
+}
+
+.table-bottom :deep(.rows-per-page-select .q-field__native) {
+  min-height: 24px;
+  font-size: 12px;
+  padding: 0;
+}
+
+.table-bottom :deep(.rows-per-page-select .q-field__marginal) {
+  height: 24px;
+}
+
+.table-bottom :deep(.jump-to-page-input) {
+  width: 40px;
+  font-size: 12px;
+}
+
+.table-bottom :deep(.jump-to-page-input .q-field__control) {
+  min-height: 24px;
+  padding: 0;
+  height: 24px;
+}
+
+.table-bottom :deep(.jump-to-page-input .q-field__native) {
+  min-height: 24px;
+  font-size: 12px;
+  padding: 0;
+}
+
 /* 空态 */
 .sq-empty {
   flex: 1 1 auto;
@@ -1257,14 +1415,6 @@ onMounted(() => {
   word-break: break-all;
 }
 
-.body--dark .sq-ds-refresh {
-  color: rgba(255, 255, 255, 0.45) !important;
-}
-
-.body--dark .sq-ds-refresh:hover {
-  color: var(--q-primary) !important;
-}
-
 /* 暗色模式 — 与用户管理页面设计令牌保持一致 */
 .body--dark .left-panel,
 .body--dark .sq-opbar,
@@ -1337,7 +1487,29 @@ onMounted(() => {
 
 .body--dark .sq-result-table :deep(.q-table__bottom) {
   background: #1e1e1e !important;
+  color: rgba(255, 255, 255, 0.72);
   border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.body--dark .sq-result-table :deep(.q-table__bottom .q-pagination .q-btn:not(.q-btn--flat)) {
+  background: rgba(0, 150, 136, 0.85) !important;
+  color: #fff !important;
+}
+
+.body--dark .sq-result-table :deep(.q-table__bottom .q-pagination .q-btn.q-btn--flat) {
+  color: rgba(0, 150, 136, 0.85) !important;
+}
+
+.body--dark .empty-state-content {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+.body--dark .sq-result-table :deep(.empty-state-content .text-grey-6) {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.body--dark .table-bottom :deep(.text-grey-7) {
+  color: rgba(255, 255, 255, 0.55) !important;
 }
 
 .body--dark .sq-no-data {
@@ -1379,6 +1551,11 @@ onMounted(() => {
 <style>
 .status-select-popup .q-item {
   min-height: 40px;
+  padding: 0 16px;
+}
+
+.rows-per-page-popup .q-item {
+  min-height: 36px;
   padding: 0 16px;
 }
 </style>
