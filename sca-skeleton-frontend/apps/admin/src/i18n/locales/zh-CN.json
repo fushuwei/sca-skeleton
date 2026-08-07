@@ -59,7 +59,7 @@
     "unauthorized": "登录已过期，请重新登录"
   },
   "layout": {
-    "brandTitle": "数据中台管理系统",
+    "brandTitle": "新易云大数据平台",
     "workbench": "工作台",
     "unnamedPage": "未命名页面",
     "defaultNickname": "加载中...",

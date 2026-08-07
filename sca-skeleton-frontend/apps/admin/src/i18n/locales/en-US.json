@@ -59,7 +59,7 @@
     "unauthorized": "Session expired, please sign in again"
   },
   "layout": {
-    "brandTitle": "Data Middle Platform",
+    "brandTitle": "Newease Cloud Data Platform",
     "workbench": "Workbench",
     "unnamedPage": "Untitled",
     "defaultNickname": "Loading...",
