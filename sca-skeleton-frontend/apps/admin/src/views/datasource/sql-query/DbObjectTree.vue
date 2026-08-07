@@ -14,9 +14,9 @@ import {
 const { t } = useI18n({ useScope: "global" });
 
 interface Props {
-  /** 当前数据源 ID（空表示未选择） */
-  datasourceId: string;
-  /** 数据库类型（控制同义词节点与示例 SQL 方言） */
+  /** 当前数据源 ID（空/null 表示未选择 — q-select clearable 清空时返回 null） */
+  datasourceId: string | null;
+  /** 数据库类型（控制示例 SQL 方言） */
   dbType: string;
   /** 数据源配置的数据库（数据中台语义：仅展示配置的库，不枚举连接用户可见的全部库） */
   database: string;
@@ -41,6 +41,7 @@ const emit = defineEmits<{
 
 type NodeKind =
   | "database"
+  | "schema"
   | "category"
   | "table"
   | "view"
@@ -58,6 +59,7 @@ interface TreeNode {
   kind: NodeKind;
   category?: Category;
   database?: string;
+  schema?: string;
   lazy?: boolean;
   children?: TreeNode[];
 }
@@ -66,30 +68,44 @@ const treeRef = ref();
 /** 用于强制重挂载 q-tree，重置展开与懒加载状态 */
 const treeKey = ref(0);
 const nodes = ref<TreeNode[]>([]);
+/** 当前选中节点 key — 与部门树一致：单击选中 */
+const selectedKey = ref<string>("");
+/** 展开节点 key 列表 — v-model:expanded，由 q-tree 内部维护（setExpanded 会同步更新） */
+const expandedKeys = ref<string[]>([]);
+/** 各节点子项数量（懒加载后填充，用于计数徽章展示） */
+const nodeCounts = ref<Record<string, number>>({});
 
 /** 自动补全 Schema（表名 → 字段列表），随懒加载增量维护 */
 const schemaMap = ref<Record<string, string[]>>({});
 
-// ── 节点展示配置 ──
+// ── 节点头部点击计数器 — 与部门树一致：区分单击/双击 ──
+// 必须在 watch(immediate: true) 之前声明，否则 rebuild() → resetClickState()
+// 访问 let 变量时会触发 TDZ（暂时性死区）ReferenceError
+let _nodeClickTimer: ReturnType<typeof setTimeout> | null = null;
+let _nodeClickCount = 0;
+let _nodeClickKey = "";
 
-const NODE_ICON: Record<NodeKind, { icon: string; color: string }> = {
-  database: { icon: "sym_r_storage", color: "amber-8" },
-  category: { icon: "sym_r_folder", color: "grey-7" },
-  table: { icon: "sym_r_table_chart", color: "blue-7" },
-  view: { icon: "sym_r_visibility", color: "teal-7" },
-  function: { icon: "sym_r_functions", color: "orange-8" },
-  procedure: { icon: "sym_r_bolt", color: "purple-7" },
-  synonym: { icon: "sym_r_link", color: "cyan-8" },
-  column: { icon: "sym_r_tag", color: "grey-6" },
-  empty: { icon: "sym_r_remove", color: "grey-5" }
-};
+function resetClickState() {
+  if (_nodeClickTimer) clearTimeout(_nodeClickTimer);
+  _nodeClickCount = 0;
+  _nodeClickKey = "";
+  _nodeClickTimer = null;
+}
 
-const CATEGORY_ICON: Record<Category, { icon: string; color: string }> = {
-  tables: { icon: "sym_r_folder_special", color: "blue-7" },
-  views: { icon: "sym_r_folder_special", color: "teal-7" },
-  functions: { icon: "sym_r_folder_special", color: "orange-8" },
-  procedures: { icon: "sym_r_folder_special", color: "purple-7" },
-  synonyms: { icon: "sym_r_folder_special", color: "cyan-8" }
+// ── 节点图标配置 ──
+
+/** 实际对象节点图标 — 容器节点（database/schema/category）统一用文件夹 */
+const NODE_ICON: Record<NodeKind, string> = {
+  database: "sym_r_folder",
+  schema: "sym_r_folder",
+  category: "sym_r_folder",
+  table: "sym_r_table",
+  view: "sym_r_view_list",
+  function: "sym_r_function",
+  procedure: "sym_r_code_blocks",
+  synonym: "sym_r_match_word",
+  column: "sym_r_tag",
+  empty: "sym_r_remove"
 };
 
 const CATEGORY_LABEL: Record<Category, string> = {
@@ -108,11 +124,32 @@ const categoryApi: Record<Category, typeof getTablesApi> = {
   synonyms: getSynonymsApi
 };
 
-function categoryNodes(database?: string): TreeNode[] {
-  const categories: Category[] = ["tables", "views", "functions", "procedures"];
-  if (props.dbType === "ORACLE") {
-    categories.push("synonyms");
+// ── 节点判断与图标 ──
+
+/** 判断节点是否可展开（有子节点或懒加载） */
+function isExpandable(node: TreeNode): boolean {
+  return node.kind === "database" || node.kind === "schema" || node.kind === "category"
+    || node.kind === "table" || node.kind === "view";
+}
+
+/** 节点图标 — 容器节点（database/schema/category）随展开状态切换 folder/folder_open，对象节点固定 */
+function nodeIcon(node: TreeNode): string {
+  if (node.kind === "database" || node.kind === "schema" || node.kind === "category") {
+    return expandedKeys.value.includes(node.key) ? "sym_r_folder_open" : "sym_r_folder";
   }
+  return NODE_ICON[node.kind];
+}
+
+/** 节点图标颜色 — 与部门树一致：选中 primary，未选中 grey-7 */
+function nodeColor(node: TreeNode): string {
+  return selectedKey.value === node.key ? "primary" : "grey-7";
+}
+
+// ── 树构建与刷新 ──
+
+function categoryNodes(database?: string): TreeNode[] {
+  // 所有数据库类型统一展示 5 个分类节点，顺序：表 → 视图 → 同义词 → 函数 → 存储过程
+  const categories: Category[] = ["tables", "views", "synonyms", "functions", "procedures"];
   return categories.map((category) => ({
     key: `cat|${database ?? ""}|${category}`,
     label: t(`sqlQuery.${CATEGORY_LABEL[category]}`),
@@ -147,18 +184,24 @@ function emptyNode(parent: TreeNode): TreeNode {
   };
 }
 
-// ── 树构建与刷新 ──
-
 /**
  * 按数据源配置的数据库构建树：
  * 配置了库名 → 根节点为该库，下挂分类节点；
  * 未配置库名 → 分类节点直接作为根（元数据 API 使用连接默认库）。
+ *
+ * 后续 Oracle 等支持 Schema 的数据库，可在 database 与 category 之间
+ * 增加 schema 层级（NodeKind = "schema"，图标 sym_r_schema）。
+ * MySQL 无 Schema 概念，不显示此层级。
  */
 function rebuild() {
   schemaMap.value = {};
   emit("schema-change", {});
+  selectedKey.value = "";
+  nodeCounts.value = {};
+  resetClickState();
   if (!props.datasourceId) {
     nodes.value = [];
+    expandedKeys.value = [];
     return;
   }
   const database = props.database.trim();
@@ -172,8 +215,10 @@ function rebuild() {
       }]
     : categoryNodes();
   treeKey.value++;
+  // 默认展开配置的库节点，露出分类
+  // 必须在 nextTick 后调用 setExpanded：treeKey 自增触发 q-tree 重新挂载，
+  // 需等 DOM 更新完成后 treeRef 才指向新组件实例
   if (database) {
-    // 默认展开配置的库节点，露出分类
     void nextTick(() => treeRef.value?.setExpanded(`db|${database}`, true));
   }
 }
@@ -186,7 +231,8 @@ watch(
   { immediate: true }
 );
 
-/** q-tree 懒加载：分类节点拉取对象列表，表/视图节点拉取字段 */
+// ── q-tree 懒加载：分类节点拉取对象列表，表/视图节点拉取字段 ──
+
 async function onLazyLoad({
   node,
   done,
@@ -198,7 +244,7 @@ async function onLazyLoad({
 }) {
   try {
     if (node.kind === "category" && node.category) {
-      const res = await categoryApi[node.category](props.datasourceId, node.database);
+      const res = await categoryApi[node.category](props.datasourceId!, node.database);
       if (res.code !== 10_000 || !res.data) {
         fail();
         showToast(res.message || t("sqlQuery.treeLoadFail"), "negative");
@@ -211,13 +257,13 @@ async function onLazyLoad({
         }
         emit("schema-change", { ...schemaMap.value });
       }
-      done(
-        res.data.length
-          ? res.data.map((name) => objectNode(node, node.category as Category, name))
-          : [emptyNode(node)]
-      );
+      const children = res.data.length
+        ? res.data.map((name) => objectNode(node, node.category as Category, name))
+        : [emptyNode(node)];
+      nodeCounts.value = { ...nodeCounts.value, [node.key]: res.data.length };
+      done(children);
     } else if (node.kind === "table" || node.kind === "view") {
-      const res = await getColumnsApi(props.datasourceId, node.label, node.database);
+      const res = await getColumnsApi(props.datasourceId!, node.label, node.database);
       if (res.code !== 10_000 || !res.data) {
         fail();
         showToast(res.message || t("sqlQuery.treeLoadFail"), "negative");
@@ -225,6 +271,7 @@ async function onLazyLoad({
       }
       schemaMap.value[node.label] = res.data;
       emit("schema-change", { ...schemaMap.value });
+      nodeCounts.value = { ...nodeCounts.value, [node.key]: res.data.length };
       done(res.data.map<TreeNode>((col) => ({
         key: `col|${node.database}|${node.label}|${col}`,
         label: col,
@@ -239,29 +286,17 @@ async function onLazyLoad({
   }
 }
 
+// ── 筛选 ──
+
 function filterFn(node: TreeNode, filter: string) {
   return node.label.toLowerCase().includes(filter.toLowerCase());
-}
-
-/** 节点图标（q-tree 插槽的 node 为无类型对象，此处收敛类型） */
-function nodeIcon(node: TreeNode): string {
-  return node.kind === "category" && node.category
-    ? CATEGORY_ICON[node.category].icon
-    : NODE_ICON[node.kind].icon;
-}
-
-/** 节点图标颜色 */
-function nodeColor(node: TreeNode): string {
-  return node.kind === "category" && node.category
-    ? CATEGORY_ICON[node.category].color
-    : NODE_ICON[node.kind].color;
 }
 
 // ── 示例 SQL 生成（按方言） ──
 
 function sampleSql(table: string): string {
   const limit = props.maxRows || 1000;
-  if (props.dbType === "ORACLE") {
+  if (props.dbType === "ORACLE" || props.dbType === "DAMENG") {
     return `SELECT * FROM ${table} FETCH FIRST ${limit} ROWS ONLY`;
   }
   if (props.dbType === "SQLSERVER") {
@@ -270,16 +305,63 @@ function sampleSql(table: string): string {
   return `SELECT * FROM ${table} LIMIT ${limit}`;
 }
 
-// ── 节点交互 ──
+// ── 节点交互 — 与部门树一致 ──
 
-function onNodeDblClick(node: TreeNode) {
+/**
+ * 切换节点展开/收起。
+ * 必须使用 treeRef.setExpanded() 走 q-tree 内部 API，
+ * 这样才能正确触发 lazy 节点的 @lazy-load 事件。
+ * 直接修改 expandedKeys 数组只会更新视觉状态，不会触发懒加载。
+ */
+function toggleNode(node: TreeNode) {
+  if (!isExpandable(node)) return;
+  const isExpanded = expandedKeys.value.includes(node.key);
+  treeRef.value?.setExpanded(node.key, !isExpanded);
+}
+
+/** 节点头部点击计数器声明已移至文件顶部（watch immediate 之前） */
+
+function onNodeHeaderClick(node: TreeNode) {
+  // 始终更新选中状态
+  selectedKey.value = node.key;
+
+  const key = node.key;
+  _nodeClickCount++;
+
+  if (_nodeClickTimer) clearTimeout(_nodeClickTimer);
+
+  if (_nodeClickCount === 1) {
+    _nodeClickTimer = setTimeout(() => {
+      // 单击：仅选中，无额外操作
+      _nodeClickCount = 0;
+      _nodeClickKey = "";
+      _nodeClickTimer = null;
+    }, 280);
+  } else if (_nodeClickCount >= 2) {
+    if (_nodeClickKey === key) {
+      // 双击：根据节点类型执行操作
+      handleNodeDblClick(node);
+    }
+    _nodeClickCount = 0;
+    _nodeClickKey = "";
+    _nodeClickTimer = null;
+  }
+
+  _nodeClickKey = key;
+}
+
+/** 双击处理：容器节点切换展开，表/视图执行查询，其余插入名称 */
+function handleNodeDblClick(node: TreeNode) {
   if (node.kind === "table" || node.kind === "view") {
     emit("run", sampleSql(node.label));
-    // 双击的第二次点击会折叠节点，这里恢复展开状态
+    // 保持展开状态（双击会触发的第二次 click 可能导致收起）
     treeRef.value?.setExpanded(node.key, true);
   } else if (node.kind === "column" || node.kind === "function"
     || node.kind === "procedure" || node.kind === "synonym") {
     emit("insert", node.label);
+  } else if (isExpandable(node)) {
+    // 容器节点（database / schema / category）：切换展开/收起
+    toggleNode(node);
   }
 }
 
@@ -298,13 +380,13 @@ function ctxItems(node: TreeNode): CtxItem[] {
 
   if (node.kind === "table" || node.kind === "view") {
     return [
-      { key: "query", label: t("sqlQuery.menuQuery"), icon: "sym_r_play_arrow", action: () => onNodeDblClick(node) },
+      { key: "query", label: t("sqlQuery.menuQuery"), icon: "sym_r_play_arrow", action: () => handleNodeDblClick(node) },
       { key: "insertSelect", label: t("sqlQuery.menuInsertSelect"), icon: "sym_r_code", action: () => emit("insert", sampleSql(node.label)) },
       { key: "insertName", label: t("sqlQuery.menuInsertName"), icon: "sym_r_input", action: insertName },
       { key: "copy", label: t("sqlQuery.menuCopyName"), icon: "sym_r_content_copy", action: copyName }
     ];
   }
-  if (node.kind === "database") {
+  if (node.kind === "database" || node.kind === "schema") {
     return [
       { key: "copy", label: t("sqlQuery.menuCopyName"), icon: "sym_r_content_copy", action: copyName }
     ];
@@ -343,25 +425,41 @@ async function copyToClipboard(text: string) {
       node-key="key"
       label-key="label"
       children-key="children"
+      v-model:expanded="expandedKeys"
+      no-connectors
       dense
       :filter="filter"
       :filter-method="filterFn"
       class="db-tree-tree"
+      no-nodes-label=" "
       @lazy-load="onLazyLoad"
     >
       <template #default-header="{ node }">
         <div
-          class="db-tree-node"
-          :class="`db-tree-node--${node.kind}`"
-          @dblclick="onNodeDblClick(node)"
+          class="db-tree-node row items-center no-wrap full-width"
+          :class="{
+            'db-tree-node--selected': selectedKey === node.key,
+            'db-tree-node--empty': node.kind === 'empty'
+          }"
+          @click.stop="onNodeHeaderClick(node)"
         >
           <q-icon
             :name="nodeIcon(node)"
+            size="20px"
+            class="q-mr-sm cursor-pointer db-tree-icon"
             :color="nodeColor(node)"
-            size="15px"
-            class="db-tree-node-icon"
+            @click.stop="toggleNode(node)"
           />
-          <span class="db-tree-node-label" :title="node.label">{{ node.label }}</span>
+          <span class="db-tree-label ellipsis" :title="node.label">{{ node.label }}</span>
+          <q-space />
+          <q-badge
+            v-if="nodeCounts[node.key] != null && nodeCounts[node.key] > 0"
+            color="primary"
+            rounded
+            class="db-count-badge"
+          >
+            {{ nodeCounts[node.key] }}
+          </q-badge>
 
           <q-menu v-if="ctxItems(node).length" context-menu>
             <q-list dense class="db-tree-ctx-list">
@@ -406,46 +504,89 @@ async function copyToClipboard(text: string) {
   color: rgba(0, 0, 0, 0.45);
 }
 
+/* ═══ 树 — 与部门树 .dept-tree 保持一致 ═══ */
 .db-tree-tree {
-  padding: 4px;
+  padding: 4px 8px;
 }
 
-.db-tree-tree :deep(.q-tree__node) {
-  padding-bottom: 0;
+:deep(.db-tree-tree.q-tree--dense .q-tree__node--child) {
+  padding-left: 0 !important;
 }
 
-.db-tree-tree :deep(.q-tree__children) {
-  padding-left: 14px;
+:deep(.db-tree-tree.q-tree--dense .q-tree__children) {
+  padding-left: 16px !important;
 }
 
+:deep(.db-tree-tree .q-tree__node-toggle) {
+  display: none !important;
+}
+
+:deep(.db-tree-tree .q-tree__arrow) {
+  display: none !important;
+}
+
+:deep(.db-tree-tree .q-tree__node) {
+  padding-bottom: 0 !important;
+}
+
+:deep(.db-tree-tree .q-tree__node-header) {
+  margin: 1px 0;
+  padding: 0;
+  min-height: 0;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+
+/* ═══ 树节点 — 与部门树 .dept-tree-node 保持一致 ═══ */
 .db-tree-node {
-  display: flex;
-  align-items: center;
   min-width: 0;
-  padding: 2px 4px;
-  border-radius: 3px;
+  padding: 6px 10px;
+  min-height: 34px;
+  border-radius: 6px;
+  box-sizing: border-box;
+  transition: background-color 0.12s ease;
   user-select: none;
+  -webkit-user-select: none;
 }
 
-.db-tree-node-icon {
-  flex-shrink: 0;
-  margin-right: 6px;
+.db-tree-node:hover {
+  background: rgba(0, 0, 0, 0.04);
 }
 
-.db-tree-node-label {
-  font-size: 12.5px;
-  line-height: 22px;
+.db-tree-node--selected {
+  background: rgba(0, 121, 107, 0.08) !important;
+}
+
+.db-tree-node--selected .db-tree-label {
+  color: #00796b;
+  font-weight: 600;
+}
+
+.db-tree-icon {
+  transition: transform 0.15s ease;
+}
+
+.db-tree-label {
+  font-size: 13px;
+  line-height: 1.4;
   color: rgba(0, 0, 0, 0.82);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.db-tree-node--empty .db-tree-node-label {
+.db-tree-node--empty .db-tree-label {
   color: rgba(0, 0, 0, 0.35);
   font-style: italic;
 }
 
+/* 计数徽章 — 与部门树 .dept-count-badge 保持一致 */
+.db-count-badge {
+  font-size: 11px;
+  padding: 1px 6px;
+}
+
+/* 右键菜单 */
 .db-tree-ctx-list {
   min-width: 180px;
 }
@@ -453,5 +594,30 @@ async function copyToClipboard(text: string) {
 .db-tree-ctx-avatar {
   min-width: 32px !important;
   color: rgba(0, 0, 0, 0.55);
+}
+
+/* ═══ 暗色模式 — 与 SqlQueryView 暗色模式设计令牌保持一致 ═══ */
+.body--dark .db-tree-label {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.body--dark .db-tree-node:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.body--dark .db-tree-node--selected {
+  background: rgba(0, 150, 136, 0.12) !important;
+}
+
+.body--dark .db-tree-node--selected .db-tree-label {
+  color: #4db6ac;
+}
+
+.body--dark .db-tree-node--empty .db-tree-label {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.body--dark .db-tree-state {
+  color: rgba(255, 255, 255, 0.45);
 }
 </style>
