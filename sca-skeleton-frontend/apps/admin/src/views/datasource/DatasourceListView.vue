@@ -162,7 +162,15 @@ const columns = computed<QTableColumn<Datasource>[]>(() => [
     label: t("datasourceMgmt.host"),
     align: "left",
     sortable: false,
-    format: (val: string, row: Datasource) => (val ? `${row.host}:${row.port}` : "-")
+    format: (val: string) => (val ? val : "-")
+  },
+  {
+    name: "port",
+    field: "port",
+    label: t("datasourceMgmt.port"),
+    align: "left",
+    sortable: false,
+    format: (val: number) => (val ? String(val) : "-")
   },
   {
     name: "databaseName",
@@ -173,24 +181,16 @@ const columns = computed<QTableColumn<Datasource>[]>(() => [
     format: (val: string) => (val ? val : "-")
   },
   {
-    name: "driverName",
-    field: "driverName",
-    label: t("datasourceMgmt.driverName"),
-    align: "left",
-    sortable: false,
-    format: (val: string) => (val ? val : "-")
-  },
-  {
-    name: "enabled",
-    field: "enabled",
-    label: t("datasourceMgmt.enabled"),
+    name: "isEnabled",
+    field: "isEnabled",
+    label: t("datasourceMgmt.isEnabled"),
     align: "center",
     sortable: true
   },
   {
-    name: "connectionState",
-    field: "connectionState",
-    label: t("datasourceMgmt.connectionState"),
+    name: "status",
+    field: "status",
+    label: t("datasourceMgmt.status"),
     align: "center",
     sortable: false
   },
@@ -217,7 +217,7 @@ const visibleColumns = ref(columns.value.map((c) => c.name));
 const SORT_FIELD_MAP: Record<string, string> = {
   name: "name",
   dbType: "db_type",
-  enabled: "enabled",
+  isEnabled: "is_enabled",
   createTime: "create_time"
 };
 
@@ -415,8 +415,8 @@ async function handleTest(datasource: Datasource) {
   try {
     const result = await testDatasourceApi(datasource.id);
     if (result.code === 10_000) {
-      const state = result.data?.connectionState;
-      if (state === "normal") {
+      const status = result.data?.status;
+      if (status === "normal") {
         showToast(t("datasourceMgmt.testSuccess"), "positive");
       } else {
         const errMsg = result.data?.errorMsg || t("datasourceMgmt.testFail");
@@ -441,7 +441,7 @@ async function handleTest(datasource: Datasource) {
 
 // 启用/禁用切换
 async function handleToggleEnabled(datasource: Datasource) {
-  const targetEnabled = datasource.enabled === 1 ? 0 : 1;
+  const targetEnabled = datasource.isEnabled === 1 ? 0 : 1;
   const api = targetEnabled === 1 ? enableDatasourceApi : disableDatasourceApi;
   try {
     const result = await api(datasource.id);
@@ -694,31 +694,40 @@ onMounted(async () => {
         <!-- 数据库类型列 -->
         <template #body-cell-dbType="props">
           <q-td :props="props">
-            <div class="row items-center no-wrap">
-              <DbTypeIcon :db-type="props.row.dbType" :size="18" class="q-mr-xs" />
-              <q-badge color="blue-2" text-color="blue-9" :label="getDbTypeLabel(props.row.dbType)" />
-            </div>
+            <q-badge
+              v-if="props.value"
+              color="blue-2"
+              text-color="blue-9"
+              :label="getDbTypeLabel(props.row.dbType)"
+              rounded
+              class="db-type-badge"
+            />
+            <span v-else class="text-grey-5">-</span>
           </q-td>
         </template>
 
-        <!-- 启用状态列 -->
-        <template #body-cell-enabled="props">
+        <!-- 是否启用列 -->
+        <template #body-cell-isEnabled="props">
           <q-td :props="props">
             <q-badge
-              :color="props.row.enabled === 1 ? 'green' : 'grey'"
-              :label="props.row.enabled === 1 ? t('datasourceMgmt.enabledStatus') : t('datasourceMgmt.disabledStatus')"
+              :color="props.row.isEnabled === 1 ? 'positive' : 'grey-7'"
+              :label="props.row.isEnabled === 1 ? t('datasourceMgmt.enabledStatus') : t('datasourceMgmt.disabledStatus')"
+              rounded
+              class="status-badge"
             />
           </q-td>
         </template>
 
-        <!-- 运行态列 -->
-        <template #body-cell-connectionState="props">
+        <!-- 状态列 -->
+        <template #body-cell-status="props">
           <q-td :props="props">
             <q-badge
-              :color="getStateColor(props.row.connectionState)"
-              :label="getStateLabel(props.row.connectionState)"
+              :color="getStateColor(props.row.status)"
+              :label="getStateLabel(props.row.status)"
+              rounded
+              class="status-badge"
             />
-            <q-tooltip v-if="props.row.connectionState === 'error' && props.row.errorMsg">
+            <q-tooltip v-if="props.row.status === 'error' && props.row.errorMsg">
               {{ props.row.errorMsg }}
             </q-tooltip>
           </q-td>
@@ -766,11 +775,11 @@ onMounted(async () => {
               dense
               round
               size="sm"
-              :color="props.row.enabled === 1 ? 'orange' : 'green'"
-              :icon="props.row.enabled === 1 ? 'sym_r_block' : 'sym_r_check_circle'"
+              :color="props.row.isEnabled === 1 ? 'orange' : 'green'"
+              :icon="props.row.isEnabled === 1 ? 'sym_r_block' : 'sym_r_check_circle'"
               @click.stop="handleToggleEnabled(props.row)"
             >
-              <q-tooltip>{{ props.row.enabled === 1 ? t('common.disable') : t('common.enable') }}</q-tooltip>
+              <q-tooltip>{{ props.row.isEnabled === 1 ? t('common.disable') : t('common.enable') }}</q-tooltip>
             </q-btn>
             <q-btn
               flat
@@ -1099,6 +1108,14 @@ onMounted(async () => {
 .datasource-table :deep(tbody td) {
   font-size: 13px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+/* 数据库类型徽章 */
+.db-type-badge,
+.status-badge {
+  font-size: 11px;
+  padding: 3px 10px;
+  font-weight: 500;
 }
 
 /* 操作按钮列 */

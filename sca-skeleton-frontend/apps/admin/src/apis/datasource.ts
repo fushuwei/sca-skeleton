@@ -55,8 +55,8 @@ export interface Datasource {
   password: string | null;
   connectionParams: string;
   poolConfig: string;
-  enabled: number;
-  connectionState: string;
+  isEnabled: number;
+  status: string;
   errorMsg: string;
   lastConnectTime: string;
   version: number;
