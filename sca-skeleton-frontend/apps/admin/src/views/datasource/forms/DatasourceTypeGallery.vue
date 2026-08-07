@@ -8,6 +8,7 @@
  */
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { showToast } from "@repo/shared";
 import DbTypeIcon from "../../../components/DbTypeIcon.vue";
 import { DB_TYPE_GROUPS, LAST_SELECTED_DB_TYPE_KEY, resolveDatasourceForm } from "./DatasourceFormRegistry";
 import type { DbTypeCardOption } from "./types";
@@ -73,7 +74,10 @@ function isSupported(dbType: string): boolean {
 }
 
 function handleSelect(dbType: string) {
-  if (!isSupported(dbType)) return;
+  if (!isSupported(dbType)) {
+    showToast(t("datasourceMgmt.typeUnderDevelopment"), "info");
+    return;
+  }
   emit("select", dbType);
 }
 </script>
@@ -110,7 +114,6 @@ function handleSelect(dbType: string) {
               'ds-type-card--disabled': !isSupported(card.value),
               'ds-type-card--last': card.value === lastSelectedDbType
             }"
-            :disabled="!isSupported(card.value)"
             @click="handleSelect(card.value)"
           >
             <DbTypeIcon :db-type="card.value" :size="28" class="ds-type-card-icon" />

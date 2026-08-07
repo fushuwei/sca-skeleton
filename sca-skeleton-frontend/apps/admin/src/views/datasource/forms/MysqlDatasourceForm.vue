@@ -600,6 +600,7 @@ defineExpose({ validate, getPayload, isDirty });
                     square
                     :placeholder="t('datasourceMgmt.connectionParamKeyPlaceholder')"
                     :rules="readonlyMode ? [] : paramKeyRules(index)"
+                    :disable="readonlyMode"
                     :readonly="readonlyMode"
                     hide-bottom-space
                     :class="{ 'ds-param-borderless': readonlyMode }"
@@ -613,6 +614,7 @@ defineExpose({ validate, getPayload, isDirty });
                     square
                     :placeholder="t('datasourceMgmt.connectionParamValuePlaceholder')"
                     :rules="readonlyMode ? [] : paramValueRules()"
+                    :disable="readonlyMode"
                     :readonly="readonlyMode || row.key.trim() === ''"
                     hide-bottom-space
                     :class="{ 'ds-param-borderless': readonlyMode || row.key.trim() === '' }"

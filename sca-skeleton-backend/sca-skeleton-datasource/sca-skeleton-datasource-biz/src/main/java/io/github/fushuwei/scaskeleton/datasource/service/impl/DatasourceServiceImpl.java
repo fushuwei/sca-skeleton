@@ -141,6 +141,7 @@ public class DatasourceServiceImpl implements DatasourceService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void createDatasource(DatasourceCreateRequest request) {
         // 驱动一致性校验
         validateDriverConsistency(request.getDriverId(), request.getDbType());
@@ -207,6 +208,9 @@ public class DatasourceServiceImpl implements DatasourceService {
         if (affectedRows == 0) {
             throw new BusinessException(ResultCode.VERSION_CONFLICT);
         }
+
+        // 更新后自动测试连接，动态刷新状态
+        autoTestAndSetStatus(datasource);
     }
 
     @Override

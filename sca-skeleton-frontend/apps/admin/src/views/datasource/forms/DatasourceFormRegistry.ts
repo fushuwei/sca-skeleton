@@ -1,34 +1,14 @@
 import type { Component } from "vue";
 import MysqlDatasourceForm from "./MysqlDatasourceForm.vue";
-import OracleDatasourceForm from "./OracleDatasourceForm.vue";
-import PostgresqlDatasourceForm from "./PostgresqlDatasourceForm.vue";
-import SqlServerDatasourceForm from "./SqlServerDatasourceForm.vue";
-import DamengDatasourceForm from "./DamengDatasourceForm.vue";
-import KingbaseDatasourceForm from "./KingbaseDatasourceForm.vue";
-import OceanbaseDatasourceForm from "./OceanbaseDatasourceForm.vue";
-import GaussdbDatasourceForm from "./GaussdbDatasourceForm.vue";
-import ClickhouseDatasourceForm from "./ClickhouseDatasourceForm.vue";
-import MongodbDatasourceForm from "./MongodbDatasourceForm.vue";
 
 /**
  * 数据源表单注册表：dbType → 表单组件。
  *
- * 新增数据源类型的接入步骤：
- * 1. 在本目录新建 XxxDatasourceForm.vue（完整、自包含的表单，契约见 ./types.ts）；
- * 2. 在下方 FORM_REGISTRY 注册一行映射。
- * 未注册的类型在「类型选择」面板中显示为「即将支持」（置灰不可选）。
+ * 目前仅 MySQL 完成开发，其他类型正在开发中。
+ * 未注册的类型在「类型选择」面板中可点击，但会提示「正在开发中」。
  */
 const FORM_REGISTRY: Record<string, Component> = {
-  MYSQL: MysqlDatasourceForm,
-  ORACLE: OracleDatasourceForm,
-  POSTGRESQL: PostgresqlDatasourceForm,
-  SQLSERVER: SqlServerDatasourceForm,
-  DAMENG: DamengDatasourceForm,
-  KINGBASE: KingbaseDatasourceForm,
-  OCEANBASE: OceanbaseDatasourceForm,
-  GAUSSDB: GaussdbDatasourceForm,
-  CLICKHOUSE: ClickhouseDatasourceForm,
-  MONGODB: MongodbDatasourceForm
+  MYSQL: MysqlDatasourceForm
 };
 
 /** 按 dbType 解析对应的表单组件；未注册返回 undefined */
