@@ -331,7 +331,7 @@ async function copyToClipboard(text: string) {
 <template>
   <div class="db-tree">
     <div v-if="!datasourceId" class="db-tree-state">
-      <q-icon name="sym_r_account_tree" size="34px" />
+      <q-icon name="sym_r_database_search" size="34px" />
       <span>{{ t("sqlQuery.treeNoDatasource") }}</span>
     </div>
 

@@ -16,12 +16,10 @@ const { t } = useI18n({ useScope: "global" });
 // 工作台偏好持久化
 // ============================================================
 
+// 仅持久化面板布局状态（宽度、分栏比例），不持久化数据源和 SQL 内容
 const PREFS_KEY = "sqlQueryWorkbench";
 
 interface WorkbenchPrefs {
-  datasource?: string;
-  sql?: string;
-  maxRows?: number;
   sidebarVisible?: boolean;
   sidebarWidth?: number;
   editorPct?: number;
@@ -43,9 +41,6 @@ function savePrefs() {
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     const data: WorkbenchPrefs = {
-      datasource: selectedDatasource.value,
-      sql: sqlContent.value,
-      maxRows: maxRows.value,
       sidebarVisible: sidebarVisible.value,
       sidebarWidth: sidebarWidth.value,
       editorPct: editorPct.value
@@ -71,7 +66,7 @@ interface DatasourceOption {
 
 const datasourceOptions = ref<DatasourceOption[]>([]);
 const datasourceLoading = ref(false);
-const selectedDatasource = ref<string>(prefs.datasource || "");
+const selectedDatasource = ref<string>("");
 
 async function loadDatasourceOptions() {
   datasourceLoading.value = true;
@@ -129,11 +124,11 @@ function refreshTree() {
 // ============================================================
 
 const editorRef = ref<InstanceType<typeof SqlCodeEditor>>();
-const sqlContent = ref(prefs.sql || "");
+const sqlContent = ref("");
 const schemaMap = ref<Record<string, string[]>>({});
 
 const MAX_ROWS_OPTIONS = [10, 20, 50, 100, 200, 500, 1000];
-const maxRows = ref<number>(prefs.maxRows && MAX_ROWS_OPTIONS.includes(prefs.maxRows) ? prefs.maxRows : 100);
+const maxRows = ref<number>(100);
 
 const executing = ref(false);
 const queryResult = ref<SqlExecuteResponse | null>(null);
@@ -344,9 +339,9 @@ function handleExport() {
 // 面板布局（左面板宽度 + 编辑器/结果纵向分栏）
 // ============================================================
 
-const sidebarVisible = ref(prefs.sidebarVisible ?? true);
-const sidebarWidth = ref(prefs.sidebarWidth || 300);
-const editorPct = ref(prefs.editorPct || 45);
+const sidebarVisible = ref(true);
+const sidebarWidth = ref(300);
+const editorPct = ref(45);
 /** 拖拽进行中标记：为 true 时禁用 width 过渡，保证拖拽跟手不卡顿 */
 const isResizing = ref(false);
 
@@ -354,11 +349,6 @@ function toggleSidebar() {
   sidebarVisible.value = !sidebarVisible.value;
 }
 
-watch(sidebarWidth, (width) => {
-  if (width > 0) {
-    prefs.sidebarWidth = width;
-  }
-});
 
 /** 左侧面板拖拽调整宽度 */
 let resizeStartX = 0;
@@ -391,7 +381,7 @@ function endResize() {
 }
 
 watch(
-  [selectedDatasource, sqlContent, maxRows, sidebarVisible, sidebarWidth, editorPct],
+  [sidebarVisible, sidebarWidth, editorPct],
   savePrefs
 );
 
@@ -461,6 +451,17 @@ onMounted(() => {
             class="status-select sq-ds-select"
             popup-content-class="status-select-popup"
           >
+            <template #append>
+              <q-icon
+                name="sym_r_refresh"
+                class="cursor-pointer q-field__focusable-action sq-ds-refresh"
+                :class="{ 'sq-ds-refresh--loading': datasourceLoading }"
+                size="24px"
+                @click="loadDatasourceOptions(); refreshTree()"
+              >
+                <q-tooltip>{{ t('sqlQuery.datasourceRefresh') }}</q-tooltip>
+              </q-icon>
+            </template>
             <template v-slot:selected>
               <div v-if="currentDatasource" class="row items-center no-wrap">
                 <DbTypeIcon :db-type="currentDatasource.dbType" :size="18" class="q-mr-xs" />
@@ -477,19 +478,6 @@ onMounted(() => {
               </q-item>
             </template>
           </q-select>
-
-          <q-btn
-            flat
-            dense
-            round
-            size="sm"
-            icon="sym_r_refresh"
-            class="sq-tool-btn"
-            :loading="datasourceLoading"
-            @click="loadDatasourceOptions(); refreshTree()"
-          >
-            <q-tooltip>{{ t('sqlQuery.datasourceRefresh') }}</q-tooltip>
-          </q-btn>
 
           <q-input
             v-model="treeFilter"
@@ -542,7 +530,7 @@ onMounted(() => {
           class="sq-op-btn"
           @click="handleFormatSql"
         >
-          <q-icon name="sym_r_format_align_left" size="20px" class="q-mr-xs" />
+          <q-icon name="sym_r_format_align_left" size="18px" class="q-mr-xs" />
           {{ t('sqlQuery.formatSql') }}
         </q-btn>
 
@@ -685,8 +673,8 @@ onMounted(() => {
                   row-key="__rowIndex"
                   :loading="executing"
                   :pagination="{ rowsPerPage: 100 }"
-                  :rows-per-page-options="[20, 50, 100, 200]"
-                  class="sq-result-table"
+                  :rows-per-page-options="[10, 20, 50, 100]"
+                  :class="['sq-result-table', { 'sq-result-table--empty': !queryResult.rows.length }]"
                 >
                   <template #body-cell="props">
                     <q-td :props="props">
@@ -857,16 +845,31 @@ onMounted(() => {
   min-width: 0;
 }
 
+.sq-ds-refresh {
+  color: rgba(0, 0, 0, 0.45);
+  transition: color 0.2s;
+}
+
+.sq-ds-refresh:hover {
+  color: var(--q-primary);
+}
+
+.sq-ds-refresh--loading {
+  animation: sq-spin 0.8s linear infinite;
+}
+
+@keyframes sq-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .sq-filter-input {
   flex: 1 1 100%;
 }
 
 .sq-filter-input :deep(.q-field__control) {
   min-height: 32px;
-}
-
-.sq-tool-btn {
-  color: rgba(0, 0, 0, 0.55);
 }
 
 /* 左侧面板滚动区 */
@@ -1112,6 +1115,29 @@ onMounted(() => {
   border-top: none;
 }
 
+/* 空数据状态 */
+.sq-result-table--empty :deep(.q-table__container) {
+  height: 100%;
+}
+
+.sq-result-table--empty :deep(.q-table__middle) {
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.sq-result-table--empty :deep(.q-table__bottom) {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: none !important;
+}
+
+.sq-result-table--empty :deep(.q-table__bottom .q-table__bottom-nodata-icon) {
+  display: none;
+}
+
 .sq-result-table :deep(tbody tr:hover td) {
   background: rgba(0, 121, 107, 0.03) !important;
 }
@@ -1231,7 +1257,15 @@ onMounted(() => {
   word-break: break-all;
 }
 
-/* ═══ 暗色模式 — 与用户管理页面设计令牌保持一致 ═══ */
+.body--dark .sq-ds-refresh {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.body--dark .sq-ds-refresh:hover {
+  color: var(--q-primary) !important;
+}
+
+/* 暗色模式 — 与用户管理页面设计令牌保持一致 */
 .body--dark .left-panel,
 .body--dark .sq-opbar,
 .body--dark .sq-split-v,
@@ -1253,14 +1287,12 @@ onMounted(() => {
 }
 
 .body--dark .left-panel-toggle-btn,
-.body--dark .left-panel-collapse-btn,
-.body--dark .sq-tool-btn {
+.body--dark .left-panel-collapse-btn {
   color: rgba(255, 255, 255, 0.87) !important;
 }
 
 .body--dark .left-panel-toggle-btn:hover,
-.body--dark .left-panel-collapse-btn:hover,
-.body--dark .sq-tool-btn:hover {
+.body--dark .left-panel-collapse-btn:hover {
   background: rgba(255, 255, 255, 0.08) !important;
 }
 
@@ -1272,8 +1304,7 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.08) !important;
 }
 
-.body--dark .sq-pane-head-icon,
-.body--dark .sq-tool-btn {
+.body--dark .sq-pane-head-icon {
   color: rgba(255, 255, 255, 0.55) !important;
 }
 
