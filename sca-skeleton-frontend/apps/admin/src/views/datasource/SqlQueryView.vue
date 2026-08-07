@@ -252,7 +252,6 @@ function formatterLanguageOf(dbType: string): "sql" | "mysql" | "postgresql" | "
 
 function handleFormatSql() {
   if (!sqlContent.value.trim()) {
-    showToast(t("sqlQuery.sqlRequired"), "negative");
     return;
   }
   try {
@@ -578,7 +577,7 @@ onMounted(() => {
           @click="handleExecute"
         >
           <q-icon name="sym_r_play_arrow" size="20px" class="q-mr-xs" />
-          {{ executing ? t('sqlQuery.executing') : t('sqlQuery.execute') }}
+          {{ t('sqlQuery.execute') }}
         </q-btn>
 
         <q-btn
@@ -680,6 +679,7 @@ onMounted(() => {
 
               <template v-if="queryResult">
                 <span class="sq-stat">{{ t('sqlQuery.rowCount', { count: queryResult.rowCount }) }}</span>
+                <span class="sq-stat-sep">·</span>
                 <span class="sq-stat">{{ t('sqlQuery.costMs', { ms: queryResult.costMs }) }}</span>
                 <q-btn
                   v-if="queryResult.rows.length"
@@ -713,7 +713,8 @@ onMounted(() => {
                 >
                   <template #body-cell="props">
                     <q-td :props="props">
-                      <SqCellText :value="props.value" />
+                      <span v-if="props.col.name === '__rowNum'">{{ props.value }}</span>
+                      <SqCellText v-else :value="props.value" />
                     </q-td>
                   </template>
 
@@ -1137,6 +1138,11 @@ onMounted(() => {
   margin-left: 14px;
   display: inline-flex;
   align-items: center;
+}
+
+.sq-stat-sep {
+  color: rgba(0, 0, 0, 0.25);
+  margin-left: 6px;
 }
 
 /* 导出按钮 — 与前面统计文案保持间距，避免重叠 */

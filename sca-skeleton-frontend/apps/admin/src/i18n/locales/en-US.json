@@ -15,6 +15,7 @@
     "disable": "Disable",
     "confirm": "Confirm",
     "cancel": "Cancel",
+    "copy": "Copy",
     "systemPrompt": "System Prompt",
     "loadFail": "Failed to load, please try again",
     "deleteSuccess": "Deleted successfully",
