@@ -324,12 +324,18 @@ function toggleNode(node: TreeNode) {
   treeRef.value?.setExpanded(node.key, !isExpanded);
 }
 
-/** 节点头部点击计数器声明已移至文件顶部（watch immediate 之前） */
-
+/** 节点头部点击 — 可展开节点单击即展开/收缩；对象节点用计数器区分单击/双击 */
 function onNodeHeaderClick(node: TreeNode) {
   // 始终更新选中状态
   selectedKey.value = node.key;
 
+  // 可展开节点（database / schema / category）：单击即切换展开/收缩
+  if (isExpandable(node)) {
+    toggleNode(node);
+    return;
+  }
+
+  // 对象节点（table / view / function / procedure / synonym）：用计数器区分单击/双击
   const key = node.key;
   _nodeClickCount++;
 
@@ -344,7 +350,7 @@ function onNodeHeaderClick(node: TreeNode) {
     }, 280);
   } else if (_nodeClickCount >= 2) {
     if (_nodeClickKey === key) {
-      // 双击：根据节点类型执行操作
+      // 双击：执行对象节点操作
       handleNodeDblClick(node);
     }
     _nodeClickCount = 0;
@@ -355,16 +361,13 @@ function onNodeHeaderClick(node: TreeNode) {
   _nodeClickKey = key;
 }
 
-/** 双击处理：容器节点切换展开，表/视图执行查询，其余插入名称 */
+/** 双击处理：表/视图执行查询，函数/存储过程/同义词插入名称 */
 function handleNodeDblClick(node: TreeNode) {
   if (node.kind === "table" || node.kind === "view") {
     emit("run", sampleSql(node.label));
   } else if (node.kind === "function"
     || node.kind === "procedure" || node.kind === "synonym") {
     emit("insert", node.label);
-  } else if (isExpandable(node)) {
-    // 容器节点（database / schema / category）：切换展开/收起
-    toggleNode(node);
   }
 }
 
@@ -551,6 +554,7 @@ async function copyToClipboard(text: string) {
   transition: background-color 0.12s ease;
   user-select: none;
   -webkit-user-select: none;
+  color: rgba(0, 0, 0, 0.82);
 }
 
 .db-tree-node:hover {
@@ -564,28 +568,32 @@ async function copyToClipboard(text: string) {
 
 .db-tree-node--selected {
   background: rgba(0, 121, 107, 0.08) !important;
+  color: #00796b;
 }
 
 .db-tree-node--selected .db-tree-label {
-  color: #00796b;
   font-weight: 600;
 }
 
 .db-tree-icon {
   transition: transform 0.15s ease;
+  color: inherit;
 }
 
 .db-tree-label {
   font-size: 13px;
   line-height: 1.4;
-  color: rgba(0, 0, 0, 0.82);
+  color: inherit;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.db-tree-node--empty .db-tree-label {
+.db-tree-node--empty {
   color: rgba(0, 0, 0, 0.35);
+}
+
+.db-tree-node--empty .db-tree-label {
   font-style: italic;
 }
 
@@ -606,7 +614,7 @@ async function copyToClipboard(text: string) {
 }
 
 /* ═══ 暗色模式 — 与 SqlQueryView 暗色模式设计令牌保持一致 ═══ */
-.body--dark .db-tree-label {
+.body--dark .db-tree-node {
   color: rgba(255, 255, 255, 0.82);
 }
 
@@ -616,13 +624,10 @@ async function copyToClipboard(text: string) {
 
 .body--dark .db-tree-node--selected {
   background: rgba(0, 150, 136, 0.12) !important;
-}
-
-.body--dark .db-tree-node--selected .db-tree-label {
   color: #4db6ac;
 }
 
-.body--dark .db-tree-node--empty .db-tree-label {
+.body--dark .db-tree-node--empty {
   color: rgba(255, 255, 255, 0.35);
 }
 

@@ -57,8 +57,10 @@ async function copyValue() {
         anchor="top middle"
         self="bottom middle"
         max-width="600px"
-        content-style="max-height: 400px; overflow: auto; word-break: break-all; white-space: pre-wrap;"
-      >{{ String(value) }}</q-tooltip></span>
+        content-class="sq-cell-tooltip"
+      >
+        <div class="sq-cell-tip-text">{{ String(value) }}</div>
+      </q-tooltip></span>
     <q-btn
       flat
       dense
@@ -122,5 +124,23 @@ async function copyValue() {
 
 .body--dark .sq-cell-copy--done {
   color: #66bb6a !important;
+}
+</style>
+
+<!-- tooltip 通过 Teleport 挂载到 body，必须用非 scoped 样式 -->
+<style>
+.sq-cell-tooltip {
+  max-width: 600px !important;
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  padding: 8px 12px !important;
+}
+
+.sq-cell-tip-text {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 12.5px;
 }
 </style>

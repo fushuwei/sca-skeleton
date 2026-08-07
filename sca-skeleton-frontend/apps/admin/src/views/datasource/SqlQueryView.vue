@@ -678,9 +678,7 @@ onMounted(() => {
               <q-space />
 
               <template v-if="queryResult">
-                <span class="sq-stat">{{ t('sqlQuery.rowCount', { count: queryResult.rowCount }) }}</span>
-                <span class="sq-stat-sep">·</span>
-                <span class="sq-stat">{{ t('sqlQuery.costMs', { ms: queryResult.costMs }) }}</span>
+                <span class="sq-stat">{{ t('sqlQuery.resultStats', { count: queryResult.rowCount, ms: queryResult.costMs }) }}</span>
                 <q-btn
                   v-if="queryResult.rows.length"
                   flat
@@ -1140,11 +1138,6 @@ onMounted(() => {
   align-items: center;
 }
 
-.sq-stat-sep {
-  color: rgba(0, 0, 0, 0.25);
-  margin-left: 6px;
-}
-
 /* 导出按钮 — 与前面统计文案保持间距，避免重叠 */
 .sq-export-btn {
   margin-left: 16px;
@@ -1556,6 +1549,46 @@ onMounted(() => {
 
 .body--dark .sq-msg {
   border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ═══ 暗色模式 — 按钮 / 标签页 / 拖拽手柄等补全 ═══ */
+
+/* 结果/消息 标签页 — 未选中态文字 */
+.body--dark .sq-result-tabs :deep(.q-tab) {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.body--dark .sq-result-tabs :deep(.q-tab--active) {
+  color: #4db6ac !important;
+}
+
+/* 操作栏 outline 按钮 — 暗色下用更亮的色阶 */
+.body--dark .sq-opbar :deep(.q-btn--outline .q-btn__wrapper) {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.body--dark .sq-opbar :deep(.q-btn--outline) {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+/* 导出按钮 — 暗色下 primary 偏暗，改用亮色 */
+.body--dark .sq-export-btn {
+  color: #4db6ac !important;
+}
+
+/* 拖拽手柄图标 */
+.body--dark .sq-split-grip {
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* 操作栏图标颜色 */
+.body--dark .sq-opbar :deep(.q-btn .q-icon) {
+  color: inherit !important;
+}
+
+/* 左侧面板工具区图标 */
+.body--dark .sq-filter-input :deep(.q-icon) {
+  color: rgba(255, 255, 255, 0.55) !important;
 }
 </style>
 
