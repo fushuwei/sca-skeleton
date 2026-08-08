@@ -28,6 +28,12 @@ docker exec nginx nginx -s reload
 # 检查 nginx 配置文件语法
 docker exec nginx nginx -t
 
+# 重启 nginx
+docker exec nginx nginx -s reload
+
+# 重启 nginx
+docker exec nginx nginx -s reload
+
 echo "=========================================="
 echo "前端部署成功！"
 echo "docker exec nginx nginx -s reload"
