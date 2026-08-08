@@ -669,7 +669,6 @@ onMounted(() => {
                     :name="deptNodeIcon(scope.node)"
                     size="20px"
                     class="q-mr-sm cursor-pointer dept-tree-icon"
-                    :color="selectedDeptId === scope.node.id ? 'primary' : 'grey-7'"
                     @click.stop="toggleDeptNode(scope.node)"
                   />
                   <span class="dept-tree-label ellipsis">{{ scope.node.label }}</span>
@@ -1169,6 +1168,7 @@ onMounted(() => {
   transition: background-color 0.12s ease;
   user-select: none;
   -webkit-user-select: none;
+  color: rgba(0, 0, 0, 0.82);
 }
 
 .dept-tree-node:hover {
@@ -1177,21 +1177,22 @@ onMounted(() => {
 
 .dept-tree-node--selected {
   background: rgba(0, 121, 107, 0.08) !important;
+  color: #00796b;
 }
 
 .dept-tree-node--selected .dept-tree-label {
-  color: #00796b;
   font-weight: 600;
 }
 
 .dept-tree-icon {
   transition: transform 0.15s ease;
+  color: inherit;
 }
 
 .dept-tree-label {
   font-size: 13px;
   line-height: 1.4;
-  color: rgba(0, 0, 0, 0.82);
+  color: inherit;
 }
 
 .left-panel-resize-handle {

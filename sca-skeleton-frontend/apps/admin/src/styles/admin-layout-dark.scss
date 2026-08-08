@@ -286,7 +286,7 @@
     color: rgba(255, 255, 255, 0.72) !important;
   }
 
-  .dept-tree-label {
+  .dept-tree-node {
     color: rgba(255, 255, 255, 0.82);
   }
 
@@ -294,16 +294,9 @@
     background: rgba(255, 255, 255, 0.06) !important;
   }
 
-  .dept-tree .q-tree__node-header.q-tree__node--selected {
-    background: rgba(0, 150, 136, 0.18) !important;
-  }
-
-  .dept-tree .q-tree__node-header.q-tree__node--selected .dept-tree-label {
-    color: #80cbc4;
-  }
-
-  .dept-tree .q-icon.text-grey-7 {
-    color: rgba(255, 255, 255, 0.55) !important;
+  .dept-tree-node--selected {
+    background: rgba(0, 150, 136, 0.12) !important;
+    color: #4db6ac;
   }
 
   .dept-count-badge {
@@ -533,7 +526,7 @@
     color: rgba(255, 255, 255, 0.72) !important;
   }
 
-  .permission-tree-label {
+  .permission-tree-node {
     color: rgba(255, 255, 255, 0.82);
   }
 
@@ -546,15 +539,8 @@
   }
 
   .permission-tree-node--selected {
-    background: rgba(0, 150, 136, 0.18) !important;
-  }
-
-  .permission-tree-node--selected .permission-tree-label {
-    color: #80cbc4;
-  }
-
-  .permission-tree .q-icon.text-grey-7 {
-    color: rgba(255, 255, 255, 0.55) !important;
+    background: rgba(0, 150, 136, 0.12) !important;
+    color: #4db6ac;
   }
 
   .permission-count-badge {
@@ -1159,7 +1145,7 @@
     color: rgba(255, 255, 255, 0.72) !important;
   }
 
-  .dept-tree-label {
+  .dept-tree-node {
     color: rgba(255, 255, 255, 0.82);
   }
 
@@ -1172,15 +1158,8 @@
   }
 
   .dept-tree-node--selected {
-    background: rgba(0, 150, 136, 0.18) !important;
-  }
-
-  .dept-tree-node--selected .dept-tree-label {
-    color: #80cbc4;
-  }
-
-  .dept-tree .q-icon.text-grey-7 {
-    color: rgba(255, 255, 255, 0.55) !important;
+    background: rgba(0, 150, 136, 0.12) !important;
+    color: #4db6ac;
   }
 
   .dept-count-badge {

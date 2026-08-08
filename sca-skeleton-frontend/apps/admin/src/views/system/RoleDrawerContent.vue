@@ -584,7 +584,6 @@ async function handleSave() {
                     :name="permNodeIcon(scope.node)"
                     size="18px"
                     class="q-mr-sm"
-                    color="grey-7"
                   />
                   <span class="ellipsis">{{ scope.node.label }}</span>
                 </div>

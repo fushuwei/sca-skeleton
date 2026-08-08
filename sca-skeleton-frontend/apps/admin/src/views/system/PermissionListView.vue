@@ -818,7 +818,6 @@ onMounted(() => {
                     :name="menuNodeIcon(scope.node)"
                     size="20px"
                     class="q-mr-sm cursor-pointer permission-tree-icon"
-                    :color="selectedMenuId === scope.node.id ? 'primary' : 'grey-7'"
                     @click.stop="toggleMenuNode(scope.node)"
                   />
                   <span
@@ -1414,6 +1413,7 @@ onMounted(() => {
   transition: background-color 0.12s ease;
   user-select: none;
   -webkit-user-select: none;
+  color: rgba(0, 0, 0, 0.82);
 }
 
 .permission-tree-node:hover {
@@ -1422,10 +1422,10 @@ onMounted(() => {
 
 .permission-tree-node--selected {
   background: rgba(0, 121, 107, 0.08) !important;
+  color: #00796b;
 }
 
 .permission-tree-node--selected .permission-tree-label {
-  color: #00796b;
   font-weight: 600;
 }
 
@@ -1436,12 +1436,13 @@ onMounted(() => {
 
 .permission-tree-icon {
   transition: transform 0.15s ease;
+  color: inherit;
 }
 
 .permission-tree-label {
   font-size: 13px;
   line-height: 1.4;
-  color: rgba(0, 0, 0, 0.82);
+  color: inherit;
 }
 
 .left-panel-resize-handle {

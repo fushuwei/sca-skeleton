@@ -757,7 +757,7 @@ async function handleSave() {
                           :name="deptNodeIcon(scope.node)"
                           size="18px"
                           class="q-mr-sm"
-                          :color="form.deptId === scope.node.id ? 'primary' : 'grey-7'"
+                          :class="{ 'text-primary': form.deptId === scope.node.id }"
                         />
                         <span class="ellipsis" :class="{ 'text-primary text-weight-medium': form.deptId === scope.node.id }">
                           {{ scope.node.label }}

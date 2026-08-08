@@ -429,7 +429,7 @@ async function handleSave() {
                           :name="deptNodeIcon(scope.node)"
                           size="18px"
                           class="q-mr-sm"
-                          :color="form.parentId === scope.node.id ? 'primary' : 'grey-7'"
+                          :class="{ 'text-primary': form.parentId === scope.node.id }"
                         />
                         <span class="ellipsis" :class="{ 'text-primary text-weight-medium': form.parentId === scope.node.id }">
                           {{ scope.node.label }}
