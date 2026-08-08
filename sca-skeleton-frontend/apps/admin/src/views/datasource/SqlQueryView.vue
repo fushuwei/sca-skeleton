@@ -662,13 +662,13 @@ onMounted(() => {
               >
                 <q-tab name="result" @click="">
                   <div class="row items-center no-wrap">
-                    <q-icon name="sym_r_table_chart" size="20px" class="q-mr-xs" />
+                    <q-icon name="sym_r_grid_on" size="20px" class="q-mr-xs" />
                     <span>{{ t('sqlQuery.result') }}</span>
                   </div>
                 </q-tab>
                 <q-tab name="messages" @click="openMessagesTab">
                   <div class="row items-center no-wrap">
-                    <q-icon name="sym_r_terminal" size="20px" class="q-mr-xs" />
+                    <q-icon name="sym_r_breaking_news" size="20px" class="q-mr-xs" />
                     <span>{{ t('sqlQuery.messages') }}</span>
                     <span v-if="unreadError" class="sq-tab-dot" />
                   </div>
