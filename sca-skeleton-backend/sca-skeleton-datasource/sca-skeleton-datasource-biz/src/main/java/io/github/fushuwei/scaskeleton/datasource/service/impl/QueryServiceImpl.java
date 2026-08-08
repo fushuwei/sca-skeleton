@@ -9,14 +9,10 @@ import io.github.fushuwei.scaskeleton.datasource.api.request.query.SqlExecuteReq
 import io.github.fushuwei.scaskeleton.datasource.api.response.query.SqlExecuteResponse;
 import io.github.fushuwei.scaskeleton.datasource.engine.dialect.Dialect;
 import io.github.fushuwei.scaskeleton.datasource.engine.dialect.DialectRegistry;
-import io.github.fushuwei.scaskeleton.datasource.engine.driver.DriverInstance;
-import io.github.fushuwei.scaskeleton.datasource.engine.driver.DriverLifecycle;
 import io.github.fushuwei.scaskeleton.datasource.engine.security.CredentialCipher;
-import io.github.fushuwei.scaskeleton.datasource.engine.storage.DriverStore;
+import io.github.fushuwei.scaskeleton.datasource.engine.pool.DatasourcePoolManager;
 import io.github.fushuwei.scaskeleton.datasource.entity.Datasource;
-import io.github.fushuwei.scaskeleton.datasource.entity.Driver;
 import io.github.fushuwei.scaskeleton.datasource.mapper.DatasourceMapper;
-import io.github.fushuwei.scaskeleton.datasource.mapper.DriverMapper;
 import io.github.fushuwei.scaskeleton.datasource.service.QueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +23,6 @@ import net.sf.jsqlparser.statement.select.WithItem;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -41,7 +36,8 @@ import java.util.Properties;
 /**
  * 数据查询 Service 实现。
  * <p>
- * 对已配置的数据源执行只读 SQL 查询，复用 DatasourceServiceImpl 的驱动加载与连接构建逻辑。
+ * 对已配置的数据源执行只读 SQL 查询，通过 {@link DatasourcePoolManager} 复用 HikariCP 连接池获取连接，
+ * 驱动加载与连接池生命周期由连接池管理器统一维护。
  * <p>
  * 安全约束：
  * - SQL 安全校验（JSqlParser）：仅允许 SELECT / SHOW / DESC / EXPLAIN，拒绝 DML/DDL；
@@ -56,12 +52,10 @@ import java.util.Properties;
 public class QueryServiceImpl implements QueryService {
 
     private final DatasourceMapper datasourceMapper;
-    private final DriverMapper driverMapper;
-    private final DriverLifecycle driverLifecycle;
     private final DialectRegistry dialectRegistry;
     private final CredentialCipher credentialCipher;
-    private final DriverStore driverStore;
     private final JsonMapper jsonMapper;
+    private final DatasourcePoolManager datasourcePoolManager;
 
     @Override
     public SqlExecuteResponse executeSql(SqlExecuteRequest request) {
@@ -69,12 +63,7 @@ public class QueryServiceImpl implements QueryService {
         validateSqlSafety(request.getSql());
 
         Datasource ds = loadDatasourceEntity(request.getDatasourceId());
-        Driver driver = loadDriverEntity(ds.getDriverId());
         Dialect dialect = dialectRegistry.get(parseDbType(ds.getDbType()));
-
-        Path[] jarPaths = driverStore.listLocalJars(driver.getName()).toArray(new Path[0]);
-        DriverInstance instance = driverLifecycle.acquire(
-            driver.getId(), driver.getDriverClass(), jarPaths);
 
         // 目标数据库优先使用请求参数，未指定则用数据源默认库
         String databaseName = StringUtils.hasText(request.getDatabase())
@@ -89,7 +78,7 @@ public class QueryServiceImpl implements QueryService {
 
         long start = System.currentTimeMillis();
         try {
-            try (Connection conn = instance.connect(jdbcUrl, props)) {
+            try (Connection conn = datasourcePoolManager.getConnection(ds, jdbcUrl, props)) {
                 if (conn == null) {
                     throw new BusinessException("驱动无法识别 JDBC URL: " + jdbcUrl);
                 }
@@ -104,8 +93,6 @@ public class QueryServiceImpl implements QueryService {
             }
         } catch (SQLException e) {
             throw new BusinessException("SQL 执行失败: " + e.getMessage());
-        } finally {
-            driverLifecycle.release(driver.getId());
         }
     }
 
@@ -217,17 +204,6 @@ public class QueryServiceImpl implements QueryService {
             throw new BusinessException(ResultCode.NOT_FOUND, "数据源不存在");
         }
         return datasource;
-    }
-
-    private Driver loadDriverEntity(String driverId) {
-        if (!StringUtils.hasText(driverId)) {
-            throw new BusinessException(ResultCode.VALIDATION_ERROR, "数据源未配置驱动");
-        }
-        Driver driver = driverMapper.selectById(driverId);
-        if (driver == null) {
-            throw new BusinessException(ResultCode.NOT_FOUND, "驱动不存在");
-        }
-        return driver;
     }
 
     private DbType parseDbType(String dbType) {

@@ -20,6 +20,7 @@ import io.github.fushuwei.scaskeleton.datasource.engine.dialect.Dialect;
 import io.github.fushuwei.scaskeleton.datasource.engine.dialect.DialectRegistry;
 import io.github.fushuwei.scaskeleton.datasource.engine.driver.DriverInstance;
 import io.github.fushuwei.scaskeleton.datasource.engine.driver.DriverLifecycle;
+import io.github.fushuwei.scaskeleton.datasource.engine.pool.DatasourcePoolManager;
 import io.github.fushuwei.scaskeleton.datasource.engine.security.CredentialCipher;
 import io.github.fushuwei.scaskeleton.datasource.engine.storage.DriverStore;
 import io.github.fushuwei.scaskeleton.datasource.entity.Datasource;
@@ -74,6 +75,7 @@ public class DatasourceServiceImpl implements DatasourceService {
     private final CredentialCipher credentialCipher;
     private final DriverStore driverStore;
     private final JsonMapper jsonMapper;
+    private final DatasourcePoolManager datasourcePoolManager;
 
     /**
      * 连接池配置白名单（HikariCP 核心可调参数）。
@@ -209,6 +211,10 @@ public class DatasourceServiceImpl implements DatasourceService {
             throw new BusinessException(ResultCode.VERSION_CONFLICT);
         }
 
+        // 连接相关配置可能已变更（host/port/凭据/连接池参数/驱动），销毁旧连接池，
+        // 下次访问时按最新库内配置重建，避免旧连接池继续服务过期连接。
+        datasourcePoolManager.evictPool(request.getId());
+
         // 更新后自动测试连接，动态刷新状态
         autoTestAndSetStatus(datasource);
     }
@@ -217,8 +223,9 @@ public class DatasourceServiceImpl implements DatasourceService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteDatasource(String id) {
         loadDatasourceEntity(id);
-        // TODO M3: 关闭连接池（DataSourcePoolManager）后删除
         datasourceMapper.deleteById(id);
+        // 销毁连接池并释放驱动引用，避免驱动 ClassLoader 泄漏
+        datasourcePoolManager.evictPool(id);
     }
 
     @Override
@@ -232,8 +239,9 @@ public class DatasourceServiceImpl implements DatasourceService {
         if (datasources.isEmpty()) {
             return;
         }
-        // TODO M3: 关闭连接池（DataSourcePoolManager）后删除
         datasourceMapper.deleteBatchIds(ids);
+        // 销毁连接池并释放驱动引用（evictPool 对无池的数据源为 no-op）
+        ids.forEach(datasourcePoolManager::evictPool);
     }
 
     @Override
@@ -244,6 +252,8 @@ public class DatasourceServiceImpl implements DatasourceService {
         if (affectedRows == 0) {
             throw new BusinessException(ResultCode.VERSION_CONFLICT);
         }
+        // 禁用时释放连接池资源；启用时无池可销毁，下次访问懒加载
+        datasourcePoolManager.evictPool(id);
     }
 
     @Override
@@ -412,23 +422,21 @@ public class DatasourceServiceImpl implements DatasourceService {
     // ============================================================
 
     /**
-     * 元数据查询通用模板：加载驱动 → 建连 → 执行查询 → 释放驱动。
+     * 元数据查询通用模板：从连接池借连接 → 执行查询 → 归还连接到池。
+     * <p>
+     * 驱动加载与连接池生命周期由 {@link DatasourcePoolManager} 统一维护；
+     * 数据源配置变更（update/delete/disable）时会销毁旧池，下次访问按最新配置重建。
      */
     private <T> T executeQuery(String datasourceId, SqlAction<T> action) {
         Datasource ds = loadDatasourceEntity(datasourceId);
-        Driver driver = loadDriverEntity(ds.getDriverId());
         Dialect dialect = dialectRegistry.get(parseDbType(ds.getDbType()));
-
-        Path[] jarPaths = driverStore.listLocalJars(driver.getName()).toArray(new Path[0]);
-        DriverInstance instance = driverLifecycle.acquire(
-            driver.getId(), driver.getDriverClass(), jarPaths);
 
         String jdbcUrl = dialect.buildJdbcUrl(ds.getHost(), ds.getPort(),
             ds.getDatabaseName(), toQueryString(ds.getConnectionParams()));
         Properties props = buildConnectionProps(ds);
 
         try {
-            try (Connection conn = instance.connect(jdbcUrl, props)) {
+            try (Connection conn = datasourcePoolManager.getConnection(ds, jdbcUrl, props)) {
                 if (conn == null) {
                     throw new BusinessException("驱动无法识别 JDBC URL: " + jdbcUrl);
                 }
@@ -436,8 +444,6 @@ public class DatasourceServiceImpl implements DatasourceService {
             }
         } catch (SQLException e) {
             throw new BusinessException("数据库操作失败: " + e.getMessage());
-        } finally {
-            driverLifecycle.release(driver.getId());
         }
     }
 
