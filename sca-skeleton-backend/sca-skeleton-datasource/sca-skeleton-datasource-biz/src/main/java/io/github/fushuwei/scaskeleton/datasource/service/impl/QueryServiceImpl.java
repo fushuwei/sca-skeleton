@@ -63,6 +63,7 @@ public class QueryServiceImpl implements QueryService {
         validateSqlSafety(request.getSql());
 
         Datasource ds = loadDatasourceEntity(request.getDatasourceId());
+        ensureEnabled(ds);
         Dialect dialect = dialectRegistry.get(parseDbType(ds.getDbType()));
 
         // 目标数据库优先使用请求参数，未指定则用数据源默认库
@@ -204,6 +205,15 @@ public class QueryServiceImpl implements QueryService {
             throw new BusinessException(ResultCode.NOT_FOUND, "数据源不存在");
         }
         return datasource;
+    }
+
+    /**
+     * 校验数据源已启用：禁用的数据源不允许查询，避免重建连接池、绕过禁用语义。
+     */
+    private void ensureEnabled(Datasource ds) {
+        if (!Integer.valueOf(1).equals(ds.getIsEnabled())) {
+            throw new BusinessException("数据源已禁用，无法执行查询");
+        }
     }
 
     private DbType parseDbType(String dbType) {

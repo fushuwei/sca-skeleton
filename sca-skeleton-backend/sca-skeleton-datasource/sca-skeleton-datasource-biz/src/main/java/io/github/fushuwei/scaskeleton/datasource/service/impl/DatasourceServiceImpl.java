@@ -429,6 +429,9 @@ public class DatasourceServiceImpl implements DatasourceService {
      */
     private <T> T executeQuery(String datasourceId, SqlAction<T> action) {
         Datasource ds = loadDatasourceEntity(datasourceId);
+        if (!Integer.valueOf(1).equals(ds.getIsEnabled())) {
+            throw new BusinessException("数据源已禁用，无法执行查询");
+        }
         Dialect dialect = dialectRegistry.get(parseDbType(ds.getDbType()));
 
         String jdbcUrl = dialect.buildJdbcUrl(ds.getHost(), ds.getPort(),
