@@ -75,7 +75,7 @@ async function loadDatasourceOptions() {
     const res = await getDatasourcePageApi({
       pageNum: 1,
       pageSize: 1000,
-      enabled: 1
+      isEnabled: 1
     });
     if (res.code === 10_000 && res.data) {
       datasourceOptions.value = res.data.records.map((ds: Datasource) => ({

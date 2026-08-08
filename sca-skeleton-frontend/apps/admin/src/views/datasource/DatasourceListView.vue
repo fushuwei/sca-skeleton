@@ -75,7 +75,7 @@ const searchForm = reactive<DatasourcePageRequest>({
   pageSize: 10,
   dbType: undefined,
   keyword: "",
-  enabled: undefined,
+  isEnabled: undefined,
   status: undefined
 });
 
@@ -261,7 +261,7 @@ async function loadTableData(
     pageSize,
     dbType: searchForm.dbType || undefined,
     keyword: searchForm.keyword || undefined,
-    enabled: searchForm.enabled ?? undefined,
+    isEnabled: searchForm.isEnabled ?? undefined,
     status: searchForm.status || undefined
   };
 
@@ -318,7 +318,7 @@ function handleJumpToPage() {
 function handleReset() {
   searchForm.keyword = "";
   searchForm.dbType = undefined;
-  searchForm.enabled = undefined;
+  searchForm.isEnabled = undefined;
   searchForm.status = undefined;
   tablePagination.value.sortBy = "";
   tablePagination.value.descending = false;
@@ -566,7 +566,7 @@ onMounted(async () => {
             </div>
             <div class="col-auto">
               <q-select
-                v-model="searchForm.enabled"
+                v-model="searchForm.isEnabled"
                 filled
                 square
                 dense
@@ -582,7 +582,7 @@ onMounted(async () => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="searchForm.enabled === undefined || searchForm.enabled === null" v-slot:selected>
+                <template v-if="searchForm.isEnabled === undefined || searchForm.isEnabled === null" v-slot:selected>
                   <span class="status-placeholder">{{ t('datasourceMgmt.enabledPlaceholder') }}</span>
                 </template>
               </q-select>

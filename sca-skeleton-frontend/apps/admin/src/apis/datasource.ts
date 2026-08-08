@@ -85,7 +85,7 @@ export interface DriverPageRequest {
 export interface DatasourcePageRequest {
   dbType?: string;
   keyword?: string;
-  enabled?: number;
+  isEnabled?: number;
   status?: string;
   pageNum: number;
   pageSize: number;
