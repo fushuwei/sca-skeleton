@@ -126,7 +126,6 @@ function toggleBranch(scope, event) {
 
 .folder-tree__leaf-icon {
   font-size: 20px !important;
-  opacity: 0.72;
 }
 
 .folder-tree__folder-hit {

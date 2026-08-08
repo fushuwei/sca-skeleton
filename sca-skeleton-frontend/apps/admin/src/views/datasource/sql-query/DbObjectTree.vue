@@ -630,4 +630,10 @@ async function copyToClipboard(text: string) {
 .body--dark .db-tree-state {
   color: rgba(255, 255, 255, 0.45);
 }
+
+/* 计数徽章 — 与部门树 .dept-count-badge 暗色保持一致 */
+.body--dark .db-count-badge.bg-primary {
+  background: rgba(0, 150, 136, 0.5) !important;
+  color: #fff;
+}
 </style>
