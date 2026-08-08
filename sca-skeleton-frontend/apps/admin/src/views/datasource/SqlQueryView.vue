@@ -618,7 +618,7 @@ onMounted(() => {
         <template #before>
           <section class="sq-pane sq-editor-pane">
             <div class="sq-pane-head">
-              <q-icon name="sym_r_code" size="20px" class="sq-pane-head-icon" />
+              <q-icon name="sym_r_code_blocks" size="20px" class="sq-pane-head-icon" />
               <span class="sq-pane-head-title">{{ t('sqlQuery.sqlEditor') }}</span>
             </div>
             <div class="sq-editor-body">
