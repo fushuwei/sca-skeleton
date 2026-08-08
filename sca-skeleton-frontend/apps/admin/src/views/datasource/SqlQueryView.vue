@@ -206,14 +206,16 @@ async function handleExecute() {
       resultTab.value = "result";
     } else {
       pushMessage(false, res.message || t("sqlQuery.executeFail"), sql);
-      if (resultTab.value !== "messages") unreadError.value = true;
+      resultTab.value = "messages";
+      unreadError.value = false;
     }
   } catch (error) {
     const text = error instanceof Error && error.message
       ? t("sqlQuery.msgFail", { message: error.message })
       : t("sqlQuery.executeFail");
     pushMessage(false, text, sql);
-    if (resultTab.value !== "messages") unreadError.value = true;
+    resultTab.value = "messages";
+    unreadError.value = false;
     if (!isNotificationHandled(error)) {
       showToast(t("sqlQuery.executeFail"), "negative");
     }
