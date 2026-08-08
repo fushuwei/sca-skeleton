@@ -33,7 +33,7 @@ public class QueryController {
     @Operation(summary = "执行 SQL 查询")
     @PostMapping("/execute")
     @RequiresPermission("sys:datasource:sql-query")
-    @OperationLog(module = "数据查询", action = "执行 SQL 查询")
+    @OperationLog(module = "数据查询", action = "执行 SQL 查询", logResult = false)
     public Result<SqlExecuteResponse> execute(@Validated @RequestBody SqlExecuteRequest request) {
         return Result.ok(queryService.executeSql(request));
     }
