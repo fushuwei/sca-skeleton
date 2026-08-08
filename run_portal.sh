@@ -30,4 +30,5 @@ docker exec nginx nginx -t
 
 echo "=========================================="
 echo "前端部署成功！"
+echo "docker exec nginx nginx -s reload"
 echo "=========================================="
