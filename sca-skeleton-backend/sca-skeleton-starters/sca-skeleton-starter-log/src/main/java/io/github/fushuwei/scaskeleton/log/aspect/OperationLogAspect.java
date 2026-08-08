@@ -1,6 +1,8 @@
 package io.github.fushuwei.scaskeleton.log.aspect;
 
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
+import io.github.fushuwei.scaskeleton.core.result.Result;
 import io.github.fushuwei.scaskeleton.core.trace.TraceContext;
 import io.github.fushuwei.scaskeleton.core.user.CurrentUserProvider;
 import io.github.fushuwei.scaskeleton.log.annotation.OperationLog;
@@ -113,6 +115,16 @@ public class OperationLogAspect {
                     event.setResponseResult(jsonMapper.writeValueAsString(result));
                 } catch (Exception e) {
                     event.setResponseResult("[响应结果序列化失败，详情：{" + e.getMessage() + "}]");
+                }
+            } else if (!annotation.logResult() && result instanceof Result) {
+                // logResult=false：不记录响应数据，但保留 Result 外壳元信息，
+                // data 替换为提示文案，使前端能区分"不记录"与"空响应"
+                try {
+                    ObjectNode node = (ObjectNode) jsonMapper.valueToTree(result);
+                    node.put("data", "====== \uD83D\uDC49 该接口不记录响应数据 \uD83D\uDC48 ======");
+                    event.setResponseResult(jsonMapper.writeValueAsString(node));
+                } catch (Exception e) {
+                    // 序列化失败则不记录
                 }
             }
             return result;
