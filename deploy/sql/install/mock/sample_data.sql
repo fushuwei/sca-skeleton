@@ -82,7 +82,11 @@ INSERT INTO `sys_dept` (`id`, `tenant_id`, `parent_id`, `name`, `code`, `sort`, 
 -- 岗位
 -- ================================================================
 
-
+INSERT INTO sys_post (id, tenant_id, name, code, sort, remark, version, create_by, create_time, update_by, update_time, is_deleted) VALUES
+	('1', '1', '处长', 'CHUZHANG', 10, NULL, 0, 'admin', NOW(), 'admin', NOW(), 0),
+	('2', '1', '主任', 'ZHUREN', 20, NULL, 0, 'admin', NOW(), 'admin', NOW(), 0),
+	('3', '1', '科长', 'KEZHANG', 30, NULL, 0, 'admin', NOW(), 'admin', NOW(), 0),
+	('4', '1', '科员', 'KEYUAN', 40, NULL, 0, 'admin', NOW(), 'admin', NOW(), 0);
 
 
 -- ================================================================
