@@ -384,7 +384,12 @@
     "saveFail": "Failed to save",
     "permissionAssign": "Permission Assignment",
     "selectedPermissions": "{count} selected",
+    "selectAll": "Select All",
+    "clearAll": "Clear",
+    "expandAll": "Expand",
+    "collapseAll": "Collapse",
     "searchPermission": "Search permission",
+    "noSearchResult": "No matching permission found",
     "limitPlaceholder": "Leave empty for unlimited",
     "limitPositiveInteger": "Must be a positive integer greater than 0"
   },

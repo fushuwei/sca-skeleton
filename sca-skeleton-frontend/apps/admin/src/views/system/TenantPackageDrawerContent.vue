@@ -91,6 +91,8 @@ const allPermissions = ref<PermissionAssignOption[]>([]);
 
 /** 分类节点 id 前缀（避免与真实权限 ID 冲突） */
 const REALM_GROUP_PREFIX = "realm:";
+/** 节点叶子总数的扩展字段 key（buildPermTree 时预计算，用于分支统计徽章） */
+const LEAF_COUNT_KEY = "__leafCount";
 /** 权限域分组定义（顺序即树展示顺序） */
 const REALM_GROUPS: { realm: string; labelKey: string }[] = [
   { realm: "admin", labelKey: "permissionMgmt.adminGroup" },
@@ -164,8 +166,17 @@ function buildPermTree(perms: PermissionAssignOption[]): PermissionTreeNode[] {
     };
     cleanEmpty(roots);
 
+    // 预计算各节点叶子总数，挂在扩展字段上，供分支统计徽章直接使用
+    const attachLeafCount = (nodes: PermissionTreeNode[]) => {
+      for (const n of nodes) {
+        (n as unknown as Record<string, number>)[LEAF_COUNT_KEY] = countLeaves(n);
+        if (n.children?.length) attachLeafCount(n.children);
+      }
+    };
+    attachLeafCount(roots);
+
     if (roots.length) {
-      groups.push({
+      const groupNode: PermissionTreeNode = {
         id: realmGroupId(group.realm),
         label: t(group.labelKey),
         parentId: "",
@@ -173,7 +184,9 @@ function buildPermTree(perms: PermissionAssignOption[]): PermissionTreeNode[] {
         icon: "",
         realm: group.realm,
         children: roots
-      });
+      };
+      (groupNode as unknown as Record<string, number>)[LEAF_COUNT_KEY] = countLeaves(groupNode);
+      groups.push(groupNode);
     }
   }
 
@@ -196,6 +209,24 @@ function collectLeafIds(nodes: PermissionTreeNode[]): Set<string> {
   return leafIds;
 }
 
+/** 统计节点子树内叶子节点总数（含自身为叶子时计 1），用于分支「已选/总数」统计 */
+function countLeaves(node: PermissionTreeNode): number {
+  if (!node.children?.length) return 1;
+  return node.children.reduce((sum, c) => sum + countLeaves(c), 0);
+}
+
+/** 读取 buildPermTree 预计算的叶子总数（PermissionTreeNode 未声明该扩展字段，此处收敛类型断言） */
+function nodeLeafCount(node: PermissionTreeNode): number {
+  return (node as unknown as Record<string, number>)[LEAF_COUNT_KEY] ?? countLeaves(node);
+}
+
+/** 分支已勾选叶子数：取子树叶子集合与已勾选集合的交集 */
+function nodeTickedCount(node: PermissionTreeNode): number {
+  if (!permTreeTicked.value.length) return 0;
+  const leafIds = collectLeafIds([node]);
+  return permTreeTicked.value.filter((id) => leafIds.has(id)).length;
+}
+
 /** 收集被勾选节点的所有祖先 ID（含自身），用于保存完整权限链（module/folder/menu + button） */
 function collectWithAncestors(tickedIds: string[]): string[] {
   if (!tickedIds.length) return [];
@@ -216,9 +247,10 @@ function collectWithAncestors(tickedIds: string[]): string[] {
   return [...result];
 }
 
-/** 节点图标：分类节点（realm 组）/模块/目录统一用 folder/folder_open（随展开状态切换），菜单用 nest_eco_leaf，按钮无图标 */
+/** 树节点行图标：realm 分组节点不展示图标（以徽章表达权限域），模块/目录用 folder，菜单用叶子 */
 function permNodeIcon(node: PermissionTreeNode): string {
-  if (node.type === "realm-group" || node.type === "module" || node.type === "folder") {
+  if (node.type === "realm-group") return "";
+  if (node.type === "module" || node.type === "folder") {
     return permTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
   }
   if (node.type === "menu") return "sym_r_nest_eco_leaf";
@@ -255,6 +287,40 @@ watch(permSearchKey, (val) => {
     permTreeExpanded.value = allKeys;
   }
 });
+
+/** 当前过滤结果的全部节点 key（展开/收起与全选均作用于可见范围） */
+const filteredTreeKeys = computed(() => {
+  const keys: string[] = [];
+  const collectKeys = (nodes: PermissionTreeNode[]) => {
+    for (const n of nodes) {
+      keys.push(n.id);
+      if (n.children?.length) collectKeys(n.children);
+    }
+  };
+  collectKeys(filteredPermTreeNodes.value);
+  return keys;
+});
+
+/** 可见节点是否已全部展开（决定工具栏按钮显示「收起」还是「展开」） */
+const allVisibleExpanded = computed(
+  () => filteredTreeKeys.value.length > 0 && filteredTreeKeys.value.every((k) => permTreeExpanded.value.includes(k))
+);
+
+/** 展开/收起全部（针对当前过滤后的可见树） */
+function toggleExpandAll() {
+  permTreeExpanded.value = allVisibleExpanded.value ? [] : [...filteredTreeKeys.value];
+}
+
+/** 全选：勾选可见树的全部叶子节点（与已有勾选取并集，避免搜索过滤时丢失不可见区域的勾选） */
+function selectAllVisible() {
+  const visibleLeaves = collectLeafIds(filteredPermTreeNodes.value);
+  permTreeTicked.value = [...new Set([...permTreeTicked.value, ...visibleLeaves])];
+}
+
+/** 清空全部勾选 */
+function clearAllTicks() {
+  permTreeTicked.value = [];
+}
 
 async function loadPermTree() {
   permTreeLoading.value = true;
@@ -537,37 +603,63 @@ async function handleSave() {
         </div>
       </div>
 
-      <!-- ── 权限分配 ── -->
-      <div class="perm-section q-mt-md">
-        <div class="perm-section-header row items-center no-wrap q-mb-sm">
-          <q-icon name="sym_r_security" size="20px" class="q-mr-xs" color="grey-8" />
-          <span class="perm-section-title">{{ t('tenantPackageMgmt.permissionAssign') }}</span>
+      <!-- ── 权限分配：一体化面板（面板头 + 工具行 + 树内容区），与驱动上传面板同一设计语言 ── -->
+      <div class="perm-panel q-mt-md" :class="{ 'perm-panel--readonly': drawerReadonly }">
+        <!-- 面板头：左侧标题，右侧已选统计胶囊与快捷操作 -->
+        <div class="perm-panel__head">
+          <q-icon name="sym_r_security" size="18px" class="perm-panel__head-icon" />
+          <span class="perm-panel__title">{{ t('tenantPackageMgmt.permissionAssign') }}</span>
           <q-space />
-          <span v-if="permTreeTicked.length" class="text-caption text-grey-7">
+          <q-badge v-if="permTreeTicked.length" color="primary" rounded outline class="perm-panel__count">
             {{ t('tenantPackageMgmt.selectedPermissions', { count: permTreeTicked.length }) }}
-          </span>
+          </q-badge>
+          <template v-if="!drawerReadonly">
+            <q-btn flat dense no-caps size="12px" color="grey-8" class="perm-panel__action" @click="selectAllVisible">
+              {{ t('tenantPackageMgmt.selectAll') }}
+            </q-btn>
+            <q-btn
+              flat dense no-caps size="12px" color="grey-8"
+              class="perm-panel__action"
+              :disable="!permTreeTicked.length"
+              @click="clearAllTicks"
+            >
+              {{ t('tenantPackageMgmt.clearAll') }}
+            </q-btn>
+          </template>
+          <q-btn flat dense no-caps size="12px" color="grey-8" class="perm-panel__action" @click="toggleExpandAll">
+            {{ allVisibleExpanded ? t('tenantPackageMgmt.collapseAll') : t('tenantPackageMgmt.expandAll') }}
+          </q-btn>
         </div>
-        <div class="perm-tree-container">
+
+        <!-- 工具行：面板内无边框搜索框，focus 时底部主色描边 -->
+        <div class="perm-panel__toolbar">
           <q-input
             v-model="permSearchKey"
             dense
-            outlined
+            borderless
             square
             :placeholder="t('tenantPackageMgmt.searchPermission')"
             clearable
-            class="q-mb-sm"
+            class="perm-panel__search full-width"
             :disable="drawerReadonly"
           >
             <template #prepend>
               <q-icon name="sym_r_search" size="18px" />
             </template>
           </q-input>
+        </div>
+
+        <!-- 树内容区：独立滚动 -->
+        <div class="perm-panel__body">
           <q-scroll-area style="height: 320px">
             <template v-if="permTreeLoading">
               <div v-for="i in 6" :key="i" class="perm-skeleton-row">
                 <q-skeleton type="rect" width="60%" height="16px" class="q-ml-md q-my-sm" />
               </div>
             </template>
+            <div v-else-if="!filteredPermTreeNodes.length && permSearchKey.trim()" class="perm-panel__empty">
+              {{ t('tenantPackageMgmt.noSearchResult') }}
+            </div>
             <q-tree
               v-else
               :nodes="filteredPermTreeNodes"
@@ -584,14 +676,47 @@ async function handleSave() {
               no-nodes-label=" "
             >
               <template #default-header="scope">
-                <div class="perm-tree-node row items-center no-wrap full-width">
+                <div
+                  class="perm-tree-node row items-center no-wrap full-width"
+                  :class="{ 'perm-tree-node--realm': scope.node.type === 'realm-group' }"
+                >
+                  <!-- 查看模式：以勾选图标展示已选状态，替代禁用的复选框 -->
+                  <q-icon
+                    v-if="drawerReadonly && permTreeTicked.includes(scope.node.id)"
+                    name="sym_r_check_small"
+                    size="16px"
+                    color="primary"
+                    class="q-mr-xs"
+                  />
                   <q-icon
                     v-if="permNodeIcon(scope.node)"
                     :name="permNodeIcon(scope.node)"
                     size="18px"
                     class="q-mr-sm"
+                    :class="{
+                      'perm-tree-icon--folder': scope.node.type === 'module' || scope.node.type === 'folder',
+                      'perm-tree-icon--menu': scope.node.type === 'menu'
+                    }"
                   />
-                  <span class="ellipsis">{{ scope.node.label }}</span>
+                  <!-- realm 分组节点：权限域色点标识（admin=purple / portal=teal，与用户域徽章一致） -->
+                  <span
+                    v-if="scope.node.type === 'realm-group'"
+                    class="perm-tree-node__realm-dot"
+                    :class="scope.node.realm === 'admin' ? 'perm-tree-node__realm-dot--admin' : 'perm-tree-node__realm-dot--portal'"
+                  />
+                  <span
+                    class="ellipsis"
+                    :class="{ 'perm-tree-node__realm-label': scope.node.type === 'realm-group' }"
+                  >{{ scope.node.label }}</span>
+                  <q-space />
+                  <!-- 分支统计徽章：已选叶子/叶子总数，选满时转主色 -->
+                  <span
+                    v-if="scope.node.children?.length && nodeLeafCount(scope.node) > 0"
+                    class="perm-tree-node__stats"
+                    :class="{ 'perm-tree-node__stats--full': nodeTickedCount(scope.node) === nodeLeafCount(scope.node) }"
+                  >
+                    {{ nodeTickedCount(scope.node) }}/{{ nodeLeafCount(scope.node) }}
+                  </span>
                 </div>
               </template>
             </q-tree>
@@ -681,69 +806,173 @@ async function handleSave() {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 权限分配区域 */
-.perm-section {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
-  padding: 12px;
+/* ── 权限分配一体化面板：面板头 + 工具行 + 树内容区共享同一边框与背景（同驱动上传面板语言） ── */
+.perm-panel {
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  background: #fafbfc;
+  overflow: hidden;
 }
 
-.perm-section-title {
-  font-size: 14px;
+/* 只读态：白底信息展示卡片，弱化操作感（同上传面板只读态） */
+.perm-panel--readonly {
+  background: #fff;
+}
+
+/* 面板头：左侧标题，右侧统计胶囊与快捷操作 */
+.perm-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.perm-panel__head-icon {
+  color: #757575;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.perm-panel__title {
+  font-size: 13px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.87);
+  color: rgba(0, 0, 0, 0.85);
+  flex-shrink: 0;
 }
 
-.perm-tree-container {
-  margin-top: 4px;
+.perm-panel__count {
+  font-weight: 400;
+  padding: 3px 9px;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.perm-panel__action {
+  padding: 0 6px;
+  flex-shrink: 0;
+}
+
+/* 工具行：搜索框与面板同宽，无独立边框 */
+.perm-panel__toolbar {
+  padding: 2px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.perm-panel__search :deep(.q-field__control) {
+  height: 36px;
+}
+
+.perm-panel__search :deep(.q-field__prepend) {
+  color: #9aa3af;
+}
+
+/* focus 反馈：底部主色描边（borderless 模式默认无任何聚焦指示） */
+.perm-panel__search :deep(.q-field--focused .q-field__control) {
+  box-shadow: inset 0 -2px 0 0 var(--q-primary);
+}
+
+/* 树内容区 */
+.perm-panel__body {
+  padding: 6px 8px;
+}
+
+/* 搜索无匹配的空态 */
+.perm-panel__empty {
+  padding: 40px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: #9aa3af;
 }
 
 .perm-skeleton-row {
   padding: 4px 0;
 }
 
-.perm-tree {
-  padding: 0 4px;
+/* 树节点行头占满整行，使行悬停背景与分支统计徽章对齐至行尾 */
+.perm-tree :deep(.q-tree__node-child) {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-:deep(.perm-tree .q-tree__node) {
-  padding-bottom: 0 !important;
-}
-
-:deep(.perm-tree .q-tree__node-header) {
+.perm-tree :deep(.q-tree__node-header) {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 1px 0;
   padding: 0;
   min-height: 0;
-  border-radius: 0;
+  border-radius: 6px;
   box-sizing: border-box;
+  transition: background 0.15s ease;
+}
+
+.perm-tree :deep(.q-tree__node-header:hover) {
+  background: rgba(25, 118, 210, 0.04);
 }
 
 .perm-tree-node {
   min-width: 0;
   padding: 4px 8px;
   min-height: 32px;
-  border-radius: 4px;
 }
 
-/* 权限树复选框尺寸 */
-.perm-tree :deep(.q-checkbox__bg) {
-  width: 16px !important;
-  height: 16px !important;
+/* realm 分组节点：分组标签式展示，行距略增以区隔分组 */
+.perm-tree-node--realm {
+  padding: 6px 8px;
+  margin-top: 6px;
 }
 
-.perm-tree :deep(.q-checkbox__svg) {
-  width: 12px !important;
-  height: 12px !important;
+.perm-tree-node__realm-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #757575;
 }
 
-/* 取消权限树复选框悬停背景色 */
-.perm-tree :deep(.q-checkbox__inner::before) {
-  display: none !important;
+/* realm 分组节点：权限域色点（purple-7 / teal-7） */
+.perm-tree-node__realm-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+  flex-shrink: 0;
 }
 
-/* 查看模式：禁止权限树勾选交互 */
+.perm-tree-node__realm-dot--admin {
+  background: #7b1fa2;
+}
+
+.perm-tree-node__realm-dot--portal {
+  background: #00796b;
+}
+
+/* 节点图标语义化配色：目录琥珀 / 菜单绿叶 */
+.perm-tree-icon--folder {
+  color: #b98a2f;
+}
+
+.perm-tree-icon--menu {
+  color: #4caf50;
+}
+
+/* 分支统计徽章：已选/总数，选满时转主色 */
+.perm-tree-node__stats {
+  margin-left: 8px;
+  font-size: 11px;
+  color: #9aa3af;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.perm-tree-node__stats--full {
+  color: var(--q-primary);
+  font-weight: 600;
+}
+
+/* 查看模式：隐藏复选框列，已选状态改用行内勾选图标展示 */
 .perm-tree--readonly :deep(.q-tree__tickbox) {
-  pointer-events: none;
+  display: none;
 }
 </style>
 
@@ -779,17 +1008,47 @@ async function handleSave() {
   border-top-color: rgba(255, 255, 255, 0.08);
 }
 
-/* 权限分配区域暗色模式 */
-.body--dark .perm-section {
+/* 权限分配面板暗色模式 */
+.body--dark .perm-panel {
   border-color: rgba(255, 255, 255, 0.08);
+  background: #252525;
 }
 
-.body--dark .perm-section-title {
+.body--dark .perm-panel--readonly {
+  background: #222;
+}
+
+.body--dark .perm-panel__head,
+.body--dark .perm-panel__toolbar {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.body--dark .perm-panel__head-icon {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.body--dark .perm-panel__title {
   color: rgba(255, 255, 255, 0.87);
 }
 
-.body--dark .perm-section-header .q-icon {
-  color: rgba(255, 255, 255, 0.72) !important;
+.body--dark .perm-panel__search :deep(.q-field__native) {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .perm-tree :deep(.q-tree__node-header:hover) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.body--dark .perm-tree-node__realm-label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.body--dark .perm-tree-node__stats {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.body--dark .perm-tree-icon--folder {
+  color: #d8ae5f;
 }
 
 /* 权限树骨架屏 */
