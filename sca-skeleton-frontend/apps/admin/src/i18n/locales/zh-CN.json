@@ -385,7 +385,7 @@
     "permissionAssign": "权限分配",
     "selectedPermissions": "已选择 {count} 项",
     "searchPermission": "搜索权限",
-    "limitRequired": "请输入限额值",
+    "limitPlaceholder": "留空表示无限制",
     "limitPositiveInteger": "必须为大于 0 的整数"
   },
   "tenantMgmt": {

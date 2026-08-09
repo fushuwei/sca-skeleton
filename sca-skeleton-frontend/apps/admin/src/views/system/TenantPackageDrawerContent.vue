@@ -36,39 +36,29 @@ const form = reactive({
   permissionIds: [] as string[]
 });
 
-// ── 限额无限制开关：true 时对应字段为 -1（不限），false 时可输入具体值 ──
-const userLimitUnlimited = ref(false);
-const apiLimitUnlimited = ref(false);
-const storageLimitUnlimited = ref(false);
-const expireDaysUnlimited = ref(false);
-
-function onUserLimitToggle(val: boolean | null) {
-  const checked = !!val;
-  userLimitUnlimited.value = checked;
-  form.userLimit = checked ? -1 : null;
-}
-function onApiLimitToggle(val: boolean | null) {
-  const checked = !!val;
-  apiLimitUnlimited.value = checked;
-  form.apiLimit = checked ? -1 : null;
-}
-function onStorageLimitToggle(val: boolean | null) {
-  const checked = !!val;
-  storageLimitUnlimited.value = checked;
-  form.storageLimit = checked ? -1 : null;
-}
-function onExpireDaysToggle(val: boolean | null) {
-  const checked = !!val;
-  expireDaysUnlimited.value = checked;
-  form.expireDays = checked ? -1 : null;
-}
-
-/** 限额校验：勾选无限制时跳过；未勾选时必填且必须为大于 0 的整数 */
-function validateLimit(unlimited: boolean, val: number | null): true | string {
-  if (unlimited) return true;
-  if (val === null) {
-    return t("tenantPackageMgmt.limitRequired");
+// ── 限额数字输入过滤（与数据源页面连接池配置输入一致）──
+function onNumericKeydown(e: KeyboardEvent) {
+  if (e.isComposing || e.keyCode === 229 || e.key === "Process") {
+    e.preventDefault();
+    return;
   }
+  const controlKeys = ["Backspace", "Delete", "Tab", "Escape", "Enter", "Home", "End", "ArrowLeft", "ArrowRight"];
+  if (controlKeys.includes(e.key)) return;
+  if ((e.ctrlKey || e.metaKey) && /^[acvxzy]$/i.test(e.key)) return;
+  if (!/^\d$/.test(e.key)) {
+    e.preventDefault();
+  }
+}
+
+/** 限额字段输入过滤：仅保留数字；清空则为 null（表示无限制） */
+function onLimitInput(field: "userLimit" | "apiLimit" | "storageLimit" | "expireDays", v: string | number | null) {
+  const digits = String(v ?? "").replace(/\D/g, "");
+  form[field] = digits ? Number(digits) : null;
+}
+
+/** 限额校验：留空表示无限制（通过）；填写时必须为大于 0 的整数 */
+function validateLimit(val: number | null): true | string {
+  if (val === null || val === undefined) return true;
   if (!Number.isInteger(val) || val <= 0) {
     return t("tenantPackageMgmt.limitPositiveInteger");
   }
@@ -79,10 +69,10 @@ const formRules = computed(() => ({
   name: [(v: string) => !!v?.trim() || t("tenantPackageMgmt.nameRequired")],
   code: [(v: string) => !!v?.trim() || t("tenantPackageMgmt.codeRequired")],
   status: [(v: string) => !!v || t("tenantPackageMgmt.statusRequired")],
-  userLimit: [(v: number | null) => validateLimit(userLimitUnlimited.value, v)],
-  apiLimit: [(v: number | null) => validateLimit(apiLimitUnlimited.value, v)],
-  storageLimit: [(v: number | null) => validateLimit(storageLimitUnlimited.value, v)],
-  expireDays: [(v: number | null) => validateLimit(expireDaysUnlimited.value, v)]
+  userLimit: [(v: number | null) => validateLimit(v)],
+  apiLimit: [(v: number | null) => validateLimit(v)],
+  storageLimit: [(v: number | null) => validateLimit(v)],
+  expireDays: [(v: number | null) => validateLimit(v)]
 }));
 
 /** 套餐编码输入处理：自动转小写 */
@@ -321,10 +311,6 @@ function resetForm() {
   form.sort = 100;
   form.remark = "";
   form.permissionIds = [];
-  userLimitUnlimited.value = false;
-  apiLimitUnlimited.value = false;
-  storageLimitUnlimited.value = false;
-  expireDaysUnlimited.value = false;
   permTreeTicked.value = [];
 }
 
@@ -335,18 +321,13 @@ function initForm() {
     form.name = props.pkg.name;
     form.code = props.pkg.code ?? "";
     form.status = props.pkg.status || "enabled";
-    form.userLimit = props.pkg.userLimit ?? -1;
-    form.apiLimit = props.pkg.apiLimit ?? -1;
-    form.storageLimit = props.pkg.storageLimit ?? -1;
-    form.expireDays = props.pkg.expireDays ?? -1;
+    // -1 表示无限制，前端展示为空（留空即无限制）
+    form.userLimit = props.pkg.userLimit === -1 ? null : (props.pkg.userLimit ?? null);
+    form.apiLimit = props.pkg.apiLimit === -1 ? null : (props.pkg.apiLimit ?? null);
+    form.storageLimit = props.pkg.storageLimit === -1 ? null : (props.pkg.storageLimit ?? null);
+    form.expireDays = props.pkg.expireDays === -1 ? null : (props.pkg.expireDays ?? null);
     form.sort = props.pkg.sort ?? 100;
     form.remark = props.pkg.remark || "";
-
-    // 同步无限制开关状态
-    userLimitUnlimited.value = form.userLimit === -1;
-    apiLimitUnlimited.value = form.apiLimit === -1;
-    storageLimitUnlimited.value = form.storageLimit === -1;
-    expireDaysUnlimited.value = form.expireDays === -1;
 
     if (props.pkg.id) {
       loadPackagePermissions(props.pkg.id);
@@ -380,10 +361,11 @@ async function handleSave() {
     name: form.name,
     code: form.code,
     status: form.status,
-    userLimit: form.userLimit,
-    apiLimit: form.apiLimit,
-    storageLimit: form.storageLimit,
-    expireDays: form.expireDays,
+    // 留空（null）提交为 -1，后端以 -1 表示无限制
+    userLimit: form.userLimit ?? -1,
+    apiLimit: form.apiLimit ?? -1,
+    storageLimit: form.storageLimit ?? -1,
+    expireDays: form.expireDays ?? -1,
     sort: form.sort,
     remark: form.remark || undefined,
     permissionIds: fullPermissionIds.length ? fullPermissionIds : undefined
@@ -481,123 +463,78 @@ async function handleSave() {
             hide-bottom-space
           />
         </div>
-      </div>
-
-      <!-- ── 限额配置 ── -->
-      <div class="limit-section q-mt-md">
-        <div class="limit-section-header row items-center no-wrap q-mb-sm">
-          <q-icon name="sym_r_tune" size="20px" class="q-mr-xs" color="grey-8" />
-          <span class="limit-section-title">{{ t('tenantPackageMgmt.limitConfig') }}</span>
+        <!-- 用户数限制 -->
+        <div class="col-12 col-md-6">
+          <q-input
+            :model-value="form.userLimit"
+            @update:model-value="(v) => onLimitInput('userLimit', v)"
+            @keydown="onNumericKeydown"
+            type="text"
+            inputmode="numeric"
+            :label="t('tenantPackageMgmt.userLimit')"
+            :placeholder="t('tenantPackageMgmt.limitPlaceholder')"
+            filled
+            square
+            :rules="formRules.userLimit"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+          />
         </div>
-        <div class="row q-col-gutter-md">
-          <!-- 用户数限制 -->
-          <div class="col-12 col-md-6">
-            <q-input
-              v-model.number="form.userLimit"
-              :label="t('tenantPackageMgmt.userLimit')"
-              filled
-              square
-              type="number"
-              :disable="drawerReadonly"
-              :readonly="drawerReadonly || userLimitUnlimited"
-              :rules="formRules.userLimit"
-              hide-bottom-space
-            >
-              <template #append>
-                <q-checkbox
-                  :model-value="userLimitUnlimited"
-                  @update:model-value="onUserLimitToggle"
-                  :label="t('tenantPackageMgmt.unlimited')"
-                  :disable="drawerReadonly"
-                />
-              </template>
-            </q-input>
-          </div>
-          <!-- API调用限制 -->
-          <div class="col-12 col-md-6">
-            <q-input
-              v-model.number="form.apiLimit"
-              :label="t('tenantPackageMgmt.apiLimit')"
-              filled
-              square
-              type="number"
-              :disable="drawerReadonly"
-              :readonly="drawerReadonly || apiLimitUnlimited"
-              :rules="formRules.apiLimit"
-              hide-bottom-space
-            >
-              <template #append>
-                <q-checkbox
-                  :model-value="apiLimitUnlimited"
-                  @update:model-value="onApiLimitToggle"
-                  :label="t('tenantPackageMgmt.unlimited')"
-                  :disable="drawerReadonly"
-                />
-              </template>
-            </q-input>
-          </div>
-          <!-- 存储限制 -->
-          <div class="col-12 col-md-6">
-            <q-input
-              v-model.number="form.storageLimit"
-              :label="t('tenantPackageMgmt.storageLimit')"
-              filled
-              square
-              type="number"
-              :disable="drawerReadonly"
-              :readonly="drawerReadonly || storageLimitUnlimited"
-              :rules="formRules.storageLimit"
-              hide-bottom-space
-            >
-              <template #append>
-                <q-checkbox
-                  :model-value="storageLimitUnlimited"
-                  @update:model-value="onStorageLimitToggle"
-                  :label="t('tenantPackageMgmt.unlimited')"
-                  :disable="drawerReadonly"
-                />
-              </template>
-            </q-input>
-          </div>
-          <!-- 有效期天数 -->
-          <div class="col-12 col-md-6">
-            <q-input
-              v-model.number="form.expireDays"
-              :label="t('tenantPackageMgmt.expireDays')"
-              filled
-              square
-              type="number"
-              :disable="drawerReadonly"
-              :readonly="drawerReadonly || expireDaysUnlimited"
-              :rules="formRules.expireDays"
-              hide-bottom-space
-            >
-              <template #append>
-                <q-checkbox
-                  :model-value="expireDaysUnlimited"
-                  @update:model-value="onExpireDaysToggle"
-                  :label="t('tenantPackageMgmt.unlimited')"
-                  :disable="drawerReadonly"
-                />
-              </template>
-            </q-input>
-          </div>
+        <!-- API调用限制 -->
+        <div class="col-12 col-md-6">
+          <q-input
+            :model-value="form.apiLimit"
+            @update:model-value="(v) => onLimitInput('apiLimit', v)"
+            @keydown="onNumericKeydown"
+            type="text"
+            inputmode="numeric"
+            :label="t('tenantPackageMgmt.apiLimit')"
+            :placeholder="t('tenantPackageMgmt.limitPlaceholder')"
+            filled
+            square
+            :rules="formRules.apiLimit"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+          />
         </div>
-      </div>
-
-      <!-- 备注 -->
-      <div class="q-mt-md">
-        <q-input
-          v-model="form.remark"
-          :label="t('tenantPackageMgmt.remark')"
-          filled
-          square
-          type="textarea"
-          rows="3"
-          :disable="drawerReadonly"
-          :readonly="drawerReadonly"
-          hide-bottom-space
-        />
+        <!-- 存储限制 -->
+        <div class="col-12 col-md-6">
+          <q-input
+            :model-value="form.storageLimit"
+            @update:model-value="(v) => onLimitInput('storageLimit', v)"
+            @keydown="onNumericKeydown"
+            type="text"
+            inputmode="numeric"
+            :label="t('tenantPackageMgmt.storageLimit')"
+            :placeholder="t('tenantPackageMgmt.limitPlaceholder')"
+            filled
+            square
+            :rules="formRules.storageLimit"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+          />
+        </div>
+        <!-- 有效期天数 -->
+        <div class="col-12 col-md-6">
+          <q-input
+            :model-value="form.expireDays"
+            @update:model-value="(v) => onLimitInput('expireDays', v)"
+            @keydown="onNumericKeydown"
+            type="text"
+            inputmode="numeric"
+            :label="t('tenantPackageMgmt.expireDays')"
+            :placeholder="t('tenantPackageMgmt.limitPlaceholder')"
+            filled
+            square
+            :rules="formRules.expireDays"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+          />
+        </div>
       </div>
 
       <!-- ── 权限分配 ── -->
@@ -660,6 +597,21 @@ async function handleSave() {
             </q-tree>
           </q-scroll-area>
         </div>
+      </div>
+
+      <!-- 备注 -->
+      <div class="q-mt-md">
+        <q-input
+          v-model="form.remark"
+          :label="t('tenantPackageMgmt.remark')"
+          filled
+          square
+          type="textarea"
+          rows="3"
+          :disable="drawerReadonly"
+          :readonly="drawerReadonly"
+          hide-bottom-space
+        />
       </div>
     </q-form>
 
@@ -729,33 +681,6 @@ async function handleSave() {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 限额配置区域 */
-.limit-section {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
-  padding: 12px;
-}
-
-.limit-section-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.87);
-}
-
-/* 限额配置中"无限制"复选框尺寸与列表页保持一致 */
-.limit-section :deep(.q-checkbox__inner) {
-  font-size: 32px;
-}
-
-.limit-section :deep(.q-checkbox__label) {
-  font-size: 14px;
-}
-
-/* 限额配置中勾选"无限制"后文本框保持实线底边框（覆盖 Quasar readonly 默认虚线） */
-.limit-section :deep(.q-field--filled.q-field--readonly .q-field__control:before) {
-  border-bottom-style: none;
-}
-
 /* 权限分配区域 */
 .perm-section {
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -820,11 +745,6 @@ async function handleSave() {
 .perm-tree--readonly :deep(.q-tree__tickbox) {
   pointer-events: none;
 }
-
-/* 限额输入框 append 区域的 checkbox 不挤压 */
-.limit-section :deep(.q-field__append) {
-  white-space: nowrap;
-}
 </style>
 
 <style>
@@ -857,19 +777,6 @@ async function handleSave() {
 /* 抽屉底部按钮区域分隔线 */
 .body--dark .pkg-drawer-footer {
   border-top-color: rgba(255, 255, 255, 0.08);
-}
-
-/* 限额配置区域暗色模式 */
-.body--dark .limit-section {
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.body--dark .limit-section-title {
-  color: rgba(255, 255, 255, 0.87);
-}
-
-.body--dark .limit-section-header .q-icon {
-  color: rgba(255, 255, 255, 0.72) !important;
 }
 
 /* 权限分配区域暗色模式 */

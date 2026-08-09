@@ -385,7 +385,7 @@
     "permissionAssign": "Permission Assignment",
     "selectedPermissions": "{count} selected",
     "searchPermission": "Search permission",
-    "limitRequired": "Please input limit value",
+    "limitPlaceholder": "Leave empty for unlimited",
     "limitPositiveInteger": "Must be a positive integer greater than 0"
   },
   "tenantMgmt": {
