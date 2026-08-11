@@ -297,7 +297,12 @@
     "saveFail": "Failed to save",
     "permissionAssign": "Permission Assignment",
     "selectedPermissions": "{count} selected",
-    "searchPermission": "Search permission"
+    "selectAll": "Select All",
+    "clearAll": "Clear",
+    "expandAll": "Expand",
+    "collapseAll": "Collapse",
+    "searchPermission": "Search permission",
+    "noSearchResult": "No matching permission found"
   },
   "postMgmt": {
     "createPost": "Add Position",

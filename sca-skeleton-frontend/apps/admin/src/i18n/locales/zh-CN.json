@@ -296,8 +296,13 @@
     "saveSuccess": "保存成功",
     "saveFail": "保存失败",
     "permissionAssign": "权限分配",
-    "selectedPermissions": "已选择 {count} 项",
-    "searchPermission": "搜索权限"
+    "selectedPermissions": "已选 {count} 项",
+    "selectAll": "全选",
+    "clearAll": "清空",
+    "expandAll": "展开",
+    "collapseAll": "收起",
+    "searchPermission": "搜索权限",
+    "noSearchResult": "未找到匹配的权限"
   },
   "postMgmt": {
     "createPost": "添加岗位",
