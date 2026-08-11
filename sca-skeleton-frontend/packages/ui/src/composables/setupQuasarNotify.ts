@@ -57,6 +57,9 @@ export function setupQuasarNotify(): void {
   let previousDismiss: (() => void) | null = null;
 
   setNotifier((message: string, type: NotificationType, duration?: number) => {
+    // 清除通知区域内残留的文本选中状态（防止新 toast 复用 DOM 时继承旧 toast 的选中文字）
+    clearNotifySelection();
+
     // Dismiss 前一个通知，避免堆叠（不分组、不显示累计数字）。
     // 配合 quasar-notify.scss 中 .q-notification--top-move { transition: none } 解决连续触发时的
     // FLIP 晃动问题（仅禁用 move 动画，保留入场/离场滑入滑出动效）。
@@ -107,4 +110,27 @@ export function setupQuasarNotify(): void {
       el.addEventListener("animationend", onAnimationEnd);
     });
   });
+}
+
+/**
+ * 清除通知区域残留的文本选中状态。
+ *
+ * 背景：Quasar Notify 的通知列表由 transition-group 渲染，手动 dismiss 旧 toast 后立即创建
+ * 新 toast 时，Vue 会复用旧 toast 的 DOM 节点（就地 patch）。若用户此前用鼠标选中了旧 toast
+ * 的文字，浏览器全局的 Selection 仍指向该节点，导致新 toast 弹出时文字依旧显示为选中状态。
+ *
+ * 处理策略：仅清理锚定在通知容器内（.q-notifications）的选中，或锚点已随旧 toast 一起从文档
+ * 移除的选中（isConnected = false，多见于 toast 自然消失后），不影响用户在页面其他区域正在
+ * 进行的文本选中操作。
+ */
+function clearNotifySelection(): void {
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed) return;
+  const anchor = selection.anchorNode;
+  if (!anchor) return;
+  if (anchor.isConnected) {
+    const container = document.querySelector(".q-notifications");
+    if (!container || (anchor !== container && !container.contains(anchor))) return;
+  }
+  selection.removeAllRanges();
 }
