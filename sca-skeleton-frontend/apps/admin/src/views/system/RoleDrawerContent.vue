@@ -293,6 +293,8 @@ interface DeptTreeNode {
   id: string;
   label: string;
   parentId: string;
+  /** 是否可勾选（QTree 节点属性，false 时该节点 checkbox 以禁用态渲染，不影响子节点） */
+  tickable?: boolean;
   children?: DeptTreeNode[];
 }
 const deptTreeNodes = ref<DeptTreeNode[]>([]);
@@ -355,12 +357,14 @@ function filterDeptTree(nodes: DeptTreeNode[], keyword: string): DeptTreeNode[] 
 }
 
 /** 带虚拟根节点「全部」的树（q-tree 渲染用，根节点不可勾选）。
- *  注意：不能给根节点设置 disabled —— QTree 的 disabled 会级联禁用该节点的所有子节点，
- *  导致部门节点全部无法勾选。根节点的「不可勾选」由 @update:ticked 过滤 ROOT_DEPT_ID 保证。 */
+ *  不能给根节点设置 disabled —— QTree 的 disabled 会级联禁用该节点的所有子节点，导致部门全部无法勾选；
+ *  故用 tickable: false 让根节点 checkbox 以禁用态渲染（置灰、不可点），strict 模式下不影响子节点，
+ *  @update:ticked 过滤 ROOT_DEPT_ID 作为兜底。 */
 const deptTreeWithRoot = computed(() => [{
   id: ROOT_DEPT_ID,
   label: t("roleMgmt.allDepts"),
   parentId: "",
+  tickable: false,
   children: deptTreeNodes.value
 }] as DeptTreeNode[]);
 
@@ -709,7 +713,7 @@ async function handleSave() {
                 size="24px"
                 class="dept-more-tip"
               >
-                <q-tooltip :offset="[0, 8]" max-width="280px">
+                <q-tooltip anchor="top right" self="bottom right" :offset="[0, 8]" max-width="280px">
                   <!-- 每个已选部门一行展示，超长名称在行内换行 -->
                   <div v-for="(name, idx) in deptFullNames" :key="idx" class="dept-tooltip-line">{{ name }}</div>
                 </q-tooltip>
