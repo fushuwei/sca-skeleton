@@ -20,7 +20,6 @@ import io.github.fushuwei.scaskeleton.system.entity.SysUser;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserDept;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserPost;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
-import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.entity.SysRole;
 import io.github.fushuwei.scaskeleton.system.entity.SysDept;
 import io.github.fushuwei.scaskeleton.system.entity.SysPost;

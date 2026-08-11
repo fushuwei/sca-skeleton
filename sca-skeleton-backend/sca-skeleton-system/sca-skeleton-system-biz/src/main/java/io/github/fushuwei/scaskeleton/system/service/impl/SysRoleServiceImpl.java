@@ -15,7 +15,6 @@ import io.github.fushuwei.scaskeleton.system.converter.RoleConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysRole;
 import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
 import io.github.fushuwei.scaskeleton.system.entity.SysRolePermission;
-import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysPermissionMapper;
@@ -419,8 +418,8 @@ public class SysRoleServiceImpl implements SysRoleService {
             .in(SysRolePermission::getRoleId, roleIds));
     }
 
-/**
-* 根据 ID 加载角色实体
+    /**
+     * 根据 ID 加载角色实体
      *
      * @param id 角色 ID
      * @return 角色实体

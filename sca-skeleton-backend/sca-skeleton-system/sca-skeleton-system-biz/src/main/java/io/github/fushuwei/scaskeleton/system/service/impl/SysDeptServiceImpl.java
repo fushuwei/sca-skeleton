@@ -14,7 +14,6 @@ import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptOptionRespons
 import io.github.fushuwei.scaskeleton.system.api.response.dept.DeptResponse;
 import io.github.fushuwei.scaskeleton.system.converter.DeptConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysDept;
-import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.mapper.SysDeptMapper;
 import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
 import io.github.fushuwei.scaskeleton.system.service.SysDeptService;

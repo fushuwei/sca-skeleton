@@ -13,7 +13,6 @@ import io.github.fushuwei.scaskeleton.system.api.response.post.PostOptionRespons
 import io.github.fushuwei.scaskeleton.system.api.response.post.PostResponse;
 import io.github.fushuwei.scaskeleton.system.converter.PostConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysPost;
-import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.mapper.SysPostMapper;
 import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
 import io.github.fushuwei.scaskeleton.system.service.SysPostService;
@@ -221,8 +220,8 @@ public class SysPostServiceImpl implements SysPostService {
         postMapper.deleteBatchIds(ids);
     }
 
-/**
-* 根据 ID 加载岗位实体
+    /**
+     * 根据 ID 加载岗位实体
      *
      * @param id 岗位 ID
      * @return 岗位实体
