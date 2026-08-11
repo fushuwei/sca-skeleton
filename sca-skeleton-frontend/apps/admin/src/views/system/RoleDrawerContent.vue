@@ -464,7 +464,7 @@ async function handleSave() {
           </q-input>
         </div>
         <!-- 数据权限范围 -->
-        <div class="col-12 col-md-6">
+        <div class="col-12">
           <q-select
             v-model="form.dataScope"
             :label="t('roleMgmt.dataScope')"
@@ -507,20 +507,6 @@ async function handleSave() {
             filled
             square
             type="number"
-            :disable="drawerReadonly"
-            :readonly="drawerReadonly"
-            hide-bottom-space
-          />
-        </div>
-        <!-- 备注 -->
-        <div class="col-12">
-          <q-input
-            v-model="form.remark"
-            :label="t('roleMgmt.remark')"
-            filled
-            square
-            type="textarea"
-            rows="3"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
@@ -632,6 +618,21 @@ async function handleSave() {
             </q-tree>
           </q-scroll-area>
         </div>
+      </div>
+
+      <!-- 备注 -->
+      <div class="q-mt-md">
+        <q-input
+          v-model="form.remark"
+          :label="t('roleMgmt.remark')"
+          filled
+          square
+          type="textarea"
+          rows="3"
+          :disable="drawerReadonly"
+          :readonly="drawerReadonly"
+          hide-bottom-space
+        />
       </div>
     </q-form>
 
