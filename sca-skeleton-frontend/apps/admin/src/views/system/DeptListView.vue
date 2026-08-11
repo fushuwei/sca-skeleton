@@ -327,14 +327,6 @@ const columns = computed<QTableColumn<SysDept>[]>(() => [
     sortable: true
   },
   {
-    name: "tenantName",
-    field: "tenantName",
-    label: t("deptMgmt.tenantName"),
-    align: "left",
-    sortable: false,
-    format: (val: string) => (val ? val : "-")
-  },
-  {
     name: "leader",
     field: "leader",
     label: t("deptMgmt.leader"),
@@ -674,7 +666,7 @@ onMounted(() => {
                   <span class="dept-tree-label ellipsis">{{ scope.node.label }}</span>
                   <q-space />
                   <q-badge
-                    v-if="scope.node.count != null && scope.node.count > 0"
+                    v-if="scope.node.count != null"
                     color="primary"
                     rounded
                     class="dept-count-badge"

@@ -2,15 +2,12 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { SysRole, PermissionAssignOption, PermissionTreeNode, SysTenant } from "../../types/auth";
+import type { SysRole, PermissionAssignOption, PermissionTreeNode } from "../../types/auth";
 import { createRoleApi, updateRoleApi } from "../../apis/role";
 import { getRolePermissionIdsApi } from "../../apis/role";
 import { getRoleAssignOptionsApi } from "../../apis/role";
-import { getTenantListApi } from "../../apis/tenant";
-import { useAuthStore } from "../../stores/auth";
 
 const { t, locale } = useI18n({ useScope: "global" });
-const authStore = useAuthStore();
 
 const props = defineProps<{
   mode: "add" | "edit" | "view";
@@ -23,13 +20,10 @@ const emit = defineEmits<{
 }>();
 
 const drawerReadonly = computed(() => props.mode === "view");
-/** 当前登录用户是否为超管（超管创建时需选择目标租户） */
-const isSuperadmin = computed(() => authStore.isSuperadmin);
 
 const formLoading = ref(false);
 const form = reactive({
   id: "",
-  tenantId: "",
   name: "",
   code: "",
   dataScope: "",
@@ -39,34 +33,13 @@ const form = reactive({
   permissionIds: [] as string[]
 });
 
-// ── 租户下拉数据（仅超管加载） ──
-const tenantOptions = ref<SysTenant[]>([]);
-
-async function loadTenantOptions() {
-  if (!isSuperadmin.value) return;
-  try {
-    const result = await getTenantListApi();
-    if (result.code === 10_000 && result.data) {
-      tenantOptions.value = result.data;
-    }
-  } catch {
-    // 静默失败，下拉为空
-  }
-}
-
-const tenantOptionsFormatted = computed(() =>
-  tenantOptions.value.map(t => ({ label: t.name, value: t.id }))
-);
-
 /**
- * 权限树加载用的目标租户 ID：
- * - 超管新增：取表单选择的租户 ID
- * - 超管编辑/查看：取角色所属租户 ID
- * - 非超管：不传（后端按当前登录用户自身拥有的权限过滤）
+ * 权限树加载用的租户 ID：
+ * - 编辑/查看：取角色所属租户 ID
+ * - 新增：不传（后端按当前登录用户自身拥有的权限过滤）
  */
 const effectiveTenantId = computed<string | undefined>(() => {
-  if (!isSuperadmin.value) return undefined;
-  if (props.mode === "add") return form.tenantId || undefined;
+  if (props.mode === "add") return undefined;
   return props.role?.tenantId;
 });
 
@@ -340,7 +313,6 @@ async function loadRolePermissions(roleId: string) {
 
 function resetForm() {
   form.id = "";
-  form.tenantId = "";
   form.name = "";
   form.code = "";
   form.dataScope = "";
@@ -374,8 +346,7 @@ function initForm() {
 watch(() => props.role, initForm, { immediate: true });
 
 onMounted(() => {
-  loadTenantOptions();
-  // 新增模式：默认不加载授权面板（权限树为空），待选择角色域（超管还需选择租户）后动态查询；
+  // 新增模式：默认不加载授权面板（权限树为空），待选择角色域后动态查询；
   // 编辑/查看模式：realm 已从角色回填，打开时按角色域加载权限树。
   if (props.mode !== "add") {
     loadPermTree();
@@ -387,10 +358,9 @@ watch(permTreeTicked, (val) => {
   form.permissionIds = [...val];
 });
 
-/** 新增模式下，是否满足加载权限树的前置条件：需选定角色域，超管还需选定目标租户 */
+/** 新增模式下，是否满足加载权限树的前置条件：需选定角色域 */
 function canLoadPermTree(): boolean {
   if (!form.realm) return false;
-  if (isSuperadmin.value && !form.tenantId) return false;
   return true;
 }
 
@@ -398,15 +368,6 @@ function canLoadPermTree(): boolean {
 watch(() => form.realm, (newRealm, oldRealm) => {
   // 仅新增模式且用户主动切换时触发（编辑/查看模式 realm 禁用，initForm 赋值由 onMounted 负责首次加载）
   if (props.mode !== 'add' || newRealm === oldRealm) return;
-  permTreeTicked.value = [];
-  form.permissionIds = [];
-  if (!canLoadPermTree()) return;
-  loadPermTree();
-});
-
-// 新增模式下，超管切换目标租户时清空已勾选权限并重新加载权限树（权限受租户套餐限制）
-watch(() => form.tenantId, (newTenantId, oldTenantId) => {
-  if (props.mode !== 'add' || newTenantId === oldTenantId) return;
   permTreeTicked.value = [];
   form.permissionIds = [];
   if (!canLoadPermTree()) return;
@@ -433,11 +394,6 @@ async function handleSave() {
     remark: form.remark || undefined,
     permissionIds: fullPermissionIds.length ? fullPermissionIds : undefined
   };
-
-  // 超管创建时传目标租户 ID
-  if (props.mode === "add" && isSuperadmin.value) {
-    data.tenantId = form.tenantId;
-  }
 
   try {
     formLoading.value = true;
@@ -471,21 +427,6 @@ async function handleSave() {
     <!-- 中间内容区（唯一滚动区）：表单字段 -->
     <q-form id="role-drawer-form" class="role-drawer-form role-drawer-main" @submit="handleSave">
       <div class="row q-col-gutter-md">
-        <!-- 目标租户（仅超管创建时显示） -->
-        <div v-if="mode === 'add' && isSuperadmin" class="col-12">
-          <q-select
-            v-model="form.tenantId"
-            :label="t('common.targetTenant')"
-            filled
-            square
-            :options="tenantOptionsFormatted"
-            emit-value
-            map-options
-            :rules="[(v: string) => !!v || t('common.targetTenantRequired')]"
-            hide-bottom-space
-            class="required-field"
-          />
-        </div>
         <!-- 角色名称 -->
         <div class="col-12 col-md-6">
           <q-input

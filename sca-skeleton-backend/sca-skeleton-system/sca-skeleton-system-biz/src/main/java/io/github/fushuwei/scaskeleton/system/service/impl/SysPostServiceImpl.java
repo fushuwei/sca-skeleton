@@ -15,7 +15,6 @@ import io.github.fushuwei.scaskeleton.system.converter.PostConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysPost;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.mapper.SysPostMapper;
-import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
 import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
 import io.github.fushuwei.scaskeleton.system.service.SysPostService;
 import lombok.RequiredArgsConstructor;
@@ -42,8 +41,6 @@ import java.util.stream.Collectors;
 public class SysPostServiceImpl implements SysPostService {
 
     private final SysPostMapper postMapper;
-
-    private final SysTenantMapper tenantMapper;
 
     private final PostConverter postConverter;
 
@@ -125,8 +122,8 @@ public class SysPostServiceImpl implements SysPostService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createPost(PostCreateRequest request) {
-        // 获取租户 ID（如果是超管创建，该值由前端页面传入，如果是租户内部用户自己创建，则取当前登录人所在租户的 ID）
-        String tenantId = resolveTenantId(request.getTenantId());
+        // 获取当前登录用户所在租户的 ID
+        String tenantId = SecurityUtils.getTenantId();
 
         // 岗位编码在同一个租户内唯一
         long count = postMapper.selectCount(new LambdaQueryWrapper<SysPost>()
@@ -224,28 +221,8 @@ public class SysPostServiceImpl implements SysPostService {
         postMapper.deleteBatchIds(ids);
     }
 
-    /**
-     * 解析创建时的目标租户 ID
-     *
-     * @param requestTenantId 创建时传入的目标租户 ID（仅当超管创建时才会使用该参数）
-     * @return 实际写入用的租户 ID
-     */
-    private String resolveTenantId(String requestTenantId) {
-        if (SecurityUtils.isSuperAdmin()) {
-            if (!StringUtils.hasText(requestTenantId)) {
-                throw new BusinessException(ResultCode.VALIDATION_ERROR, "超管创建需指定目标租户");
-            }
-            SysTenant tenant = tenantMapper.selectById(requestTenantId);
-            if (tenant == null) {
-                throw new BusinessException(ResultCode.NOT_FOUND, "目标租户不存在");
-            }
-            return requestTenantId;
-        }
-        return SecurityUtils.getTenantId();
-    }
-
-    /**
-     * 根据 ID 加载岗位实体
+/**
+* 根据 ID 加载岗位实体
      *
      * @param id 岗位 ID
      * @return 岗位实体

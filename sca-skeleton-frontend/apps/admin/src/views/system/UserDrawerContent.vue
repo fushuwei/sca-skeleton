@@ -2,12 +2,11 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { SysUser, SysTenant, DeptOption, PostOption, RoleOption } from "../../types/auth";
+import type { SysUser, DeptOption, PostOption, RoleOption } from "../../types/auth";
 import { createUserApi, updateUserApi } from "../../apis/user";
 import { getDeptOptionsApi } from "../../apis/dept";
 import { getPostOptionsApi } from "../../apis/post";
 import { getRoleOptionsApi } from "../../apis/role";
-import { getTenantListApi } from "../../apis/tenant";
 import { checkPasswordStrength } from "../../utils/passwordStrength";
 import { useAuthStore } from "../../stores/auth";
 import DateTimePicker from "../../components/DateTimePicker.vue";
@@ -26,13 +25,12 @@ const emit = defineEmits<{
 }>();
 
 const drawerReadonly = computed(() => props.mode === "view");
-/** 当前登录用户是否为超管（超管创建时需选择目标租户） */
+/** 当前登录用户是否为超管 */
 const isSuperadmin = computed(() => authStore.isSuperadmin);
 
 const formLoading = ref(false);
 const form = reactive({
   id: "",
-  tenantId: "",
   username: "",
   password: "",
   nickname: "",
@@ -51,25 +49,6 @@ const form = reactive({
   postIds: [] as string[],
   roleIds: [] as string[]
 });
-
-// ── 租户下拉数据（仅超管加载） ──
-const tenantOptions = ref<SysTenant[]>([]);
-
-async function loadTenantOptions() {
-  if (!isSuperadmin.value) return;
-  try {
-    const result = await getTenantListApi();
-    if (result.code === 10_000 && result.data) {
-      tenantOptions.value = result.data;
-    }
-  } catch {
-    // 静默失败，下拉为空
-  }
-}
-
-const tenantOptionsFormatted = computed(() =>
-  tenantOptions.value.map(t => ({ label: t.name, value: t.id }))
-);
 
 const formRules = {
   username: [
@@ -350,7 +329,6 @@ async function loadPostOptions(tenantId?: string) {
 
 function resetForm() {
   form.id = "";
-  form.tenantId = "";
   form.username = "";
   form.password = "";
   form.nickname = "";
@@ -401,32 +379,17 @@ function initForm() {
 
 watch(() => props.user, initForm, { immediate: true });
 
-// 新增模式下切换目标租户时，清空已选关联数据并按新租户重新加载选项
-watch(() => form.tenantId, (val) => {
-  if (props.mode === "add") {
-    form.deptId = "";
-    form.postIds = [];
-    form.roleIds = [];
-    const tenantId = val || undefined;
-    loadDeptOptions(tenantId);
-    loadPostOptions(tenantId);
-    loadRoleOptions(tenantId, form.realm || undefined);
-  }
-});
-
-// 切换用户域时重新加载角色选项（按域+租户过滤），并清空已选角色避免跨域分配
+// 切换用户域时重新加载角色选项（按域过滤），并清空已选角色避免跨域分配
 watch(() => form.realm, (val) => {
   if (props.mode === "add") {
     form.roleIds = [];
   }
-  loadRoleOptions(form.tenantId || undefined, val || undefined);
+  loadRoleOptions(undefined, val || undefined);
 });
 
 onMounted(() => {
-  loadTenantOptions();
-  if (props.mode === "add" && !isSuperadmin.value) {
-    // 非超管新增模式：加载部门、岗位（后端按当前用户租户过滤）
-    // 超管新增模式：不加载，等选择目标租户后按租户加载
+  if (props.mode === "add") {
+    // 新增模式：加载部门、岗位（后端按当前用户租户过滤）
     // 编辑/查看模式：initForm 已加载
     loadDeptOptions();
     loadPostOptions();
@@ -463,11 +426,6 @@ async function handleSave() {
     data.password = form.password;
   }
 
-  // 超管创建时传目标租户 ID
-  if (props.mode === "add" && isSuperadmin.value) {
-    data.tenantId = form.tenantId;
-  }
-
   try {
     formLoading.value = true;
     let result;
@@ -500,21 +458,6 @@ async function handleSave() {
     <!-- 中间内容区（唯一滚动区）：表单字段 -->
     <q-form id="user-drawer-form" class="user-drawer-form user-drawer-main" @submit="handleSave">
       <div class="row q-col-gutter-md">
-        <!-- 目标租户（仅超管创建时显示） -->
-        <div v-if="mode === 'add' && isSuperadmin" class="col-12">
-          <q-select
-            v-model="form.tenantId"
-            :label="t('common.targetTenant')"
-            filled
-            square
-            :options="tenantOptionsFormatted"
-            emit-value
-            map-options
-            :rules="[(v: string) => !!v || t('common.targetTenantRequired')]"
-            hide-bottom-space
-            class="required-field"
-          />
-        </div>
         <!-- 用户名 -->
         <div class="col-12 col-md-6">
           <q-input

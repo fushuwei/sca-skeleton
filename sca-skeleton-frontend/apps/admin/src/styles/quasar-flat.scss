@@ -34,13 +34,15 @@
  * 避免影响已选中值的文字显示（选中值应保持 opacity: 1）。
  */
 .q-field__native .status-placeholder,
-.status-select:has(.q-select__focus-target[value=""]) .q-field__native > .ellipsis {
+.status-select:has(.q-select__focus-target[value=""]) .q-field__native > .ellipsis,
+.package-select:has(.q-select__focus-target[value=""]) .q-field__native > .ellipsis {
   color: rgba(0, 0, 0, 0.87);
   opacity: 0.7;
 }
 
 .body--dark .q-field__native .status-placeholder,
-.body--dark .status-select:has(.q-select__focus-target[value=""]) .q-field__native > .ellipsis {
+.body--dark .status-select:has(.q-select__focus-target[value=""]) .q-field__native > .ellipsis,
+.body--dark .package-select:has(.q-select__focus-target[value=""]) .q-field__native > .ellipsis {
   color: rgba(255, 255, 255, 0.87);
   opacity: 0.7;
 }

@@ -16,7 +16,6 @@ import io.github.fushuwei.scaskeleton.system.converter.DeptConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysDept;
 import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.mapper.SysDeptMapper;
-import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
 import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
 import io.github.fushuwei.scaskeleton.system.service.SysDeptService;
 import lombok.RequiredArgsConstructor;
@@ -43,8 +42,6 @@ import java.util.stream.Collectors;
 public class SysDeptServiceImpl implements SysDeptService {
 
     private final SysDeptMapper deptMapper;
-
-    private final SysTenantMapper tenantMapper;
 
     private final DeptConverter deptConverter;
 
@@ -125,8 +122,8 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createDept(DeptCreateRequest request) {
-        // 获取租户 ID（如果是超管创建，该值由前端页面传入，如果是租户内部用户自己创建，则取当前登录人所在租户的 ID）
-        String tenantId = resolveTenantId(request.getTenantId());
+        // 获取当前登录用户所在租户的 ID
+        String tenantId = SecurityUtils.getTenantId();
 
         // 部门编码在同一个租户内唯一
         long count = deptMapper.selectCount(new LambdaQueryWrapper<SysDept>()
@@ -286,26 +283,6 @@ public class SysDeptServiceImpl implements SysDeptService {
             return "0," + currentId;
         }
         return parent.getTreePath() + "," + currentId;
-    }
-
-    /**
-     * 解析创建时的目标租户 ID
-     *
-     * @param requestTenantId 创建时传入的目标租户 ID（仅当超管创建时才会使用该参数）
-     * @return 实际写入用的租户 ID
-     */
-    private String resolveTenantId(String requestTenantId) {
-        if (SecurityUtils.isSuperAdmin()) {
-            if (!StringUtils.hasText(requestTenantId)) {
-                throw new BusinessException(ResultCode.VALIDATION_ERROR, "超管创建需指定目标租户");
-            }
-            SysTenant tenant = tenantMapper.selectById(requestTenantId);
-            if (tenant == null) {
-                throw new BusinessException(ResultCode.NOT_FOUND, "目标租户不存在");
-            }
-            return requestTenantId;
-        }
-        return SecurityUtils.getTenantId();
     }
 
     /**
