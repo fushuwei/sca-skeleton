@@ -407,6 +407,7 @@
     "statusExpired": "过期",
     "statusCancelled": "注销",
     "statusPlaceholder": "请选择状态",
+    "isBuiltin": "是否内置",
     "contactInfo": "联系信息",
     "contactName": "联系人姓名",
     "contactPhone": "联系人电话",

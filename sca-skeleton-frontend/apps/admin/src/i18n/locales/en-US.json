@@ -407,6 +407,7 @@
     "statusExpired": "Expired",
     "statusCancelled": "Cancelled",
     "statusPlaceholder": "Select status",
+    "isBuiltin": "Built-in",
     "contactInfo": "Contact Info",
     "contactName": "Contact Name",
     "contactPhone": "Contact Phone",

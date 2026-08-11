@@ -30,4 +30,16 @@
         </choose>
     </select>
 
+    <!-- 批量查询指定 ID 中的内置租户名称（删除前校验） -->
+    <select id="selectBuiltinTenantNames" resultType="java.lang.String">
+        SELECT t.name
+        FROM sys_tenant t
+        WHERE t.is_deleted = 0
+          AND t.is_builtin = 1
+          AND t.id IN
+          <foreach collection="ids" item="id" open="(" separator="," close=")">
+              #{id}
+          </foreach>
+    </select>
+
 </mapper>

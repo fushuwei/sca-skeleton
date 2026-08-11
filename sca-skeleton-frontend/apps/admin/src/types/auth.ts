@@ -363,6 +363,8 @@ export interface SysTenant {
   expireTime: string | null;
   /** 租户状态：normal / disabled / expired / cancelled */
   status: string;
+  /** 是否系统内置：0 否 / 1 是 */
+  isBuiltin: number;
   remark: string;
   version: number;
   createTime: string;

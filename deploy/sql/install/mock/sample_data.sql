@@ -14,8 +14,8 @@ INSERT INTO sys_tenant_package (id,name,code,status,user_limit,api_limit,storage
 	 ('3','迷你套餐','mini','enabled',10,500,5,180,100,NULL,0,'1',now(),'1',now(),0),
 	 ('4','测试套餐（已停用）','test','disabled',-1,-1,-1,-1,100,NULL,0,'1',now(),'1',now(),0);
 
-INSERT INTO sys_tenant (id,name,code,package_id,contact_name,contact_phone,contact_email,domain_name,effective_time,expire_time,status,config_json,remark,version,create_by,create_time,update_by,update_time,is_deleted) VALUES
-	 ('1','默认租户','default','1','李白','13656780987','libai@example.com','https://newease.cloud',NULL,NULL,'normal',NULL,NULL,0,'1',now(),'1',now(),0);
+INSERT INTO sys_tenant (id,name,code,package_id,contact_name,contact_phone,contact_email,domain_name,effective_time,expire_time,status,is_builtin,config_json,remark,version,create_by,create_time,update_by,update_time,is_deleted) VALUES
+	 ('1','默认租户','default','1','李白','13656780987','libai@example.com','https://newease.cloud',NULL,NULL,'normal',1,NULL,NULL,0,'1',now(),'1',now(),0);
 
 
 -- ================================================================

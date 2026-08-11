@@ -60,6 +60,9 @@ public class SysTenant extends BaseEntity {
     /** 状态 */
     private String status;
 
+    /** 是否系统内置（0 否 1 是） */
+    private Integer isBuiltin;
+
     // ==================== 配置信息 ====================
 
     /** 个性化配置 */

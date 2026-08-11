@@ -14,9 +14,14 @@ import {
 import { getTenantPackageOptionsApi } from "../../apis/tenant-package";
 import { useConfirmDialog } from "@repo/ui";
 import TenantDrawerContent from "./TenantDrawerContent.vue";
+import { useAuthStore } from "../../stores/auth";
 
 const { t } = useI18n({ useScope: "global" });
 const { confirmDialog } = useConfirmDialog();
+const authStore = useAuthStore();
+
+// 仅超级管理员可编辑内置租户；内置租户删除对所有用户均拦截
+const isSuperAdmin = computed(() => authStore.profile?.isSuperadmin === 1);
 
 // ═══════════════════════════════════════════════════════════════
 // 搜索条件
@@ -210,6 +215,13 @@ const columns = computed<QTableColumn<SysTenant>[]>(() => [
     sortable: true
   },
   {
+    name: "isBuiltin",
+    field: "isBuiltin",
+    label: t("tenantMgmt.isBuiltin"),
+    align: "left",
+    sortable: false
+  },
+  {
     name: "createTime",
     field: "createTime",
     label: t("tenantMgmt.createTime"),
@@ -366,7 +378,7 @@ async function handleBatchDelete() {
     return;
   }
 
-  const builtinTenants = selectedRows.value.filter((r) => r.code === "default");
+  const builtinTenants = selectedRows.value.filter((r) => r.isBuiltin === 1);
   if (builtinTenants.length) {
     showToast(
       t("tenantMgmt.cannotDeleteBuiltinBatch", {
@@ -421,7 +433,7 @@ async function handleEdit(tenant: SysTenant) {
 
 // 删除
 async function handleDelete(tenant: SysTenant) {
-  if (tenant.code === "default") {
+  if (tenant.isBuiltin === 1) {
     showToast(t("tenantMgmt.cannotDeleteBuiltin"), "warning");
     return;
   }
@@ -662,6 +674,18 @@ onMounted(() => {
           </q-td>
         </template>
 
+        <!-- 是否内置列 -->
+        <template #body-cell-isBuiltin="props">
+          <q-td :props="props">
+            <q-badge
+              :color="props.value === 1 ? 'red-7' : 'grey-6'"
+              :label="props.value === 1 ? t('common.yes') : t('common.no')"
+              rounded
+              class="tenant-type-badge"
+            />
+          </q-td>
+        </template>
+
         <!-- 联系人姓名列 -->
         <template #body-cell-contactName="props">
           <q-td :props="props">
@@ -713,7 +737,7 @@ onMounted(() => {
               size="sm"
               color="primary"
               icon="sym_r_edit"
-              :disable="props.row.code === 'default'"
+              :disable="props.row.isBuiltin === 1 && !isSuperAdmin"
               @click.stop="handleEdit(props.row)"
             >
               <q-tooltip>{{ t("common.edit") }}</q-tooltip>
@@ -725,7 +749,7 @@ onMounted(() => {
               size="sm"
               color="negative"
               icon="sym_r_delete"
-              :disable="props.row.code === 'default'"
+              :disable="props.row.isBuiltin === 1"
               @click.stop="handleDelete(props.row)"
             >
               <q-tooltip>{{ t("common.delete") }}</q-tooltip>

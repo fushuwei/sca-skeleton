@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS `sys_tenant` (
     `effective_time`  DATETIME        DEFAULT NULL                COMMENT '生效时间（NULL表示立即生效）',
     `expire_time`     DATETIME        DEFAULT NULL                COMMENT '过期时间（NULL表示永不过期）',
     `status`          VARCHAR(20)     NOT NULL                    COMMENT '租户状态（normal 正常，disabled 禁用，expired 过期，cancelled 注销）',
+    `is_builtin`      TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否系统内置（0否 1是）',
     `config_json`     JSON            DEFAULT NULL                COMMENT '租户个性化配置（Logo、主题、策略等）',
     `remark`          TEXT            DEFAULT NULL                COMMENT '备注',
     `version`         INT             NOT NULL DEFAULT 0          COMMENT '乐观锁版本号',

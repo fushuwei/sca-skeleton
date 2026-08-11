@@ -24,8 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 租户管理 Service 实现类
@@ -128,6 +126,7 @@ public class SysTenantServiceImpl implements SysTenantService {
         tenant.setEffectiveTime(request.getEffectiveTime());
         tenant.setExpireTime(request.getExpireTime());
         tenant.setStatus(request.getStatus());
+        tenant.setIsBuiltin(0);
         tenant.setRemark(request.getRemark());
 
         // 保存租户
@@ -204,7 +203,10 @@ public class SysTenantServiceImpl implements SysTenantService {
         }
 
         // 加载租户实体并校验内置保护
-        loadTenantEntity(id);
+        SysTenant tenant = loadTenantEntity(id);
+        if (tenant.getIsBuiltin() != null && tenant.getIsBuiltin() == 1) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置租户不允许删除");
+        }
 
         // 引用校验
         referenceChecker.check(SysTenant.class, id);
@@ -229,8 +231,11 @@ public class SysTenantServiceImpl implements SysTenantService {
             return;
         }
 
-        // 批量加载租户实体并校验存在
-        loadTenantEntities(ids);
+        // 校验租户是否可以删除
+        List<String> builtinNames = tenantMapper.selectBuiltinTenantNames(ids);
+        if (!builtinNames.isEmpty()) {
+            throw new BusinessException(ResultCode.FAILURE, "系统内置租户不允许删除：" + String.join("、", builtinNames));
+        }
 
         // 引用校验
         referenceChecker.checkBatch(SysTenant.class, ids);
@@ -266,22 +271,5 @@ public class SysTenantServiceImpl implements SysTenantService {
             throw new BusinessException(ResultCode.NOT_FOUND, "租户不存在");
         }
         return tenant;
-    }
-
-    /**
-     * 根据 ID 列表批量加载租户实体并校验存在性
-     *
-     * @param ids 租户 ID 列表
-     * @return 租户实体列表
-     */
-    private List<SysTenant> loadTenantEntities(List<String> ids) {
-        List<String> distinctIds = ids.stream().distinct().toList();
-        List<SysTenant> entities = tenantMapper.selectBatchIds(distinctIds);
-        if (entities.size() != distinctIds.size()) {
-            Set<String> foundIds = entities.stream().map(SysTenant::getId).collect(Collectors.toSet());
-            List<String> missing = distinctIds.stream().filter(id -> !foundIds.contains(id)).toList();
-            throw new BusinessException(ResultCode.NOT_FOUND, "租户不存在，ID: " + String.join(", ", missing));
-        }
-        return entities;
     }
 }
