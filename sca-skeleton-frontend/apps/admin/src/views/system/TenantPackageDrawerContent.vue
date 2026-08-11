@@ -257,9 +257,9 @@ function permNodeIcon(node: PermissionTreeNode): string {
   return "";
 }
 
-/** 过滤树节点（按关键字，保留匹配的父节点） */
-function filterPermTree(nodes: PermissionTreeNode[], keyword: string): PermissionTreeNode[] {
-  if (!keyword.trim()) return nodes;
+/** 过滤树节点（按关键字，保留匹配的父节点）；clearable 清空时 keyword 为 null，需防御 */
+function filterPermTree(nodes: PermissionTreeNode[], keyword: string | null): PermissionTreeNode[] {
+  if (!keyword?.trim()) return nodes;
   const lower = keyword.toLowerCase();
   const result: PermissionTreeNode[] = [];
   for (const n of nodes) {
@@ -275,7 +275,7 @@ const filteredPermTreeNodes = computed(() => filterPermTree(permTreeNodes.value,
 
 /** 搜索时自动展开所有节点 */
 watch(permSearchKey, (val) => {
-  if (val.trim()) {
+  if (val?.trim()) {
     const allKeys: string[] = [];
     const collectKeys = (nodes: PermissionTreeNode[]) => {
       for (const n of nodes) {
@@ -658,7 +658,7 @@ async function handleSave() {
                 <q-skeleton type="rect" width="60%" height="16px" class="q-ml-md q-my-sm" />
               </div>
             </template>
-            <div v-else-if="!filteredPermTreeNodes.length && permSearchKey.trim()" class="perm-panel__empty">
+            <div v-else-if="!filteredPermTreeNodes.length && permSearchKey?.trim()" class="perm-panel__empty">
               {{ t('tenantPackageMgmt.noSearchResult') }}
             </div>
             <q-tree
@@ -849,13 +849,20 @@ async function handleSave() {
 
 /* 树内容区 */
 .perm-panel__body {
-  padding: 6px 8px;
+  padding: 6px 2px;
 }
 
-/* 搜索无匹配的空态 */
+/* 滚动区内层内容左右 10px 内边距（节点悬停背景与滚动条拉开距离） */
+.perm-panel__body :deep(.q-scrollarea__content) {
+  padding: 0 10px;
+}
+
+/* 搜索无匹配的空态：占满滚动区高度，水平垂直居中 */
 .perm-panel__empty {
-  padding: 40px 16px;
-  text-align: center;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 13px;
   color: #9aa3af;
 }
@@ -874,7 +881,7 @@ async function handleSave() {
 .perm-tree :deep(.q-tree__node-header) {
   flex: 1 1 auto;
   min-width: 0;
-  margin: 2px 0;
+  margin: 0;
   padding: 0;
   min-height: 0;
   border-radius: 6px;
@@ -890,8 +897,13 @@ async function handleSave() {
    表格行高 48px 承载 32px 复选框，树行以 40px 保持同等松弛感 */
 .perm-tree-node {
   min-width: 0;
-  padding: 4px 8px;
+  padding: 4px 4px;
   min-height: 40px;
+}
+
+/* 复选框与节点内容零间距（覆盖 Quasar .q-tree__tickbox 默认 margin-right: 4px） */
+.perm-tree :deep(.q-tree__tickbox) {
+  margin-right: 0;
 }
 
 /* 复选框照搬套餐列表表格选择列的 q-checkbox：
