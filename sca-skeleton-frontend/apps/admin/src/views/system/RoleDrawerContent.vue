@@ -51,7 +51,9 @@ const formRules = computed(() => ({
   name: [(v: string) => !!v?.trim() || t("roleMgmt.nameRequired")],
   code: [(v: string) => !!v?.trim() || t("roleMgmt.codeRequired")],
   dataScope: [(v: string) => !!v || t("roleMgmt.dataScopeRequired")],
-  realm: [(v: string) => !!v || t("roleMgmt.realmRequired")]
+  realm: [(v: string) => !!v || t("roleMgmt.realmRequired")],
+  // 自定义数据权限必须至少选择一个部门；其余数据权限范围忽略该字段
+  deptIds: [(v: string[]) => form.dataScope !== "custom" || (Array.isArray(v) && v.length > 0) || t("roleMgmt.deptRequired")]
 }));
 
 /** 角色编码前缀常量 */
@@ -609,12 +611,6 @@ function handleClose() {
 async function handleSave() {
   if (drawerReadonly.value) return;
 
-  // 自定义数据权限必须至少选择一个部门（与后端校验保持一致）
-  if (form.dataScope === "custom" && !form.deptIds.length) {
-    showToast(t("roleMgmt.deptRequired"), "warning");
-    return;
-  }
-
   // 收集被勾选叶子节点的所有祖先 ID，确保保存完整权限链（module/folder/menu + button），
   // 避免 leaf-filtered 策略导致只保存 button 而菜单树断裂
   const fullPermissionIds = collectWithAncestors(form.permissionIds);
@@ -727,10 +723,11 @@ async function handleSave() {
             multiple
             emit-value
             :display-value="deptMultiDisplayLabel"
+            :rules="formRules.deptIds"
             :disable="drawerReadonly"
             hide-bottom-space
             dropdown-icon="sym_r_arrow_drop_down"
-            :class="{ 'dept-select--menu-open': deptMenuOpen }"
+            :class="{ 'dept-select--menu-open': deptMenuOpen, 'required-field': true }"
           >
             <!-- 已选部门过多时折叠为 +N，悬浮提示完整列表 -->
             <template #append>
