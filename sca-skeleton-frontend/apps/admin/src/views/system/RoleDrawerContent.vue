@@ -293,13 +293,11 @@ interface DeptTreeNode {
   id: string;
   label: string;
   parentId: string;
-  disabled?: boolean;
   children?: DeptTreeNode[];
 }
 const deptTreeNodes = ref<DeptTreeNode[]>([]);
 const deptTreeExpanded = ref<string[]>([]);
 const deptSearchKey = ref("");
-const deptMenuRef = ref();
 const deptMenuOpen = ref(false);
 
 /** 将扁平部门列表转换为树结构 */
@@ -356,12 +354,13 @@ function filterDeptTree(nodes: DeptTreeNode[], keyword: string): DeptTreeNode[] 
   return result;
 }
 
-/** 带虚拟根节点「全部」的树（q-tree 渲染用，根节点不可勾选） */
+/** 带虚拟根节点「全部」的树（q-tree 渲染用，根节点不可勾选）。
+ *  注意：不能给根节点设置 disabled —— QTree 的 disabled 会级联禁用该节点的所有子节点，
+ *  导致部门节点全部无法勾选。根节点的「不可勾选」由 @update:ticked 过滤 ROOT_DEPT_ID 保证。 */
 const deptTreeWithRoot = computed(() => [{
   id: ROOT_DEPT_ID,
   label: t("roleMgmt.allDepts"),
   parentId: "",
-  disabled: true,
   children: deptTreeNodes.value
 }] as DeptTreeNode[]);
 
@@ -450,15 +449,9 @@ function isDeptTicked(node: DeptTreeNode): boolean {
   return form.deptIds.includes(node.id);
 }
 
-/** 清空已选部门 */
-function clearDeptSelection() {
-  form.deptIds = [];
-}
-
-/** 确认部门选择并关闭菜单 */
-function confirmDeptSelection() {
-  deptSearchKey.value = "";
-  deptMenuRef.value?.hide();
+/** 处理勾选变化：过滤虚拟根节点「全部」，它仅用于分组展示，不可勾选（不能靠 disabled 实现，会级联禁用子节点） */
+function onDeptTicked(ticked: readonly string[]) {
+  form.deptIds = [...ticked].filter((id) => id !== ROOT_DEPT_ID);
 }
 
 /** 部门选择菜单关闭时清理搜索残留与搜索展开态，避免下次打开仍带旧关键字和展开状态 */
@@ -716,14 +709,13 @@ async function handleSave() {
               <q-icon
                 v-if="deptFullNames.length > MAX_DEPT_DISPLAY"
                 name="sym_r_info"
-                size="18px"
+                size="24px"
                 class="dept-more-tip"
               >
                 <q-tooltip :offset="[0, 8]">{{ deptFullLabel }}</q-tooltip>
               </q-icon>
             </template>
             <q-menu
-              ref="deptMenuRef"
               anchor="bottom left"
               self="top left"
               :offset="[0, 0]"
@@ -759,15 +751,18 @@ async function handleSave() {
                     label-key="label"
                     children-key="children"
                     v-model:expanded="deptTreeExpanded"
-                    v-model:ticked="form.deptIds"
+                    :ticked="form.deptIds"
+                    @update:ticked="onDeptTicked"
                     tick-strategy="strict"
                     no-connectors
                     dense
+                    class="perm-tree"
                     no-nodes-label=" "
                   >
                     <template #default-header="scope">
+                      <!-- 行结构复用权限树的 perm-tree-node（40px 行高/占满整行），与套餐权限面板树一致 -->
                       <div
-                        class="dept-tree-option row items-center no-wrap full-width"
+                        class="perm-tree-node dept-tree-option row items-center no-wrap full-width"
                         :class="{ 'dept-tree-option--disabled': scope.node.id === ROOT_DEPT_ID }"
                       >
                         <q-icon
@@ -783,10 +778,6 @@ async function handleSave() {
                     </template>
                   </q-tree>
                 </q-scroll-area>
-                <div class="row items-center justify-between q-mt-sm">
-                  <q-btn flat dense no-caps :label="t('roleMgmt.clearAll')" :disable="!form.deptIds.length" @click="clearDeptSelection" />
-                  <q-btn unelevated dense no-caps color="primary" :label="t('common.confirm')" @click="confirmDeptSelection" />
-                </div>
               </div>
             </q-menu>
           </q-select>
@@ -1173,18 +1164,8 @@ async function handleSave() {
   display: none;
 }
 
-/* 部门树下拉选项 */
-.dept-tree-option {
-  min-height: 32px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background-color 0.15s;
-}
-
-.dept-tree-option:hover {
-  background: rgba(0, 0, 0, 0.04);
-}
-
+/* 部门树节点行：行高/占满整行/悬停/复选框尺寸均由 perm-tree + perm-tree-node 提供（与套餐权限面板树一致），
+   此处仅保留虚拟根节点「全部」的禁用视觉 */
 .dept-tree-option--disabled {
   cursor: not-allowed;
   opacity: 0.45;
@@ -1287,11 +1268,6 @@ async function handleSave() {
 /* 权限树骨架屏 */
 .body--dark .perm-skeleton-row .q-skeleton {
   background: rgba(255, 255, 255, 0.08);
-}
-
-/* 部门树下拉选项暗色模式 */
-.body--dark .dept-tree-option:hover {
-  background: rgba(255, 255, 255, 0.06);
 }
 
 /* 部门树空态暗色模式 */
