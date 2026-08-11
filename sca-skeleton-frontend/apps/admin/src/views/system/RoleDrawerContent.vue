@@ -436,9 +436,6 @@ const deptMultiDisplayLabel = computed(() => {
   );
 });
 
-/** 已选部门的完整展示标签（悬浮提示完整列表用） */
-const deptFullLabel = computed(() => deptFullNames.value.join("、"));
-
 /** 节点图标：使用 folder/folder_open 风格，与部门管理一致 */
 function deptNodeIcon(node: DeptTreeNode): string {
   return deptTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
@@ -712,7 +709,10 @@ async function handleSave() {
                 size="24px"
                 class="dept-more-tip"
               >
-                <q-tooltip :offset="[0, 8]">{{ deptFullLabel }}</q-tooltip>
+                <q-tooltip :offset="[0, 8]" max-width="280px">
+                  <!-- 每个已选部门一行展示，超长名称在行内换行 -->
+                  <div v-for="(name, idx) in deptFullNames" :key="idx" class="dept-tooltip-line">{{ name }}</div>
+                </q-tooltip>
               </q-icon>
             </template>
             <q-menu
@@ -1194,6 +1194,12 @@ async function handleSave() {
 /* 已选部门折叠提示图标 */
 .dept-more-tip {
   color: #9aa3af;
+}
+
+/* 悬浮提示：已选部门完整列表多行展示，超长名称行内换行 */
+.dept-tooltip-line {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 </style>
 
