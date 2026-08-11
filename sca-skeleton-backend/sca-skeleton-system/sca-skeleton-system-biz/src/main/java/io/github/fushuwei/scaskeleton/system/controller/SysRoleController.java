@@ -80,6 +80,13 @@ public class SysRoleController {
         return Result.ok(roleService.getRolePermissionIds(id));
     }
 
+    @Operation(summary = "查询角色自定义数据权限部门 ID 列表")
+    @GetMapping("/{id}/dept-ids")
+    @RequiresPermission("sys:role:list")
+    public Result<List<String>> getDeptIds(@PathVariable String id) {
+        return Result.ok(roleService.getRoleDeptIds(id));
+    }
+
     @Operation(summary = "新增角色")
     @PostMapping("/create")
     @RequiresPermission("sys:role:add")

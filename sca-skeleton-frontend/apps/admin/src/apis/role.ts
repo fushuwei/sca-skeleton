@@ -53,6 +53,11 @@ export async function getRolePermissionIdsApi(id: string): Promise<ApiEnvelope<s
   return request<string[]>({ method: "GET", url: `/sys/role/${id}/permissions` });
 }
 
+/** 查询角色自定义数据权限的部门 ID 列表 */
+export async function getRoleDeptIdsApi(id: string): Promise<ApiEnvelope<string[]>> {
+  return request<string[]>({ method: "GET", url: `/sys/role/${id}/dept-ids` });
+}
+
 /** 创建角色 */
 export async function createRoleApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
   return request<null>({ method: "POST", url: "/sys/role/create", data });

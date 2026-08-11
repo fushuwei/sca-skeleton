@@ -2,10 +2,13 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { SysRole, PermissionAssignOption, PermissionTreeNode } from "../../types/auth";
+import type { SysRole, PermissionAssignOption, PermissionTreeNode, DeptOption } from "../../types/auth";
 import { createRoleApi, updateRoleApi } from "../../apis/role";
 import { getRolePermissionIdsApi } from "../../apis/role";
 import { getRoleAssignOptionsApi } from "../../apis/role";
+import { getRoleDeptIdsApi } from "../../apis/role";
+import { getDeptOptionsApi } from "../../apis/dept";
+import { useAuthStore } from "../../stores/auth";
 
 const { t, locale } = useI18n({ useScope: "global" });
 
@@ -30,7 +33,8 @@ const form = reactive({
   realm: "",
   sort: 100,
   remark: "",
-  permissionIds: [] as string[]
+  permissionIds: [] as string[],
+  deptIds: [] as string[]
 });
 
 /**
@@ -290,6 +294,220 @@ async function loadPermTree() {
   }
 }
 
+// ── 部门树（自定义数据权限） ──
+/** 部门树虚拟根节点 ID（不可选择） */
+const ROOT_DEPT_ID = "0";
+
+interface DeptTreeNode {
+  id: string;
+  label: string;
+  parentId: string;
+  disabled?: boolean;
+  children?: DeptTreeNode[];
+}
+const deptTreeNodes = ref<DeptTreeNode[]>([]);
+const deptTreeExpanded = ref<string[]>([]);
+const deptSearchKey = ref("");
+const deptMenuRef = ref();
+const deptMenuOpen = ref(false);
+
+/** 将扁平部门列表转换为树结构 */
+function buildDeptTree(depts: DeptOption[]): DeptTreeNode[] {
+  if (!depts.length) return [];
+  const sorted = [...depts].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+
+  const map = new Map<string, DeptTreeNode>();
+  for (const d of sorted) {
+    map.set(d.id, { id: d.id, label: d.name, parentId: d.parentId, children: [] });
+  }
+  const roots: DeptTreeNode[] = [];
+  for (const d of sorted) {
+    const node = map.get(d.id)!;
+    if (!d.parentId || d.parentId === "0") {
+      roots.push(node);
+    } else {
+      const parent = map.get(d.parentId);
+      if (parent) {
+        parent.children = parent.children ?? [];
+        parent.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    }
+  }
+
+  // 清理空 children 数组，避免 q-tree 渲染多余的展开箭头
+  const cleanEmpty = (nodes: DeptTreeNode[]) => {
+    for (const n of nodes) {
+      if (n.children?.length) {
+        cleanEmpty(n.children);
+      } else {
+        delete n.children;
+      }
+    }
+  };
+  cleanEmpty(roots);
+
+  return roots;
+}
+
+/** 过滤树节点（按关键字，保留匹配的父节点） */
+function filterDeptTree(nodes: DeptTreeNode[], keyword: string): DeptTreeNode[] {
+  if (!keyword?.trim()) return nodes;
+  const lower = keyword.toLowerCase();
+  const result: DeptTreeNode[] = [];
+  for (const n of nodes) {
+    const childResult = n.children?.length ? filterDeptTree(n.children, keyword) : [];
+    if (n.label.toLowerCase().includes(lower) || childResult.length) {
+      result.push({ ...n, children: childResult.length ? childResult : n.children?.length ? [] : undefined });
+    }
+  }
+  return result;
+}
+
+/** 带虚拟根节点「全部」的树（q-tree 渲染用，根节点不可勾选） */
+const deptTreeWithRoot = computed(() => [{
+  id: ROOT_DEPT_ID,
+  label: t("roleMgmt.allDepts"),
+  parentId: "",
+  disabled: true,
+  children: deptTreeNodes.value
+}] as DeptTreeNode[]);
+
+const filteredDeptTreeNodes = computed(() => filterDeptTree(deptTreeWithRoot.value, deptSearchKey.value));
+
+/** 当前用户是否为超管（用于新增模式下部门树空态的原因区分） */
+const isSuperadmin = computed(() => useAuthStore().isSuperadmin);
+
+/** 部门树是否为空态（无部门数据或搜索无结果） */
+const deptTreeEmpty = computed(() => {
+  if (deptSearchKey.value?.trim()) {
+    return filteredDeptTreeNodes.value.length === 0;
+  }
+  return deptTreeNodes.value.length === 0;
+});
+
+/** 部门树空态提示文案 */
+const deptTreeEmptyLabel = computed(() => {
+  if (deptSearchKey.value?.trim()) {
+    return t("roleMgmt.noDeptSearchResult");
+  }
+  // 超管新增模式：无租户上下文，部门树必然为空
+  if (props.mode === "add" && isSuperadmin.value) {
+    return t("roleMgmt.addModeNoDeptHint");
+  }
+  return t("roleMgmt.noDeptData");
+});
+
+/** 搜索时自动展开所有节点 */
+watch(deptSearchKey, (val) => {
+  if (val?.trim()) {
+    const allKeys: string[] = [];
+    const collectKeys = (nodes: DeptTreeNode[]) => {
+      for (const n of nodes) {
+        allKeys.push(n.id);
+        if (n.children?.length) collectKeys(n.children);
+      }
+    };
+    collectKeys(filteredDeptTreeNodes.value);
+    deptTreeExpanded.value = allKeys;
+  }
+});
+
+/** 部门树加载后默认展开根节点和第一级 */
+watch(deptTreeNodes, (nodes) => {
+  if (nodes.length) {
+    deptTreeExpanded.value = [ROOT_DEPT_ID];
+  }
+}, { immediate: true });
+
+/** 查找节点标签 */
+function findDeptLabel(nodes: DeptTreeNode[], id: string): string {
+  for (const n of nodes) {
+    if (n.id === id) return n.label;
+    if (n.children?.length) {
+      const found = findDeptLabel(n.children, id);
+      if (found) return found;
+    }
+  }
+  return "";
+}
+
+/** 已选部门展示的最大数量，超出部分折叠为 +N */
+const MAX_DEPT_DISPLAY = 3;
+
+/** 已选部门的完整名称列表 */
+const deptFullNames = computed(() =>
+  form.deptIds.map((id) => findDeptLabel(deptTreeWithRoot.value, id) || id)
+);
+
+/** 已选部门的展示标签（多选，顿号分隔；数量过多时折叠为前 N 个 +N） */
+const deptMultiDisplayLabel = computed(() => {
+  if (!deptFullNames.value.length) return "";
+  if (deptFullNames.value.length <= MAX_DEPT_DISPLAY) {
+    return deptFullNames.value.join("、");
+  }
+  return (
+    deptFullNames.value.slice(0, MAX_DEPT_DISPLAY).join("、") +
+    t("roleMgmt.deptMore", { count: deptFullNames.value.length - MAX_DEPT_DISPLAY })
+  );
+});
+
+/** 已选部门的完整展示标签（悬浮提示完整列表用） */
+const deptFullLabel = computed(() => deptFullNames.value.join("、"));
+
+/** 节点图标：使用 folder/folder_open 风格，与部门管理一致 */
+function deptNodeIcon(node: DeptTreeNode): string {
+  return deptTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
+}
+
+/** 节点是否已勾选 */
+function isDeptTicked(node: DeptTreeNode): boolean {
+  return form.deptIds.includes(node.id);
+}
+
+/** 清空已选部门 */
+function clearDeptSelection() {
+  form.deptIds = [];
+}
+
+/** 确认部门选择并关闭菜单 */
+function confirmDeptSelection() {
+  deptSearchKey.value = "";
+  deptMenuRef.value?.hide();
+}
+
+/** 部门选择菜单关闭时清理搜索残留与搜索展开态，避免下次打开仍带旧关键字和展开状态 */
+function onDeptMenuHide() {
+  deptMenuOpen.value = false;
+  deptSearchKey.value = "";
+  deptTreeExpanded.value = deptTreeNodes.value.length ? [ROOT_DEPT_ID] : [];
+}
+
+/** 加载部门选项（按目标租户过滤） */
+async function loadDeptOptions(tenantId?: string) {
+  try {
+    const result = await getDeptOptionsApi(tenantId);
+    if (result.code === 10_000 && result.data) {
+      deptTreeNodes.value = buildDeptTree(result.data);
+    }
+  } catch {
+    // 静默失败，下拉为空
+  }
+}
+
+/** 加载角色已分配的自定义数据权限部门 ID 列表 */
+async function loadRoleDeptIds(roleId: string) {
+  try {
+    const result = await getRoleDeptIdsApi(roleId);
+    if (result.code === 10_000 && result.data) {
+      form.deptIds = result.data;
+    }
+  } catch {
+    // 静默失败
+  }
+}
+
 /** 加载角色已分配的权限 ID 列表 */
 async function loadRolePermissions(roleId: string) {
   try {
@@ -320,6 +538,7 @@ function resetForm() {
   form.sort = 100;
   form.remark = "";
   form.permissionIds = [];
+  form.deptIds = [];
   permTreeTicked.value = [];
 }
 
@@ -339,6 +558,8 @@ function initForm() {
     if (props.role.id) {
       // 编辑/查看模式加载已分配权限
       loadRolePermissions(props.role.id);
+      // 编辑/查看模式加载自定义数据权限部门
+      loadRoleDeptIds(props.role.id);
     }
   }
 }
@@ -374,12 +595,25 @@ watch(() => form.realm, (newRealm, oldRealm) => {
   loadPermTree();
 });
 
+// 数据权限切换为「自定义」且部门树未加载时，按角色租户加载部门树
+watch(() => form.dataScope, (val) => {
+  if (val === "custom" && deptTreeNodes.value.length === 0) {
+    loadDeptOptions(effectiveTenantId.value);
+  }
+});
+
 function handleClose() {
   emit("close");
 }
 
 async function handleSave() {
   if (drawerReadonly.value) return;
+
+  // 自定义数据权限必须至少选择一个部门（与后端校验保持一致）
+  if (form.dataScope === "custom" && !form.deptIds.length) {
+    showToast(t("roleMgmt.deptRequired"), "warning");
+    return;
+  }
 
   // 收集被勾选叶子节点的所有祖先 ID，确保保存完整权限链（module/folder/menu + button），
   // 避免 leaf-filtered 策略导致只保存 button 而菜单树断裂
@@ -392,7 +626,9 @@ async function handleSave() {
     realm: form.realm,
     sort: form.sort,
     remark: form.remark || undefined,
-    permissionIds: fullPermissionIds.length ? fullPermissionIds : undefined
+    permissionIds: fullPermissionIds.length ? fullPermissionIds : undefined,
+    // 仅自定义数据权限时才提交部门 ID 列表，其余数据权限范围忽略
+    deptIds: form.dataScope === "custom" ? (form.deptIds.length ? form.deptIds : undefined) : undefined
   };
 
   try {
@@ -463,8 +699,8 @@ async function handleSave() {
             </template>
           </q-input>
         </div>
-        <!-- 数据权限范围 -->
-        <div class="col-12">
+        <!-- 数据权限范围：自定义数据权限时缩为半宽，另一半显示部门多选下拉框 -->
+        <div :class="form.dataScope === 'custom' ? 'col-12 col-md-6' : 'col-12'">
           <q-select
             v-model="form.dataScope"
             :label="t('roleMgmt.dataScope')"
@@ -480,6 +716,101 @@ async function handleSave() {
             hide-bottom-space
             class="required-field"
           />
+        </div>
+        <!-- 自定义数据权限：部门多选 -->
+        <div v-if="form.dataScope === 'custom'" class="col-12 col-md-6">
+          <q-select
+            v-model="form.deptIds"
+            :label="t('roleMgmt.customDept')"
+            filled
+            square
+            multiple
+            emit-value
+            :display-value="deptMultiDisplayLabel"
+            :disable="drawerReadonly"
+            hide-bottom-space
+            dropdown-icon="sym_r_arrow_drop_down"
+            :class="{ 'dept-select--menu-open': deptMenuOpen }"
+          >
+            <!-- 已选部门过多时折叠为 +N，悬浮提示完整列表 -->
+            <template #append>
+              <q-icon
+                v-if="deptFullNames.length > MAX_DEPT_DISPLAY"
+                name="sym_r_info"
+                size="18px"
+                class="dept-more-tip"
+              >
+                <q-tooltip :offset="[0, 8]">{{ deptFullLabel }}</q-tooltip>
+              </q-icon>
+            </template>
+            <q-menu
+              ref="deptMenuRef"
+              anchor="bottom left"
+              self="top left"
+              :offset="[0, 0]"
+              no-focus
+              no-route-update
+              fit
+              @before-show="deptMenuOpen = true"
+              @before-hide="onDeptMenuHide"
+            >
+              <div class="q-pa-sm">
+                <q-input
+                  v-model="deptSearchKey"
+                  dense
+                  outlined
+                  square
+                  :placeholder="t('roleMgmt.searchDept')"
+                  clearable
+                  class="q-mb-sm"
+                >
+                  <template #prepend>
+                    <q-icon name="sym_r_search" size="18px" />
+                  </template>
+                </q-input>
+                <q-scroll-area style="height: 280px">
+                  <!-- 部门树空态：无部门数据或搜索无结果 -->
+                  <div v-if="deptTreeEmpty" class="dept-panel__empty">
+                    {{ deptTreeEmptyLabel }}
+                  </div>
+                  <q-tree
+                    v-else
+                    :nodes="filteredDeptTreeNodes"
+                    node-key="id"
+                    label-key="label"
+                    children-key="children"
+                    v-model:expanded="deptTreeExpanded"
+                    v-model:ticked="form.deptIds"
+                    tick-strategy="strict"
+                    no-connectors
+                    dense
+                    no-nodes-label=" "
+                  >
+                    <template #default-header="scope">
+                      <div
+                        class="dept-tree-option row items-center no-wrap full-width"
+                        :class="{ 'dept-tree-option--disabled': scope.node.id === ROOT_DEPT_ID }"
+                      >
+                        <q-icon
+                          :name="deptNodeIcon(scope.node)"
+                          size="18px"
+                          class="q-mr-sm"
+                          :class="{ 'text-primary': isDeptTicked(scope.node) }"
+                        />
+                        <span class="ellipsis" :class="{ 'text-primary text-weight-medium': isDeptTicked(scope.node) }">
+                          {{ scope.node.label }}
+                        </span>
+                      </div>
+                    </template>
+                  </q-tree>
+                </q-scroll-area>
+                <div class="row items-center justify-between q-mt-sm">
+                  <q-btn flat dense no-caps :label="t('roleMgmt.clearAll')" :disable="!form.deptIds.length" @click="clearDeptSelection" />
+                  <q-btn unelevated dense no-caps color="primary" :label="t('common.confirm')" @click="confirmDeptSelection" />
+                </div>
+              </div>
+            </q-menu>
+          </q-select>
         </div>
         <!-- 角色域 -->
         <div class="col-12 col-md-6">
@@ -862,6 +1193,48 @@ async function handleSave() {
 .perm-tree--readonly :deep(.q-tree__tickbox) {
   display: none;
 }
+
+/* 部门树下拉选项 */
+.dept-tree-option {
+  min-height: 32px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.15s;
+}
+
+.dept-tree-option:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.dept-tree-option--disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.dept-tree-option--disabled:hover {
+  background: transparent;
+}
+
+.dept-select--menu-open :deep(.q-field__append > .q-icon:not(.text-negative):not(.dept-more-tip)) {
+  transform: rotate(180deg);
+}
+
+/* 部门树空态：无部门数据或搜索无结果 */
+.dept-panel__empty {
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  text-align: center;
+  font-size: 13px;
+  color: #9aa3af;
+}
+
+/* 已选部门折叠提示图标 */
+.dept-more-tip {
+  color: #9aa3af;
+}
 </style>
 
 <style>
@@ -935,5 +1308,15 @@ async function handleSave() {
 /* 权限树骨架屏 */
 .body--dark .perm-skeleton-row .q-skeleton {
   background: rgba(255, 255, 255, 0.08);
+}
+
+/* 部门树下拉选项暗色模式 */
+.body--dark .dept-tree-option:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* 部门树空态暗色模式 */
+.body--dark .dept-panel__empty {
+  color: rgba(255, 255, 255, 0.45);
 }
 </style>

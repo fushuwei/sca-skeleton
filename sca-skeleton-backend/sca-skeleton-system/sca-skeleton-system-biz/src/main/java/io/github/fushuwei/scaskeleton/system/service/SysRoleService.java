@@ -83,4 +83,12 @@ public interface SysRoleService {
      * @return 权限 ID 列表
      */
     List<String> getRolePermissionIds(String roleId);
+
+    /**
+     * 查询角色自定义数据权限的部门 ID 列表
+     *
+     * @param roleId 角色 ID
+     * @return 部门 ID 列表
+     */
+    List<String> getRoleDeptIds(String roleId);
 }

@@ -275,6 +275,9 @@
     "scopeDept": "Dept Only",
     "scopePersonal": "Personal",
     "scopeCustom": "Custom",
+    "allDepts": "All",
+    "customDept": "Custom Departments",
+    "searchDept": "Search departments",
     "keywordPlaceholder": "Search by role name / code",
     "scopePlaceholder": "Select data scope",
     "realmPlaceholder": "Select role realm",
@@ -298,7 +301,12 @@
     "expandAll": "Expand",
     "collapseAll": "Collapse",
     "searchPermission": "Search permission",
-    "noSearchResult": "No matching permission found"
+    "noSearchResult": "No matching permission found",
+    "deptRequired": "Please select at least one department",
+    "noDeptData": "No department data",
+    "noDeptSearchResult": "No matching department found",
+    "addModeNoDeptHint": "No departments available when a super admin creates a role",
+    "deptMore": "+{count}"
   },
   "postMgmt": {
     "createPost": "Add Position",

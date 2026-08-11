@@ -46,4 +46,7 @@ public class RoleCreateRequest {
 
     /** 权限 ID 列表 */
     private List<String> permissionIds;
+
+    /** 自定义数据权限部门 ID 列表 */
+    private List<String> deptIds;
 }

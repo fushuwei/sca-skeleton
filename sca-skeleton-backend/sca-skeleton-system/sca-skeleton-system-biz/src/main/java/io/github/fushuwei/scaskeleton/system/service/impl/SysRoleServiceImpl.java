@@ -13,11 +13,15 @@ import io.github.fushuwei.scaskeleton.system.api.response.role.RoleOptionRespons
 import io.github.fushuwei.scaskeleton.system.api.response.role.RoleResponse;
 import io.github.fushuwei.scaskeleton.system.converter.RoleConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysRole;
+import io.github.fushuwei.scaskeleton.system.entity.SysDept;
 import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
+import io.github.fushuwei.scaskeleton.system.entity.SysRoleDataScope;
 import io.github.fushuwei.scaskeleton.system.entity.SysRolePermission;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysDeptMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysPermissionMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysRoleDataScopeMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRolePermissionMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
@@ -51,6 +55,10 @@ public class SysRoleServiceImpl implements SysRoleService {
     private final SysPermissionMapper permissionMapper;
 
     private final SysRolePermissionMapper rolePermissionMapper;
+
+    private final SysRoleDataScopeMapper roleDataScopeMapper;
+
+    private final SysDeptMapper deptMapper;
 
     private final SysUserRoleMapper userRoleMapper;
 
@@ -178,11 +186,20 @@ public class SysRoleServiceImpl implements SysRoleService {
         // 校验分配的权限不超出租户套餐（超管）或用户自身权限（非超管）范围
         validateAssignablePermissions(tenantId, request.getPermissionIds(), request.getRealm());
 
+        // 解析并校验数据权限部门：custom 必须至少选择一个部门，非 custom 忽略传入的部门列表
+        List<String> deptIds = resolveDataScopeDeptIds(request.getDataScope(), request.getDeptIds());
+
+        // 校验自定义数据权限所选部门均属于当前租户
+        validateDeptScope(tenantId, deptIds);
+
         // 保存角色
         roleMapper.insert(role);
 
         // 保存关联关系
         saveRolePermissions(tenantId, role.getId(), request.getPermissionIds());
+
+        // 保存自定义数据权限部门关联关系
+        saveRoleDataScopes(tenantId, role.getId(), deptIds);
     }
 
     /**
@@ -202,6 +219,17 @@ public class SysRoleServiceImpl implements SysRoleService {
         role.setSort(request.getSort() != null ? request.getSort() : role.getSort());
         role.setRemark(request.getRemark());
 
+        // 先校验再写库（与 createRole 的"先校验后写库"顺序保持一致），校验失败时事务回滚，避免无意义的写库
+
+        // 校验分配的权限不超出租户套餐（超管）或用户自身权限（非超管）范围
+        validateAssignablePermissions(role.getTenantId(), request.getPermissionIds(), role.getRealm());
+
+        // 解析并校验数据权限部门：custom 必须至少选择一个部门，非 custom 忽略传入的部门列表
+        List<String> deptIds = resolveDataScopeDeptIds(request.getDataScope(), request.getDeptIds());
+
+        // 校验自定义数据权限所选部门均属于角色所在租户
+        validateDeptScope(role.getTenantId(), deptIds);
+
         // 乐观锁：使用前端回传的 version 作为 WHERE 条件，若版本不匹配则影响行数为 0，说明数据已被其他用户修改
         role.setVersion(request.getVersion());
         int affectedRows = roleMapper.updateById(role);
@@ -209,12 +237,13 @@ public class SysRoleServiceImpl implements SysRoleService {
             throw new BusinessException(ResultCode.VERSION_CONFLICT);
         }
 
-        // 校验分配的权限不超出租户套餐（超管）或用户自身权限（非超管）范围
-        validateAssignablePermissions(role.getTenantId(), request.getPermissionIds(), role.getRealm());
-
         // 删除旧的关联关系，并保存新的关联关系
         deleteRolePermissions(request.getId());
         saveRolePermissions(role.getTenantId(), request.getId(), request.getPermissionIds());
+
+        // 删除旧的自定义数据权限部门关联，并保存新的关联关系
+        deleteRoleDataScopes(request.getId());
+        saveRoleDataScopes(role.getTenantId(), request.getId(), deptIds);
     }
 
     /**
@@ -233,6 +262,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
         // 删除关联关系
         deleteRolePermissions(role.getId());
+        deleteRoleDataScopes(role.getId());
 
         // 删除角色
         roleMapper.deleteById(role.getId());
@@ -258,6 +288,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
         // 批量删除关联关系
         deleteRolePermissions(ids);
+        deleteRoleDataScopes(ids);
 
         // 批量删除角色
         roleMapper.deleteBatchIds(ids);
@@ -281,6 +312,26 @@ public class SysRoleServiceImpl implements SysRoleService {
             return Collections.emptyList();
         }
         return list.stream().map(SysRolePermission::getPermissionId).toList();
+    }
+
+    /**
+     * 查询角色自定义数据权限的部门 ID 列表
+     *
+     * @param roleId 角色 ID
+     * @return 部门 ID 列表
+     */
+    @Override
+    public List<String> getRoleDeptIds(String roleId) {
+        // 校验角色存在
+        loadRoleEntity(roleId);
+
+        // 查询角色自定义数据权限的部门 ID 列表
+        List<SysRoleDataScope> list = roleDataScopeMapper.selectList(new LambdaQueryWrapper<SysRoleDataScope>()
+            .eq(SysRoleDataScope::getRoleId, roleId));
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        return list.stream().map(SysRoleDataScope::getDeptId).toList();
     }
 
     /**
@@ -416,6 +467,89 @@ public class SysRoleServiceImpl implements SysRoleService {
         }
         rolePermissionMapper.delete(new LambdaQueryWrapper<SysRolePermission>()
             .in(SysRolePermission::getRoleId, roleIds));
+    }
+
+    /**
+     * 保存角色与自定义数据权限部门的关联关系
+     *
+     * @param tenantId 租户 ID
+     * @param roleId   角色 ID
+     * @param deptIds  部门 ID 列表
+     */
+    private void saveRoleDataScopes(String tenantId, String roleId, List<String> deptIds) {
+        // 保存角色与部门关联关系（批量插入，避免循环逐条插入的性能开销；先去重，防止同一部门重复关联产生脏数据）
+        if (!CollectionUtils.isEmpty(deptIds)) {
+            List<SysRoleDataScope> scopes = deptIds.stream().distinct().map(deptId -> {
+                SysRoleDataScope rds = new SysRoleDataScope();
+                rds.setTenantId(tenantId);
+                rds.setRoleId(roleId);
+                rds.setDeptId(deptId);
+                return rds;
+            }).collect(Collectors.toList());
+            roleDataScopeMapper.insertBatch(scopes);
+        }
+    }
+
+    /**
+     * 删除角色与自定义数据权限部门的关联关系
+     *
+     * @param roleId 角色 ID
+     */
+    private void deleteRoleDataScopes(String roleId) {
+        deleteRoleDataScopes(Collections.singletonList(roleId));
+    }
+
+    /**
+     * 批量删除角色与自定义数据权限部门的关联关系
+     *
+     * @param roleIds 角色 ID 列表
+     */
+    private void deleteRoleDataScopes(List<String> roleIds) {
+        if (CollectionUtils.isEmpty(roleIds)) {
+            return;
+        }
+        roleDataScopeMapper.delete(new LambdaQueryWrapper<SysRoleDataScope>()
+            .in(SysRoleDataScope::getRoleId, roleIds));
+    }
+
+    /**
+     * 解析并校验数据权限对应的部门 ID 列表，统一收敛数据权限与部门的业务约束：
+     * <ul>
+     *   <li>dataScope 为 custom 时，必须至少选择一个部门，否则抛出业务异常（防止落库"自定义但无部门"的脏数据）；</li>
+     *   <li>dataScope 非 custom 时，忽略传入的部门 ID 列表并返回 null（不保存部门关联，与前端仅 custom 才提交 deptIds 的约定保持一致）。</li>
+     * </ul>
+     *
+     * @param dataScope 数据权限范围
+     * @param deptIds   请求中的部门 ID 列表
+     * @return 有效的部门 ID 列表；非 custom 时返回 null
+     */
+    private List<String> resolveDataScopeDeptIds(String dataScope, List<String> deptIds) {
+        if (!"custom".equals(dataScope)) {
+            return null;
+        }
+        if (CollectionUtils.isEmpty(deptIds)) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "自定义数据权限必须选择至少一个部门");
+        }
+        return deptIds;
+    }
+
+    /**
+     * 校验自定义数据权限所选部门均属于指定租户，防止跨租户引用（越权防护）
+     *
+     * @param tenantId 租户 ID
+     * @param deptIds  部门 ID 列表
+     */
+    private void validateDeptScope(String tenantId, List<String> deptIds) {
+        if (CollectionUtils.isEmpty(deptIds)) {
+            return;
+        }
+        Set<String> deptIdSet = new HashSet<>(deptIds);
+        long validCount = deptMapper.selectCount(new LambdaQueryWrapper<SysDept>()
+            .in(SysDept::getId, deptIdSet)
+            .eq(SysDept::getTenantId, tenantId));
+        if (validCount != deptIdSet.size()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "所选部门不在当前租户范围内，不允许分配");
+        }
     }
 
     /**

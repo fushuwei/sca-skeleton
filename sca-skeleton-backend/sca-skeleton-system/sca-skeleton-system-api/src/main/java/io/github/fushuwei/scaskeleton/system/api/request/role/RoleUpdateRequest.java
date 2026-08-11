@@ -41,6 +41,9 @@ public class RoleUpdateRequest {
     /** 权限 ID 列表 */
     private List<String> permissionIds;
 
+    /** 自定义数据权限部门 ID 列表 */
+    private List<String> deptIds;
+
     // ==================== 乐观锁 ====================
 
     /** 乐观锁版本号 */

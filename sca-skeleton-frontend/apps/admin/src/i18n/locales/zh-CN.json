@@ -274,6 +274,9 @@
     "scopeDept": "仅本部门",
     "scopePersonal": "仅本人",
     "scopeCustom": "自定义",
+    "allDepts": "全部",
+    "customDept": "自定义部门",
+    "searchDept": "搜索部门",
     "keywordPlaceholder": "请输入角色名称/编码搜索",
     "scopePlaceholder": "请选择数据权限",
     "realm": "角色域",
@@ -298,7 +301,12 @@
     "expandAll": "展开",
     "collapseAll": "收起",
     "searchPermission": "搜索权限",
-    "noSearchResult": "未找到匹配的权限"
+    "noSearchResult": "未找到匹配的权限",
+    "deptRequired": "自定义数据权限必须选择至少一个部门",
+    "noDeptData": "暂无部门数据",
+    "noDeptSearchResult": "未找到匹配的部门",
+    "addModeNoDeptHint": "超管新增模式下暂无部门可选",
+    "deptMore": "+{count}"
   },
   "postMgmt": {
     "createPost": "添加岗位",
