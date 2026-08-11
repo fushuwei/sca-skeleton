@@ -262,117 +262,96 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-      </div>
-
-      <!-- ── 联系信息 ── -->
-      <div class="contact-section q-mt-md">
-        <div class="contact-section-header row items-center no-wrap q-mb-sm">
-          <q-icon name="sym_r_contact_phone" size="20px" class="q-mr-xs" color="grey-8" />
-          <span class="contact-section-title">{{ t('tenantMgmt.contactInfo') }}</span>
+        <!-- 联系人姓名 -->
+        <div class="col-12 col-md-6">
+          <q-input
+            v-model.trim="form.contactName"
+            :label="t('tenantMgmt.contactName')"
+            filled
+            square
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+          />
         </div>
-        <div class="row q-col-gutter-md">
-          <!-- 联系人姓名 -->
-          <div class="col-12 col-md-6">
-            <q-input
-              v-model.trim="form.contactName"
-              :label="t('tenantMgmt.contactName')"
-              filled
-              square
-              :disable="drawerReadonly"
-              :readonly="drawerReadonly"
-              hide-bottom-space
-            />
-          </div>
-          <!-- 联系人电话 -->
-          <div class="col-12 col-md-6">
-            <q-input
-              v-model.trim="form.contactPhone"
-              :label="t('tenantMgmt.contactPhone')"
-              filled
-              square
-              :rules="formRules.contactPhone"
-              :disable="drawerReadonly"
-              :readonly="drawerReadonly"
-              hide-bottom-space
-            />
-          </div>
-          <!-- 联系人邮箱 -->
-          <div class="col-12 col-md-6">
-            <q-input
-              v-model.trim="form.contactEmail"
-              :label="t('tenantMgmt.contactEmail')"
-              filled
-              square
-              type="email"
-              :rules="formRules.contactEmail"
-              :disable="drawerReadonly"
-              :readonly="drawerReadonly"
-              hide-bottom-space
-            />
-          </div>
-          <!-- 绑定独立域名 -->
-          <div class="col-12 col-md-6">
-            <q-input
-              v-model.trim="form.domainName"
-              :label="t('tenantMgmt.domainName')"
-              filled
-              square
-              :rules="formRules.domainName"
-              :disable="drawerReadonly"
-              :readonly="drawerReadonly"
-              hide-bottom-space
-            />
-          </div>
+        <!-- 联系人电话 -->
+        <div class="col-12 col-md-6">
+          <q-input
+            v-model.trim="form.contactPhone"
+            :label="t('tenantMgmt.contactPhone')"
+            filled
+            square
+            :rules="formRules.contactPhone"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+          />
         </div>
-      </div>
-
-      <!-- ── 有效期配置 ── -->
-      <div class="limit-section q-mt-md">
-        <div class="limit-section-header row items-center no-wrap q-mb-sm">
-          <q-icon name="sym_r_event" size="20px" class="q-mr-xs" color="grey-8" />
-          <span class="limit-section-title">{{ t('tenantMgmt.validityConfig') }}</span>
+        <!-- 联系人邮箱 -->
+        <div class="col-12 col-md-6">
+          <q-input
+            v-model.trim="form.contactEmail"
+            :label="t('tenantMgmt.contactEmail')"
+            filled
+            square
+            type="email"
+            :rules="formRules.contactEmail"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+          />
         </div>
-        <div class="row q-col-gutter-md">
-          <!-- 生效时间 -->
-          <div class="col-12 col-md-6">
-            <DateTimePicker
-              v-model="form.effectiveTime"
-              :label="t('tenantMgmt.effectiveTime')"
-              :disable="drawerReadonly"
-              :readonly="drawerReadonly"
-              :max="form.expireTime"
-              clearable
-            />
-            <div v-if="!form.effectiveTime" class="validity-hint q-mt-xs">{{ t('tenantMgmt.effectiveTimeHint') }}</div>
-          </div>
-          <!-- 过期时间 -->
-          <div class="col-12 col-md-6">
-            <DateTimePicker
-              v-model="form.expireTime"
-              :label="t('tenantMgmt.expireTime')"
-              :disable="drawerReadonly"
-              :readonly="drawerReadonly"
-              :min="form.effectiveTime"
-              clearable
-            />
-            <div v-if="!form.expireTime" class="validity-hint q-mt-xs">{{ t('tenantMgmt.expireTimeHint') }}</div>
-          </div>
+        <!-- 绑定独立域名 -->
+        <div class="col-12 col-md-6">
+          <q-input
+            v-model.trim="form.domainName"
+            :label="t('tenantMgmt.domainName')"
+            filled
+            square
+            :rules="formRules.domainName"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+          />
         </div>
-      </div>
-
-      <!-- 备注 -->
-      <div class="q-mt-md">
-        <q-input
-          v-model="form.remark"
-          :label="t('tenantMgmt.remark')"
-          filled
-          square
-          type="textarea"
-          rows="3"
-          :disable="drawerReadonly"
-          :readonly="drawerReadonly"
-          hide-bottom-space
-        />
+        <!-- 生效时间 -->
+        <div class="col-12 col-md-6">
+          <DateTimePicker
+            v-model="form.effectiveTime"
+            :label="t('tenantMgmt.effectiveTime')"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            :max="form.expireTime"
+            clearable
+          />
+          <div v-if="!form.effectiveTime" class="validity-hint q-mt-xs">{{ t('tenantMgmt.effectiveTimeHint') }}</div>
+        </div>
+        <!-- 过期时间 -->
+        <div class="col-12 col-md-6">
+          <DateTimePicker
+            v-model="form.expireTime"
+            :label="t('tenantMgmt.expireTime')"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            :min="form.effectiveTime"
+            clearable
+          />
+          <div v-if="!form.expireTime" class="validity-hint q-mt-xs">{{ t('tenantMgmt.expireTimeHint') }}</div>
+        </div>
+        <!-- 备注 -->
+        <div class="col-12">
+          <q-input
+            v-model="form.remark"
+            :label="t('tenantMgmt.remark')"
+            filled
+            square
+            type="textarea"
+            rows="3"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            hide-bottom-space
+          />
+        </div>
       </div>
     </q-form>
 
@@ -442,32 +421,6 @@ async function handleSave() {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 联系信息区域 */
-.contact-section {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
-  padding: 12px;
-}
-
-.contact-section-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.87);
-}
-
-/* 限额配置区域 */
-.limit-section {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
-  padding: 12px;
-}
-
-.limit-section-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.87);
-}
-
 /* 有效期提示文案 */
 .validity-hint {
   padding-left: 12px;
@@ -512,31 +465,5 @@ async function handleSave() {
 /* 有效期提示文案暗色模式 */
 .body--dark .validity-hint {
   color: rgba(255, 255, 255, 0.45);
-}
-
-/* 联系信息区域暗色模式 */
-.body--dark .contact-section {
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.body--dark .contact-section-title {
-  color: rgba(255, 255, 255, 0.87);
-}
-
-.body--dark .contact-section-header .q-icon {
-  color: rgba(255, 255, 255, 0.72) !important;
-}
-
-/* 限额配置区域暗色模式 */
-.body--dark .limit-section {
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.body--dark .limit-section-title {
-  color: rgba(255, 255, 255, 0.87);
-}
-
-.body--dark .limit-section-header .q-icon {
-  color: rgba(255, 255, 255, 0.72) !important;
 }
 </style>
