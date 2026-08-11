@@ -287,7 +287,7 @@
     "codeLocked": "角色编码不可修改",
     "deleteConfirm": "确认删除角色「{name}」？",
     "batchDeleteConfirm": "确认删除选中的 {count} 个角色？删除后不可恢复。",
-    "cannotDeleteBuiltin": "系统内置角色不允许删除",
+    "cannotDeleteBuiltin": "不能删除系统内置角色",
     "cannotDeleteBuiltinBatch": "不能删除系统内置角色：{names}",
     "saveSuccess": "保存成功",
     "saveFail": "保存失败",
@@ -432,7 +432,7 @@
     "domainInvalid": "请输入正确的域名格式",
     "deleteConfirm": "确认删除租户「{name}」？",
     "batchDeleteConfirm": "确认删除选中的 {count} 个租户？删除后不可恢复。",
-    "cannotDeleteBuiltin": "系统内置租户不允许删除",
+    "cannotDeleteBuiltin": "不能删除系统内置租户",
     "cannotDeleteBuiltinBatch": "不能删除系统内置租户：{names}",
     "saveSuccess": "保存成功",
     "saveFail": "保存失败"

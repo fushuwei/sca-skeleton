@@ -287,7 +287,7 @@
     "codeLocked": "Role code cannot be modified",
     "deleteConfirm": "Confirm to delete role \"{name}\"?",
     "batchDeleteConfirm": "Confirm to delete {count} selected role(s)? This cannot be undone.",
-    "cannotDeleteBuiltin": "Built-in system roles cannot be deleted",
+    "cannotDeleteBuiltin": "Cannot delete built-in system roles",
     "cannotDeleteBuiltinBatch": "Cannot delete built-in roles: {names}",
     "saveSuccess": "Saved successfully",
     "saveFail": "Failed to save",
@@ -432,7 +432,7 @@
     "domainInvalid": "Invalid domain format",
     "deleteConfirm": "Confirm to delete tenant \"{name}\"?",
     "batchDeleteConfirm": "Confirm to delete {count} selected tenant(s)? This cannot be undone.",
-    "cannotDeleteBuiltin": "Built-in system tenants cannot be deleted",
+    "cannotDeleteBuiltin": "Cannot delete built-in tenants",
     "cannotDeleteBuiltinBatch": "Cannot delete built-in tenants: {names}",
     "saveSuccess": "Saved successfully",
     "saveFail": "Failed to save"

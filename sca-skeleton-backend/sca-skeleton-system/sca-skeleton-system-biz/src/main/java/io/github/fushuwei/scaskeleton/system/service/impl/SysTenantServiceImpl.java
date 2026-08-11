@@ -205,7 +205,7 @@ public class SysTenantServiceImpl implements SysTenantService {
         // 加载租户实体并校验内置保护
         SysTenant tenant = loadTenantEntity(id);
         if (tenant.getIsBuiltin() != null && tenant.getIsBuiltin() == 1) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "系统内置租户不允许删除");
+            throw new BusinessException(ResultCode.FORBIDDEN, "不能删除系统内置租户");
         }
 
         // 引用校验
@@ -234,7 +234,7 @@ public class SysTenantServiceImpl implements SysTenantService {
         // 校验租户是否可以删除
         List<String> builtinNames = tenantMapper.selectBuiltinTenantNames(ids);
         if (!builtinNames.isEmpty()) {
-            throw new BusinessException(ResultCode.FAILURE, "系统内置租户不允许删除：" + String.join("、", builtinNames));
+            throw new BusinessException(ResultCode.FAILURE, "不能删除系统内置租户：" + String.join("、", builtinNames));
         }
 
         // 引用校验
