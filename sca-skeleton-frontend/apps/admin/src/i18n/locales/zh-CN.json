@@ -302,7 +302,7 @@
     "collapseAll": "收起",
     "searchPermission": "搜索权限",
     "noSearchResult": "未找到匹配的权限",
-    "deptRequired": "自定义数据权限必须选择至少一个部门",
+    "deptRequired": "必须选择至少一个部门",
     "noDeptData": "暂无部门数据",
     "noDeptSearchResult": "未找到匹配的部门",
     "addModeNoDeptHint": "超管新增模式下暂无部门可选",

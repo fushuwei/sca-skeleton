@@ -713,8 +713,8 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-        <!-- 自定义数据权限：部门多选 -->
-        <div v-if="form.dataScope === 'custom'" class="col-12 col-md-6">
+        <!-- 自定义数据权限：部门多选。用 v-show 而非 v-if，保证该字段始终挂载、注册顺序位于角色域之前，Quasar 串行校验时先提示部门 -->
+        <div v-show="form.dataScope === 'custom'" class="col-12 col-md-6">
           <q-select
             v-model="form.deptIds"
             :label="t('roleMgmt.customDept')"
