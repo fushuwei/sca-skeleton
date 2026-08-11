@@ -319,24 +319,24 @@ async function handleSave() {
           <DateTimePicker
             v-model="form.effectiveTime"
             :label="t('tenantMgmt.effectiveTime')"
+            :placeholder="t('tenantMgmt.effectiveTimePlaceholder')"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             :max="form.expireTime"
             clearable
           />
-          <div v-if="!form.effectiveTime" class="validity-hint q-mt-xs">{{ t('tenantMgmt.effectiveTimeHint') }}</div>
         </div>
         <!-- 过期时间 -->
         <div class="col-12 col-md-6">
           <DateTimePicker
             v-model="form.expireTime"
             :label="t('tenantMgmt.expireTime')"
+            :placeholder="t('tenantMgmt.expireTimePlaceholder')"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             :min="form.effectiveTime"
             clearable
           />
-          <div v-if="!form.expireTime" class="validity-hint q-mt-xs">{{ t('tenantMgmt.expireTimeHint') }}</div>
         </div>
         <!-- 备注 -->
         <div class="col-12">
@@ -421,13 +421,6 @@ async function handleSave() {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 有效期提示文案 */
-.validity-hint {
-  padding-left: 12px;
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.45);
-  line-height: 1.5;
-}
 </style>
 
 <style>
@@ -460,10 +453,5 @@ async function handleSave() {
 /* 抽屉底部按钮区域分隔线 */
 .body--dark .tenant-drawer-footer {
   border-top-color: rgba(255, 255, 255, 0.08);
-}
-
-/* 有效期提示文案暗色模式 */
-.body--dark .validity-hint {
-  color: rgba(255, 255, 255, 0.45);
 }
 </style>

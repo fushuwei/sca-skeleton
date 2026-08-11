@@ -14,6 +14,7 @@ const props = withDefaults(
   defineProps<{
     modelValue?: string;
     label?: string;
+    placeholder?: string;
     disable?: boolean;
     readonly?: boolean;
     clearable?: boolean;
@@ -103,6 +104,7 @@ const mergedRules = computed(() => {
     <q-input
       v-model="displayValue"
       :label="label"
+      :placeholder="placeholder"
       filled
       square
       :mask="INPUT_MASK"
