@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -53,9 +52,9 @@ public class SysDeptServiceImpl implements SysDeptService {
      */
     @Override
     public List<DeptResponse> listDepts() {
-        // 数据隔离：超管看所有租户，非超管只看自己租户
+        // 数据隔离：仅查询当前租户下的部门
         List<SysDept> depts = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
-            .eq(!SecurityUtils.isSuperAdmin(), SysDept::getTenantId, SecurityUtils.getTenantId())
+            .eq(SysDept::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysDept::getSort));
         // 转换为响应对象列表
         return deptConverter.toDeptResponseList(depts);
@@ -67,20 +66,8 @@ public class SysDeptServiceImpl implements SysDeptService {
      * @return 部门选项列表
      */
     @Override
-    public List<DeptOptionResponse> listDeptOptions(String tenantId) {
-        // 超级管理员：必须指定目标租户，未传则返回空（防止超管在未选租户时看到所有租户数据导致越权分配）
-        if (SecurityUtils.isSuperAdmin()) {
-            if (!StringUtils.hasText(tenantId)) {
-                return Collections.emptyList();
-            }
-            List<SysDept> depts = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
-                .eq(SysDept::getTenantId, tenantId)
-                .orderByAsc(SysDept::getSort));
-            // 转换为响应对象列表
-            return deptConverter.toDeptOptionResponseList(depts);
-        }
-
-        // 非超级管理员：仅返回当前用户所在租户的部门（忽略传入的 tenantId，使用自身租户）
+    public List<DeptOptionResponse> listDeptOptions() {
+        // 数据隔离：仅返回当前租户下的部门
         List<SysDept> depts = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
             .eq(SysDept::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysDept::getSort));
@@ -97,8 +84,8 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Override
     public IPage<DeptResponse> pageDepts(DeptPageRequest request) {
         Page<DeptResponse> page = new Page<>(request.getPageNum(), request.getPageSize());
-        // 数据隔离：超管看所有租户，非超管只看自己租户
-        String tenantId = SecurityUtils.isSuperAdmin() ? null : SecurityUtils.getTenantId();
+        // 数据隔离：仅查询当前租户下的部门
+        String tenantId = SecurityUtils.getTenantId();
         return deptMapper.selectDeptPage(page, tenantId, request);
     }
 
@@ -295,8 +282,8 @@ public class SysDeptServiceImpl implements SysDeptService {
         if (dept == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "部门不存在");
         }
-        if (!SecurityUtils.isSuperAdmin()
-            && !Objects.equals(dept.getTenantId(), SecurityUtils.getTenantId())) {
+        // 数据隔离：仅允许操作当前租户下的部门
+        if (!Objects.equals(dept.getTenantId(), SecurityUtils.getTenantId())) {
             throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
         }
         return dept;
@@ -306,24 +293,19 @@ public class SysDeptServiceImpl implements SysDeptService {
      * 根据 ID 列表批量加载部门实体并校验存在性与租户隔离
      *
      * @param ids 部门 ID 列表
-     * @return 部门实体列表
      */
-    private List<SysDept> loadDeptEntities(List<String> ids) {
+    private void loadDeptEntities(List<String> ids) {
         List<String> distinctIds = ids.stream().distinct().toList();
-        List<SysDept> entities = deptMapper.selectBatchIds(distinctIds);
+        List<SysDept> entities = deptMapper.selectByIds(distinctIds);
         if (entities.size() != distinctIds.size()) {
             Set<String> foundIds = entities.stream().map(SysDept::getId).collect(Collectors.toSet());
             List<String> missing = distinctIds.stream().filter(id -> !foundIds.contains(id)).toList();
             throw new BusinessException(ResultCode.NOT_FOUND, "部门不存在，ID: " + String.join(", ", missing));
         }
-        if (!SecurityUtils.isSuperAdmin()) {
-            String currentTenantId = SecurityUtils.getTenantId();
-            for (SysDept entity : entities) {
-                if (!Objects.equals(entity.getTenantId(), currentTenantId)) {
-                    throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
-                }
+        for (SysDept entity : entities) {
+            if (!Objects.equals(entity.getTenantId(), SecurityUtils.getTenantId())) {
+                throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
             }
         }
-        return entities;
     }
 }

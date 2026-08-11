@@ -101,8 +101,7 @@ public class ScaUserDetailsService {
      * 将数据库用户对象转换为 Spring Security UserDetails。
      * 同时加载该用户所有可用的权限编码（menu 和 button 类型）。
      * <p>
-     * 平台超级管理员跳过权限查询：RequiresPermissionChecker 对超管直接放行，
-     * 且 admin 账号的 tenant_id 为 NULL，SQL 的 tenant_id 条件无法匹配，查询无意义。
+     * 平台超级管理员跳过权限查询：RequiresPermissionChecker 对超管直接放行，无需加载权限。
      */
     private ScaUserDetails buildUserDetails(SysUser user) {
         // 锁定到期后自动解锁，避免永久 locked

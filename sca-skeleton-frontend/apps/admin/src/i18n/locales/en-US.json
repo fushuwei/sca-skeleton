@@ -305,7 +305,6 @@
     "deptRequired": "Please select at least one department",
     "noDeptData": "No department data",
     "noDeptSearchResult": "No matching department found",
-    "addModeNoDeptHint": "No departments available when a super admin creates a role",
     "deptMore": "+{count}"
   },
   "postMgmt": {

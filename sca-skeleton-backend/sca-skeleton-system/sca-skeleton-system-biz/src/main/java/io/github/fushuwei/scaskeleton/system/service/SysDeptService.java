@@ -26,10 +26,9 @@ public interface SysDeptService {
     /**
      * 查询部门选项列表
      *
-     * @param tenantId 目标租户 ID（超管必传，未传返回空；非超管忽略，使用登录人所属的租户）
      * @return 部门选项列表
      */
-    List<DeptOptionResponse> listDeptOptions(String tenantId);
+    List<DeptOptionResponse> listDeptOptions();
 
     /**
      * 分页查询部门列表

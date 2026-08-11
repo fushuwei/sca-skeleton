@@ -9,9 +9,7 @@
         FROM sys_dept d
         LEFT JOIN sys_tenant t ON t.id = d.tenant_id AND t.is_deleted = 0
         WHERE d.is_deleted = 0
-        <if test="tenantId != null">
-            AND d.tenant_id = #{tenantId}
-        </if>
+        AND d.tenant_id = #{tenantId}
         <if test="request.parentId != null and request.parentId != ''">
             AND d.parent_id = #{request.parentId}
         </if>

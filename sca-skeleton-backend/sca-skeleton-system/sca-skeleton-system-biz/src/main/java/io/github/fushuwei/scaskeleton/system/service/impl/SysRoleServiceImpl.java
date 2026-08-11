@@ -73,9 +73,9 @@ public class SysRoleServiceImpl implements SysRoleService {
      */
     @Override
     public List<RoleResponse> listRoles() {
-        // 数据隔离：超管看所有租户，非超管只看自己租户
+        // 数据隔离：仅查询当前租户下的角色
         List<SysRole> roles = roleMapper.selectList(new LambdaQueryWrapper<SysRole>()
-            .eq(!SecurityUtils.isSuperAdmin(), SysRole::getTenantId, SecurityUtils.getTenantId())
+            .eq(SysRole::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysRole::getSort));
         // 转换为响应对象列表
         return roleConverter.toRoleResponseList(roles);
@@ -84,25 +84,21 @@ public class SysRoleServiceImpl implements SysRoleService {
     /**
      * 查询角色选项列表
      *
-     * @param tenantId 目标租户 ID（超管必传，未传返回空；非超管忽略，使用登录人所属的租户）
-     * @param realm    角色域
+     * @param realm 角色域
      * @return 角色选项列表
      */
     @Override
-    public List<RoleOptionResponse> listRoleOptions(String tenantId, String realm) {
+    public List<RoleOptionResponse> listRoleOptions(String realm) {
         List<SysRole> roles;
 
         if (SecurityUtils.isSuperAdmin()) {
-            // 超级管理员：必须指定目标租户，未传则返回空（防止超管在未选租户时看到所有租户数据导致越权分配）
-            if (!StringUtils.hasText(tenantId)) {
-                return Collections.emptyList();
-            }
+            // 超管：返回当前租户下所有角色
             roles = roleMapper.selectList(new LambdaQueryWrapper<SysRole>()
-                .eq(SysRole::getTenantId, tenantId)
+                .eq(SysRole::getTenantId, SecurityUtils.getTenantId())
                 .eq(StringUtils.hasText(realm), SysRole::getRealm, realm)
                 .orderByAsc(SysRole::getSort));
         } else {
-            // 非超级管理员：仅返回当前用户自身拥有的角色（防止越权授予自己不具备的角色）
+            // 非超管：仅返回当前用户自身拥有的角色（防止越权授予自己不具备的角色），并按当前租户过滤
             String userId = SecurityUtils.getUserId();
             if (!StringUtils.hasText(userId)) {
                 return Collections.emptyList();
@@ -113,7 +109,6 @@ public class SysRoleServiceImpl implements SysRoleService {
                 return Collections.emptyList();
             }
             List<String> roleIds = userRoles.stream().map(SysUserRole::getRoleId).toList();
-            // 按当前用户拥有的角色 ID 查询，并按租户隔离过滤（非超管忽略传入的 tenantId，使用自身租户）
             roles = roleMapper.selectList(new LambdaQueryWrapper<SysRole>()
                 .in(SysRole::getId, roleIds)
                 .eq(SysRole::getTenantId, SecurityUtils.getTenantId())
@@ -135,8 +130,8 @@ public class SysRoleServiceImpl implements SysRoleService {
     public IPage<RoleResponse> pageRoles(RolePageRequest request) {
         // 构造分页对象
         Page<RoleResponse> page = new Page<>(request.getPageNum(), request.getPageSize());
-        // 数据隔离：超管看所有租户，非超管只看自己租户
-        String tenantId = SecurityUtils.isSuperAdmin() ? null : SecurityUtils.getTenantId();
+        // 数据隔离：仅查询当前租户下的角色
+        String tenantId = SecurityUtils.getTenantId();
         // 查询分页数据
         return roleMapper.selectRolePage(page, tenantId, request);
     }
@@ -355,11 +350,8 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     /**
      * 校验分配的权限不超出可授权范围（越权防护）
-     * <p>
-     * 超管：权限不能超过目标租户套餐所拥有的权限；<br>
-     * 非超管：权限不能超过当前登录用户自身所拥有的权限。
      *
-     * @param tenantId      目标租户 ID
+     * @param tenantId      当前租户 ID
      * @param permissionIds 权限 ID 列表
      * @param roleRealm     角色域（用于跨域校验）
      */
@@ -379,11 +371,8 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     /**
      * 解析当前登录用户可授权的权限 ID 集合
-     * <p>
-     * 超管：目标租户套餐内的权限；<br>
-     * 非超管：当前登录用户自身拥有的权限。
      *
-     * @param tenantId 目标租户 ID
+     * @param tenantId 当前租户 ID
      * @return 可授权权限 ID 集合
      */
     private Set<String> resolveAllowedPermissionIds(String tenantId) {
@@ -563,8 +552,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         if (role == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "角色不存在");
         }
-        if (!SecurityUtils.isSuperAdmin()
-            && !Objects.equals(role.getTenantId(), SecurityUtils.getTenantId())) {
+        // 数据隔离：仅允许操作当前租户下的角色
+        if (!Objects.equals(role.getTenantId(), SecurityUtils.getTenantId())) {
             throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
         }
         return role;
@@ -598,10 +587,8 @@ public class SysRoleServiceImpl implements SysRoleService {
             List<String> missing = distinctIds.stream().filter(id -> !foundIds.contains(id)).toList();
             throw new BusinessException(ResultCode.NOT_FOUND, "角色不存在，ID: " + String.join(", ", missing));
         }
-        boolean isSuperAdmin = SecurityUtils.isSuperAdmin();
-        String currentTenantId = isSuperAdmin ? null : SecurityUtils.getTenantId();
         for (SysRole entity : entities) {
-            if (!isSuperAdmin && !Objects.equals(entity.getTenantId(), currentTenantId)) {
+            if (!Objects.equals(entity.getTenantId(), SecurityUtils.getTenantId())) {
                 throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
             }
             if (entity.getIsBuiltin() != null && entity.getIsBuiltin() == 1) {

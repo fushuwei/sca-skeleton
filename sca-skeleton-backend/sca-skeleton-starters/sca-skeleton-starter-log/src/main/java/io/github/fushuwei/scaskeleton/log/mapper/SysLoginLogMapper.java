@@ -39,10 +39,11 @@ public interface SysLoginLogMapper extends BaseMapper<SysLoginLog> {
     /**
      * 根据 ID 查询登录日志详情
      *
-     * @param id 登录日志 ID
+     * @param id       登录日志 ID
+     * @param tenantId 当前租户 ID
      * @return 登录日志对象
      */
-    SysLoginLog selectLogById(@Param("id") String id);
+    SysLoginLog selectLogById(@Param("id") String id, @Param("tenantId") String tenantId);
 
     /**
      * 清空全部登录日志

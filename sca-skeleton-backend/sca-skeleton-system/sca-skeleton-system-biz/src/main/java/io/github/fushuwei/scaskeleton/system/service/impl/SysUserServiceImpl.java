@@ -117,8 +117,8 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public IPage<UserResponse> pageUsers(UserPageRequest request) {
         Page<UserResponse> page = new Page<>(request.getPageNum(), request.getPageSize());
-        // 数据隔离：超管看所有租户，非超管只看自己租户
-        String tenantId = SecurityUtils.isSuperAdmin() ? null : SecurityUtils.getTenantId();
+        // 数据隔离：仅查询当前租户下的用户
+        String tenantId = SecurityUtils.getTenantId();
         return userMapper.selectUserPage(page, tenantId, request);
     }
 
@@ -199,7 +199,7 @@ public class SysUserServiceImpl implements SysUserService {
         // 保存用户
         userMapper.insert(user);
 
-        // 越权防护：校验所选角色、部门、岗位均属于目标租户，且角色域与用户域一致
+        // 越权防护：校验所选角色、部门、岗位均属于当前租户，且角色域与用户域一致
         validateRoleRealm(tenantId, request.getRoleIds(), request.getRealm());
         validateDeptTenant(tenantId, request.getDeptIds());
         validatePostTenant(tenantId, request.getPostIds());
@@ -355,9 +355,9 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /**
-     * 校验所选角色属于目标租户且与用户域一致，防止跨租户/跨域分配角色（越权防护）
+     * 校验所选角色属于当前租户且与用户域一致，防止跨租户/跨域分配角色（越权防护）
      *
-     * @param tenantId 租户 ID
+     * @param tenantId 当前租户 ID
      * @param roleIds  角色 ID 列表
      * @param realm    用户域
      */
@@ -371,14 +371,14 @@ public class SysUserServiceImpl implements SysUserService {
             .eq(SysRole::getTenantId, tenantId)
             .eq(SysRole::getRealm, realm));
         if (validCount != roleIdSet.size()) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "所选角色不属于目标租户或与用户域不一致，不允许跨租户/跨域分配角色");
+            throw new BusinessException(ResultCode.FORBIDDEN, "所选角色不属于当前租户或与用户域不一致，不允许跨租户/跨域分配角色");
         }
     }
 
     /**
-     * 校验所选部门属于目标租户，防止跨租户分配部门（越权防护）
+     * 校验所选部门属于当前租户，防止跨租户分配部门（越权防护）
      *
-     * @param tenantId 租户 ID
+     * @param tenantId 当前租户 ID
      * @param deptIds  部门 ID 列表
      */
     private void validateDeptTenant(String tenantId, List<String> deptIds) {
@@ -390,14 +390,14 @@ public class SysUserServiceImpl implements SysUserService {
             .in(SysDept::getId, deptIdSet)
             .eq(SysDept::getTenantId, tenantId));
         if (validCount != deptIdSet.size()) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "所选部门不属于目标租户，不允许跨租户分配部门");
+            throw new BusinessException(ResultCode.FORBIDDEN, "所选部门不属于当前租户，不允许跨租户分配部门");
         }
     }
 
     /**
-     * 校验所选岗位属于目标租户，防止跨租户分配岗位（越权防护）
+     * 校验所选岗位属于当前租户，防止跨租户分配岗位（越权防护）
      *
-     * @param tenantId 租户 ID
+     * @param tenantId 当前租户 ID
      * @param postIds  岗位 ID 列表
      */
     private void validatePostTenant(String tenantId, List<String> postIds) {
@@ -409,7 +409,7 @@ public class SysUserServiceImpl implements SysUserService {
             .in(SysPost::getId, postIdSet)
             .eq(SysPost::getTenantId, tenantId));
         if (validCount != postIdSet.size()) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "所选岗位不属于目标租户，不允许跨租户分配岗位");
+            throw new BusinessException(ResultCode.FORBIDDEN, "所选岗位不属于当前租户，不允许跨租户分配岗位");
         }
     }
 
@@ -532,8 +532,8 @@ public class SysUserServiceImpl implements SysUserService {
         if (user == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在");
         }
-        if (!SecurityUtils.isSuperAdmin()
-            && !Objects.equals(user.getTenantId(), SecurityUtils.getTenantId())) {
+        // 数据隔离：仅允许操作当前租户下的用户
+        if (!Objects.equals(user.getTenantId(), SecurityUtils.getTenantId())) {
             throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
         }
         return user;
@@ -567,10 +567,8 @@ public class SysUserServiceImpl implements SysUserService {
             List<String> missing = distinctIds.stream().filter(id -> !foundIds.contains(id)).toList();
             throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在，ID: " + String.join(", ", missing));
         }
-        boolean isSuperAdmin = SecurityUtils.isSuperAdmin();
-        String currentTenantId = isSuperAdmin ? null : SecurityUtils.getTenantId();
         for (SysUser entity : entities) {
-            if (!isSuperAdmin && !Objects.equals(entity.getTenantId(), currentTenantId)) {
+            if (!Objects.equals(entity.getTenantId(), SecurityUtils.getTenantId())) {
                 throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
             }
             if (entity.getIsBuiltin() != null && entity.getIsBuiltin() == 1) {

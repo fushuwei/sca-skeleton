@@ -8,7 +8,6 @@ import { getRolePermissionIdsApi } from "../../apis/role";
 import { getRoleAssignOptionsApi } from "../../apis/role";
 import { getRoleDeptIdsApi } from "../../apis/role";
 import { getDeptOptionsApi } from "../../apis/dept";
-import { useAuthStore } from "../../stores/auth";
 
 const { t, locale } = useI18n({ useScope: "global" });
 
@@ -35,16 +34,6 @@ const form = reactive({
   remark: "",
   permissionIds: [] as string[],
   deptIds: [] as string[]
-});
-
-/**
- * 权限树加载用的租户 ID：
- * - 编辑/查看：取角色所属租户 ID
- * - 新增：不传（后端按当前登录用户自身拥有的权限过滤）
- */
-const effectiveTenantId = computed<string | undefined>(() => {
-  if (props.mode === "add") return undefined;
-  return props.role?.tenantId;
 });
 
 const formRules = computed(() => ({
@@ -92,7 +81,7 @@ const pendingPermIds = ref<string[] | null>(null);
 /**
  * 将扁平权限列表转成树结构。
  *
- * 后端已做过滤（仅返回启用且可见的权限；超管按指定租户套餐过滤，非超管仅返回自身拥有的权限），
+ * 后端已做过滤（仅返回启用且可见的权限；超管按当前租户套餐过滤，非超管仅返回自身拥有的权限），
  * 前端直接信任后端数据，不再做任何过滤，避免「掩耳盗铃」式掩盖后端问题。
  */
 function buildPermTree(perms: PermissionAssignOption[]): PermissionTreeNode[] {
@@ -273,8 +262,8 @@ function clearAllTicks() {
 async function loadPermTree() {
   permTreeLoading.value = true;
   try {
-    // 按角色域过滤可分配权限，防止跨域授权；超管按目标租户套餐过滤
-    const result = await getRoleAssignOptionsApi(form.realm, effectiveTenantId.value);
+    // 按角色域过滤可分配权限，防止跨域授权；超管按当前租户套餐过滤
+    const result = await getRoleAssignOptionsApi(form.realm);
     if (result.code === 10_000 && result.data) {
       allPermissions.value = result.data;
       // 默认展开第一级
@@ -378,9 +367,6 @@ const deptTreeWithRoot = computed(() => [{
 
 const filteredDeptTreeNodes = computed(() => filterDeptTree(deptTreeWithRoot.value, deptSearchKey.value));
 
-/** 当前用户是否为超管（用于新增模式下部门树空态的原因区分） */
-const isSuperadmin = computed(() => useAuthStore().isSuperadmin);
-
 /** 部门树是否为空态（无部门数据或搜索无结果） */
 const deptTreeEmpty = computed(() => {
   if (deptSearchKey.value?.trim()) {
@@ -393,10 +379,6 @@ const deptTreeEmpty = computed(() => {
 const deptTreeEmptyLabel = computed(() => {
   if (deptSearchKey.value?.trim()) {
     return t("roleMgmt.noDeptSearchResult");
-  }
-  // 超管新增模式：无租户上下文，部门树必然为空
-  if (props.mode === "add" && isSuperadmin.value) {
-    return t("roleMgmt.addModeNoDeptHint");
   }
   return t("roleMgmt.noDeptData");
 });
@@ -486,10 +468,10 @@ function onDeptMenuHide() {
   deptTreeExpanded.value = deptTreeNodes.value.length ? [ROOT_DEPT_ID] : [];
 }
 
-/** 加载部门选项（按目标租户过滤） */
-async function loadDeptOptions(tenantId?: string) {
+/** 加载部门选项（当前租户下的部门） */
+async function loadDeptOptions() {
   try {
-    const result = await getDeptOptionsApi(tenantId);
+    const result = await getDeptOptionsApi();
     if (result.code === 10_000 && result.data) {
       deptTreeNodes.value = buildDeptTree(result.data);
     }
@@ -597,10 +579,10 @@ watch(() => form.realm, (newRealm, oldRealm) => {
   loadPermTree();
 });
 
-// 数据权限切换为「自定义」且部门树未加载时，按角色租户加载部门树
+// 数据权限切换为「自定义」且部门树未加载时，加载当前租户部门树
 watch(() => form.dataScope, (val) => {
   if (val === "custom" && deptTreeNodes.value.length === 0) {
-    loadDeptOptions(effectiveTenantId.value);
+    loadDeptOptions();
   }
 });
 

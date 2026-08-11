@@ -26,11 +26,10 @@ public interface SysRoleService {
     /**
      * 查询角色选项列表
      *
-     * @param tenantId 目标租户 ID（超管必传，未传返回空；非超管忽略，使用登录人所属的租户）
-     * @param realm    角色域
+     * @param realm 角色域
      * @return 角色选项列表
      */
-    List<RoleOptionResponse> listRoleOptions(String tenantId, String realm);
+    List<RoleOptionResponse> listRoleOptions(String realm);
 
     /**
      * 分页查询角色列表

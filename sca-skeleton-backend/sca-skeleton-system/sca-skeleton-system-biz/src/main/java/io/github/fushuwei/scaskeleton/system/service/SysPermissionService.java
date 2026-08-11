@@ -26,15 +26,11 @@ public interface SysPermissionService {
 
     /**
      * 查询角色授权面板可分配的权限列表
-     * <p>
-     * 超管：仅返回指定租户套餐内的权限（tenantId 必传，未传返回空）；<br>
-     * 非超管：仅返回当前用户自身拥有的权限。
      *
-     * @param realm    权限域
-     * @param tenantId 目标租户 ID（超管必传）
+     * @param realm 权限域
      * @return 可授权权限列表
      */
-    List<PermissionAssignOptionResponse> listPermissionsForRole(String realm, String tenantId);
+    List<PermissionAssignOptionResponse> listPermissionsForRole(String realm);
 
     /**
      * 查询套餐授权面板可分配的权限列表

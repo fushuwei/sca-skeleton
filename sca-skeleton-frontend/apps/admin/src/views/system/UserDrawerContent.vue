@@ -290,10 +290,10 @@ const roleMultiOptions = computed(() =>
   roleOptions.value.map((r) => ({ label: r.name, value: r.id }))
 );
 
-/** 加载角色选项（按目标租户和用户域过滤） */
-async function loadRoleOptions(tenantId?: string, realm?: string) {
+/** 加载角色选项（按用户域过滤，数据均为当前租户下的角色） */
+async function loadRoleOptions(realm?: string) {
   try {
-    const result = await getRoleOptionsApi(tenantId, realm);
+    const result = await getRoleOptionsApi(realm);
     if (result.code === 10_000 && result.data) {
       roleOptions.value = result.data;
     }
@@ -302,10 +302,10 @@ async function loadRoleOptions(tenantId?: string, realm?: string) {
   }
 }
 
-/** 加载部门选项（按目标租户过滤） */
-async function loadDeptOptions(tenantId?: string) {
+/** 加载部门选项（当前租户下的部门） */
+async function loadDeptOptions() {
   try {
-    const result = await getDeptOptionsApi(tenantId);
+    const result = await getDeptOptionsApi();
     if (result.code === 10_000 && result.data) {
       deptOptions.value = result.data;
       deptTreeNodes.value = buildDeptTree(result.data);
@@ -315,10 +315,10 @@ async function loadDeptOptions(tenantId?: string) {
   }
 }
 
-/** 加载岗位选项（按目标租户过滤） */
-async function loadPostOptions(tenantId?: string) {
+/** 加载岗位选项（当前租户下的岗位） */
+async function loadPostOptions() {
   try {
-    const result = await getPostOptionsApi(tenantId);
+    const result = await getPostOptionsApi();
     if (result.code === 10_000 && result.data) {
       postOptions.value = result.data;
     }
@@ -369,11 +369,10 @@ function initForm() {
     form.deptId = props.user.deptIds?.[0] ?? "";
     form.postIds = props.user.postIds ? [...props.user.postIds] : [];
     form.roleIds = props.user.roleIds ? [...props.user.roleIds] : [];
-    // 编辑/查看模式按用户所在租户加载部门、岗位、角色选项
-    const tenantId = props.user.tenantId;
-    loadDeptOptions(tenantId);
-    loadPostOptions(tenantId);
-    loadRoleOptions(tenantId, props.user.realm);
+    // 编辑/查看模式加载部门、岗位、角色选项（数据均为当前租户下的数据）
+    loadDeptOptions();
+    loadPostOptions();
+    loadRoleOptions(props.user.realm);
   }
 }
 
@@ -384,12 +383,12 @@ watch(() => form.realm, (val) => {
   if (props.mode === "add") {
     form.roleIds = [];
   }
-  loadRoleOptions(undefined, val || undefined);
+  loadRoleOptions(val || undefined);
 });
 
 onMounted(() => {
   if (props.mode === "add") {
-    // 新增模式：加载部门、岗位（后端按当前用户租户过滤）
+    // 新增模式：加载部门、岗位（数据均为当前租户下的数据）
     // 编辑/查看模式：initForm 已加载
     loadDeptOptions();
     loadPostOptions();

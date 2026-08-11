@@ -45,7 +45,7 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
         Page<SysOperationLog> page = new Page<>(request.getPageNum(), request.getPageSize());
         // 查询分页数据，并将结果转换为响应对象
         IPage<SysOperationLog> entityPage = operationLogMapper.selectLogPage(page,
-            SecurityUtils.isSuperAdmin() ? null : SecurityUtils.getTenantId(),  // 数据隔离：超管看所有租户，非超管只看自己租户
+            SecurityUtils.getTenantId(),  // 数据隔离：仅查询当前租户下的操作日志
             request.getKeyword(),
             request.getIsSuccess(),
             request.getStartTime(),
@@ -63,8 +63,8 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
      */
     @Override
     public OperationLogResponse getLogById(String id) {
-        // 按主键查询日志
-        SysOperationLog logEntity = operationLogMapper.selectLogById(id);
+        // 按主键查询当前租户下的日志
+        SysOperationLog logEntity = operationLogMapper.selectLogById(id, SecurityUtils.getTenantId());
         if (logEntity == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "日志不存在");
         }

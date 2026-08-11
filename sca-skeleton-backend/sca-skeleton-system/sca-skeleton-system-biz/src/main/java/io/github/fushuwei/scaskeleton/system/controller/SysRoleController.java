@@ -43,20 +43,19 @@ public class SysRoleController {
         return Result.ok(roleService.listRoles());
     }
 
-    @Operation(summary = "查询角色授权面板可分配权限", description = "超管按指定租户套餐过滤，非超管按自身权限过滤")
+    @Operation(summary = "查询角色授权面板可分配权限", description = "超管按当前租户套餐过滤，非超管按自身权限过滤")
     @GetMapping("/assign-options")
     @RequiresPermission("sys:role:list")
     public Result<List<PermissionAssignOptionResponse>> assignOptions(
-        @RequestParam(required = false) String realm,
-        @RequestParam(required = false) String tenantId) {
-        return Result.ok(permissionService.listPermissionsForRole(realm, tenantId));
+        @RequestParam(required = false) String realm) {
+        return Result.ok(permissionService.listPermissionsForRole(realm));
     }
 
     @Operation(summary = "查询角色选项列表", description = "用于用户管理等功能表单下拉选择")
     @GetMapping("/options")
     @RequiresPermission("sys:user:list")
-    public Result<List<RoleOptionResponse>> options(@RequestParam(required = false) String tenantId, @RequestParam(required = false) String realm) {
-        return Result.ok(roleService.listRoleOptions(tenantId, realm));
+    public Result<List<RoleOptionResponse>> options(@RequestParam(required = false) String realm) {
+        return Result.ok(roleService.listRoleOptions(realm));
     }
 
     @Operation(summary = "分页查询角色列表")

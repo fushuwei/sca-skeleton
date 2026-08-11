@@ -68,25 +68,17 @@ public class SysPermissionServiceImpl implements SysPermissionService {
 
     /**
      * 查询角色授权面板可分配的权限列表
-     * <p>
-     * 超管：仅返回指定租户套餐内的权限（tenantId 必传，未传返回空）；<br>
-     * 非超管：仅返回当前用户自身拥有的权限。
      *
-     * @param realm    权限域
-     * @param tenantId 目标租户 ID（超管必传）
+     * @param realm 权限域
      * @return 可授权权限列表
      */
     @Override
-    public List<PermissionAssignOptionResponse> listPermissionsForRole(String realm, String tenantId) {
+    public List<PermissionAssignOptionResponse> listPermissionsForRole(String realm) {
         List<SysPermission> permissions;
 
         if (SecurityUtils.isSuperAdmin()) {
-            // 超管：tenantId 必传，未传返回空（防止前端不传租户时查出全部权限）
-            if (!StringUtils.hasText(tenantId)) {
-                return Collections.emptyList();
-            }
-            // 单条 JOIN SQL 查询租户套餐内的权限
-            permissions = permissionMapper.selectPermissionsByTenantPackage(tenantId, realm);
+            // 超管：查询当前租户套餐内的权限
+            permissions = permissionMapper.selectPermissionsByTenantPackage(SecurityUtils.getTenantId(), realm);
         } else {
             // 非超级管理员：仅返回当前用户自身拥有的权限（防止越权授予自己不具备的权限）
             String userId = SecurityUtils.getUserId();

@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -52,9 +51,9 @@ public class SysPostServiceImpl implements SysPostService {
      */
     @Override
     public List<PostResponse> listPosts() {
-        // 数据隔离：超管看所有租户，非超管只看自己租户
+        // 数据隔离：仅查询当前租户下的岗位
         List<SysPost> posts = postMapper.selectList(new LambdaQueryWrapper<SysPost>()
-            .eq(!SecurityUtils.isSuperAdmin(), SysPost::getTenantId, SecurityUtils.getTenantId())
+            .eq(SysPost::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysPost::getSort));
         // 转换为响应对象列表
         return postConverter.toPostResponseList(posts);
@@ -66,20 +65,8 @@ public class SysPostServiceImpl implements SysPostService {
      * @return 岗位选项列表
      */
     @Override
-    public List<PostOptionResponse> listPostOptions(String tenantId) {
-        // 超级管理员：必须指定目标租户，未传则返回空（防止超管在未选租户时看到所有租户数据导致越权分配）
-        if (SecurityUtils.isSuperAdmin()) {
-            if (!StringUtils.hasText(tenantId)) {
-                return Collections.emptyList();
-            }
-            List<SysPost> posts = postMapper.selectList(new LambdaQueryWrapper<SysPost>()
-                .eq(SysPost::getTenantId, tenantId)
-                .orderByAsc(SysPost::getSort));
-            // 转换为响应对象列表
-            return postConverter.toPostOptionResponseList(posts);
-        }
-
-        // 非超级管理员：仅返回当前用户所在租户的岗位（忽略传入的 tenantId，使用自身租户）
+    public List<PostOptionResponse> listPostOptions() {
+        // 数据隔离：仅返回当前租户下的岗位
         List<SysPost> posts = postMapper.selectList(new LambdaQueryWrapper<SysPost>()
             .eq(SysPost::getTenantId, SecurityUtils.getTenantId())
             .orderByAsc(SysPost::getSort));
@@ -96,8 +83,8 @@ public class SysPostServiceImpl implements SysPostService {
     @Override
     public IPage<PostResponse> pagePosts(PostPageRequest request) {
         Page<PostResponse> page = new Page<>(request.getPageNum(), request.getPageSize());
-        // 数据隔离：超管看所有租户，非超管只看自己租户
-        String tenantId = SecurityUtils.isSuperAdmin() ? null : SecurityUtils.getTenantId();
+        // 数据隔离：仅查询当前租户下的岗位
+        String tenantId = SecurityUtils.getTenantId();
         return postMapper.selectPostPage(page, tenantId, request);
     }
 
@@ -231,8 +218,8 @@ public class SysPostServiceImpl implements SysPostService {
         if (post == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "岗位不存在");
         }
-        if (!SecurityUtils.isSuperAdmin()
-            && !Objects.equals(post.getTenantId(), SecurityUtils.getTenantId())) {
+        // 数据隔离：仅允许操作当前租户下的岗位
+        if (!Objects.equals(post.getTenantId(), SecurityUtils.getTenantId())) {
             throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
         }
         return post;
@@ -252,12 +239,9 @@ public class SysPostServiceImpl implements SysPostService {
             List<String> missing = distinctIds.stream().filter(id -> !foundIds.contains(id)).toList();
             throw new BusinessException(ResultCode.NOT_FOUND, "岗位不存在，ID: " + String.join(", ", missing));
         }
-        if (!SecurityUtils.isSuperAdmin()) {
-            String currentTenantId = SecurityUtils.getTenantId();
-            for (SysPost entity : entities) {
-                if (!Objects.equals(entity.getTenantId(), currentTenantId)) {
-                    throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
-                }
+        for (SysPost entity : entities) {
+            if (!Objects.equals(entity.getTenantId(), SecurityUtils.getTenantId())) {
+                throw new BusinessException(ResultCode.FORBIDDEN, "权限不足，无法操作其他租户的数据");
             }
         }
         return entities;

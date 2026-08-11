@@ -18,9 +18,7 @@
         FROM sys_role r
         LEFT JOIN sys_tenant t ON t.id = r.tenant_id AND t.is_deleted = 0
         WHERE r.is_deleted = 0
-        <if test="tenantId != null">
-            AND r.tenant_id = #{tenantId}
-        </if>
+        AND r.tenant_id = #{tenantId}
         <if test="request.keyword != null and request.keyword != ''">
             AND (r.name LIKE CONCAT('%', #{request.keyword}, '%')
                  OR r.code LIKE CONCAT('%', #{request.keyword}, '%'))

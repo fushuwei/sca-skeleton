@@ -39,10 +39,11 @@ public interface SysOperationLogMapper extends BaseMapper<SysOperationLog> {
     /**
      * 根据 ID 查询操作日志详情
      *
-     * @param id 操作日志 ID
+     * @param id       操作日志 ID
+     * @param tenantId 当前租户 ID
      * @return 操作日志对象
      */
-    SysOperationLog selectLogById(@Param("id") String id);
+    SysOperationLog selectLogById(@Param("id") String id, @Param("tenantId") String tenantId);
 
     /**
      * 清空全部操作日志

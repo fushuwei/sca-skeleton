@@ -9,9 +9,7 @@
         FROM sys_post p
         LEFT JOIN sys_tenant t ON t.id = p.tenant_id AND t.is_deleted = 0
         WHERE p.is_deleted = 0
-        <if test="tenantId != null">
-            AND p.tenant_id = #{tenantId}
-        </if>
+        AND p.tenant_id = #{tenantId}
         <if test="request.keyword != null and request.keyword != ''">
             AND (p.name LIKE CONCAT('%', #{request.keyword}, '%')
                  OR p.code LIKE CONCAT('%', #{request.keyword}, '%'))

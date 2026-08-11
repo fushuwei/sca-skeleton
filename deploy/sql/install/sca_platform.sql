@@ -35,6 +35,20 @@ CREATE TABLE IF NOT EXISTS `sys_tenant_package` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户套餐表';
 
 
+-- 内置租户套餐（默认套餐，超级管理员 admin 所属租户的套餐）
+INSERT INTO `sys_tenant_package` (
+    `id`, `name`, `code`, `status`, `user_limit`, `api_limit`, `storage_limit`, `expire_days`,
+    `sort`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
+)
+SELECT
+    '1', '默认套餐', 'default', 'enabled', -1, -1, -1, -1,
+    1, '系统内置默认套餐', 0, 'system', NOW(), 'system', NOW(), 0
+WHERE NOT EXISTS (
+    SELECT 1 FROM `sys_tenant_package`
+    WHERE `id` = '1' AND `is_deleted` = 0
+);
+
+
 -- ---------------------------------------------------
 -- 租户套餐权限关联表
 -- ---------------------------------------------------
@@ -77,6 +91,22 @@ CREATE TABLE IF NOT EXISTS `sys_tenant` (
     `is_deleted`      TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否删除（0否 1是）',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户表';
+
+
+-- 内置租户（默认租户，超级管理员 admin 所属租户）
+INSERT INTO `sys_tenant` (
+    `id`, `name`, `code`, `package_id`, `contact_name`, `contact_phone`, `contact_email`, `domain_name`,
+    `effective_time`, `expire_time`, `status`, `is_builtin`, `config_json`, `remark`,
+    `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
+)
+SELECT
+    '1', '默认租户', 'default', '1', NULL, NULL, NULL, NULL,
+    NULL, NULL, 'normal', 1, NULL, '系统内置默认租户',
+    0, 'system', NOW(), 'system', NOW(), 0
+WHERE NOT EXISTS (
+    SELECT 1 FROM `sys_tenant`
+    WHERE `id` = '1' AND `is_deleted` = 0
+);
 
 
 -- ---------------------------------------------------
@@ -171,7 +201,7 @@ INSERT INTO `sys_user` (
     `is_builtin`, `source_type`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
 )
 SELECT
-    '1', NULL, 'admin',
+    '1', '1', 'admin',
     '{bcrypt}$2b$10$oW8PgdSN8jCUwZoApsRpc.8xhcCNInM8i0iH/6k.G7cmKB/5tb.Pq',
     '超级管理员', '超级管理员', NULL, NULL, NULL, NULL,
     'admin', 1, 'active', NULL, NULL, 0, 0,

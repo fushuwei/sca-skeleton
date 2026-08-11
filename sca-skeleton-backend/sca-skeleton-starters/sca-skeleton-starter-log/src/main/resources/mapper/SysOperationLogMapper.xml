@@ -13,9 +13,7 @@
         LEFT JOIN ${log.database}.sys_tenant t ON t.id = l.tenant_id
         LEFT JOIN ${log.database}.sys_user u ON u.id = l.user_id
         WHERE 1=1
-        <if test="tenantId != null">
-            AND l.tenant_id = #{tenantId}
-        </if>
+        AND l.tenant_id = #{tenantId}
         <if test="keyword != null and keyword != ''">
             AND (t.name LIKE CONCAT('%', #{keyword}, '%')
                  OR u.username LIKE CONCAT('%', #{keyword}, '%')
@@ -62,6 +60,9 @@
         LEFT JOIN ${log.database}.sys_tenant t ON t.id = l.tenant_id
         LEFT JOIN ${log.database}.sys_user u ON u.id = l.user_id
         WHERE l.id = #{id}
+        <if test="tenantId != null">
+            AND l.tenant_id = #{tenantId}
+        </if>
     </select>
 
     <!-- 清空全部操作日志 -->

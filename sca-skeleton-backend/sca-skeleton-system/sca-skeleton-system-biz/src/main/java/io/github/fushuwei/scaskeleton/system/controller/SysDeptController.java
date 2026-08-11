@@ -42,8 +42,8 @@ public class SysDeptController {
     @Operation(summary = "查询部门选项列表", description = "用于用户管理等功能表单下拉选择")
     @GetMapping("/options")
     @RequiresPermission("sys:user:list")
-    public Result<List<DeptOptionResponse>> options(@RequestParam(required = false) String tenantId) {
-        return Result.ok(deptService.listDeptOptions(tenantId));
+    public Result<List<DeptOptionResponse>> options() {
+        return Result.ok(deptService.listDeptOptions());
     }
 
     @Operation(summary = "分页查询部门列表")

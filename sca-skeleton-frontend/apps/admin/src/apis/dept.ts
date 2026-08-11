@@ -7,12 +7,11 @@ export async function getDeptListApi(): Promise<ApiEnvelope<SysDept[]>> {
 }
 
 /**
- * 查询部门选项列表（用户管理表单下拉选择）
+ * 查询部门选项列表（用户管理表单下拉选择，当前租户下的部门）
  * 返回最小化字段（id/parentId/name/sort），后端已剥离 leader/phone/email/tenantId/treePath/审计字段等。
- * @param tenantId 目标租户 ID（超管必传，未传返回空；非超管忽略，使用登录人所属的租户）
  */
-export async function getDeptOptionsApi(tenantId?: string): Promise<ApiEnvelope<DeptOption[]>> {
-  return request<DeptOption[]>({ method: "GET", url: "/sys/dept/options", params: { tenantId } });
+export async function getDeptOptionsApi(): Promise<ApiEnvelope<DeptOption[]>> {
+  return request<DeptOption[]>({ method: "GET", url: "/sys/dept/options" });
 }
 
 /** 分页查询当前租户下部门列表 */
