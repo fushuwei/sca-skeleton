@@ -490,8 +490,8 @@ public class SysUserServiceImpl implements SysUserService {
         });
     }
 
-/**
-* 解析新建用户的 isSuperadmin 字段（防止垂直越权）
+    /**
+     * 解析新建用户的 isSuperadmin 字段（防止垂直越权）
      * <p>
      * 仅超级管理员可创建超级管理员账号，非超管传入的 isSuperadmin 值会被强制忽略为 0
      *
