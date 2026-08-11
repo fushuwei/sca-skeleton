@@ -247,10 +247,10 @@ function collectWithAncestors(tickedIds: string[]): string[] {
   return [...result];
 }
 
-/** 树节点行图标：realm 分组节点不展示图标（以徽章表达权限域），模块/目录用 folder，菜单用叶子 */
+/** 树节点行图标：realm 分组/模块/目录用 folder/folder_open（随展开状态切换），菜单用叶子；
+    颜色不做自定义，跟随节点文字色（与上级部门下拉框等全局树图标一致） */
 function permNodeIcon(node: PermissionTreeNode): string {
-  if (node.type === "realm-group") return "";
-  if (node.type === "module" || node.type === "folder") {
+  if (node.type === "realm-group" || node.type === "module" || node.type === "folder") {
     return permTreeExpanded.value.includes(node.id) ? "sym_r_folder_open" : "sym_r_folder";
   }
   if (node.type === "menu") return "sym_r_nest_eco_leaf";
@@ -614,11 +614,11 @@ async function handleSave() {
             {{ t('tenantPackageMgmt.selectedPermissions', { count: permTreeTicked.length }) }}
           </q-badge>
           <template v-if="!drawerReadonly">
-            <q-btn flat dense no-caps size="12px" color="grey-8" class="perm-panel__action" @click="selectAllVisible">
+            <q-btn flat dense no-caps size="12px" color="primary" class="perm-panel__action" @click="selectAllVisible">
               {{ t('tenantPackageMgmt.selectAll') }}
             </q-btn>
             <q-btn
-              flat dense no-caps size="12px" color="grey-8"
+              flat dense no-caps size="12px" color="primary"
               class="perm-panel__action"
               :disable="!permTreeTicked.length"
               @click="clearAllTicks"
@@ -626,21 +626,22 @@ async function handleSave() {
               {{ t('tenantPackageMgmt.clearAll') }}
             </q-btn>
           </template>
-          <q-btn flat dense no-caps size="12px" color="grey-8" class="perm-panel__action" @click="toggleExpandAll">
+          <q-btn flat dense no-caps size="12px" color="primary" class="perm-panel__action" @click="toggleExpandAll">
             {{ allVisibleExpanded ? t('tenantPackageMgmt.collapseAll') : t('tenantPackageMgmt.expandAll') }}
           </q-btn>
         </div>
 
-        <!-- 工具行：面板内无边框搜索框，focus 时底部主色描边 -->
+        <!-- 工具行：与列表页搜索框同款的 filled square dense clearable 文本框 -->
         <div class="perm-panel__toolbar">
           <q-input
             v-model="permSearchKey"
-            dense
-            borderless
+            filled
             square
+            dense
             :placeholder="t('tenantPackageMgmt.searchPermission')"
             clearable
-            class="perm-panel__search full-width"
+            hide-bottom-space
+            class="full-width"
             :disable="drawerReadonly"
           >
             <template #prepend>
@@ -676,10 +677,7 @@ async function handleSave() {
               no-nodes-label=" "
             >
               <template #default-header="scope">
-                <div
-                  class="perm-tree-node row items-center no-wrap full-width"
-                  :class="{ 'perm-tree-node--realm': scope.node.type === 'realm-group' }"
-                >
+                <div class="perm-tree-node row items-center no-wrap full-width">
                   <!-- 查看模式：以勾选图标展示已选状态，替代禁用的复选框 -->
                   <q-icon
                     v-if="drawerReadonly && permTreeTicked.includes(scope.node.id)"
@@ -693,25 +691,15 @@ async function handleSave() {
                     :name="permNodeIcon(scope.node)"
                     size="18px"
                     class="q-mr-sm"
-                    :class="{
-                      'perm-tree-icon--folder': scope.node.type === 'module' || scope.node.type === 'folder',
-                      'perm-tree-icon--menu': scope.node.type === 'menu'
-                    }"
-                  />
-                  <!-- realm 分组节点：权限域色点标识（admin=purple / portal=teal，与用户域徽章一致） -->
-                  <span
-                    v-if="scope.node.type === 'realm-group'"
-                    class="perm-tree-node__realm-dot"
-                    :class="scope.node.realm === 'admin' ? 'perm-tree-node__realm-dot--admin' : 'perm-tree-node__realm-dot--portal'"
                   />
                   <span
                     class="ellipsis"
                     :class="{ 'perm-tree-node__realm-label': scope.node.type === 'realm-group' }"
                   >{{ scope.node.label }}</span>
                   <q-space />
-                  <!-- 分支统计徽章：已选叶子/叶子总数，选满时转主色 -->
+                  <!-- 分支统计徽章：仅在有勾选时展示（未选状态保持树面干净），选满时转主色 -->
                   <span
-                    v-if="scope.node.children?.length && nodeLeafCount(scope.node) > 0"
+                    v-if="scope.node.children?.length && nodeTickedCount(scope.node) > 0"
                     class="perm-tree-node__stats"
                     :class="{ 'perm-tree-node__stats--full': nodeTickedCount(scope.node) === nodeLeafCount(scope.node) }"
                   >
@@ -853,23 +841,10 @@ async function handleSave() {
   flex-shrink: 0;
 }
 
-/* 工具行：搜索框与面板同宽，无独立边框 */
+/* 工具行：搜索框与面板同宽，采用列表页同款 filled square dense 文本框 */
 .perm-panel__toolbar {
-  padding: 2px 12px;
+  padding: 6px 12px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.perm-panel__search :deep(.q-field__control) {
-  height: 36px;
-}
-
-.perm-panel__search :deep(.q-field__prepend) {
-  color: #9aa3af;
-}
-
-/* focus 反馈：底部主色描边（borderless 模式默认无任何聚焦指示） */
-.perm-panel__search :deep(.q-field--focused .q-field__control) {
-  box-shadow: inset 0 -2px 0 0 var(--q-primary);
 }
 
 /* 树内容区 */
@@ -899,7 +874,7 @@ async function handleSave() {
 .perm-tree :deep(.q-tree__node-header) {
   flex: 1 1 auto;
   min-width: 0;
-  margin: 1px 0;
+  margin: 2px 0;
   padding: 0;
   min-height: 0;
   border-radius: 6px;
@@ -911,49 +886,46 @@ async function handleSave() {
   background: rgba(25, 118, 210, 0.04);
 }
 
+/* 行高 40px：32px 复选框（同表格选择列）上下各留 4px 呼吸空间，
+   表格行高 48px 承载 32px 复选框，树行以 40px 保持同等松弛感 */
 .perm-tree-node {
   min-width: 0;
   padding: 4px 8px;
-  min-height: 32px;
+  min-height: 40px;
 }
 
-/* realm 分组节点：分组标签式展示，行距略增以区隔分组 */
-.perm-tree-node--realm {
-  padding: 6px 8px;
-  margin-top: 6px;
+/* 复选框照搬套餐列表表格选择列的 q-checkbox：
+   表格是用 :deep(.q-checkbox__inner){font-size:32px} 覆写出的 32px（勾选框 16px），
+   而 q-tree 内部硬编码 dense，此处还原为与表格完全一致的 32px / 16px / 1x 悬停圆 */
+.perm-tree :deep(.q-tree__tickbox .q-checkbox__inner) {
+  font-size: 32px;
+  width: 1em;
+  min-width: 1em;
+  height: 1em;
 }
 
+.perm-tree :deep(.q-tree__tickbox .q-checkbox__bg) {
+  top: 25%;
+  left: 25%;
+  width: 50%;
+  height: 50%;
+}
+
+/* 悬停圆圈同步表格复选框：标准 1x 缩放（覆盖 dense 的 1.4x） */
+.perm-tree :deep(.q-tree__tickbox.q-checkbox--dense:not(.disabled):hover .q-checkbox__inner:before),
+.perm-tree :deep(.q-tree__tickbox.q-checkbox--dense:not(.disabled):focus .q-checkbox__inner:before) {
+  transform: scale3d(1, 1, 1);
+}
+
+/* 点击文件夹节点展开后 focus 残留导致的灰色背景（q-focus-helper）直接移除，
+   行悬停由上方 .q-tree__node-header:hover 规则接管 */
+.perm-tree :deep(.q-tree__node-header .q-focus-helper) {
+  display: none;
+}
+
+/* realm 分组节点（后台/前台权限）：与模块/目录同款的文件夹节点，标签用常规黑色、稍加粗以体现顶层分组 */
 .perm-tree-node__realm-label {
-  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.3px;
-  color: #757575;
-}
-
-/* realm 分组节点：权限域色点（purple-7 / teal-7） */
-.perm-tree-node__realm-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  margin-right: 6px;
-  flex-shrink: 0;
-}
-
-.perm-tree-node__realm-dot--admin {
-  background: #7b1fa2;
-}
-
-.perm-tree-node__realm-dot--portal {
-  background: #00796b;
-}
-
-/* 节点图标语义化配色：目录琥珀 / 菜单绿叶 */
-.perm-tree-icon--folder {
-  color: #b98a2f;
-}
-
-.perm-tree-icon--menu {
-  color: #4caf50;
 }
 
 /* 分支统计徽章：已选/总数，选满时转主色 */
@@ -1031,24 +1003,18 @@ async function handleSave() {
   color: rgba(255, 255, 255, 0.87);
 }
 
-.body--dark .perm-panel__search :deep(.q-field__native) {
+/* 暗色下树节点文字/图标统一 87% 白（与侧边栏菜单、表单值同基准）；
+   覆写 Quasar 内置 .q-tree--dark .q-tree__node-header-content 的纯白硬编码 */
+.body--dark .perm-tree .q-tree__node-header-content {
   color: rgba(255, 255, 255, 0.87);
 }
 
-.body--dark .perm-tree :deep(.q-tree__node-header:hover) {
+.body--dark .perm-tree .q-tree__node-header:hover {
   background: rgba(255, 255, 255, 0.06);
-}
-
-.body--dark .perm-tree-node__realm-label {
-  color: rgba(255, 255, 255, 0.6);
 }
 
 .body--dark .perm-tree-node__stats {
   color: rgba(255, 255, 255, 0.45);
-}
-
-.body--dark .perm-tree-icon--folder {
-  color: #d8ae5f;
 }
 
 /* 权限树骨架屏 */
