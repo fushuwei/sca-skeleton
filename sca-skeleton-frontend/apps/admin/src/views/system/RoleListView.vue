@@ -32,9 +32,9 @@ const searchForm = reactive<RolePageRequest>({
 const searchExpanded = ref(true);
 
 // ── 数据权限范围选项 ──
+// all 表示当前租户内的全部数据（租户隔离由后端硬编码 tenant_id 保证，不跨租户）
 const dataScopeOptions = [
   { label: "roleMgmt.scopeAll", value: "all" },
-  { label: "roleMgmt.scopeTenant", value: "tenant" },
   { label: "roleMgmt.scopeDeptAndSub", value: "dept_and_sub" },
   { label: "roleMgmt.scopeDept", value: "dept" },
   { label: "roleMgmt.scopePersonal", value: "personal" },
@@ -44,7 +44,6 @@ const dataScopeOptions = [
 const dataScopeLabelOf = (s: string): string =>
   ({
     all: t("roleMgmt.scopeAll"),
-    tenant: t("roleMgmt.scopeTenant"),
     dept_and_sub: t("roleMgmt.scopeDeptAndSub"),
     dept: t("roleMgmt.scopeDept"),
     personal: t("roleMgmt.scopePersonal"),
@@ -54,7 +53,6 @@ const dataScopeLabelOf = (s: string): string =>
 const dataScopeColorOf = (s: string): string =>
   ({
     all: "red-8",
-    tenant: "orange-8",
     dept_and_sub: "blue-7",
     dept: "teal-7",
     personal: "grey-7",

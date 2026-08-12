@@ -53,9 +53,9 @@ function onCodeInput(val: string | number | null) {
   form.code = String(val || "").toUpperCase().trim();
 }
 
+// all 表示当前租户内的全部数据（租户隔离由后端硬编码 tenant_id 保证，不跨租户）
 const dataScopeOptions = computed(() => [
   { label: t("roleMgmt.scopeAll"), value: "all" },
-  { label: t("roleMgmt.scopeTenant"), value: "tenant" },
   { label: t("roleMgmt.scopeDeptAndSub"), value: "dept_and_sub" },
   { label: t("roleMgmt.scopeDept"), value: "dept" },
   { label: t("roleMgmt.scopePersonal"), value: "personal" },

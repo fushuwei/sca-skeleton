@@ -501,8 +501,16 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     /**
+     * 数据权限范围合法取值。
+     */
+    private static final Set<String> VALID_DATA_SCOPES = Set.of(
+        "all", "dept_and_sub", "dept", "personal", "custom");
+
+    /**
      * 解析并校验数据权限对应的部门 ID 列表，统一收敛数据权限与部门的业务约束：
      * <ul>
+     *   <li>dataScope 必须是合法取值（all / dept_and_sub / dept / personal / custom），
+     *       拒绝未知取值，防止绕过前端直接落库非法数据权限；</li>
      *   <li>dataScope 为 custom 时，必须至少选择一个部门，否则抛出业务异常（防止落库"自定义但无部门"的脏数据）；</li>
      *   <li>dataScope 非 custom 时，忽略传入的部门 ID 列表并返回 null（不保存部门关联，与前端仅 custom 才提交 deptIds 的约定保持一致）。</li>
      * </ul>
@@ -512,6 +520,9 @@ public class SysRoleServiceImpl implements SysRoleService {
      * @return 有效的部门 ID 列表；非 custom 时返回 null
      */
     private List<String> resolveDataScopeDeptIds(String dataScope, List<String> deptIds) {
+        if (!VALID_DATA_SCOPES.contains(dataScope)) {
+            throw new BusinessException(ResultCode.VALIDATION_ERROR, "不支持的数据权限范围：" + dataScope);
+        }
         if (!"custom".equals(dataScope)) {
             return null;
         }

@@ -192,7 +192,7 @@ export interface SysRole {
   tenantName?: string;
   name: string;
   code: string;
-  /** 数据权限范围：all / tenant / dept_and_sub / dept / personal / custom */
+  /** 数据权限范围：all（当前租户内全部数据）/ dept_and_sub / dept / personal / custom */
   dataScope: string;
   /** 用户域（admin：后台角色；portal：前台角色） */
   realm: string;

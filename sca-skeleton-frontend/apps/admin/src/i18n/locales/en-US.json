@@ -270,7 +270,6 @@
     "createTime": "Created At",
     "permissionCount": "Permissions",
     "scopeAll": "All",
-    "scopeTenant": "Tenant",
     "scopeDeptAndSub": "Dept & Sub",
     "scopeDept": "Dept Only",
     "scopePersonal": "Personal",
