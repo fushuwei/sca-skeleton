@@ -364,6 +364,7 @@ async function handleSave() {
                 </q-input>
                 <q-scroll-area style="height: 300px">
                   <q-tree
+                    class="dept-parent-tree"
                     :nodes="filteredDeptTreeNodes"
                     node-key="id"
                     label-key="label"
@@ -555,8 +556,9 @@ async function handleSave() {
   transition: background-color 0.15s;
 }
 
+/* 行悬停背景统一由 .dept-parent-tree .q-tree__node-header:hover 接管（与用户/套餐树一致） */
 .dept-tree-option:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: transparent;
 }
 
 .required-field :deep(.q-field__label::after) {
@@ -605,8 +607,29 @@ async function handleSave() {
   border-top-color: rgba(255, 255, 255, 0.08);
 }
 
-/* 上级部门树下拉选项 */
-.body--dark .dept-tree-option:hover {
+/* 上级部门树行悬停：与添加用户/套餐权限树一致，统一由 q-tree__node-header:hover 接管。
+   q-menu 内容 teleport 到 body，scoped 样式无法命中 Quasar 内部节点，故在全局样式块中覆写 */
+.dept-parent-tree .q-tree__node-header {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  border-radius: 6px;
+  box-sizing: border-box;
+  transition: background 0.15s ease;
+}
+
+.dept-parent-tree .q-tree__node-header:hover {
+  background: rgba(25, 118, 210, 0.04);
+}
+
+/* 点击节点展开后 focus 残留导致的灰色背景（q-focus-helper）移除，行悬停由上方规则接管 */
+.dept-parent-tree .q-tree__node-header .q-focus-helper {
+  display: none;
+}
+
+.body--dark .dept-parent-tree .q-tree__node-header:hover {
   background: rgba(255, 255, 255, 0.06);
 }
 </style>
