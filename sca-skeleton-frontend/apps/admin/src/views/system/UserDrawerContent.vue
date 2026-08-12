@@ -471,12 +471,12 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-        <!-- 密码（可选，留空则使用默认值或不修改） -->
-        <div v-if="mode !== 'view'" class="col-12 col-md-6">
+        <!-- 密码（可选，留空则使用默认值或不修改；查看时留空，密码不回显） -->
+        <div class="col-12 col-md-6">
           <q-input
             v-model="form.password"
             :label="t('user.password')"
-            :placeholder="mode === 'add' ? t('user.passwordHint') : t('user.passwordEditHint')"
+            :placeholder="mode === 'add' ? t('user.passwordHint') : mode === 'edit' ? t('user.passwordEditHint') : ''"
             filled
             square
             :type="showPassword ? 'text' : 'password'"
@@ -484,7 +484,7 @@ async function handleSave() {
             :disable="drawerReadonly"
             hide-bottom-space
           >
-            <template #append>
+            <template v-if="mode !== 'view'" #append>
               <q-icon
                 :name="showPassword ? 'sym_r_visibility_off' : 'sym_r_visibility'"
                 class="cursor-pointer"
@@ -493,8 +493,8 @@ async function handleSave() {
               />
             </template>
           </q-input>
-          <!-- 密码强度指示器 -->
-          <div v-if="form.password && passwordStrength.level > 0" class="password-strength-container q-mt-xs">
+          <!-- 密码强度指示器（查看模式不显示） -->
+          <div v-if="mode !== 'view' && form.password && passwordStrength.level > 0" class="password-strength-container q-mt-xs">
             <div class="password-strength-bar">
               <div
                 class="password-strength-segment"
