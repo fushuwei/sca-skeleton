@@ -604,6 +604,12 @@ function initForm() {
       loadRolePermissions(props.role.id);
       // 编辑/查看模式加载自定义数据权限部门
       loadRoleDeptIds(props.role.id);
+      // 编辑/查看模式为自定义数据权限时，加载部门树用于回显部门名称。
+      // 注意：form.dataScope 在下方 dataScope watch 注册前即被赋值，该 watch 不会触发，
+      // 因此不能依赖新增模式下"切换为自定义即加载"的逻辑，需在此显式加载。
+      if (props.role.dataScope === "custom") {
+        loadDeptOptions();
+      }
     }
   }
 }
