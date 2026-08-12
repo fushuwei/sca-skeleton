@@ -241,6 +241,23 @@
   color: #80cbc4;
 }
 
+/* 租户切换下拉框：暗色下与列表页搜索区输入框/下拉框（.q-field--filled）观感一致。
+   AdminLayout scoped 硬编码了黑色文字与浅灰底（rgba(0,0,0,0.87)），须显式覆盖：背景、文字、图标
+   均对齐用户列表页暗色区块（背景 #2d2d2d、文字 0.87、图标 0.55）。 */
+.body--dark .tenant-select-bar .q-field__control {
+  background: #2d2d2d !important;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.body--dark .tenant-select-bar .q-field__native {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.body--dark .tenant-select-bar .q-field__append,
+.body--dark .tenant-select-bar .q-field__prepend {
+  color: rgba(255, 255, 255, 0.55);
+}
+
 /* ═══════════════════════════════════════════════════════════════
  * UserListView — 用户管理页面深色模式
  * ═══════════════════════════════════════════════════════════════ */
