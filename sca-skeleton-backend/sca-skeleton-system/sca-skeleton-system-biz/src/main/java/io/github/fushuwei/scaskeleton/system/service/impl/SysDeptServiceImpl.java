@@ -67,12 +67,8 @@ public class SysDeptServiceImpl implements SysDeptService {
      */
     @Override
     public List<DeptOptionResponse> listDeptOptions() {
-        // 数据隔离：仅返回当前租户下的部门
-        List<SysDept> depts = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
-            .eq(SysDept::getTenantId, SecurityUtils.getTenantId())
-            .orderByAsc(SysDept::getSort));
-        // 转换为响应对象列表
-        return deptConverter.toDeptOptionResponseList(depts);
+        // 数据隔离：仅返回当前租户下的部门；单条 SQL 一次返回部门属性与含子部门用户数
+        return deptMapper.selectDeptOptions(SecurityUtils.getTenantId());
     }
 
     /**

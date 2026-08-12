@@ -21,4 +21,7 @@ public class DeptOptionResponse {
 
     /** 排序号 */
     private Integer sort;
+
+    /** 该部门（含子部门）用户数 */
+    private Integer userCount;
 }

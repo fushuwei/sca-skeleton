@@ -30,20 +30,4 @@ public interface DeptConverter {
      * @return 部门响应列表
      */
     List<DeptResponse> toDeptResponseList(List<SysDept> depts);
-
-    /**
-     * 部门实体 → 部门选项响应
-     *
-     * @param dept 部门实体
-     * @return 部门选项响应对象
-     */
-    DeptOptionResponse toDeptOptionResponse(SysDept dept);
-
-    /**
-     * 部门实体列表 → 部门选项响应列表
-     *
-     * @param depts 部门实体列表
-     * @return 部门选项响应列表
-     */
-    List<DeptOptionResponse> toDeptOptionResponseList(List<SysDept> depts);
 }

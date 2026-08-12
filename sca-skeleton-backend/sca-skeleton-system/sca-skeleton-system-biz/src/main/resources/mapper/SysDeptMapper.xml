@@ -30,6 +30,29 @@
         </choose>
     </select>
 
+    <!-- 部门选项列表：单条 SQL 查询部门属性并聚合出各部门（含子部门）的用户数 -->
+    <!-- 性能说明：用 JOIN 关联子孙部门（tree_path 前缀匹配）代替相关子查询，交由优化器统一选择连接顺序；一次扫描即可返回全部选项 -->
+    <select id="selectDeptOptions" resultType="io.github.fushuwei.scaskeleton.system.api.response.dept.DeptOptionResponse">
+        SELECT d.id,
+               d.parent_id,
+               d.name,
+               d.sort,
+               COUNT(DISTINCT ud.user_id) AS user_count
+        FROM sys_dept d
+        LEFT JOIN sys_dept sd
+               ON sd.is_deleted = 0
+              AND sd.tenant_id = d.tenant_id
+              AND (sd.id = d.id OR sd.tree_path LIKE CONCAT(d.tree_path, ',%'))
+        LEFT JOIN sys_user_dept ud
+               ON ud.is_deleted = 0
+              AND ud.tenant_id = d.tenant_id
+              AND ud.dept_id = sd.id
+        WHERE d.is_deleted = 0
+          AND d.tenant_id = #{tenantId}
+        GROUP BY d.id, d.parent_id, d.name, d.sort
+        ORDER BY d.sort ASC
+    </select>
+
     <!-- 批量更新所有子孙节点的 tree_path 字段值 -->
     <update id="updateDescendantsTreePath">
         UPDATE sys_dept

@@ -26,7 +26,6 @@ const { confirmDialog } = useConfirmDialog();
 
 const ROOT_ID = "__root__";
 const deptTreeLoading = ref(false);
-const deptList = ref<DeptOption[]>([]);
 const deptTreeNodes = ref<DeptTreeNode[]>([]);
 const selectedDeptId = ref<string>("");
 let lastSelectedDeptId = "";
@@ -44,7 +43,8 @@ function buildDeptTree(depts: DeptOption[]): DeptTreeNode[] {
 
   const map = new Map<string, DeptTreeNode>();
   for (const d of sorted) {
-    map.set(d.id, { id: d.id, label: d.name, parentId: d.parentId, children: [] });
+    // 后端已按 tree_path 聚合出"含子部门"的用户数，这里直接使用
+    map.set(d.id, { id: d.id, label: d.name, parentId: d.parentId, count: d.userCount ?? 0, children: [] });
   }
 
   const roots: DeptTreeNode[] = [];
@@ -63,6 +63,7 @@ function buildDeptTree(depts: DeptOption[]): DeptTreeNode[] {
     }
   }
 
+  // 清理空 children（避免 q-tree 渲染空展开箭头）
   const cleanEmpty = (nodes: DeptTreeNode[]) => {
     for (const n of nodes) {
       if (n.children?.length) {
@@ -77,22 +78,12 @@ function buildDeptTree(depts: DeptOption[]): DeptTreeNode[] {
   return roots;
 }
 
-/** 递归计算子树总人数 */
-function sumCount(nodes: DeptTreeNode[]): number {
-  let total = 0;
-  for (const n of nodes) {
-    total += n.count ?? 0;
-    if (n.children?.length) total += sumCount(n.children);
-  }
-  return total;
-}
-
-/** 带"全部"根节点的树（q-tree 渲染用） */
+/** 带"全部"根节点的树（q-tree 渲染用），"全部"节点用户数暂不统计 */
 const deptTreeWithRoot = computed(() => [{
   id: ROOT_ID,
   label: t("user.allDepts"),
   parentId: "0",
-  count: sumCount(deptTreeNodes.value),
+  count: 0,
   children: deptTreeNodes.value
 }] as DeptTreeNode[]);
 
@@ -101,7 +92,6 @@ async function loadDeptTree() {
   try {
     const result = await getDeptOptionsApi();
     if (result.code === 10_000 && result.data?.length) {
-      deptList.value = result.data;
       deptTreeNodes.value = buildDeptTree(result.data);
     } else {
       deptTreeNodes.value = [];
@@ -851,7 +841,7 @@ onMounted(() => {
                   <span class="dept-tree-label ellipsis">{{ scope.node.label }}</span>
                   <q-space />
                   <q-badge
-                    v-if="scope.node.count != null && scope.node.count > 0"
+                    v-if="scope.node.count != null"
                     color="primary"
                     rounded
                     class="dept-count-badge"

@@ -498,6 +498,8 @@ export interface DeptOption {
   parentId: string;
   name: string;
   sort: number;
+  /** 该部门（含子部门）用户数 */
+  userCount?: number;
 }
 
 /**
