@@ -23,8 +23,10 @@ import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.entity.SysRole;
 import io.github.fushuwei.scaskeleton.system.entity.SysDept;
 import io.github.fushuwei.scaskeleton.system.entity.SysPost;
+import io.github.fushuwei.scaskeleton.system.entity.SysTenant;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserDeptMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysTenantMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserPostMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper;
@@ -71,6 +73,8 @@ public class SysUserServiceImpl implements SysUserService {
 
     private final SysPostMapper postMapper;
 
+    private final SysTenantMapper tenantMapper;
+
     private final UserConverter userConverter;
 
     private final PasswordEncoder passwordEncoder;
@@ -91,7 +95,9 @@ public class SysUserServiceImpl implements SysUserService {
         // 根据 ID 查询用户信息
         SysUser user = userMapper.selectById(userId);
         if (user != null) {
-            return userConverter.toUserProfileResponse(user);
+            UserProfileResponse profile = userConverter.toUserProfileResponse(user);
+            fillTenantInfo(profile, user.getTenantId());
+            return profile;
         }
 
         // 用户不存在时，从自省结果属性中获取当前登录用户信息
@@ -100,12 +106,31 @@ public class SysUserServiceImpl implements SysUserService {
         if (!StringUtils.hasText(username)) {
             throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在");
         }
-        return UserProfileResponse.builder()
+        UserProfileResponse profile = UserProfileResponse.builder()
             .id(userId)
             .username(username)
             .nickname(StringUtils.hasText(nickname) ? nickname : username)
             .isSuperadmin(SecurityUtils.isSuperAdmin() ? 1 : 0)
             .build();
+        fillTenantInfo(profile, SecurityUtils.getTenantId());
+        return profile;
+    }
+
+    /**
+     * 补充当前登录用户的租户信息（租户 ID 与租户名称）
+     *
+     * @param profile  用户基本信息响应
+     * @param tenantId 租户 ID
+     */
+    private void fillTenantInfo(UserProfileResponse profile, String tenantId) {
+        if (profile == null || !StringUtils.hasText(tenantId)) {
+            return;
+        }
+        profile.setTenantId(tenantId);
+        SysTenant tenant = tenantMapper.selectById(tenantId);
+        if (tenant != null) {
+            profile.setTenantName(tenant.getName());
+        }
     }
 
     /**

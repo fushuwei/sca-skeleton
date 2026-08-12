@@ -3,10 +3,12 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useQuasar } from "quasar";
 import { useI18n } from "vue-i18n";
-import { FolderTree } from "@repo/ui";
+import { FolderTree, useConfirmDialog } from "@repo/ui";
 import { useAuthStore } from "../stores/auth";
 import { flattenRoutableMenus, getIconForMenuRouteName } from "../utils/menu-tree";
 import { persistDark, persistLocale, quasarLangForLocale } from "../i18n";
+import { getTenantListApi } from "../apis/tenant";
+import { isNotificationHandled, showToast } from "@repo/shared";
 
 const LOGO_URL = import.meta.env.BASE_URL + "images/logo.png";
 
@@ -22,6 +24,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const $q = useQuasar();
 const { locale, t } = useI18n({ useScope: "global" });
+const { confirmDialog } = useConfirmDialog();
 
 const LEFT_DRAWER_WIDTH_MIN = 300;
 const LEFT_DRAWER_WIDTH_MAX = 450;
@@ -67,6 +70,76 @@ const avatarInitial = computed(() => {
   }
   return [...normalizedName][0]?.toUpperCase() ?? "U";
 });
+
+/** 用户菜单中的租户切换：租户选项 */
+const tenantOptions = ref([]);
+/** 用户菜单中的租户切换：下拉框当前选中的租户 ID（默认当前租户） */
+const currentTenantId = ref("");
+/** 用户菜单中的租户切换：真实当前租户 ID（用于切换后回滚，不随下拉选中变化） */
+const realTenantId = ref("");
+/** 是否展示租户切换列表：仅平台超管可见（普通用户无 sys:tenant:list 权限） */
+const showTenantSwitcher = computed(() => authStore.isSuperadmin);
+
+/** 加载全部租户，默认选中当前租户 */
+async function loadTenantOptions() {
+  if (!showTenantSwitcher.value) {
+    return;
+  }
+  try {
+    const res = await getTenantListApi();
+    const list = res.data ?? [];
+    tenantOptions.value = list.map((item) => ({ label: item.name, value: item.id }));
+  } catch (error) {
+    // 权限不足（403）已由全局拦截器提示，此处静默降级为仅展示当前租户
+    if (!isNotificationHandled(error)) {
+      console.warn("加载租户列表失败", error);
+    }
+    tenantOptions.value = [];
+  }
+  // 当前登录用户（仅超管可见此功能）所在租户：超管为内置用户、归属内置租户，profile.tenantId 即当前租户
+  const profileTenantId = authStore.profile?.tenantId;
+  // 防御：若租户列表接口异常（未包含当前租户），补一条保证下拉框可正常显示与选中
+  if (profileTenantId && !tenantOptions.value.some((o) => o.value === profileTenantId)) {
+    tenantOptions.value.unshift({
+      label: authStore.profile?.tenantName || profileTenantId,
+      value: profileTenantId
+    });
+  }
+  // 默认勾选当前用户所在租户；仅当异常（无当前租户信息）时回退到列表第一项
+  realTenantId.value =
+    profileTenantId && tenantOptions.value.some((o) => o.value === profileTenantId)
+      ? profileTenantId
+      : tenantOptions.value[0]?.value ?? "";
+  currentTenantId.value = realTenantId.value;
+}
+
+/**
+ * 切换租户：弹出确认框，确认后提示「开发中」并回滚选中态（真正切换待后端支持）。
+ * 注意：标准 q-select 点击选项会先更新 v-model，因此用 realTenantId 对照真实租户。
+ */
+async function handleTenantChange(val) {
+  // 点击当前租户不弹确认框
+  if (val === realTenantId.value) {
+    return;
+  }
+  const target = tenantOptions.value.find((o) => o.value === val);
+  if (!target) {
+    return;
+  }
+  try {
+    // 全局封装的确认框：点击确认 resolve，点击取消 reject
+    await confirmDialog({
+      type: "warning",
+      message: t("layout.tenantSwitchConfirmMessage", { name: target.label })
+    });
+    // 确认后：真正切换逻辑待后端支持，先提示开发中并回滚
+    showToast(t("layout.tenantSwitchWip"), "warning");
+    currentTenantId.value = realTenantId.value;
+  } catch {
+    // 取消：回滚到当前租户，避免选中态与真实租户不一致
+    currentTenantId.value = realTenantId.value;
+  }
+}
 
 /** 明亮主题下展示「进入黑暗」图标；黑暗主题下展示「回到明亮」图标。 */
 const themeToggleIcon = computed(() => ($q.dark.isActive ? "sym_r_light_mode" : "sym_r_dark_mode"));
@@ -396,6 +469,8 @@ onMounted(() => {
   // 刷新浏览器后，自动展开当前 Tab 对应的菜单模块手风琴和树路径。
   // 跳过滚动定位，避免 scrollIntoView 在 CSS 过渡动画期间强制同步布局导致卡顿。
   locateCurrentTab(false);
+  // 右上角租户切换下拉框：加载全部租户（仅超管）
+  loadTenantOptions();
 });
 
 watch(
@@ -831,6 +906,32 @@ function beginRightDrawerResize(e) {
             </div>
           </div>
           <q-separator />
+          <template v-if="showTenantSwitcher">
+            <div class="tenant-select-bar">
+              <q-select
+                v-model="currentTenantId"
+                filled
+                square
+                dense
+                :options="tenantOptions"
+                :option-label="(o) => (o ? o.label : '')"
+                option-value="value"
+                emit-value
+                map-options
+                hide-bottom-space
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                :aria-label="t('layout.tenantSwitcherAria')"
+                @update:model-value="handleTenantChange"
+                popup-content-class="status-select-popup"
+              >
+                <template v-if="!currentTenantId" v-slot:selected>
+                  <span class="status-placeholder">{{ t('layout.tenantSelectPlaceholder') }}</span>
+                </template>
+              </q-select>
+            </div>
+            <q-separator />
+          </template>
           <q-list dense class="user-menu-action-list">
             <q-item clickable @click="handleMenuClick('/system/user')">
               <q-item-section>{{ t('layout.personalCenter') }}</q-item-section>
@@ -1196,6 +1297,23 @@ function beginRightDrawerResize(e) {
 
 .right-drawer-placeholder {
   color: rgba(0, 0, 0, 0.62);
+}
+
+/* 租户切换下拉框：与租户管理列表页「请选择状态」下拉框同款 filled square dense */
+.tenant-select-bar {
+  width: 260px;
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.tenant-select-bar :deep(.q-field__native) {
+  /* 与搜索文本框（q-input）输入文字颜色保持一致：rgba(0, 0, 0, 0.87) */
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.tenant-select-bar :deep(.q-field__control) {
+  min-height: 40px;
+  min-width: 160px;
 }
 
 .user-pill {
@@ -1905,7 +2023,8 @@ function beginRightDrawerResize(e) {
 }
 </style>
 
-<!-- 非 scoped：tooltip 不换行 -->
+<!-- 非 scoped：tooltip 不换行（Teleport to body，无法用 scoped 覆盖）。
+     .status-select-popup 选项高度已由全局 styles/quasar-flat.scss 统一提供（40px），此处不再重复。 -->
 <style>
 .q-tooltip {
   white-space: nowrap;

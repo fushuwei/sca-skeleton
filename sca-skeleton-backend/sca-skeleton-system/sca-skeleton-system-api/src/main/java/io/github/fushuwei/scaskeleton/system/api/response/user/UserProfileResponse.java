@@ -23,4 +23,10 @@ public class UserProfileResponse {
 
     /** 是否平台超级管理员 */
     private Integer isSuperadmin;
+
+    /** 租户 ID */
+    private String tenantId;
+
+    /** 租户名称 */
+    private String tenantName;
 }

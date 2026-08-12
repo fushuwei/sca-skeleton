@@ -24,6 +24,10 @@ export interface UserProfile {
   nickname: string;
   /** 是否平台超级管理员：0-否，1-是 */
   isSuperadmin: number;
+  /** 当前租户 ID */
+  tenantId?: string;
+  /** 当前租户名称 */
+  tenantName?: string;
 }
 
 export interface ApiEnvelope<T> {

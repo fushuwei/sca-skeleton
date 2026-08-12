@@ -15,10 +15,12 @@
   border-radius: 0 !important; // 强制所有核心组件保持直角风格。
 } // 结束组件圆角覆盖。
 
-/* 状态下拉弹出层选项高度与输入框保持一致 */
+/* 状态下拉弹出层选项高度与输入框保持一致。
+   此为全局唯一权威来源（main.ts 必然加载），各列表页文件中的同款样式值一致（min-height: 40px）。
+   注意：勿改回 28px，否则未访问列表页时租户切换等下拉框选项高度会偏小。 */
 .status-select-popup .q-item {
-  min-height: 28px;
-  padding: 4px 16px;
+  min-height: 40px;
+  padding: 0 16px;
 }
 
 /* ═══ 下拉框占位符与 q-input 的 ::placeholder 保持完全一致 ═══

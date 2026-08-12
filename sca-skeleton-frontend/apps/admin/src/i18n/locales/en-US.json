@@ -101,7 +101,11 @@
     "localeEnglish": "English (US)",
     "localeChinese": "简体中文",
     "themeToggleAria": "Toggle light/dark theme",
-    "languageMenuAria": "Language"
+    "languageMenuAria": "Language",
+    "tenantSwitcherAria": "Switch tenant",
+    "tenantSelectPlaceholder": "Select tenant",
+    "tenantSwitchConfirmMessage": "Switch to tenant \"{name}\"?",
+    "tenantSwitchWip": "Tenant switching is under development. Please stay tuned."
   },
   "user": {
     "listTitle": "User List",

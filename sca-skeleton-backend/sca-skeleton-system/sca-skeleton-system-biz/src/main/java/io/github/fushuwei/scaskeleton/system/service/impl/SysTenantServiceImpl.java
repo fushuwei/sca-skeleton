@@ -50,6 +50,10 @@ public class SysTenantServiceImpl implements SysTenantService {
      */
     @Override
     public List<TenantResponse> listTenants() {
+        // 仅超级管理员可查询全部租户（供前端租户切换器使用），防止其他用户越权查看全部租户
+        if (!SecurityUtils.isSuperAdmin()) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "仅超级管理员可查询全部租户");
+        }
         // 查询全部租户，按 name 升序
         List<SysTenant> tenants = tenantMapper.selectList(new LambdaQueryWrapper<SysTenant>()
             .eq(SysTenant::getIsDeleted, 0)
