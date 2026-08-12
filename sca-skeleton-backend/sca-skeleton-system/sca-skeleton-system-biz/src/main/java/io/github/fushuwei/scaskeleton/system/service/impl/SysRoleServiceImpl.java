@@ -15,13 +15,13 @@ import io.github.fushuwei.scaskeleton.system.converter.RoleConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysRole;
 import io.github.fushuwei.scaskeleton.system.entity.SysDept;
 import io.github.fushuwei.scaskeleton.system.entity.SysPermission;
-import io.github.fushuwei.scaskeleton.system.entity.SysRoleDataScope;
+import io.github.fushuwei.scaskeleton.system.entity.SysRoleDept;
 import io.github.fushuwei.scaskeleton.system.entity.SysRolePermission;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRoleMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysDeptMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysPermissionMapper;
-import io.github.fushuwei.scaskeleton.system.mapper.SysRoleDataScopeMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysRoleDeptMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysRolePermissionMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.mybatis.reference.ReferenceChecker;
@@ -56,7 +56,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     private final SysRolePermissionMapper rolePermissionMapper;
 
-    private final SysRoleDataScopeMapper roleDataScopeMapper;
+    private final SysRoleDeptMapper roleDeptMapper;
 
     private final SysDeptMapper deptMapper;
 
@@ -193,8 +193,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         // 保存关联关系
         saveRolePermissions(tenantId, role.getId(), request.getPermissionIds());
 
-        // 保存自定义数据权限部门关联关系
-        saveRoleDataScopes(tenantId, role.getId(), deptIds);
+        // 保存角色部门关联关系
+        saveRoleDepts(tenantId, role.getId(), deptIds);
     }
 
     /**
@@ -236,9 +236,9 @@ public class SysRoleServiceImpl implements SysRoleService {
         deleteRolePermissions(request.getId());
         saveRolePermissions(role.getTenantId(), request.getId(), request.getPermissionIds());
 
-        // 删除旧的自定义数据权限部门关联，并保存新的关联关系
-        deleteRoleDataScopes(request.getId());
-        saveRoleDataScopes(role.getTenantId(), request.getId(), deptIds);
+        // 删除旧的角色部门关联，并保存新的关联关系
+        deleteRoleDepts(request.getId());
+        saveRoleDepts(role.getTenantId(), request.getId(), deptIds);
     }
 
     /**
@@ -257,7 +257,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
         // 删除关联关系
         deleteRolePermissions(role.getId());
-        deleteRoleDataScopes(role.getId());
+        deleteRoleDepts(role.getId());
 
         // 删除角色
         roleMapper.deleteById(role.getId());
@@ -283,7 +283,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
         // 批量删除关联关系
         deleteRolePermissions(ids);
-        deleteRoleDataScopes(ids);
+        deleteRoleDepts(ids);
 
         // 批量删除角色
         roleMapper.deleteBatchIds(ids);
@@ -310,7 +310,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     /**
-     * 查询角色自定义数据权限的部门 ID 列表
+     * 查询角色部门关联的部门 ID 列表
      *
      * @param roleId 角色 ID
      * @return 部门 ID 列表
@@ -320,13 +320,13 @@ public class SysRoleServiceImpl implements SysRoleService {
         // 校验角色存在
         loadRoleEntity(roleId);
 
-        // 查询角色自定义数据权限的部门 ID 列表
-        List<SysRoleDataScope> list = roleDataScopeMapper.selectList(new LambdaQueryWrapper<SysRoleDataScope>()
-            .eq(SysRoleDataScope::getRoleId, roleId));
+        // 查询角色部门关联的部门 ID 列表
+        List<SysRoleDept> list = roleDeptMapper.selectList(new LambdaQueryWrapper<SysRoleDept>()
+            .eq(SysRoleDept::getRoleId, roleId));
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }
-        return list.stream().map(SysRoleDataScope::getDeptId).toList();
+        return list.stream().map(SysRoleDept::getDeptId).toList();
     }
 
     /**
@@ -459,46 +459,46 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     /**
-     * 保存角色与自定义数据权限部门的关联关系
+     * 保存角色与部门的关联关系
      *
      * @param tenantId 租户 ID
      * @param roleId   角色 ID
      * @param deptIds  部门 ID 列表
      */
-    private void saveRoleDataScopes(String tenantId, String roleId, List<String> deptIds) {
+    private void saveRoleDepts(String tenantId, String roleId, List<String> deptIds) {
         // 保存角色与部门关联关系（批量插入，避免循环逐条插入的性能开销；先去重，防止同一部门重复关联产生脏数据）
         if (!CollectionUtils.isEmpty(deptIds)) {
-            List<SysRoleDataScope> scopes = deptIds.stream().distinct().map(deptId -> {
-                SysRoleDataScope rds = new SysRoleDataScope();
-                rds.setTenantId(tenantId);
-                rds.setRoleId(roleId);
-                rds.setDeptId(deptId);
-                return rds;
+            List<SysRoleDept> depts = deptIds.stream().distinct().map(deptId -> {
+                SysRoleDept rrd = new SysRoleDept();
+                rrd.setTenantId(tenantId);
+                rrd.setRoleId(roleId);
+                rrd.setDeptId(deptId);
+                return rrd;
             }).collect(Collectors.toList());
-            roleDataScopeMapper.insertBatch(scopes);
+            roleDeptMapper.insertBatch(depts);
         }
     }
 
     /**
-     * 删除角色与自定义数据权限部门的关联关系
+     * 删除角色与部门的关联关系
      *
      * @param roleId 角色 ID
      */
-    private void deleteRoleDataScopes(String roleId) {
-        deleteRoleDataScopes(Collections.singletonList(roleId));
+    private void deleteRoleDepts(String roleId) {
+        deleteRoleDepts(Collections.singletonList(roleId));
     }
 
     /**
-     * 批量删除角色与自定义数据权限部门的关联关系
+     * 批量删除角色与部门的关联关系
      *
      * @param roleIds 角色 ID 列表
      */
-    private void deleteRoleDataScopes(List<String> roleIds) {
+    private void deleteRoleDepts(List<String> roleIds) {
         if (CollectionUtils.isEmpty(roleIds)) {
             return;
         }
-        roleDataScopeMapper.delete(new LambdaQueryWrapper<SysRoleDataScope>()
-            .in(SysRoleDataScope::getRoleId, roleIds));
+        roleDeptMapper.delete(new LambdaQueryWrapper<SysRoleDept>()
+            .in(SysRoleDept::getRoleId, roleIds));
     }
 
     /**

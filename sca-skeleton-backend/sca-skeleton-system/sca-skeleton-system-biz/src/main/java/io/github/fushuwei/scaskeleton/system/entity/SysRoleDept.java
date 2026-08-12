@@ -6,14 +6,14 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 角色自定义数据权限（部门）关联实体类
+ * 角色部门关联实体类
  *
  * @author Fu Wei
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("sys_role_data_scope")
-public class SysRoleDataScope extends BaseEntity {
+@TableName("sys_role_dept")
+public class SysRoleDept extends BaseEntity {
 
     /** 租户 ID */
     private String tenantId;

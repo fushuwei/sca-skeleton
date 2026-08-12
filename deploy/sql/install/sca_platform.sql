@@ -289,9 +289,9 @@ CREATE TABLE IF NOT EXISTS `sys_role` (
 
 
 -- ---------------------------------------------------
--- 角色数据权限范围表
+-- 角色部门关联表
 -- ---------------------------------------------------
-CREATE TABLE IF NOT EXISTS `sys_role_data_scope` (
+CREATE TABLE IF NOT EXISTS `sys_role_dept` (
     `id`              VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
     `tenant_id`       VARCHAR(64)     DEFAULT NULL                COMMENT '租户ID',
     `role_id`         VARCHAR(64)     NOT NULL                    COMMENT '角色ID',
@@ -302,7 +302,7 @@ CREATE TABLE IF NOT EXISTS `sys_role_data_scope` (
     `update_time`     DATETIME        DEFAULT NULL                COMMENT '更新时间',
     `is_deleted`      TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否删除（0否 1是）',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色数据权限范围表（指定角色可以访问哪些部门的数据）';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色部门关联表（指定角色可以访问哪些部门的数据）';
 
 
 -- ---------------------------------------------------

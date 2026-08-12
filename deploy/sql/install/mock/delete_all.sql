@@ -8,7 +8,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- 清空用户与权限相关表
 DELETE FROM `sca_platform`.`sys_user_role`;
 DELETE FROM `sca_platform`.`sys_role_permission`;
-DELETE FROM `sca_platform`.`sys_role_data_scope`;
+DELETE FROM `sca_platform`.`sys_role_dept`;
 DELETE FROM `sca_platform`.`sys_user_dept`;
 DELETE FROM `sca_platform`.`sys_user_post`;
 DELETE FROM `sca_platform`.`sys_user_password_history`;
