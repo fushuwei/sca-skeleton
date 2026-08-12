@@ -293,8 +293,6 @@ interface DeptTreeNode {
   id: string;
   label: string;
   parentId: string;
-  /** 是否可勾选（QTree 节点属性，false 时该节点 checkbox 以禁用态渲染，不影响子节点） */
-  tickable?: boolean;
   children?: DeptTreeNode[];
 }
 const deptTreeNodes = ref<DeptTreeNode[]>([]);
@@ -364,9 +362,45 @@ const deptTreeWithRoot = computed(() => [{
   id: ROOT_DEPT_ID,
   label: t("roleMgmt.allDepts"),
   parentId: "",
-  tickable: false,
   children: deptTreeNodes.value
 }] as DeptTreeNode[]);
+
+/**
+ * QTree 的勾选状态（可包含虚拟根节点「全部」的 id）。
+ * tick-strategy="strict" 下父子勾选状态彼此独立，由 onDeptTicked 手动实现单向联动：
+ * - 勾选「全部」或任意父节点 → 自动勾选其全部后代；
+ * - 取消「全部」或任意父节点 → 自动取消其全部后代；
+ * - 子节点的勾选变化不影响父节点/祖先节点（勾选全部子节点不会自动勾选父节点）。
+ */
+const deptTreeTicked = ref<string[]>([]);
+
+/** 收集某节点（含虚拟根）的全部后代节点 ID（不含自身，跨任意层级） */
+function collectDeptDescendantIds(nodes: DeptTreeNode[], id: string): string[] {
+  const result: string[] = [];
+  const collectAll = (list: DeptTreeNode[], out: string[]) => {
+    for (const n of list) {
+      out.push(n.id);
+      if (n.children?.length) collectAll(n.children, out);
+    }
+  };
+  const find = (list: DeptTreeNode[]): boolean => {
+    for (const n of list) {
+      if (n.id === id) {
+        if (n.children?.length) collectAll(n.children, result);
+        return true;
+      }
+      if (n.children?.length && find(n.children)) return true;
+    }
+    return false;
+  };
+  find(nodes);
+  return result;
+}
+
+/** 全部真实部门 ID（不含虚拟根节点「全部」） */
+function collectAllRealDeptIds(): string[] {
+  return collectDeptDescendantIds(deptTreeWithRoot.value, ROOT_DEPT_ID);
+}
 
 const filteredDeptTreeNodes = computed(() => filterDeptTree(deptTreeWithRoot.value, deptSearchKey.value));
 
@@ -447,13 +481,43 @@ function deptNodeIcon(node: DeptTreeNode): string {
 
 /** 节点是否已勾选 */
 function isDeptTicked(node: DeptTreeNode): boolean {
-  return form.deptIds.includes(node.id);
+  return deptTreeTicked.value.includes(node.id);
 }
 
-/** 处理勾选变化：过滤虚拟根节点「全部」，它仅用于分组展示，不可勾选（不能靠 disabled 实现，会级联禁用子节点） */
 function onDeptTicked(ticked: readonly string[]) {
-  form.deptIds = [...ticked].filter((id) => id !== ROOT_DEPT_ID);
+  const oldSet = new Set(deptTreeTicked.value);
+  // 本次新增勾选的节点：勾选父节点/「全部」时需联动勾选其全部后代
+  const added = [...ticked].filter((id) => !oldSet.has(id));
+  // 本次取消勾选的节点：取消父节点/「全部」时需联动取消其全部后代
+  const removed = [...oldSet].filter((id) => !ticked.includes(id));
+  const result = new Set(ticked);
+  for (const id of added) {
+    for (const d of collectDeptDescendantIds(deptTreeWithRoot.value, id)) {
+      result.add(d);
+    }
+  }
+  for (const id of removed) {
+    for (const d of collectDeptDescendantIds(deptTreeWithRoot.value, id)) {
+      result.delete(d);
+    }
+  }
+  deptTreeTicked.value = [...result];
+  // 保存值不包含虚拟根节点「全部」
+  form.deptIds = [...result].filter((id) => id !== ROOT_DEPT_ID);
 }
+
+/** form.deptIds 被外部修改（回显赋值/重置/q-select 删除已选项）时，同步树勾选态 */
+watch(
+  () => form.deptIds,
+  (val) => {
+    // 保留「全部」的勾选态：仅当所有真实部门均已勾选时才继续显示其勾选
+    if (deptTreeTicked.value.includes(ROOT_DEPT_ID)) {
+      deptTreeTicked.value = val.length === collectAllRealDeptIds().length ? [ROOT_DEPT_ID, ...val] : [...val];
+    } else {
+      deptTreeTicked.value = [...val];
+    }
+  }
+);
 
 /** 部门选择菜单关闭时清理搜索残留与搜索展开态，避免下次打开仍带旧关键字和展开状态 */
 function onDeptMenuHide() {
@@ -480,6 +544,7 @@ async function loadRoleDeptIds(roleId: string) {
     const result = await getRoleDeptIdsApi(roleId);
     if (result.code === 10_000 && result.data) {
       form.deptIds = result.data;
+      deptTreeTicked.value = [...result.data];
     }
   } catch {
     // 静默失败
@@ -518,6 +583,7 @@ function resetForm() {
   form.permissionIds = [];
   form.deptIds = [];
   permTreeTicked.value = [];
+  deptTreeTicked.value = [];
 }
 
 function initForm() {
@@ -755,7 +821,7 @@ async function handleSave() {
                     label-key="label"
                     children-key="children"
                     v-model:expanded="deptTreeExpanded"
-                    :ticked="form.deptIds"
+                    :ticked="deptTreeTicked"
                     @update:ticked="onDeptTicked"
                     tick-strategy="strict"
                     no-connectors
@@ -767,7 +833,6 @@ async function handleSave() {
                       <!-- 行结构复用权限树的 perm-tree-node（40px 行高/占满整行），与套餐权限面板树一致 -->
                       <div
                         class="perm-tree-node dept-tree-option row items-center no-wrap full-width"
-                        :class="{ 'dept-tree-option--disabled': scope.node.id === ROOT_DEPT_ID }"
                       >
                         <q-icon
                           :name="deptNodeIcon(scope.node)"
@@ -1170,15 +1235,6 @@ async function handleSave() {
 
 /* 部门树节点行：行高/占满整行/悬停/复选框尺寸均由 perm-tree + perm-tree-node 提供（与套餐权限面板树一致），
    此处仅保留虚拟根节点「全部」的禁用视觉 */
-.dept-tree-option--disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-.dept-tree-option--disabled:hover {
-  background: transparent;
-}
-
 .dept-select--menu-open :deep(.q-field__append > .q-icon:not(.text-negative):not(.dept-more-tip)) {
   transform: rotate(180deg);
 }
