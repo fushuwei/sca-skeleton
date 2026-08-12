@@ -35,6 +35,13 @@ public interface SysUserService {
     IPage<UserResponse> pageUsers(UserPageRequest request);
 
     /**
+     * 统计当前租户用户总数
+     *
+     * @return 用户总数
+     */
+    long countUsers();
+
+    /**
      * 根据 ID 查询用户详情
      *
      * @param id 用户 ID

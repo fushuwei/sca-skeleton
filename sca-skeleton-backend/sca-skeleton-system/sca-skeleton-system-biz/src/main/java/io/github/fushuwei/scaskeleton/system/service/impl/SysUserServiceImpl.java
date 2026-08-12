@@ -148,6 +148,16 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /**
+     * 统计当前租户用户总数
+     *
+     * @return 用户总数
+     */
+    @Override
+    public long countUsers() {
+        return userMapper.selectCount(new LambdaQueryWrapper<SysUser>().eq(SysUser::getTenantId, SecurityUtils.getTenantId()));
+    }
+
+    /**
      * 根据 ID 查询用户详情
      *
      * @param id 用户 ID

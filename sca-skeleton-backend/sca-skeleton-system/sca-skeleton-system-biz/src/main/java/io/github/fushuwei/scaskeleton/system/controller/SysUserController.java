@@ -48,6 +48,13 @@ public class SysUserController {
         return Result.ok(userService.pageUsers(request));
     }
 
+    @Operation(summary = "统计当前租户用户总数")
+    @GetMapping("/count")
+    @RequiresPermission("sys:user:list")
+    public Result<Long> count() {
+        return Result.ok(userService.countUsers());
+    }
+
     @Operation(summary = "根据 ID 查询用户详情")
     @GetMapping("/{id}")
     @RequiresPermission("sys:user:list")

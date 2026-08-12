@@ -7,6 +7,7 @@ import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysUser, DeptOption, DeptTreeNode, UserPageRequest } from "../../types/auth";
 import {
   getUserPageApi,
+  getUserCountApi,
   getUserByIdApi,
   deleteUserApi,
   batchDeleteUserApi,
@@ -27,6 +28,8 @@ const { confirmDialog } = useConfirmDialog();
 const ROOT_ID = "__root__";
 const deptTreeLoading = ref(false);
 const deptTreeNodes = ref<DeptTreeNode[]>([]);
+/** 当前租户全部用户数（用于"全部"根节点展示，单独接口查询） */
+const totalUserCount = ref(0);
 const selectedDeptId = ref<string>("");
 let lastSelectedDeptId = "";
 const deptTreeExpanded = ref<string[]>([ROOT_ID]);
@@ -78,26 +81,32 @@ function buildDeptTree(depts: DeptOption[]): DeptTreeNode[] {
   return roots;
 }
 
-/** 带"全部"根节点的树（q-tree 渲染用），"全部"节点用户数暂不统计 */
+/** 带"全部"根节点的树（q-tree 渲染用），"全部"节点显示当前租户全部用户数 */
 const deptTreeWithRoot = computed(() => [{
   id: ROOT_ID,
   label: t("user.allDepts"),
   parentId: "0",
-  count: 0,
+  count: totalUserCount.value,
   children: deptTreeNodes.value
 }] as DeptTreeNode[]);
 
 async function loadDeptTree() {
   deptTreeLoading.value = true;
   try {
-    const result = await getDeptOptionsApi();
-    if (result.code === 10_000 && result.data?.length) {
-      deptTreeNodes.value = buildDeptTree(result.data);
+    // 部门选项与用户总数并行加载：总数用于"全部"根节点展示
+    const [optionsResult, countResult] = await Promise.all([
+      getDeptOptionsApi(),
+      getUserCountApi()
+    ]);
+    if (optionsResult.code === 10_000 && optionsResult.data?.length) {
+      deptTreeNodes.value = buildDeptTree(optionsResult.data);
     } else {
       deptTreeNodes.value = [];
     }
+    totalUserCount.value = countResult.code === 10_000 ? (countResult.data ?? 0) : 0;
   } catch {
     deptTreeNodes.value = [];
+    totalUserCount.value = 0;
   } finally {
     deptTreeExpanded.value = [ROOT_ID];
     deptTreeLoading.value = false;

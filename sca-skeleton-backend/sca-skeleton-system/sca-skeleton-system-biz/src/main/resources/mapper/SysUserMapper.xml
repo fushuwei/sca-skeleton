@@ -43,10 +43,19 @@
         </if>
         <if test="request.deptId != null and request.deptId != ''">
             AND EXISTS (
-                SELECT 1 FROM sys_user_dept ud2
+                SELECT 1
+                FROM sys_user_dept ud2
+                INNER JOIN sys_dept target
+                        ON target.id = #{request.deptId}
+                       AND target.is_deleted = 0
+                       AND target.tenant_id = u.tenant_id
+                INNER JOIN sys_dept dd
+                        ON dd.id = ud2.dept_id
+                       AND dd.is_deleted = 0
+                       AND dd.tenant_id = u.tenant_id
                 WHERE ud2.user_id = u.id
-                  AND ud2.dept_id = #{request.deptId}
                   AND ud2.is_deleted = 0
+                  AND (dd.tree_path = target.tree_path OR dd.tree_path LIKE CONCAT(target.tree_path, ',%'))
             )
         </if>
         <if test="request.keyword != null and request.keyword != ''">

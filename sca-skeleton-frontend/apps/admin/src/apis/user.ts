@@ -17,6 +17,11 @@ export async function getUserPageApi(
   });
 }
 
+/** 统计当前租户用户总数 */
+export async function getUserCountApi(): Promise<ApiEnvelope<number>> {
+  return request<number>({ method: "GET", url: "/sys/user/count" });
+}
+
 /** 根据 ID 查询用户详情 */
 export async function getUserByIdApi(id: string): Promise<ApiEnvelope<SysUser>> {
   return request<SysUser>({ method: "GET", url: `/sys/user/${id}` });
