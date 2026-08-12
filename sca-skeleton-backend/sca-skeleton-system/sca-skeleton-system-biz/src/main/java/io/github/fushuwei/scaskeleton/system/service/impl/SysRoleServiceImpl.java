@@ -497,8 +497,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         if (CollectionUtils.isEmpty(roleIds)) {
             return;
         }
-        roleDeptMapper.delete(new LambdaQueryWrapper<SysRoleDept>()
-            .in(SysRoleDept::getRoleId, roleIds));
+        roleDeptMapper.physicalDeleteByRoleIds(roleIds);
     }
 
     /**

@@ -3,8 +3,11 @@ package io.github.fushuwei.scaskeleton.system.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
 import io.github.fushuwei.scaskeleton.system.entity.SysRoleDept;
+import org.apache.ibatis.annotations.Delete;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * 角色部门关联 Mapper
@@ -28,4 +31,17 @@ public interface SysRoleDeptMapper extends BaseMapper<SysRoleDept> {
     default boolean insertBatch(Collection<SysRoleDept> entities) {
         return Db.saveBatch(entities);
     }
+
+    /**
+     * 物理删除角色与部门的关联关系
+     * <p>
+     * 角色-部门为"编辑角色时全量重建"的关联数据，删除后不再查询历史，故直接物理删除
+     * （不走逻辑删除），避免 is_deleted=1 的脏行累积。表结构保持不变。
+     *
+     * @param roleIds 角色 ID 列表
+     * @return 删除行数
+     */
+    @Delete("<script>DELETE FROM sys_role_dept WHERE role_id IN "
+        + "<foreach collection='roleIds' item='id' open='(' separator=',' close=')'>#{id}</foreach></script>")
+    int physicalDeleteByRoleIds(@Param("roleIds") List<String> roleIds);
 }
