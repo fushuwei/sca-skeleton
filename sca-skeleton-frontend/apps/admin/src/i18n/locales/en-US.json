@@ -171,7 +171,6 @@
     "effectiveEndMustAfterStart": "End time must be after start time",
     "genderMale": "Male",
     "genderFemale": "Female",
-    "pleaseSelect": "Please select",
     "pleaseInput": "Please input",
     "saveSuccess": "Saved successfully",
     "saveFail": "Failed to save",
@@ -256,7 +255,6 @@
     "saveFail": "Failed to save",
     "buttonPermissions": "Button Permissions",
     "noButtonPermissions": "No button permissions",
-    "pleaseSelect": "Please select",
     "searchPermission": "Search permission"
   },
   "roleMgmt": {
