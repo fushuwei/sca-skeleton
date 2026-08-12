@@ -476,7 +476,7 @@ async function handleSave() {
           <q-input
             v-model="form.password"
             :label="t('user.password')"
-            :hint="!form.password ? (mode === 'add' ? t('user.passwordHint') : t('user.passwordEditHint')) : undefined"
+            :placeholder="mode === 'add' ? t('user.passwordHint') : t('user.passwordEditHint')"
             filled
             square
             :type="showPassword ? 'text' : 'password'"
