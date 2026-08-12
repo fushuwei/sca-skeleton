@@ -33,8 +33,8 @@ DELETE FROM `sca_platform`.`sys_config`;
 DELETE FROM `sca_platform`.`sys_release`;
 
 -- 清空日志表
--- DELETE FROM `sca_platform`.`sys_login_log`;
--- DELETE FROM `sca_platform`.`sys_operation_log`;
+DELETE FROM `sca_platform`.`sys_login_log`;
+DELETE FROM `sca_platform`.`sys_operation_log`;
 
 -- 清空 OAuth2 相关表
 DELETE FROM `sca_platform`.`oauth2_authorization_consent`;
