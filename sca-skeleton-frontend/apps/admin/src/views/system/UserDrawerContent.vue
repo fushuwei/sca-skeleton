@@ -80,7 +80,6 @@ const formRules = {
 };
 
 const genderOptions = computed(() => [
-  { label: t("user.pleaseSelect"), value: "" },
   { label: t("user.genderMale"), value: "male" },
   { label: t("user.genderFemale"), value: "female" }
 ]);
@@ -553,6 +552,7 @@ async function handleSave() {
             :label="t('user.gender')"
             filled
             square
+            clearable
             :options="genderOptions"
             option-label="label"
             option-value="value"
