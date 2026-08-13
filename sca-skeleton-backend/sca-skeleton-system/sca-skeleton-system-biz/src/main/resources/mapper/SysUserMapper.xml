@@ -25,7 +25,7 @@
             SELECT ud.user_id, GROUP_CONCAT(d.name ORDER BY d.sort SEPARATOR ', ') AS dept_names
             FROM sys_user_dept ud
             INNER JOIN sys_dept d ON d.id = ud.dept_id AND d.is_deleted = 0
-            WHERE ud.is_deleted = 0
+            WHERE ud.is_deleted = 0 AND ud.tenant_id = #{tenantId}
             GROUP BY ud.user_id
         ) d ON d.user_id = u.id
         <!-- 左关联角色（聚合为逗号分隔字符串） -->
@@ -33,7 +33,7 @@
             SELECT ur.user_id, GROUP_CONCAT(r.name ORDER BY r.sort SEPARATOR ', ') AS role_names
             FROM sys_user_role ur
             INNER JOIN sys_role r ON r.id = ur.role_id AND r.is_deleted = 0
-            WHERE ur.is_deleted = 0
+            WHERE ur.is_deleted = 0 AND ur.tenant_id = #{tenantId}
             GROUP BY ur.user_id
         ) r ON r.user_id = u.id
         WHERE u.is_deleted = 0
