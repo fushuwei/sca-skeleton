@@ -79,6 +79,8 @@ export interface SysUser {
   updateBy: string;
   /** 部门名称列表（逗号分隔） */
   deptNames?: string;
+  /** 角色名称列表（逗号分隔） */
+  roleNames?: string;
   /** 关联的部门ID列表 */
   deptIds?: string[];
   /** 关联的岗位ID列表 */

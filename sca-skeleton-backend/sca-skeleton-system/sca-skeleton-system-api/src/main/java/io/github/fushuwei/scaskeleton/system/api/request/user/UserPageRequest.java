@@ -23,7 +23,8 @@ public class UserPageRequest {
         "is_superadmin", "u.is_superadmin",
         "status", "u.status",
         "create_time", "u.create_time",
-        "dept_name", "dept_names"
+        "dept_name", "dept_names",
+        "role_name", "role_names"
     );
 
     // ==================== 分页参数 ====================

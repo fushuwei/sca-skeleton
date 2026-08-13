@@ -402,6 +402,13 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     sortable: true
   },
   {
+    name: "roleNames",
+    field: "roleNames",
+    label: t("user.role"),
+    align: "left",
+    sortable: true
+  },
+  {
     name: "phone",
     field: "phone",
     label: t("user.phone"),
@@ -441,6 +448,7 @@ const SORT_FIELD_MAP: Record<string, string> = {
   realName: "real_name",
   createTime: "create_time",
   deptNames: "dept_name",
+  roleNames: "role_name",
   isSuperadmin: "is_superadmin" // 保留：超级管理员字段仍用于排序过滤，仅移除列展示
 };
 
@@ -1071,6 +1079,14 @@ onMounted(() => {
 
         <!-- 部门列 -->
         <template #body-cell-deptNames="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ props.value }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 角色列 -->
+        <template #body-cell-roleNames="props">
           <q-td :props="props">
             <span v-if="props.value">{{ props.value }}</span>
             <span v-else class="text-grey-5">-</span>
