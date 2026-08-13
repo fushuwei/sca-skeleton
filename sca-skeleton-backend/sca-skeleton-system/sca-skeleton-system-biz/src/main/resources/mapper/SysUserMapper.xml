@@ -50,12 +50,6 @@
                  OR u.phone LIKE CONCAT('%', #{request.keyword}, '%')
                  OR u.email LIKE CONCAT('%', #{request.keyword}, '%'))
         </if>
-        <if test="request.username != null and request.username != ''">
-            AND u.username LIKE CONCAT('%', #{request.username}, '%')
-        </if>
-        <if test="request.nickname != null and request.nickname != ''">
-            AND u.nickname LIKE CONCAT('%', #{request.nickname}, '%')
-        </if>
         <if test="request.status != null and request.status != ''">
             AND u.status = #{request.status}
         </if>

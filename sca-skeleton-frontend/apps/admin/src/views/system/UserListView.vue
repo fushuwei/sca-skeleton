@@ -236,8 +236,6 @@ const searchForm = reactive<UserPageRequest>({
   pageNum: 1,
   pageSize: 10,
   keyword: "",
-  username: "",
-  nickname: "",
   realm: "",
   status: "",
   deptId: ""
@@ -397,8 +395,8 @@ const columns = computed<QTableColumn<SysUser>[]>(() => [
     sortable: true
   },
   {
-    name: "deptName",
-    field: "deptName",
+    name: "deptNames",
+    field: "deptNames",
     label: t("user.dept"),
     align: "left",
     sortable: true
@@ -442,7 +440,7 @@ const visibleColumns = ref(columns.value.map((c) => c.name));
 const SORT_FIELD_MAP: Record<string, string> = {
   realName: "real_name",
   createTime: "create_time",
-  deptName: "dept_name",
+  deptNames: "dept_name",
   isSuperadmin: "is_superadmin" // 保留：超级管理员字段仍用于排序过滤，仅移除列展示
 };
 
@@ -497,9 +495,6 @@ async function loadTableData(
     pageNum,
     pageSize,
     keyword: searchForm.keyword || undefined,
-    username: searchForm.username || undefined,
-    nickname: searchForm.nickname || undefined,
-    
     realm: searchForm.realm || undefined,
     status: searchForm.status || undefined,
     deptId: searchForm.deptId || undefined,
@@ -562,8 +557,6 @@ function handleJumpToPage() {
 
 function handleReset() {
   searchForm.keyword = "";
-  searchForm.username = "";
-  searchForm.nickname = "";
   searchForm.realm = "";
   searchForm.status = "";
   searchForm.deptId = "";
@@ -1077,7 +1070,7 @@ onMounted(() => {
         </template>
 
         <!-- 部门列 -->
-        <template #body-cell-deptName="props">
+        <template #body-cell-deptNames="props">
           <q-td :props="props">
             <span v-if="props.value">{{ props.value }}</span>
             <span v-else class="text-grey-5">-</span>

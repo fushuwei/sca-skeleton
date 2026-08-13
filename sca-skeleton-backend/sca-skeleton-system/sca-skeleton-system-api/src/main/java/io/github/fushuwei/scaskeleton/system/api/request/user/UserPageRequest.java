@@ -23,7 +23,7 @@ public class UserPageRequest {
         "is_superadmin", "u.is_superadmin",
         "status", "u.status",
         "create_time", "u.create_time",
-        "dept_name", "d.dept_names"
+        "dept_name", "dept_names"
     );
 
     // ==================== 分页参数 ====================
@@ -41,12 +41,6 @@ public class UserPageRequest {
 
     /** 综合搜索关键词 */
     private String keyword;
-
-    /** 用户名 */
-    private String username;
-
-    /** 昵称 */
-    private String nickname;
 
     /** 用户域 */
     private String realm;
