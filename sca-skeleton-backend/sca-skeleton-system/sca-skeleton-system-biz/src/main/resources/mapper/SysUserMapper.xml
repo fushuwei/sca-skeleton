@@ -6,15 +6,7 @@
     <!-- 分页查询用户列表 -->
     <select id="selectUserPage" resultType="io.github.fushuwei.scaskeleton.system.api.response.user.UserResponse">
         SELECT
-            u.id, u.tenant_id, t.name AS tenant_name, u.username, u.nickname, u.real_name,
-            u.gender, u.avatar, u.phone, u.email,
-            u.realm, u.is_superadmin, u.status,
-            u.status_time, u.status_reason, u.login_fail_count,
-            u.must_change_password, u.password_update_time,
-            u.effective_start_time, u.effective_end_time,
-            u.last_login_ip, u.last_login_time,
-            u.is_builtin, u.source_type, u.remark, u.version,
-            u.create_time, u.update_time, u.create_by, u.update_by,
+            u.*, t.name AS tenant_name,
             d.dept_names,
             r.role_names
         FROM sys_user u
@@ -45,17 +37,10 @@
             AND EXISTS (
                 SELECT 1
                 FROM sys_user_dept ud2
-                INNER JOIN sys_dept target
-                        ON target.id = #{request.deptId}
-                       AND target.is_deleted = 0
-                       AND target.tenant_id = u.tenant_id
-                INNER JOIN sys_dept dd
-                        ON dd.id = ud2.dept_id
-                       AND dd.is_deleted = 0
-                       AND dd.tenant_id = u.tenant_id
+                INNER JOIN sys_dept d2 ON d2.id = ud2.dept_id AND d2.is_deleted = 0
                 WHERE ud2.user_id = u.id
                   AND ud2.is_deleted = 0
-                  AND (dd.tree_path = target.tree_path OR dd.tree_path LIKE CONCAT(target.tree_path, ',%'))
+                  AND d2.tree_path LIKE CONCAT('%', #{request.deptId}, '%')
             )
         </if>
         <if test="request.keyword != null and request.keyword != ''">
