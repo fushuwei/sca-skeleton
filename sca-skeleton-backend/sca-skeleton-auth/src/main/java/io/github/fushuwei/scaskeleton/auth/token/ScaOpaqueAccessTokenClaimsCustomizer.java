@@ -46,8 +46,8 @@ public class ScaOpaqueAccessTokenClaimsCustomizer implements OAuth2TokenCustomiz
         if (userDetails.getTenantId() != null) {
             claims.claim(OAuth2AccessTokenClaimNames.TENANT_ID, userDetails.getTenantId());
         }
-        if (userDetails.getIsSuperadmin() != null) {
-            claims.claim(OAuth2AccessTokenClaimNames.IS_SUPER_ADMIN, userDetails.getIsSuperadmin());
+        if (userDetails.getUserType() != null) {
+            claims.claim(OAuth2AccessTokenClaimNames.USER_TYPE, userDetails.getUserType());
         }
         if (userDetails.getNickname() != null) {
             claims.claim(OAuth2AccessTokenClaimNames.NICKNAME, userDetails.getNickname());

@@ -51,8 +51,10 @@ public class UserCreateRequest {
     @Pattern(regexp = "^(admin|portal)$", message = "用户域只能是 admin 或 portal")
     private String realm;
 
-    /** 是否平台超级管理员 */
-    private Integer isSuperadmin;
+    /** 用户类型 */
+    @NotBlank(message = "用户类型不能为空")
+    @Pattern(regexp = "^(TENANT_ADMIN|DEPT_ADMIN|NORMAL)$", message = "用户类型只能是 TENANT_ADMIN、DEPT_ADMIN 或 NORMAL")
+    private String userType;
 
     /** 用户状态 */
     @Pattern(regexp = "^(active|inactive|locked|frozen|expired|disabled|cancelled)$", message = "状态值不合法")

@@ -19,7 +19,7 @@ const { confirmDialog } = useConfirmDialog();
 const authStore = useAuthStore();
 
 // 仅超级管理员可批量删除/清空日志
-const isSuperAdmin = computed(() => authStore.profile?.isSuperadmin === 1);
+const isSuperAdmin = computed(() => authStore.profile?.userType === "SUPER_ADMIN");
 
 // ═══════════════════════════════════════════════════════════════
 // 搜索条件

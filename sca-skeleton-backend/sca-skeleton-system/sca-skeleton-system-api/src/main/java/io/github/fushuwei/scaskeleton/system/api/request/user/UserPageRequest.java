@@ -20,7 +20,7 @@ public class UserPageRequest {
         "nickname", "u.nickname",
         "real_name", "u.real_name",
         "realm", "u.realm",
-        "is_superadmin", "u.is_superadmin",
+        "user_type", "u.user_type",
         "status", "u.status",
         "create_time", "u.create_time",
         "dept_name", "dept_names",

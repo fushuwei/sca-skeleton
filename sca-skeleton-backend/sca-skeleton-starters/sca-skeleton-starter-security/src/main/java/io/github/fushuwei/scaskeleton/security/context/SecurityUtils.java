@@ -1,6 +1,7 @@
 package io.github.fushuwei.scaskeleton.security.context;
 
 import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
+import io.github.fushuwei.scaskeleton.security.constant.UserType;
 import lombok.experimental.UtilityClass;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -84,14 +85,23 @@ public class SecurityUtils {
     }
 
     /**
+     * 从 token 自省属性中获取用户类型
+     *
+     * @return 用户类型枚举，未认证时返回 {@link UserType#NORMAL}
+     */
+    public static UserType getUserType() {
+        return UserType.of(getClaim(OAuth2AccessTokenClaimNames.USER_TYPE));
+    }
+
+    /**
      * 判断当前认证用户是否为平台超级管理员
      * <p>
-     * 从不透明令牌自省属性中读取 {@code is_superadmin} claim，值为 {@code "1"} 时返回 true
+     * 从不透明令牌自省属性中读取 {@code user_type} claim，值为 {@code SUPER_ADMIN} 时返回 true
      *
      * @return true 表示当前用户为平台超级管理员，未认证或非超管时返回 false
      */
     public static boolean isSuperAdmin() {
-        return "1".equals(getClaim(OAuth2AccessTokenClaimNames.IS_SUPER_ADMIN));
+        return getUserType() == UserType.SUPER_ADMIN;
     }
 
     /**

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
 import io.github.fushuwei.scaskeleton.core.result.ResultCode;
+import io.github.fushuwei.scaskeleton.security.constant.UserType;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserPageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.user.UserCreateRequest;
@@ -110,7 +111,7 @@ public class SysUserServiceImpl implements SysUserService {
             .id(userId)
             .username(username)
             .nickname(StringUtils.hasText(nickname) ? nickname : username)
-            .isSuperadmin(SecurityUtils.isSuperAdmin() ? 1 : 0)
+            .userType(SecurityUtils.getUserType().name())
             .build();
         fillTenantInfo(profile, SecurityUtils.getTenantId());
         return profile;
@@ -223,7 +224,7 @@ public class SysUserServiceImpl implements SysUserService {
         user.setPhone(request.getPhone());
         user.setEmail(request.getEmail());
         user.setRealm(request.getRealm());
-        user.setIsSuperadmin(resolveIsSuperadmin(request.getIsSuperadmin()));  // 安全防护：仅超级管理员可创建超级管理员账号，非超管强制为 0（防止垂直越权）
+        user.setUserType(resolveUserType(request.getUserType()));  // 安全防护：超管不可通过接口创建，非超管传入的 userType 被强制为 NORMAL（防止垂直越权）
         user.setStatus(StringUtils.hasText(request.getStatus()) ? request.getStatus() : "active");
         user.setLoginFailCount(0);
         user.setMustChangePassword(1);
@@ -260,7 +261,7 @@ public class SysUserServiceImpl implements SysUserService {
         user.setGender(request.getGender());
         user.setPhone(request.getPhone());
         user.setEmail(request.getEmail());
-        user.setIsSuperadmin(resolveIsSuperadminForUpdate(request.getIsSuperadmin(), user.getIsSuperadmin()));  // 安全防护：仅超级管理员可修改超级管理员标志，非超管强制保持原值（防止垂直越权）
+        user.setUserType(resolveUserTypeForUpdate(request.getUserType(), user.getUserType()));  // 安全防护：超管不可通过接口修改，非超管传入的 userType 被忽略保持原值（防止垂直越权）
         user.setMustChangePassword(request.getMustChangePassword());
         user.setEffectiveStartTime(request.getEffectiveStartTime());
         user.setEffectiveEndTime(request.getEffectiveEndTime());
@@ -526,34 +527,64 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /**
-     * 解析新建用户的 isSuperadmin 字段（防止垂直越权）
+     * 解析新建用户的 userType 字段（防止接口创建超管 + 防止越权提权）
      * <p>
-     * 仅超级管理员可创建超级管理员账号，非超管传入的 isSuperadmin 值会被强制忽略为 0
+     * 权限规则与前端 userTypeOptions 保持一致：
+     * <ul>
+     *   <li>任何人不能通过接口创建超管（传入 SUPER_ADMIN 强制降级为 NORMAL）</li>
+     *   <li>超管和租户管理员可选 3 种类型（TENANT_ADMIN / DEPT_ADMIN / NORMAL）</li>
+     *   <li>其他用户只能选 NORMAL，传入其他类型强制降级为 NORMAL</li>
+     * </ul>
      *
-     * @param requestIsSuperadmin 请求传入的 isSuperadmin 值
-     * @return 实际写入用的 isSuperadmin 值
+     * @param requestUserType 请求传入的 userType 值
+     * @return 实际写入用的 userType 值
      */
-    private Integer resolveIsSuperadmin(Integer requestIsSuperadmin) {
-        if (SecurityUtils.isSuperAdmin()) {
-            return requestIsSuperadmin != null ? requestIsSuperadmin : 0;
+    private String resolveUserType(String requestUserType) {
+        // 超管是内置的，任何人都不能通过接口创建超管
+        if (UserType.SUPER_ADMIN.name().equals(requestUserType)) {
+            return UserType.NORMAL.name();
         }
-        return 0;
+        // 超管和租户管理员可选 3 种类型（不含超管）
+        boolean canChooseType = SecurityUtils.isSuperAdmin()
+            || UserType.TENANT_ADMIN.name().equals(SecurityUtils.getUserType().name());
+        if (canChooseType) {
+            return UserType.of(requestUserType).name();
+        }
+        // 其他用户只能选 NORMAL
+        return UserType.NORMAL.name();
     }
 
     /**
-     * 解析编辑用户的 isSuperadmin 字段（防止垂直越权）
+     * 解析编辑用户的 userType 字段（防止接口提权为超管 + 防止越权提权）
      * <p>
-     * 仅超级管理员可修改超级管理员标志，非超管传入的 isSuperadmin 值会被忽略，保持用户原有的 isSuperadmin 值不变（避免普通用户通过编辑接口提权其他用户）
+     * 权限规则与 resolveUserType 保持一致：
+     * <ul>
+     *   <li>不允许通过接口将用户修改为超管（传入 SUPER_ADMIN 保持原值）</li>
+     *   <li>超管和租户管理员可选 3 种类型（TENANT_ADMIN / DEPT_ADMIN / NORMAL）</li>
+     *   <li>其他用户只能选 NORMAL，传入其他类型保持原值</li>
+     * </ul>
      *
-     * @param requestIsSuperadmin  请求传入的 isSuperadmin 值
-     * @param originalIsSuperadmin 用户原有的 isSuperadmin 值
-     * @return 实际写入用的 isSuperadmin 值
+     * @param requestUserType  请求传入的 userType 值
+     * @param originalUserType 用户原有的 userType 值
+     * @return 实际写入用的 userType 值
      */
-    private Integer resolveIsSuperadminForUpdate(Integer requestIsSuperadmin, Integer originalIsSuperadmin) {
-        if (SecurityUtils.isSuperAdmin()) {
-            return requestIsSuperadmin != null ? requestIsSuperadmin : 0;
+    private String resolveUserTypeForUpdate(String requestUserType, String originalUserType) {
+        // 不允许通过接口修改为超管
+        if (UserType.SUPER_ADMIN.name().equals(requestUserType)) {
+            return originalUserType != null ? originalUserType : UserType.NORMAL.name();
         }
-        return originalIsSuperadmin != null ? originalIsSuperadmin : 0;
+        // 超管和租户管理员可选 3 种类型（不含超管）
+        boolean canChooseType = SecurityUtils.isSuperAdmin()
+            || UserType.TENANT_ADMIN.name().equals(SecurityUtils.getUserType().name());
+        if (canChooseType) {
+            // 未传入 userType 时保持原值
+            if (requestUserType == null || requestUserType.isBlank()) {
+                return originalUserType != null ? originalUserType : UserType.NORMAL.name();
+            }
+            return UserType.of(requestUserType).name();
+        }
+        // 其他用户传入的 userType 被忽略，保持原值
+        return originalUserType != null ? originalUserType : UserType.NORMAL.name();
     }
 
     /**

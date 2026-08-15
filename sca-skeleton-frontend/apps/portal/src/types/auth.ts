@@ -10,7 +10,8 @@ export interface PortalProfile {
   nickname: string;
   realName?: string;
   avatar?: string;
-  isSuperadmin?: number;
+  /** 用户类型：SUPER_ADMIN 超级管理员 / TENANT_ADMIN 租户管理员 / DEPT_ADMIN 部门管理员 / NORMAL 普通用户 */
+  userType?: string;
 }
 
 export interface SysPermission {

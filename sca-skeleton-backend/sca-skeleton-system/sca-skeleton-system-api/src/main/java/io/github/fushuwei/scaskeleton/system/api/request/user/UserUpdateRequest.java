@@ -45,8 +45,10 @@ public class UserUpdateRequest {
 
     // ==================== 属性信息 ====================
 
-    /** 是否平台超级管理员 */
-    private Integer isSuperadmin;
+    /** 用户类型 */
+    @NotBlank(message = "用户类型不能为空")
+    @Pattern(regexp = "^(TENANT_ADMIN|DEPT_ADMIN|NORMAL)$", message = "用户类型只能是 TENANT_ADMIN、DEPT_ADMIN 或 NORMAL")
+    private String userType;
 
     /** 是否必须修改密码 */
     private Integer mustChangePassword;

@@ -22,8 +22,8 @@ export interface UserProfile {
   id: string;
   username: string;
   nickname: string;
-  /** 是否平台超级管理员：0-否，1-是 */
-  isSuperadmin: number;
+  /** 用户类型：SUPER_ADMIN 超级管理员 / TENANT_ADMIN 租户管理员 / DEPT_ADMIN 部门管理员 / NORMAL 普通用户 */
+  userType: string;
   /** 当前租户 ID */
   tenantId?: string;
   /** 当前租户名称 */
@@ -53,8 +53,8 @@ export interface SysUser {
   email: string;
   /** 用户域：admin 后台用户 / portal 前台用户 */
   realm: string;
-  /** 是否平台超级管理员：0-否，1-是 */
-  isSuperadmin: number;
+  /** 用户类型：SUPER_ADMIN 超级管理员 / TENANT_ADMIN 租户管理员 / DEPT_ADMIN 部门管理员 / NORMAL 普通用户 */
+  userType: string;
   /** 状态：active / inactive / locked / frozen / expired / disabled / cancelled */
   status: string;
   statusTime: string;

@@ -21,7 +21,7 @@ export interface AuthGuardStore {
   token: string;
   refreshToken: string;
   isLoggedIn: boolean;
-  profile: { isSuperadmin?: number } | null;
+  profile: { userType?: string } | null;
   menus: unknown[];
   dynamicReady: boolean;
   syncOAuthTokens(accessToken: string, refreshToken?: string): void;
@@ -137,8 +137,8 @@ export function createAuthGuard(config: AuthGuardConfig): (router: Router) => vo
       // ── 已登录 ──
       if (authStore.isLoggedIn) {
         authStore.ensureRoutes(router);
-        // profile 为空或缺少 isSuperadmin 字段（兼容旧版 profile 缓存）时重新拉取
-        if (!authStore.profile || authStore.profile.isSuperadmin === undefined) {
+        // profile 为空或缺少 userType 字段（兼容旧版 profile 缓存）时重新拉取
+        if (!authStore.profile || authStore.profile.userType === undefined) {
           try {
             await authStore.fetchProfile();
             resetRetry(transientRetry);

@@ -96,7 +96,7 @@ export const usePortalAuthStore = defineStore("portal-auth", {
   }),
   getters: {
     isLoggedIn: (state) => Boolean(state.token),
-    isSuperadmin: (state): boolean => state.profile?.isSuperadmin === 1
+    isSuperadmin: (state): boolean => state.profile?.userType === 'SUPER_ADMIN'
   },
   actions: {
     /**

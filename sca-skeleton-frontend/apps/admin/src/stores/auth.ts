@@ -98,7 +98,7 @@ export const useAuthStore = defineStore("auth", {
   getters: {
     isLoggedIn: (state): boolean => Boolean(state.token),
     /** 当前登录用户是否为平台超级管理员 */
-    isSuperadmin: (state): boolean => state.profile?.isSuperadmin === 1
+    isSuperadmin: (state): boolean => state.profile?.userType === 'SUPER_ADMIN'
   },
   actions: {
     /**

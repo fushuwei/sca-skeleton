@@ -21,7 +21,7 @@ const { confirmDialog } = useConfirmDialog();
 const authStore = useAuthStore();
 
 // 仅超级管理员可编辑内置租户；内置租户删除对所有用户均拦截
-const isSuperAdmin = computed(() => authStore.profile?.isSuperadmin === 1);
+const isSuperAdmin = computed(() => authStore.profile?.userType === "SUPER_ADMIN");
 
 // ═══════════════════════════════════════════════════════════════
 // 搜索条件

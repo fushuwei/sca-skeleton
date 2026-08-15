@@ -52,8 +52,8 @@ public class SysUser extends BaseEntity {
     /** 用户域 */
     private String realm;
 
-    /** 是否超级管理员 */
-    private Integer isSuperadmin;
+    /** 用户类型 */
+    private String userType;
 
     // ==================== 状态信息 ====================
 

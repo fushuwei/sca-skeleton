@@ -3,6 +3,7 @@ package io.github.fushuwei.scaskeleton.auth.security;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.github.fushuwei.scaskeleton.auth.infrastructure.entity.SysUser;
 import io.github.fushuwei.scaskeleton.auth.infrastructure.mapper.SysUserMapper;
+import io.github.fushuwei.scaskeleton.security.constant.UserType;
 import io.github.fushuwei.scaskeleton.security.user.ScaUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -108,7 +109,7 @@ public class ScaUserDetailsService {
         loginAttemptService.unlockIfExpired(user);
 
         // 超管跳过权限查询（鉴权时 RequiresPermissionChecker 直接放行，无需加载权限）
-        List<String> permissions = (user.getIsSuperadmin() != null && user.getIsSuperadmin() == 1)
+        List<String> permissions = (UserType.SUPER_ADMIN.name().equals(user.getUserType()))
             ? List.of() : sysUserMapper.selectPermissionCodesByUserId(user.getTenantId(), user.getId());
 
         LocalDateTime now = LocalDateTime.now();
@@ -136,7 +137,7 @@ public class ScaUserDetailsService {
             user.getUsername(),
             user.getPassword(),
             user.getNickname(),
-            user.getIsSuperadmin(),
+            user.getUserType(),
             permissions,
             enabled,
             accountNonLocked,

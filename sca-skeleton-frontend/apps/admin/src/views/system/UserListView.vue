@@ -449,7 +449,7 @@ const SORT_FIELD_MAP: Record<string, string> = {
   createTime: "create_time",
   deptNames: "dept_name",
   roleNames: "role_name",
-  isSuperadmin: "is_superadmin" // 保留：超级管理员字段仍用于排序过滤，仅移除列展示
+  userType: "user_type"
 };
 
 // ── 标记初始加载是否完成（防止 @request 与 onMounted 重复请求） ──
@@ -651,7 +651,7 @@ async function handleView(user: SysUser) {
 
 // 编辑
 async function handleEdit(user: SysUser) {
-  if (user.isSuperadmin === 1) {
+  if (user.userType === "SUPER_ADMIN") {
     showToast(t("user.superadminCannotEdit"), "warning");
     return;
   }
@@ -666,7 +666,7 @@ async function handleEdit(user: SysUser) {
 
 // 删除
 async function handleDelete(user: SysUser) {
-  if (user.isSuperadmin === 1) {
+  if (user.userType === "SUPER_ADMIN") {
     showToast(t("user.superadminCannotEdit"), "warning");
     return;
   }
@@ -698,7 +698,7 @@ async function handleDelete(user: SysUser) {
 
 // 切换启用/停用状态
 async function handleToggleStatus(user: SysUser) {
-  if (user.isSuperadmin === 1) {
+  if (user.userType === "SUPER_ADMIN") {
     showToast(t("user.superadminCannotEdit"), "warning");
     return;
   }
@@ -1144,7 +1144,7 @@ onMounted(() => {
               size="sm"
               color="primary"
               icon="sym_r_edit"
-              :disable="props.row.isSuperadmin === 1"
+              :disable="props.row.userType === 'SUPER_ADMIN'"
               @click.stop="handleEdit(props.row)"
             >
               <q-tooltip>{{ t("common.edit") }}</q-tooltip>
@@ -1160,7 +1160,7 @@ onMounted(() => {
                   ? 'sym_r_block'
                   : 'sym_r_check_circle'
               "
-              :disable="props.row.isSuperadmin === 1"
+              :disable="props.row.userType === 'SUPER_ADMIN'"
               @click="handleToggleStatus(props.row)"
             >
               <q-tooltip>{{
@@ -1174,7 +1174,7 @@ onMounted(() => {
               size="sm"
               color="warning"
               icon="sym_r_lock_reset"
-              :disable="props.row.isSuperadmin === 1 && props.row.isBuiltin === 1"
+              :disable="props.row.userType === 'SUPER_ADMIN' && props.row.isBuiltin === 1"
               @click="handleResetPassword(props.row)"
             >
               <q-tooltip>{{ t("user.resetPassword") }}</q-tooltip>
@@ -1186,7 +1186,7 @@ onMounted(() => {
               size="sm"
               color="negative"
               icon="sym_r_delete"
-              :disable="props.row.isSuperadmin === 1"
+              :disable="props.row.userType === 'SUPER_ADMIN'"
               @click="handleDelete(props.row)"
             >
               <q-tooltip>{{ t("common.delete") }}</q-tooltip>

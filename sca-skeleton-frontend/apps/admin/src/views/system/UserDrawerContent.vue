@@ -25,8 +25,6 @@ const emit = defineEmits<{
 }>();
 
 const drawerReadonly = computed(() => props.mode === "view");
-/** 当前登录用户是否为超管 */
-const isSuperadmin = computed(() => authStore.isSuperadmin);
 
 const formLoading = ref(false);
 const form = reactive({
@@ -39,7 +37,7 @@ const form = reactive({
   phone: "",
   email: "",
   realm: "",
-  isSuperadmin: 0,
+  userType: "",
   status: "active",
   mustChangePassword: 1,
   effectiveStartTime: "",
@@ -58,6 +56,7 @@ const formRules = {
     (v: string) => /^[a-zA-Z0-9_]+$/.test(v) || t("user.usernamePattern")
   ],
   realm: [(v: string) => !!v || t("user.realmRequired")],
+  userType: [(v: string) => !!v || t("user.userTypeRequired")],
   deptId: [(v: string) => !!v || t("user.deptRequired")],
   roleIds: [(v: string[]) => v?.length > 0 || t("user.roleRequired")],
   nickname: [],
@@ -103,6 +102,30 @@ const mustChangePasswordOptions = computed(() => [
   { label: t("common.yes"), value: 1 },
   { label: t("common.no"), value: 0 }
 ]);
+
+/**
+ * 用户类型选项：
+ * - 查看模式：含全部 4 种（含超管，用于正确显示已有用户类型）
+ * - 添加/编辑模式：超管和租户管理员可选 3 种（不含超管），其他用户只能选普通用户
+ */
+const userTypeOptions = computed(() => {
+  const allTypes = [
+    { label: t("user.userTypeSuperAdmin"), value: "SUPER_ADMIN" },
+    { label: t("user.userTypeTenantAdmin"), value: "TENANT_ADMIN" },
+    { label: t("user.userTypeDeptAdmin"), value: "DEPT_ADMIN" },
+    { label: t("user.userTypeNormal"), value: "NORMAL" }
+  ];
+  // 查看模式：返回全部，用于正确回显已有用户类型
+  if (drawerReadonly.value) {
+    return allTypes;
+  }
+  // 添加/编辑模式：超管和租户管理员可选 3 种（不含超管），其他用户只能选普通用户
+  const canChooseType = authStore.isSuperadmin
+    || authStore.profile?.userType === "TENANT_ADMIN";
+  return canChooseType
+    ? allTypes.filter(item => item.value !== "SUPER_ADMIN")
+    : allTypes.filter(item => item.value === "NORMAL");
+});
 
 const effectiveEndRules = computed(() => [
   (v: string) => {
@@ -336,7 +359,7 @@ function resetForm() {
   form.phone = "";
   form.email = "";
   form.realm = "";
-  form.isSuperadmin = 0;
+  form.userType = "";
   form.status = "active";
   form.mustChangePassword = 1;
   form.effectiveStartTime = "";
@@ -358,7 +381,7 @@ function initForm() {
     form.phone = props.user.phone;
     form.email = props.user.email;
     form.realm = props.user.realm;
-    form.isSuperadmin = props.user.isSuperadmin ?? 0;
+    form.userType = props.user.userType ?? "";
     form.status = props.user.status;
     form.mustChangePassword = props.user.mustChangePassword ?? 1;
     form.effectiveStartTime = props.user.effectiveStartTime || "";
@@ -409,7 +432,7 @@ async function handleSave() {
     phone: form.phone || undefined,
     email: form.email || undefined,
     realm: form.realm,
-    isSuperadmin: form.isSuperadmin,
+    userType: form.userType,
     status: form.status,
     mustChangePassword: form.mustChangePassword,
     effectiveStartTime: form.effectiveStartTime || undefined,
@@ -606,15 +629,22 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-        <!-- 超级管理员（仅超管可见可操作，非超管完全不渲染，配合后端防护避免越权提权） -->
-        <div v-if="isSuperadmin" class="col-12 col-md-6">
-          <q-toggle
-            v-model="form.isSuperadmin"
-            :label="t('user.isSuperadmin')"
-            :true-value="1"
-            :false-value="0"
+        <!-- 用户类型：超管是内置的不可通过接口创建，选项仅 3 种；查看模式含超管用于正确显示 -->
+        <div class="col-12 col-md-6">
+          <q-select
+            v-model="form.userType"
+            :label="t('user.userType')"
+            filled
+            square
+            :options="userTypeOptions"
+            option-label="label"
+            option-value="value"
+            emit-value
+            map-options
+            :rules="formRules.userType"
             :disable="drawerReadonly"
-            class="q-mt-sm"
+            hide-bottom-space
+            class="required-field"
           />
         </div>
         <!-- 状态 -->

@@ -2,6 +2,7 @@ package io.github.fushuwei.scaskeleton.security.annotation;
 
 import io.github.fushuwei.scaskeleton.core.exception.ForbiddenException;
 import io.github.fushuwei.scaskeleton.security.constant.OAuth2AccessTokenClaimNames;
+import io.github.fushuwei.scaskeleton.security.constant.UserType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,16 +18,11 @@ import java.util.Arrays;
  * {@code GrantedAuthority} 集合进行权限匹配；权限不足时抛出 {@link ForbiddenException}，
  * 交由 {@code GlobalExceptionHandler} 统一处理，返回标准 403 响应。
  * <p>
- * 平台超级管理员（{@code is_superadmin = 1}）跳过一切权限校验，直接放行。
+ * 平台超级管理员（{@code user_type = SUPER_ADMIN}）跳过一切权限校验，直接放行。
  *
  * @author Fu Wei
  */
 public class RequiresPermissionChecker {
-
-    /**
-     * 平台超级管理员标记，拥有全部权限无需校验
-     */
-    private static final String SUPER_ADMIN_FLAG = "1";
 
     /**
      * 校验当前认证主体是否满足 {@link RequiresPermission} 声明的权限要求
@@ -103,8 +99,8 @@ public class RequiresPermissionChecker {
     /**
      * 判断当前认证主体是否为平台超级管理员
      * <p>
-     * 从不透明令牌自省结果中的 {@code is_superadmin} claim 读取标记，
-     * 若值为 {@code 1} 则跳过一切权限校验。
+     * 从不透明令牌自省结果中的 {@code user_type} claim 读取用户类型，
+     * 若值为 {@code SUPER_ADMIN} 则跳过一切权限校验。
      *
      * @param authentication 当前认证主体
      * @return true 表示当前用户为平台超级管理员
@@ -112,8 +108,8 @@ public class RequiresPermissionChecker {
     private static boolean isSuperAdmin(Authentication authentication) {
         if (authentication != null
             && authentication.getPrincipal() instanceof OAuth2AuthenticatedPrincipal principal) {
-            Object claim = principal.getAttributes().get(OAuth2AccessTokenClaimNames.IS_SUPER_ADMIN);
-            return SUPER_ADMIN_FLAG.equals(String.valueOf(claim));
+            Object claim = principal.getAttributes().get(OAuth2AccessTokenClaimNames.USER_TYPE);
+            return UserType.SUPER_ADMIN.name().equals(String.valueOf(claim));
         }
         return false;
     }

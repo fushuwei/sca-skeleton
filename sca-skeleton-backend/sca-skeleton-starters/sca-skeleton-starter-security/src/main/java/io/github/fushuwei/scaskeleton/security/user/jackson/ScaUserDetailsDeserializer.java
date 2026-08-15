@@ -25,7 +25,7 @@ class ScaUserDetailsDeserializer extends ValueDeserializer<ScaUserDetails> {
                 readText(node, "username"),
                 readTextOrNull(node, "password"),
                 readText(node, "nickname"),
-                readInt(node, "isSuperadmin"),
+                readText(node, "userType"),
                 readStringList(node, "permissions"),
                 readBoolean(node, "enabled", true),
                 readBoolean(node, "accountNonLocked", true),
@@ -46,11 +46,6 @@ class ScaUserDetailsDeserializer extends ValueDeserializer<ScaUserDetails> {
     private static boolean readBoolean(JsonNode node, String field, boolean defaultValue) {
         JsonNode value = readField(node, field);
         return value.isMissingNode() ? defaultValue : value.asBoolean(defaultValue);
-    }
-
-    private static int readInt(JsonNode node, String field) {
-        JsonNode value = readField(node, field);
-        return value.isMissingNode() ? 0 : value.asInt(0);
     }
 
     private static List<String> readStringList(JsonNode node, String field) {
