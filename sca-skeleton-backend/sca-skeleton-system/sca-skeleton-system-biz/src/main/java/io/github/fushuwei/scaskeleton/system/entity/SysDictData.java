@@ -17,6 +17,9 @@ public class SysDictData extends BaseEntity {
 
     // ==================== 基本信息 ====================
 
+    /** 租户 ID */
+    private String tenantId;
+
     /** 字典 ID */
     private String dictId;
 
@@ -40,7 +43,7 @@ public class SysDictData extends BaseEntity {
     // ==================== 状态与排序 ====================
 
     /** 状态 */
-    private Integer status;
+    private String status;
 
     /** 是否默认值 */
     private Integer isDefault;

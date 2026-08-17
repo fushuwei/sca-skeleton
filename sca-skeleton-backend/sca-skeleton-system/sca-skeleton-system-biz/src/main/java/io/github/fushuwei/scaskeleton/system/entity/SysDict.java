@@ -26,7 +26,7 @@ public class SysDict extends BaseEntity {
     private String code;
 
     /** 状态 */
-    private Integer status;
+    private String status;
 
     /** 是否内置 */
     private Integer isBuiltin;
