@@ -5,7 +5,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- 清空 sca_platform 库（平台库）
 -- ================================================================
 
--- 清空用户与权限相关表
+-- 清空用户、角色、权限、部门、岗位相关表
 DELETE FROM `sca_platform`.`sys_user_role`;
 DELETE FROM `sca_platform`.`sys_role_permission`;
 DELETE FROM `sca_platform`.`sys_role_dept`;
@@ -15,8 +15,6 @@ DELETE FROM `sca_platform`.`sys_user_password_history`;
 DELETE FROM `sca_platform`.`sys_permission`;
 DELETE FROM `sca_platform`.`sys_role`;
 DELETE FROM `sca_platform`.`sys_user`;
-
--- 清空组织架构相关表
 DELETE FROM `sca_platform`.`sys_dept`;
 DELETE FROM `sca_platform`.`sys_post`;
 
