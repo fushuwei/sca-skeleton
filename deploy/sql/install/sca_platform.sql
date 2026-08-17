@@ -392,23 +392,23 @@ SELECT t.* FROM (
     UNION ALL
     SELECT '9921', '9999', '用户管理', 'Users', 'menu', 'sys:user:list', '/system/user', 'UserListView', 'sym_r_nest_eco_leaf', 9911, 1, 0, 'enabled', '0,9999,9921', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '9922', '9999', '部门管理', 'Departments', 'menu', 'sys:dept:list', '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 9912, 1, 0, 'enabled', '0,9999,9922', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9922', '9999', '角色管理', 'Roles', 'menu', 'sys:role:list', '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 9912, 1, 0, 'enabled', '0,9999,9922', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '9923', '9999', '岗位管理', 'Positions', 'menu', 'sys:post:list', '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 9913, 1, 0, 'enabled', '0,9999,9923', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9923', '9999', '权限管理', 'Permissions', 'menu', 'sys:permission:list', '/system/permission', 'PermissionListView', 'sym_r_nest_eco_leaf', 9913, 1, 0, 'enabled', '0,9999,9923', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '9924', '9999', '角色管理', 'Roles', 'menu', 'sys:role:list', '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 9914, 1, 0, 'enabled', '0,9999,9931', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9924', '9999', '部门管理', 'Departments', 'menu', 'sys:dept:list', '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 9914, 1, 0, 'enabled', '0,9999,9924', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '9925', '9999', '权限管理', 'Permissions', 'menu', 'sys:permission:list', '/system/permission', 'PermissionListView', 'sym_r_nest_eco_leaf', 9915, 1, 0, 'enabled', '0,9999,9932', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9925', '9999', '岗位管理', 'Positions', 'menu', 'sys:post:list', '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 9915, 1, 0, 'enabled', '0,9999,9925', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '9926', '9999', '字典管理', 'Dictionaries', 'menu', 'sys:dict:list', '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9916, 1, 0, 'enabled', '0,9999,9940', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9926', '9999', '字典管理', 'Dictionaries', 'menu', 'sys:dict:list', '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9916, 1, 0, 'enabled', '0,9999,9926', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '9927', '9999', '系统配置', 'System Config', 'menu', 'sys:config:list', '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9941', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9927', '9999', '系统配置', 'System Config', 'menu', 'sys:config:list', '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9927', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '9928', '9999', '通知公告', 'Announcements', 'menu', 'sys:notice:list', '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9918, 1, 0, 'enabled', '0,9999,9942', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9928', '9999', '通知公告', 'Announcements', 'menu', 'sys:notice:list', '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9918, 1, 0, 'enabled', '0,9999,9928', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '9943', '9999', '操作日志', 'Operation Logs', 'menu', 'sys:operation-log:list', '/system/operation-log', 'OperationLogListView', 'sym_r_nest_eco_leaf', 9919, 1, 0, 'enabled', '0,9999,9943', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9929', '9999', '操作日志', 'Operation Logs', 'menu', 'sys:operation-log:list', '/system/operation-log', 'OperationLogListView', 'sym_r_nest_eco_leaf', 9919, 1, 0, 'enabled', '0,9999,9929', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
     UNION ALL
-    SELECT '9944', '9999', '登录日志', 'Login Logs', 'menu', 'sys:login-log:list', '/system/login-log', 'LoginLogListView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9944', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
+    SELECT '9930', '9999', '登录日志', 'Login Logs', 'menu', 'sys:login-log:list', '/system/login-log', 'LoginLogListView', 'sym_r_nest_eco_leaf', 9920, 1, 0, 'enabled', '0,9999,9930', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
 ) AS t
 WHERE NOT EXISTS (
     SELECT 1 FROM `sys_permission` WHERE `id` = '9999' AND `is_deleted` = 0
