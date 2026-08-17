@@ -815,7 +815,7 @@ onMounted(() => {
                   </div>
                   <div
                     v-if="!messages.length"
-                    class="column items-center justify-center q-py-xl text-grey-7 empty-state-content"
+                    class="column items-center justify-center text-grey-7 empty-state-content sq-messages-empty"
                   >
                     <q-icon name="sym_r_database_search" size="56px" class="q-mb-sm" />
                     <div class="text-body1 text-weight-medium q-mb-xs">
@@ -1375,9 +1375,19 @@ onMounted(() => {
   padding: 8px 12px;
   font-family: "SF Mono", "Monaco", "Menlo", "Consolas", monospace;
   font-size: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 消息面板空态 — 撑满剩余高度并垂直水平居中 */
+.sq-messages-empty {
+  flex: 1 1 auto;
+  justify-content: center;
+  padding: 24px 0;
 }
 
 .sq-msg {
+  flex-shrink: 0;
   padding: 5px 0;
   border-bottom: 1px dashed rgba(0, 0, 0, 0.05);
 }
