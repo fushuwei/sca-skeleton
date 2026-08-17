@@ -85,19 +85,8 @@ CREATE TABLE IF NOT EXISTS `sys_tenant` (
 
 
 -- 内置租户（默认租户，超级管理员 admin 所属租户）
-INSERT INTO `sys_tenant` (
-    `id`, `name`, `code`, `package_id`, `contact_name`, `contact_phone`, `contact_email`, `domain_name`,
-    `effective_time`, `expire_time`, `status`, `is_builtin`, `config_json`, `remark`,
-    `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
-)
-SELECT
-    '1', '默认租户', 'default', '1', NULL, NULL, NULL, NULL,
-    NULL, NULL, 'normal', 1, NULL, '系统内置默认租户',
-    0, 'system', NOW(), 'system', NOW(), 0
-WHERE NOT EXISTS (
-    SELECT 1 FROM `sys_tenant`
-    WHERE `id` = '1' AND `is_deleted` = 0
-);
+INSERT INTO `sys_tenant` (`id`, `name`, `code`, `package_id`, `contact_name`, `contact_phone`, `contact_email`, `domain_name`, `effective_time`, `expire_time`, `status`, `is_builtin`, `config_json`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`) VALUES
+	('1', '默认租户', 'default', '1', NULL, NULL, NULL, NULL, NULL, NULL, 'normal', 1, NULL, '系统内置默认租户', 0, 'system', NOW(), 'system', NOW(), 0);
 
 
 -- ---------------------------------------------------
@@ -185,23 +174,8 @@ CREATE TABLE IF NOT EXISTS `sys_user` (
 
 
 -- 内置超级管理员用户（密码：admin@123）
-INSERT INTO `sys_user` (
-    `id`, `tenant_id`, `username`, `password`, `nickname`, `real_name`, `gender`, `avatar`, `phone`, `email`,
-    `realm`, `user_type`, `status`, `status_time`, `status_reason`, `login_fail_count`, `must_change_password`,
-    `password_update_time`, `effective_start_time`, `effective_end_time`, `last_login_ip`, `last_login_time`,
-    `is_builtin`, `source_type`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
-)
-SELECT
-    '1', '1', 'admin',
-    '{bcrypt}$2b$10$oW8PgdSN8jCUwZoApsRpc.8xhcCNInM8i0iH/6k.G7cmKB/5tb.Pq',
-    '超级管理员', '超级管理员', NULL, NULL, NULL, NULL,
-    'admin', 'SUPER_ADMIN', 'active', NULL, NULL, 0, 0,
-    NOW(), NOW(), NULL, NULL, NULL,
-    1, 'initial', '系统内置管理员账号', 0, 'system', NOW(), 'system', NOW(), 0
-WHERE NOT EXISTS (
-    SELECT 1 FROM `sys_user`
-    WHERE `username` = 'admin' AND `is_deleted` = 0
-);
+INSERT INTO `sys_user` (`id`, `tenant_id`, `username`, `password`, `nickname`, `real_name`, `gender`, `avatar`, `phone`, `email`, `realm`, `user_type`, `status`, `status_time`, `status_reason`, `login_fail_count`, `must_change_password`, `password_update_time`, `effective_start_time`, `effective_end_time`, `last_login_ip`, `last_login_time`, `is_builtin`, `source_type`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`) VALUES
+	('1', '1', 'admin', '{bcrypt}$2b$10$oW8PgdSN8jCUwZoApsRpc.8xhcCNInM8i0iH/6k.G7cmKB/5tb.Pq', '超级管理员', '超级管理员', NULL, NULL, NULL, NULL, 'admin', 'SUPER_ADMIN', 'active', NULL, NULL, 0, 0, NOW(), NOW(), NULL, NULL, NULL, 1, 'initial', '系统内置管理员账号', 0, 'system', NOW(), 'system', NOW(), 0);
 
 
 -- ---------------------------------------------------
@@ -343,142 +317,45 @@ CREATE TABLE IF NOT EXISTS `sys_permission` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='权限表';
 
-INSERT INTO `sys_permission` (
-    `id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`,
-    `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `realm`, `remark`,
-    `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
-)
-SELECT t.* FROM (
-    SELECT '1000' AS `id`, '0' AS `parent_id`, '数据源管理' AS `name`, 'Data Source' AS `name_en`, 'module' AS `type`, NULL AS `code`,
-           NULL AS `path`, NULL AS `component`, 'sym_r_database' AS `icon`,
-           10 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,1000' AS `tree_path`, 'admin' AS `realm`, NULL AS `remark`,
-           0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
-    UNION ALL
-    SELECT '1100', '1000', '数据源管理', 'Data Sources', 'menu', 'sys:datasource:list', '/datasource/list', 'DatasourceListView', 'sym_r_nest_eco_leaf', 1010, 1, 0, 'enabled', '0,1000,1100', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '1200', '1000', '数据查询', 'SQL Query', 'menu', 'sys:datasource:sql-query', '/datasource/sql-query', 'SqlQueryView', 'sym_r_nest_eco_leaf', 1011, 1, 0, 'enabled', '0,1000,1200', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '1300', '1000', '驱动管理', 'Drivers', 'menu', 'sys:datasource:driver:list', '/datasource/driver-list', 'DriverListView', 'sym_r_nest_eco_leaf', 1012, 1, 0, 'enabled', '0,1000,1300', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-) AS t
-WHERE NOT EXISTS (
-    SELECT 1 FROM `sys_permission` WHERE `id` = '1000' AND `is_deleted` = 0
-);
+INSERT INTO `sys_permission` (`id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`, `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `realm`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`) VALUES
+	('1000', '0', '数据源管理', 'Data Source', 'module', NULL, NULL, NULL, 'sym_r_database', 10, 1, 0, 'enabled', '0,1000', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('1100', '1000', '数据源管理', 'Data Sources', 'menu', 'sys:datasource:list', '/datasource/list', 'DatasourceListView', 'sym_r_nest_eco_leaf', 1010, 1, 0, 'enabled', '0,1000,1100', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('1200', '1000', '数据查询', 'SQL Query', 'menu', 'sys:datasource:sql-query', '/datasource/sql-query', 'SqlQueryView', 'sym_r_nest_eco_leaf', 1011, 1, 0, 'enabled', '0,1000,1200', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('1300', '1000', '驱动管理', 'Drivers', 'menu', 'sys:datasource:driver:list', '/datasource/driver-list', 'DriverListView', 'sym_r_nest_eco_leaf', 1012, 1, 0, 'enabled', '0,1000,1300', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0);
 
-INSERT INTO `sys_permission` (
-    `id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`,
-    `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `realm`, `remark`,
-    `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
-)
-SELECT t.* FROM (
-    SELECT '9999' AS `id`, '0' AS `parent_id`, '系统管理' AS `name`, 'System' AS `name_en`, 'module' AS `type`, NULL AS `code`,
-           NULL AS `path`, NULL AS `component`, 'sym_r_settings' AS `icon`,
-           99 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,9999' AS `tree_path`, 'admin' AS `realm`, NULL AS `remark`,
-           0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
-    UNION ALL
-    SELECT '9910', '9999', '租户管理', 'Tenant Management', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9910, 1, 0, 'enabled', '0,9999,9910', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '9911', '9910', '租户管理', 'Tenants', 'menu', 'sys:tenant:list', '/system/tenant', 'TenantListView', 'sym_r_nest_eco_leaf', 99101, 1, 0, 'enabled', '0,9999,9910,9911', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '9912', '9910', '套餐管理', 'Packages', 'menu', 'sys:tenant-package:list', '/system/tenant-package', 'TenantPackageListView', 'sym_r_nest_eco_leaf', 99102, 1, 0, 'enabled', '0,9999,9910,9912', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '9921', '9999', '用户管理', 'Users', 'menu', 'sys:user:list', '/system/user', 'UserListView', 'sym_r_nest_eco_leaf', 9911, 1, 0, 'enabled', '0,9999,9921', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '9922', '9999', '角色管理', 'Roles', 'menu', 'sys:role:list', '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 9912, 1, 0, 'enabled', '0,9999,9922', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '9923', '9999', '权限管理', 'Permissions', 'menu', 'sys:permission:list', '/system/permission', 'PermissionListView', 'sym_r_nest_eco_leaf', 9913, 1, 0, 'enabled', '0,9999,9923', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '9924', '9999', '部门管理', 'Departments', 'menu', 'sys:dept:list', '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 9914, 1, 0, 'enabled', '0,9999,9924', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '9925', '9999', '岗位管理', 'Positions', 'menu', 'sys:post:list', '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 9915, 1, 0, 'enabled', '0,9999,9925', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '9926', '9999', '字典管理', 'Dictionaries', 'menu', 'sys:dict:list', '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9916, 1, 0, 'enabled', '0,9999,9926', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '9927', '9999', '系统配置', 'System Config', 'menu', 'sys:config:list', '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9927', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '9928', '9999', '通知公告', 'Announcements', 'menu', 'sys:notice:list', '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9918, 1, 0, 'enabled', '0,9999,9928', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '9929', '9999', '操作日志', 'Operation Logs', 'menu', 'sys:operation-log:list', '/system/operation-log', 'OperationLogListView', 'sym_r_nest_eco_leaf', 9919, 1, 0, 'enabled', '0,9999,9929', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '9930', '9999', '登录日志', 'Login Logs', 'menu', 'sys:login-log:list', '/system/login-log', 'LoginLogListView', 'sym_r_nest_eco_leaf', 9920, 1, 0, 'enabled', '0,9999,9930', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-) AS t
-WHERE NOT EXISTS (
-    SELECT 1 FROM `sys_permission` WHERE `id` = '9999' AND `is_deleted` = 0
-);
+INSERT INTO `sys_permission` (`id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`, `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `realm`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`) VALUES
+	('9999', '0', '系统管理', 'System', 'module', NULL, NULL, NULL, 'sym_r_settings', 99, 1, 0, 'enabled', '0,9999', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9910', '9999', '租户管理', 'Tenant Management', 'folder', NULL, NULL, NULL, 'sym_r_folder', 9910, 1, 0, 'enabled', '0,9999,9910', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9911', '9910', '租户管理', 'Tenants', 'menu', 'sys:tenant:list', '/system/tenant', 'TenantListView', 'sym_r_nest_eco_leaf', 99101, 1, 0, 'enabled', '0,9999,9910,9911', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9912', '9910', '套餐管理', 'Packages', 'menu', 'sys:tenant-package:list', '/system/tenant-package', 'TenantPackageListView', 'sym_r_nest_eco_leaf', 99102, 1, 0, 'enabled', '0,9999,9910,9912', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9921', '9999', '用户管理', 'Users', 'menu', 'sys:user:list', '/system/user', 'UserListView', 'sym_r_nest_eco_leaf', 9911, 1, 0, 'enabled', '0,9999,9921', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9922', '9999', '角色管理', 'Roles', 'menu', 'sys:role:list', '/system/role', 'RoleListView', 'sym_r_nest_eco_leaf', 9912, 1, 0, 'enabled', '0,9999,9922', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9923', '9999', '权限管理', 'Permissions', 'menu', 'sys:permission:list', '/system/permission', 'PermissionListView', 'sym_r_nest_eco_leaf', 9913, 1, 0, 'enabled', '0,9999,9923', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9924', '9999', '部门管理', 'Departments', 'menu', 'sys:dept:list', '/system/dept', 'DeptListView', 'sym_r_nest_eco_leaf', 9914, 1, 0, 'enabled', '0,9999,9924', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9925', '9999', '岗位管理', 'Positions', 'menu', 'sys:post:list', '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 9915, 1, 0, 'enabled', '0,9999,9925', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9926', '9999', '字典管理', 'Dictionaries', 'menu', 'sys:dict:list', '/system/dict', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9916, 1, 0, 'enabled', '0,9999,9926', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9927', '9999', '系统配置', 'System Config', 'menu', 'sys:config:list', '/system/config', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9927', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9928', '9999', '通知公告', 'Announcements', 'menu', 'sys:notice:list', '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9918, 1, 0, 'enabled', '0,9999,9928', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9929', '9999', '操作日志', 'Operation Logs', 'menu', 'sys:operation-log:list', '/system/operation-log', 'OperationLogListView', 'sym_r_nest_eco_leaf', 9919, 1, 0, 'enabled', '0,9999,9929', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9930', '9999', '登录日志', 'Login Logs', 'menu', 'sys:login-log:list', '/system/login-log', 'LoginLogListView', 'sym_r_nest_eco_leaf', 9920, 1, 0, 'enabled', '0,9999,9930', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0);
 
-INSERT INTO `sys_permission` (
-    `id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`,
-    `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `realm`, `remark`,
-    `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
-)
-SELECT t.* FROM (
-    SELECT '1' AS `id`, '0' AS `parent_id`, '首页' AS `name`, 'Home' AS `name_en`, 'menu' AS `type`, 'portal:home:view' AS `code`,
-           '/portal/home' AS `path`, 'HomeView' AS `component`, 'sym_r_home' AS `icon`,
-           1 AS `sort`, 1 AS `is_visible`, 0 AS `is_external`, 'enabled' AS `status`, '0,1' AS `tree_path`, 'portal' AS `realm`, NULL AS `remark`,
-           0 AS `version`, 'system' AS `create_by`, NOW() AS `create_time`, 'system' AS `update_by`, NOW() AS `update_time`, 0 AS `is_deleted`
-    UNION ALL
-    SELECT '2', '0', '数据目录', 'Data Catalog', 'folder', NULL,
-           NULL, NULL, 'sym_r_folder',
-           2, 1, 0, 'enabled', '0,2', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '21', '2', '数据地图', 'Data Map', 'menu', 'portal:data-map:view',
-           '/portal/data/map', 'DataMapView', 'sym_r_map',
-           21, 1, 0, 'enabled', '0,2,21', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '22', '2', '资源目录', 'Resource Catalog', 'menu', 'portal:data-resource:list',
-           '/portal/data/resources', 'ResourceCatalogView', 'sym_r_table',
-           22, 1, 0, 'enabled', '0,2,22', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '23', '2', '数据标准', 'Data Standards', 'menu', 'portal:data-standard:list',
-           '/portal/data/standards', 'DataStandardView', 'sym_r_checklist',
-           23, 1, 0, 'enabled', '0,2,23', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '3', '0', '数据服务', 'Data Services', 'folder', NULL,
-           NULL, NULL, 'sym_r_api',
-           3, 1, 0, 'enabled', '0,3', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '31', '3', '智能问数', 'AI Query', 'menu', 'portal:ai-query:view',
-           '/portal/service/ai-query', 'AiQueryView', 'sym_r_smart_toy',
-           31, 1, 0, 'enabled', '0,3,31', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '32', '3', '数据集市', 'Data Marketplace', 'menu', 'portal:data-market:list',
-           '/portal/service/data-market', 'DataMarketView', 'sym_r_store',
-           32, 1, 0, 'enabled', '0,3,32', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '33', '3', '数据填报', 'Data Submit', 'menu', 'portal:data-submit:view',
-           '/portal/service/data-submit', 'DataSubmitView', 'sym_r_edit_note',
-           33, 1, 0, 'enabled', '0,3,33', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '4', '0', '个人中心', 'Profile', 'folder', NULL,
-           NULL, NULL, 'sym_r_account_circle',
-           4, 1, 0, 'enabled', '0,4', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '41', '4', '个人信息', 'Personal Info', 'menu', 'portal:profile:view',
-           '/portal/profile', 'ProfileView', 'sym_r_person',
-           41, 1, 0, 'enabled', '0,4,41', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '42', '4', '我的申请', 'My Requests', 'menu', 'portal:request:list',
-           '/portal/my/requests', 'MyRequestView', 'sym_r_description',
-           42, 1, 0, 'enabled', '0,4,42', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '43', '4', '我的下载', 'My Downloads', 'menu', 'portal:download:list',
-           '/portal/my/downloads', 'MyDownloadView', 'sym_r_download',
-           43, 1, 0, 'enabled', '0,4,43', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '44', '4', '我的收藏', 'My Favorites', 'menu', 'portal:favorite:list',
-           '/portal/my/favorites', 'MyFavoriteView', 'sym_r_star',
-           44, 1, 0, 'enabled', '0,4,44', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '45', '4', '消息通知', 'Notifications', 'menu', 'portal:notification:list',
-           '/portal/profile/notifications', 'NotificationView', 'sym_r_notifications',
-           45, 1, 0, 'enabled', '0,4,45', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-    UNION ALL
-    SELECT '46', '4', '应用接入', 'App Integration', 'menu', 'portal:app-integration:list',
-           '/portal/profile/app-integrations', 'AppIntegrationView', 'sym_r_link',
-           46, 1, 0, 'enabled', '0,4,46', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0
-) AS t
-WHERE NOT EXISTS (
-    SELECT 1 FROM `sys_permission` WHERE `id` = '1' AND `is_deleted` = 0
-);
+INSERT INTO `sys_permission` (`id`, `parent_id`, `name`, `name_en`, `type`, `code`, `path`, `component`, `icon`, `sort`, `is_visible`, `is_external`, `status`, `tree_path`, `realm`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`) VALUES
+	('1', '0', '首页', 'Home', 'menu', 'portal:home:view', '/portal/home', 'HomeView', 'sym_r_home', 1, 1, 0, 'enabled', '0,1', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('2', '0', '数据目录', 'Data Catalog', 'folder', NULL, NULL, NULL, 'sym_r_folder', 2, 1, 0, 'enabled', '0,2', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('21', '2', '数据地图', 'Data Map', 'menu', 'portal:data-map:view', '/portal/data/map', 'DataMapView', 'sym_r_map', 21, 1, 0, 'enabled', '0,2,21', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('22', '2', '资源目录', 'Resource Catalog', 'menu', 'portal:data-resource:list', '/portal/data/resources', 'ResourceCatalogView', 'sym_r_table', 22, 1, 0, 'enabled', '0,2,22', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('23', '2', '数据标准', 'Data Standards', 'menu', 'portal:data-standard:list', '/portal/data/standards', 'DataStandardView', 'sym_r_checklist', 23, 1, 0, 'enabled', '0,2,23', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('3', '0', '数据服务', 'Data Services', 'folder', NULL, NULL, NULL, 'sym_r_api', 3, 1, 0, 'enabled', '0,3', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('31', '3', '智能问数', 'AI Query', 'menu', 'portal:ai-query:view', '/portal/service/ai-query', 'AiQueryView', 'sym_r_smart_toy', 31, 1, 0, 'enabled', '0,3,31', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('32', '3', '数据集市', 'Data Marketplace', 'menu', 'portal:data-market:list', '/portal/service/data-market', 'DataMarketView', 'sym_r_store', 32, 1, 0, 'enabled', '0,3,32', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('33', '3', '数据填报', 'Data Submit', 'menu', 'portal:data-submit:view', '/portal/service/data-submit', 'DataSubmitView', 'sym_r_edit_note', 33, 1, 0, 'enabled', '0,3,33', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('4', '0', '个人中心', 'Profile', 'folder', NULL, NULL, NULL, 'sym_r_account_circle', 4, 1, 0, 'enabled', '0,4', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('41', '4', '个人信息', 'Personal Info', 'menu', 'portal:profile:view', '/portal/profile', 'ProfileView', 'sym_r_person', 41, 1, 0, 'enabled', '0,4,41', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('42', '4', '我的申请', 'My Requests', 'menu', 'portal:request:list', '/portal/my/requests', 'MyRequestView', 'sym_r_description', 42, 1, 0, 'enabled', '0,4,42', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('43', '4', '我的下载', 'My Downloads', 'menu', 'portal:download:list', '/portal/my/downloads', 'MyDownloadView', 'sym_r_download', 43, 1, 0, 'enabled', '0,4,43', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('44', '4', '我的收藏', 'My Favorites', 'menu', 'portal:favorite:list', '/portal/my/favorites', 'MyFavoriteView', 'sym_r_star', 44, 1, 0, 'enabled', '0,4,44', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('45', '4', '消息通知', 'Notifications', 'menu', 'portal:notification:list', '/portal/profile/notifications', 'NotificationView', 'sym_r_notifications', 45, 1, 0, 'enabled', '0,4,45', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('46', '4', '应用接入', 'App Integration', 'menu', 'portal:app-integration:list', '/portal/profile/app-integrations', 'AppIntegrationView', 'sym_r_link', 46, 1, 0, 'enabled', '0,4,46', 'portal', NULL, 0, 'system', NOW(), 'system', NOW(), 0);
 
 
 -- ---------------------------------------------------
@@ -664,73 +541,13 @@ CREATE TABLE IF NOT EXISTS oauth2_registered_client (
 
 -- 内置 OAuth2 客户端：管理后台（机密客户端 + 密码模式）
 -- 注意：client_secret 在应用启动时由 OAuth2RegisteredClientInitializer 从配置中读取并加密写入
-INSERT INTO oauth2_registered_client (
-    id,
-    client_id,
-    client_id_issued_at,
-    client_secret,
-    client_secret_expires_at,
-    client_name,
-    client_authentication_methods,
-    authorization_grant_types,
-    redirect_uris,
-    post_logout_redirect_uris,
-    scopes,
-    client_settings,
-    token_settings
-)
-SELECT
-    '100',
-    'sca-admin-client',
-    CURRENT_TIMESTAMP,
-    NULL,
-    NULL,
-    'SCA Admin SPA',
-    'client_secret_basic',
-    'password,refresh_token',
-    NULL,
-    NULL,
-    'profile,all',
-    '{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2ClientSettings","settings.client.require-authorization-consent":false}',
-    '{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenSettings","settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.core.OAuth2AccessToken$TokenFormat","value":"reference"},"settings.token.access-token-time-to-live":["java.time.Duration",900.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.reuse-refresh-tokens":false}'
-WHERE NOT EXISTS (
-    SELECT 1 FROM oauth2_registered_client WHERE client_id = 'sca-admin-client'
-);
+INSERT INTO `oauth2_registered_client` (id, client_id, client_id_issued_at, client_secret, client_secret_expires_at, client_name, client_authentication_methods, authorization_grant_types, redirect_uris, post_logout_redirect_uris, scopes, client_settings, token_settings) VALUES
+	('100', 'sca-admin-client', CURRENT_TIMESTAMP, NULL, NULL, 'SCA Admin SPA', 'client_secret_basic', 'password,refresh_token', NULL, NULL, 'profile,all', '{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2ClientSettings","settings.client.require-authorization-consent":false}', '{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenSettings","settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.core.OAuth2AccessToken$TokenFormat","value":"reference"},"settings.token.access-token-time-to-live":["java.time.Duration",900.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.reuse-refresh-tokens":false}');
 
 -- 内置 OAuth2 客户端：前台门户（机密客户端 + 密码模式）
 -- 注意：client_secret 在应用启动时由 OAuth2RegisteredClientInitializer 从配置中读取并加密写入
-INSERT INTO oauth2_registered_client (
-    id,
-    client_id,
-    client_id_issued_at,
-    client_secret,
-    client_secret_expires_at,
-    client_name,
-    client_authentication_methods,
-    authorization_grant_types,
-    redirect_uris,
-    post_logout_redirect_uris,
-    scopes,
-    client_settings,
-    token_settings
-)
-SELECT
-    '200',
-    'sca-portal-client',
-    CURRENT_TIMESTAMP,
-    NULL,
-    NULL,
-    'SCA Portal SPA',
-    'client_secret_basic',
-    'password,refresh_token',
-    NULL,
-    NULL,
-    'profile,all',
-    '{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2ClientSettings","settings.client.require-authorization-consent":false}',
-    '{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenSettings","settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.core.OAuth2AccessToken$TokenFormat","value":"reference"},"settings.token.access-token-time-to-live":["java.time.Duration",900.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.reuse-refresh-tokens":false}'
-WHERE NOT EXISTS (
-    SELECT 1 FROM oauth2_registered_client WHERE client_id = 'sca-portal-client'
-);
+INSERT INTO `oauth2_registered_client` (id, client_id, client_id_issued_at, client_secret, client_secret_expires_at, client_name, client_authentication_methods, authorization_grant_types, redirect_uris, post_logout_redirect_uris, scopes, client_settings, token_settings) VALUES
+	('200', 'sca-portal-client', CURRENT_TIMESTAMP, NULL, NULL, 'SCA Portal SPA', 'client_secret_basic', 'password,refresh_token', NULL, NULL, 'profile,all', '{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2ClientSettings","settings.client.require-authorization-consent":false}', '{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenSettings","settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.core.OAuth2AccessToken$TokenFormat","value":"reference"},"settings.token.access-token-time-to-live":["java.time.Duration",900.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",7200.000000000],"settings.token.reuse-refresh-tokens":false}');
 
 
 -- ---------------------------------------------------
