@@ -36,17 +36,8 @@ CREATE TABLE IF NOT EXISTS `sys_tenant_package` (
 
 
 -- 内置租户套餐（默认套餐，超级管理员 admin 所属租户的套餐）
-INSERT INTO `sys_tenant_package` (
-    `id`, `name`, `code`, `status`, `user_limit`, `api_limit`, `storage_limit`, `expire_days`,
-    `sort`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`
-)
-SELECT
-    '1', '默认套餐', 'default', 'enabled', -1, -1, -1, -1,
-    1, '系统内置默认套餐', 0, 'system', NOW(), 'system', NOW(), 0
-WHERE NOT EXISTS (
-    SELECT 1 FROM `sys_tenant_package`
-    WHERE `id` = '1' AND `is_deleted` = 0
-);
+INSERT INTO `sys_tenant_package` (`id`, `name`, `code`, `status`, `user_limit`, `api_limit`, `storage_limit`, `expire_days`, `sort`, `remark`, `version`, `create_by`, `create_time`, `update_by`, `update_time`, `is_deleted`) VALUES
+	('1', '默认套餐', 'default', 'enabled', -1, -1, -1, -1, 1, '系统内置默认套餐', 0, 'system', NOW(), 'system', NOW(), 0);
 
 
 -- ---------------------------------------------------
