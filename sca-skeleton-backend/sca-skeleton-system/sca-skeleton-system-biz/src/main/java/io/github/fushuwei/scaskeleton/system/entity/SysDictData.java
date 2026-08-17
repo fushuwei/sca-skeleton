@@ -29,17 +29,6 @@ public class SysDictData extends BaseEntity {
     /** 字典值 */
     private String value;
 
-    // ==================== 类型与样式 ====================
-
-    /** 值类型 */
-    private String valueType;
-
-    /** Tag 颜色类型 */
-    private String colorType;
-
-    /** CSS 类名 */
-    private String cssClass;
-
     // ==================== 状态与排序 ====================
 
     /** 状态 */

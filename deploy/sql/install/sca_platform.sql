@@ -422,12 +422,9 @@ CREATE TABLE IF NOT EXISTS `sys_dict` (
 CREATE TABLE IF NOT EXISTS `sys_dict_data` (
     `id`              VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
     `tenant_id`       VARCHAR(64)     DEFAULT NULL                COMMENT '租户ID',
-    `dict_id`         VARCHAR(64)     NOT NULL                    COMMENT '字典类型ID',
+    `dict_id`         VARCHAR(64)     NOT NULL                    COMMENT '字典ID',
     `label`           VARCHAR(100)    NOT NULL                    COMMENT '字典标签',
     `value`           VARCHAR(100)    NOT NULL                    COMMENT '字典值',
-    `value_type`      VARCHAR(16)     NOT NULL DEFAULT 'string'   COMMENT '值类型 string/int/boolean',
-    `color_type`      VARCHAR(32)     DEFAULT NULL                COMMENT 'Tag颜色类型 default/primary/success/warning/danger/info',
-    `css_class`       VARCHAR(128)    DEFAULT NULL                COMMENT '自定义样式类名',
     `status`          VARCHAR(10)     NOT NULL                    COMMENT '状态（enabled 启用，disabled 禁用）',
     `is_default`      TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否默认',
     `sort`            INT             NOT NULL DEFAULT 100        COMMENT '排序，数字越小越靠前',
