@@ -56,7 +56,7 @@ public class TenantResponse {
     /** 状态 */
     private String status;
 
-    /** 是否系统内置（0 否 1 是） */
+    /** 是否内置 */
     private Integer isBuiltin;
 
     /** 备注 */

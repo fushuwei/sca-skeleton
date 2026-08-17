@@ -46,7 +46,7 @@ public class SysRole extends BaseEntity {
     /** 角色域 */
     private String realm;
 
-    /** 是否系统内置 */
+    /** 是否内置 */
     private Integer isBuiltin;
 
     /** 乐观锁版本号 */

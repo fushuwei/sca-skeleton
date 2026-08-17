@@ -66,7 +66,7 @@ export interface SysUser {
   effectiveEndTime: string;
   lastLoginIp: string;
   lastLoginTime: string;
-  /** 是否系统内置：0-否，1-是 */
+  /** 是否内置：0-否，1-是 */
   isBuiltin: number;
   /** 数据来源：initial / manual / import / sync / sso */
   sourceType: string;
@@ -365,7 +365,7 @@ export interface SysTenant {
   expireTime: string | null;
   /** 租户状态：normal / disabled / expired / cancelled */
   status: string;
-  /** 是否系统内置：0 否 / 1 是 */
+  /** 是否内置：0 否 / 1 是 */
   isBuiltin: number;
   remark: string;
   version: number;

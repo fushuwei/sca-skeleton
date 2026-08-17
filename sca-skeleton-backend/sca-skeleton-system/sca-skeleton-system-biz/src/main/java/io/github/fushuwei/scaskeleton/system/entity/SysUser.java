@@ -93,7 +93,7 @@ public class SysUser extends BaseEntity {
 
     // ==================== 系统属性 ====================
 
-    /** 是否系统内置 */
+    /** 是否内置 */
     private Integer isBuiltin;
 
     /** 数据来源 */

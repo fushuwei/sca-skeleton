@@ -42,7 +42,7 @@ public class SysConfig extends BaseEntity {
     /** 状态 */
     private Integer status;
 
-    /** 是否系统内置 */
+    /** 是否内置 */
     private Integer isBuiltin;
 
     /** 备注 */
