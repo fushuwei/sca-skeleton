@@ -61,14 +61,14 @@ async function parseTokenResponse(response: Response): Promise<OAuthTokenRespons
   try {
     body = await response.json();
   } catch {
-    throw new Error(`认证请求失败 (${response.status})`);
+    throw new Error(`认证请求失败，请联系管理员`);
   }
   // 成功响应：OAuth2 标准格式包含 access_token 字段
   if (body && typeof (body as OAuthTokenResponse).access_token === "string") {
     return body as OAuthTokenResponse;
   }
   // 失败响应：Result 格式，提取 message
-  const message = (body as ApiResult)?.message ?? `认证请求失败 (${response.status})`;
+  const message = (body as ApiResult)?.message ?? `认证请求失败，请联系管理员`;
   throw new Error(message);
 }
 
