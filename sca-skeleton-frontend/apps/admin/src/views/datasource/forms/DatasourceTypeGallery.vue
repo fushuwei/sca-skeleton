@@ -133,9 +133,10 @@ function handleSelect(dbType: string) {
     </div>
 
     <!-- 搜索无结果 -->
-    <div v-else class="ds-type-gallery-empty column items-center justify-center">
-      <q-icon name="sym_r_search_off" size="40px" color="grey-5" />
-      <div class="text-caption text-grey-6 q-mt-sm">{{ t('common.noData') }}</div>
+    <div v-else class="ds-type-gallery-empty column items-center justify-center text-grey-7">
+      <q-icon name="sym_r_database_search" size="56px" class="q-mb-sm" />
+      <div class="text-body1 text-weight-medium q-mb-xs">{{ t('common.noData') }}</div>
+      <div class="text-caption text-grey-6">{{ t('common.noDataHint') }}</div>
     </div>
   </div>
 </template>
@@ -145,6 +146,8 @@ function handleSelect(dbType: string) {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  /* 撑满滚动内容区高度，使空状态可垂直居中 */
+  min-height: 100%;
 }
 
 .ds-type-gallery-groups {
@@ -240,7 +243,8 @@ function handleSelect(dbType: string) {
 }
 
 .ds-type-gallery-empty {
-  padding: 40px 0;
+  /* 占据搜索框以下的剩余空间，配合 justify-center 实现垂直居中 */
+  flex: 1 1 auto;
 }
 </style>
 

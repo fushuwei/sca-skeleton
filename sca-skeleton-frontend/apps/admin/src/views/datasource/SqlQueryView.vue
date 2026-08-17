@@ -813,8 +813,17 @@ onMounted(() => {
                     </div>
                     <div v-if="msg.sql" class="sq-msg-sql">{{ msg.sql }}</div>
                   </div>
-                  <div v-if="!messages.length" class="sq-no-data">
-                    {{ t('common.noData') }}
+                  <div
+                    v-if="!messages.length"
+                    class="column items-center justify-center q-py-xl text-grey-7 empty-state-content"
+                  >
+                    <q-icon name="sym_r_database_search" size="56px" class="q-mb-sm" />
+                    <div class="text-body1 text-weight-medium q-mb-xs">
+                      {{ t('common.noData') }}
+                    </div>
+                    <div class="text-caption text-grey-6">
+                      {{ t('common.noDataHint') }}
+                    </div>
                   </div>
                 </div>
               </q-tab-panel>
@@ -1260,13 +1269,6 @@ onMounted(() => {
   color: rgba(0, 0, 0, 0.35);
 }
 
-.sq-no-data {
-  padding: 24px;
-  text-align: center;
-  font-size: 12.5px;
-  color: rgba(0, 0, 0, 0.45);
-}
-
 /* 空数据内容 — 与驱动管理等列表页保持一致 */
 .empty-state-content {
   text-align: center;
@@ -1517,10 +1519,6 @@ onMounted(() => {
 
 .body--dark .table-bottom :deep(.text-grey-7) {
   color: rgba(255, 255, 255, 0.55) !important;
-}
-
-.body--dark .sq-no-data {
-  color: rgba(255, 255, 255, 0.45) !important;
 }
 
 .body--dark .sq-empty-title {

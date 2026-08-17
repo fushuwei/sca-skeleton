@@ -317,8 +317,15 @@ function viewDetail(product: DataProduct): void {
 
     <!-- 空状态 -->
     <div v-else class="empty-state">
-      <q-icon name="sym_r_search_off" size="64px" class="empty-icon" />
-      <p class="empty-text">{{ t('common.noData') }}</p>
+      <div class="column items-center justify-center text-grey-7 empty-state-content">
+        <q-icon name="sym_r_database_search" size="56px" class="q-mb-sm" />
+        <div class="text-body1 text-weight-medium q-mb-xs">
+          {{ t('common.noData') }}
+        </div>
+        <div class="text-caption text-grey-6">
+          {{ t('common.noDataHint') }}
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -660,23 +667,9 @@ function viewDetail(product: DataProduct): void {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.empty-icon {
-  color: rgba(0, 0, 0, 0.25);
-  margin-bottom: 16px;
-}
-
-.body--dark .empty-icon {
-  color: rgba(255, 255, 255, 0.25);
-}
-
-.empty-text {
-  font-size: 14px;
-  color: rgba(0, 0, 0, 0.45);
-  margin: 0;
-}
-
-.body--dark .empty-text {
-  color: rgba(255, 255, 255, 0.45);
+/* 空数据内容 — 与列表页保持一致 */
+.empty-state-content {
+  text-align: center;
 }
 
 /* ═══════════════ 响应式 ═══════════════ */
