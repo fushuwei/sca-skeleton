@@ -366,6 +366,8 @@ public class SysUserServiceImpl implements SysUserService {
             .set(SysUser::getStatus, request.getStatus())
             .set(SysUser::getStatusTime, LocalDateTime.now())
             .set(SysUser::getStatusReason, request.getReason())
+            .set(SysUser::getUpdateBy, SecurityUtils.getUserId())
+            .set(SysUser::getUpdateTime, LocalDateTime.now())
         );
     }
 

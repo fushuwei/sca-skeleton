@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -157,22 +158,26 @@ public class SysDictServiceImpl implements SysDictService {
     /**
      * 启用/禁用字典
      * <p>
-     * 仅更新状态字段，不先查询整条记录：使用 UPDATE 语句配合租户隔离条件直接置状态，
-     * 由 MyBatis-Plus 自动维护更新人/更新时间，且不触发乐观锁版本校验。
+     * 仅更新状态字段，不先查询整条记录：先加载并校验租户隔离，再按主键直接置状态，
+     * 并显式维护更新人/更新时间（entity 为 null 时 MyBatis-Plus 不会自动填充），
+     * 且不触发乐观锁版本校验。
      *
      * @param request 字典 ID 与目标状态
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateDictStatus(DictStatusRequest request) {
-        // 数据隔离：仅更新当前租户下的字典
+        // 加载字典实体并校验存在与租户隔离（NOT_FOUND / FORBIDDEN 精确区分）
+        loadDictEntity(request.getId());
+        // 仅按主键更新状态，并显式维护审计字段（避免丢失 update_by / update_time）
         LambdaUpdateWrapper<SysDict> wrapper = new LambdaUpdateWrapper<SysDict>()
             .eq(SysDict::getId, request.getId())
-            .eq(SysDict::getTenantId, SecurityUtils.getTenantId())
-            .set(SysDict::getStatus, request.getStatus());
+            .set(SysDict::getStatus, request.getStatus())
+            .set(SysDict::getUpdateBy, SecurityUtils.getUserId())
+            .set(SysDict::getUpdateTime, LocalDateTime.now());
         int affectedRows = dictMapper.update(null, wrapper);
         if (affectedRows == 0) {
-            throw new BusinessException(ResultCode.NOT_FOUND, "字典不存在或无权操作");
+            throw new BusinessException(ResultCode.NOT_FOUND, "字典不存在或已被删除");
         }
     }
 
