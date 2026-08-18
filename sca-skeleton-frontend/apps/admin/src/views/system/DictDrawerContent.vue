@@ -152,9 +152,6 @@ async function handleSave() {
             :readonly="drawerReadonly"
             hide-bottom-space
             class="required-field"
-            transition-show="jump-up"
-            transition-hide="jump-down"
-            popup-content-class="status-select-popup"
           />
         </div>
         <!-- 备注 -->
