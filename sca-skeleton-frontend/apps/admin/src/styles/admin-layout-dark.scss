@@ -2618,9 +2618,13 @@
     border-bottom-color: rgba(255, 255, 255, 0.06) !important;
   }
 
-  /* 选中行高亮 — 整行 */
-  .dict-table tr.dict-row--selected td {
-    background: rgba(0, 150, 136, 0.12) !important;
+  /* 选中行高亮 — 整行（点击左侧字典行后持久高亮，鼠标移开依旧存在） */
+  .dict-table tbody tr.dict-row--selected > td {
+    background: rgba(0, 150, 136, 0.20) !important;
+  }
+
+  .dict-table tbody tr.dict-row--selected {
+    box-shadow: inset 3px 0 0 #26a69a !important;
   }
 
   .dict-table .q-table__bottom {

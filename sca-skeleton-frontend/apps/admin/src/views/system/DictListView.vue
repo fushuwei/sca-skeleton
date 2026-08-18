@@ -155,13 +155,8 @@ function handleDictReset() {
   loadDictData();
 }
 
-function handleDictRowClick(_evt: Event, row: SysDict) {
+function handleDictRowClick(row: SysDict) {
   selectedDict.value = row;
-}
-
-/** 用于 q-table 的 row-attr，给选中行添加 class 使整行高亮 */
-function dictRowAttr(row: SysDict) {
-  return { class: selectedDict.value?.id === row.id ? "dict-row--selected" : "" };
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -660,77 +655,81 @@ watch(() => selectedDict.value, (val) => {
         :rows-per-page-options="[10, 20, 50, 100]"
         selection="multiple"
         flat
-        :row-attr="dictRowAttr"
         :class="['dict-table', { 'dict-table--empty': !dictRows.length }]"
         @request="loadDictData"
         @row-click="handleDictRowClick"
       >
-        <!-- 字典名称列 -->
-        <template #body-cell-name="props">
-          <q-td :props="props">
-            <span>{{ props.row.name }}</span>
-          </q-td>
-        </template>
-
-        <!-- 字典编码列 -->
-        <template #body-cell-code="props">
-          <q-td :props="props">
-            <span v-if="props.value">{{ props.value }}</span>
-            <span v-else class="text-grey-5">-</span>
-          </q-td>
-        </template>
-
-        <!-- 状态列 -->
-        <template #body-cell-status="props">
-          <q-td :props="props">
-            <q-badge
-              v-if="props.value"
-              :color="statusColorOf(props.value)"
-              :label="statusLabelOf(props.value)"
-              rounded
-              class="dict-type-badge"
-            />
-            <span v-else class="text-grey-5">-</span>
-          </q-td>
-        </template>
-
-        <!-- 操作列 -->
-        <template #body-cell-actions="props">
-          <q-td :props="props" class="q-gutter-x-xs actions-cell" @click.stop>
-            <q-btn
-              flat
-              dense
-              round
-              size="sm"
-              :color="props.row.status === 'enabled' ? 'orange-7' : 'green-7'"
-              :icon="props.row.status === 'enabled' ? 'sym_r_block' : 'sym_r_check_circle'"
-              @click.stop="handleToggleDictStatus(props.row)"
-            >
-              <q-tooltip>{{ props.row.status === 'enabled' ? t('common.disable') : t('common.enable') }}</q-tooltip>
-            </q-btn>
-            <q-btn
-              flat
-              dense
-              round
-              size="sm"
-              color="primary"
-              icon="sym_r_edit"
-              @click.stop="handleEditDict(props.row)"
-            >
-              <q-tooltip>{{ t("common.edit") }}</q-tooltip>
-            </q-btn>
-            <q-btn
-              flat
-              dense
-              round
-              size="sm"
-              color="negative"
-              icon="sym_r_delete"
-              @click.stop="handleDeleteDict(props.row)"
-            >
-              <q-tooltip>{{ t("common.delete") }}</q-tooltip>
-            </q-btn>
-          </q-td>
+        <!-- 整行自定义渲染：点击左侧字典行时给当前行加 dict-row--selected 高亮（持久，鼠标移开依旧存在） -->
+        <template #body="props">
+          <q-tr
+            :props="props"
+            :class="{ 'dict-row--selected': selectedDict?.id === props.row.id }"
+            @click="handleDictRowClick(props.row)"
+          >
+            <!-- 多选复选框 -->
+            <q-td key="selected" auto-width>
+              <q-checkbox
+                :model-value="props.selected"
+                @update:model-value="props.selected = $event"
+              />
+            </q-td>
+            <!-- 字典名称 -->
+            <q-td key="name" :props="props">
+              <span>{{ props.row.name }}</span>
+            </q-td>
+            <!-- 字典编码 -->
+            <q-td key="code" :props="props">
+              <span v-if="props.row.code">{{ props.row.code }}</span>
+              <span v-else class="text-grey-5">-</span>
+            </q-td>
+            <!-- 状态 -->
+            <q-td key="status" :props="props">
+              <q-badge
+                v-if="props.row.status"
+                :color="statusColorOf(props.row.status)"
+                :label="statusLabelOf(props.row.status)"
+                rounded
+                class="dict-type-badge"
+              />
+              <span v-else class="text-grey-5">-</span>
+            </q-td>
+            <!-- 操作 -->
+            <q-td key="actions" :props="props" class="q-gutter-x-xs actions-cell" @click.stop>
+              <q-btn
+                flat
+                dense
+                round
+                size="sm"
+                :color="props.row.status === 'enabled' ? 'orange-7' : 'green-7'"
+                :icon="props.row.status === 'enabled' ? 'sym_r_block' : 'sym_r_check_circle'"
+                @click.stop="handleToggleDictStatus(props.row)"
+              >
+                <q-tooltip>{{ props.row.status === 'enabled' ? t('common.disable') : t('common.enable') }}</q-tooltip>
+              </q-btn>
+              <q-btn
+                flat
+                dense
+                round
+                size="sm"
+                color="primary"
+                icon="sym_r_edit"
+                @click.stop="handleEditDict(props.row)"
+              >
+                <q-tooltip>{{ t("common.edit") }}</q-tooltip>
+              </q-btn>
+              <q-btn
+                flat
+                dense
+                round
+                size="sm"
+                color="negative"
+                icon="sym_r_delete"
+                @click.stop="handleDeleteDict(props.row)"
+              >
+                <q-tooltip>{{ t("common.delete") }}</q-tooltip>
+              </q-btn>
+            </q-td>
+          </q-tr>
         </template>
 
         <!-- 空数据 -->
@@ -1395,13 +1394,14 @@ watch(() => selectedDict.value, (val) => {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
 }
 
-/* 选中行高亮 — 整行 */
-.dict-table :deep(tr.dict-row--selected td) {
-  background: rgba(0, 121, 107, 0.08) !important;
+/* 选中行高亮 — 整行（点击左侧字典行后持久高亮，鼠标移开依旧存在） */
+.dict-table :deep(tbody tr.dict-row--selected > td) {
+  background: rgba(0, 121, 107, 0.14) !important;
 }
 
-.dict-table :deep(tr.dict-row--selected) {
+.dict-table :deep(tbody tr.dict-row--selected) {
   cursor: pointer;
+  box-shadow: inset 3px 0 0 #00796b !important;
 }
 
 /* ── 表格（右侧字典数据表） ── */
