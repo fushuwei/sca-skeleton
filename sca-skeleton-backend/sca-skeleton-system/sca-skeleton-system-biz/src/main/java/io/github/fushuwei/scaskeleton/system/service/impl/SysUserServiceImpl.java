@@ -347,7 +347,9 @@ public class SysUserServiceImpl implements SysUserService {
             .eq(SysUser::getId, user.getId())
             .set(SysUser::getPassword, passwordEncoder.encode(request.getNewPassword()))
             .set(SysUser::getMustChangePassword, 0)
-            .set(SysUser::getPasswordUpdateTime, LocalDateTime.now()));
+            .set(SysUser::getPasswordUpdateTime, LocalDateTime.now())
+            .set(SysUser::getUpdateBy, SecurityUtils.getUserId())
+            .set(SysUser::getUpdateTime, LocalDateTime.now()));
     }
 
     /**

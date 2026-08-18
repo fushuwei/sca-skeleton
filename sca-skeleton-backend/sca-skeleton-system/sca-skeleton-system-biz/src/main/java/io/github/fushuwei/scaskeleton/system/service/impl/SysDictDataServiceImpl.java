@@ -125,7 +125,7 @@ public class SysDictDataServiceImpl implements SysDictDataService {
     /**
      * 启用/禁用字典数据
      * <p>
-     * 仅更新状态字段，不先查询整条记录：先加载并校验租户隔离，再按主键直接置状态，
+     * 仅更新状态字段：先加载并校验租户隔离，再按主键直接置状态，
      * 并显式维护更新人/更新时间（entity 为 null 时 MyBatis-Plus 不会自动填充）。
      *
      * @param request 字典数据 ID 与目标状态

@@ -158,7 +158,7 @@ public class SysDictServiceImpl implements SysDictService {
     /**
      * 启用/禁用字典
      * <p>
-     * 仅更新状态字段，不先查询整条记录：先加载并校验租户隔离，再按主键直接置状态，
+     * 仅更新状态字段：先加载并校验租户隔离，再按主键直接置状态，
      * 并显式维护更新人/更新时间（entity 为 null 时 MyBatis-Plus 不会自动填充），
      * 且不触发乐观锁版本校验。
      *
