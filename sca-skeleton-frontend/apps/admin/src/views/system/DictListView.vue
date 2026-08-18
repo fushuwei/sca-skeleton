@@ -800,7 +800,7 @@ watch(() => selectedDict.value, (val) => {
     </div>
 
     <!-- ═══ 右侧：字典数据列表 ═══ -->
-    <div class="right-panel">
+    <div class="right-panel" :class="{ 'right-panel--no-border': selectedDict }">
       <!-- ── 右侧内容区 ── -->
       <template v-if="selectedDict">
         <!-- ── 搜索区域 ── -->
@@ -1198,6 +1198,10 @@ watch(() => selectedDict.value, (val) => {
   overflow: hidden;
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.right-panel--no-border {
+  border: 0;
 }
 
 .right-panel-placeholder {
