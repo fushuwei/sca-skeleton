@@ -8,10 +8,12 @@ import type { SysDict, SysDictData, DictPageRequest, DictDataPageRequest } from 
 import {
   getDictPageApi,
   getDictByIdApi,
+  updateDictStatusApi,
   deleteDictApi,
   batchDeleteDictApi,
   getDictDataPageApi,
   getDictDataByIdApi,
+  updateDictDataStatusApi,
   deleteDictDataApi,
   batchDeleteDictDataApi
 } from "../../apis/dict";
@@ -394,19 +396,7 @@ async function handleBatchDeleteDict() {
 async function handleToggleDictStatus(dict: SysDict) {
   const newStatus = dict.status === "enabled" ? "disabled" : "enabled";
   try {
-    const res = await getDictByIdApi(dict.id);
-    if (res.code !== 10_000 || !res.data) {
-      showToast(res.message || t("common.loadFail"), "negative");
-      return;
-    }
-    const result = await updateDictApi({
-      id: dict.id,
-      name: res.data.name,
-      code: res.data.code,
-      status: newStatus,
-      remark: res.data.remark || undefined,
-      version: res.data.version
-    });
+    const result = await updateDictStatusApi({ id: dict.id, status: newStatus });
     if (result.code === 10_000) {
       showToast(newStatus === "enabled" ? t("common.enable") + t("common.operationSuccess") : t("common.disable") + t("common.operationSuccess"), "positive");
       loadDictData();
@@ -464,20 +454,7 @@ async function handleBatchDeleteDictData() {
 async function handleToggleDictDataStatus(dictData: SysDictData) {
   const newStatus = dictData.status === "enabled" ? "disabled" : "enabled";
   try {
-    const res = await getDictDataByIdApi(dictData.id);
-    if (res.code !== 10_000 || !res.data) {
-      showToast(res.message || t("common.loadFail"), "negative");
-      return;
-    }
-    const result = await updateDictDataApi({
-      id: dictData.id,
-      dictId: res.data.dictId,
-      label: res.data.label,
-      value: res.data.value,
-      status: newStatus,
-      sort: res.data.sort,
-      remark: res.data.remark || undefined
-    });
+    const result = await updateDictDataStatusApi({ id: dictData.id, status: newStatus });
     if (result.code === 10_000) {
       showToast(newStatus === "enabled" ? t("common.enable") + t("common.operationSuccess") : t("common.disable") + t("common.operationSuccess"), "positive");
       loadDictDataList();
@@ -657,7 +634,6 @@ watch(() => selectedDict.value, (val) => {
         flat
         :class="['dict-table', { 'dict-table--empty': !dictRows.length }]"
         @request="loadDictData"
-        @row-click="handleDictRowClick"
       >
         <!-- 整行自定义渲染：点击左侧字典行时给当前行加 dict-row--selected 高亮（持久，鼠标移开依旧存在） -->
         <template #body="props">

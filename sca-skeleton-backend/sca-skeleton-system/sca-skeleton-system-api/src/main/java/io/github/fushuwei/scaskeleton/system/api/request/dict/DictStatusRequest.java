@@ -1,0 +1,21 @@
+package io.github.fushuwei.scaskeleton.system.api.request.dict;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+/**
+ * 字典启用/禁用请求对象
+ *
+ * @author Fu Wei
+ */
+@Data
+public class DictStatusRequest {
+
+    /** 字典 ID */
+    @NotBlank(message = "字典 ID 不能为空")
+    private String id;
+
+    /** 状态（enabled 启用，disabled 禁用） */
+    @NotBlank(message = "字典状态不能为空")
+    private String status;
+}

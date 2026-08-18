@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.system.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
@@ -7,6 +8,7 @@ import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.dict.DictDataCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dict.DictDataPageRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.dict.DictDataStatusRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dict.DictDataUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.dict.DictDataResponse;
 import io.github.fushuwei.scaskeleton.system.converter.DictConverter;
@@ -116,6 +118,28 @@ public class SysDictDataServiceImpl implements SysDictDataService {
         int affectedRows = dictDataMapper.updateById(dictData);
         if (affectedRows == 0) {
             throw new BusinessException(ResultCode.VERSION_CONFLICT);
+        }
+    }
+
+    /**
+     * 启用/禁用字典数据
+     * <p>
+     * 仅更新状态字段，不先查询整条记录：使用 UPDATE 语句配合租户隔离条件直接置状态，
+     * 由 MyBatis-Plus 自动维护更新人/更新时间。
+     *
+     * @param request 字典数据 ID 与目标状态
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateDictDataStatus(DictDataStatusRequest request) {
+        // 数据隔离：仅更新当前租户下的字典数据
+        LambdaUpdateWrapper<SysDictData> wrapper = new LambdaUpdateWrapper<SysDictData>()
+            .eq(SysDictData::getId, request.getId())
+            .eq(SysDictData::getTenantId, SecurityUtils.getTenantId())
+            .set(SysDictData::getStatus, request.getStatus());
+        int affectedRows = dictDataMapper.update(null, wrapper);
+        if (affectedRows == 0) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "字典数据不存在或无权操作");
         }
     }
 

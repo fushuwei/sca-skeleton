@@ -7,6 +7,7 @@ import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dict.DictCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dict.DictPageRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.dict.DictStatusRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dict.DictUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.dict.DictResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysDictService;
@@ -67,6 +68,15 @@ public class SysDictController {
     @OperationLog(module = "字典管理", action = "编辑字典")
     public Result<Void> update(@Validated @RequestBody DictUpdateRequest request) {
         dictService.updateDict(request);
+        return Result.ok();
+    }
+
+    @Operation(summary = "启用/禁用字典")
+    @PostMapping("/status")
+    @RequiresPermission("sys:dict:edit")
+    @OperationLog(module = "字典管理", action = "启用/禁用字典")
+    public Result<Void> updateStatus(@Validated @RequestBody DictStatusRequest request) {
+        dictService.updateDictStatus(request);
         return Result.ok();
     }
 

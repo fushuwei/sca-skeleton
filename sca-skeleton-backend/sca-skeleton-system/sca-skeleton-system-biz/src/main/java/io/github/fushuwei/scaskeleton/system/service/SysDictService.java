@@ -3,6 +3,7 @@ package io.github.fushuwei.scaskeleton.system.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.dict.DictCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dict.DictPageRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.dict.DictStatusRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dict.DictUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.dict.DictResponse;
 
@@ -51,6 +52,13 @@ public interface SysDictService {
      * @param request 字典信息
      */
     void updateDict(DictUpdateRequest request);
+
+    /**
+     * 启用/禁用字典
+     *
+     * @param request 字典 ID 与目标状态
+     */
+    void updateDictStatus(DictStatusRequest request);
 
     /**
      * 删除字典

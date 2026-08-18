@@ -1,6 +1,7 @@
 package io.github.fushuwei.scaskeleton.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.fushuwei.scaskeleton.core.exception.BusinessException;
@@ -8,6 +9,7 @@ import io.github.fushuwei.scaskeleton.core.result.ResultCode;
 import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.dict.DictCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dict.DictPageRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.dict.DictStatusRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.dict.DictUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.dict.DictResponse;
 import io.github.fushuwei.scaskeleton.system.converter.DictConverter;
@@ -149,6 +151,28 @@ public class SysDictServiceImpl implements SysDictService {
         int affectedRows = dictMapper.updateById(dict);
         if (affectedRows == 0) {
             throw new BusinessException(ResultCode.VERSION_CONFLICT);
+        }
+    }
+
+    /**
+     * 启用/禁用字典
+     * <p>
+     * 仅更新状态字段，不先查询整条记录：使用 UPDATE 语句配合租户隔离条件直接置状态，
+     * 由 MyBatis-Plus 自动维护更新人/更新时间，且不触发乐观锁版本校验。
+     *
+     * @param request 字典 ID 与目标状态
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateDictStatus(DictStatusRequest request) {
+        // 数据隔离：仅更新当前租户下的字典
+        LambdaUpdateWrapper<SysDict> wrapper = new LambdaUpdateWrapper<SysDict>()
+            .eq(SysDict::getId, request.getId())
+            .eq(SysDict::getTenantId, SecurityUtils.getTenantId())
+            .set(SysDict::getStatus, request.getStatus());
+        int affectedRows = dictMapper.update(null, wrapper);
+        if (affectedRows == 0) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "字典不存在或无权操作");
         }
     }
 

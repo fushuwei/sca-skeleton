@@ -27,6 +27,14 @@ export async function updateDictApi(data: Record<string, unknown>): Promise<ApiE
   return request<null>({ method: "POST", url: "/sys/dict/update", data });
 }
 
+/** 启用/禁用字典（独立接口，仅更新状态，无需先查询详情） */
+export async function updateDictStatusApi(data: {
+  id: string;
+  status: string;
+}): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "POST", url: "/sys/dict/status", data });
+}
+
 /** 删除字典 */
 export async function deleteDictApi(id: string): Promise<ApiEnvelope<null>> {
   return request<null>({ method: "POST", url: "/sys/dict/delete", data: { id } });
@@ -65,6 +73,14 @@ export async function createDictDataApi(data: Record<string, unknown>): Promise<
 /** 更新字典数据 */
 export async function updateDictDataApi(data: Record<string, unknown>): Promise<ApiEnvelope<null>> {
   return request<null>({ method: "POST", url: "/sys/dict/data/update", data });
+}
+
+/** 启用/禁用字典数据（独立接口，仅更新状态，无需先查询详情） */
+export async function updateDictDataStatusApi(data: {
+  id: string;
+  status: string;
+}): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "POST", url: "/sys/dict/data/status", data });
 }
 
 /** 删除字典数据 */
