@@ -564,8 +564,6 @@ export interface SysDictData {
   value: string;
   /** 状态：enabled / disabled */
   status: string;
-  /** 是否默认值：0-否，1-是 */
-  isDefault: number;
   sort: number;
   remark: string;
   createTime: string;

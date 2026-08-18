@@ -87,7 +87,6 @@ public class SysDictDataServiceImpl implements SysDictDataService {
         dictData.setLabel(request.getLabel());
         dictData.setValue(request.getValue());
         dictData.setStatus(request.getStatus());
-        dictData.setIsDefault(request.getIsDefault() != null ? request.getIsDefault() : 0);
         dictData.setSort(request.getSort() != null ? request.getSort() : 100);
         dictData.setRemark(request.getRemark());
 
@@ -110,7 +109,6 @@ public class SysDictDataServiceImpl implements SysDictDataService {
         dictData.setLabel(request.getLabel());
         dictData.setValue(request.getValue());
         dictData.setStatus(request.getStatus());
-        dictData.setIsDefault(request.getIsDefault() != null ? request.getIsDefault() : dictData.getIsDefault());
         dictData.setSort(request.getSort() != null ? request.getSort() : dictData.getSort());
         dictData.setRemark(request.getRemark());
 

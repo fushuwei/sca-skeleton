@@ -30,9 +30,6 @@ public class DictDataResponse {
     /** 状态（enabled 启用，disabled 禁用） */
     private String status;
 
-    /** 是否默认值（0 否，1 是） */
-    private Integer isDefault;
-
     /** 排序号 */
     private Integer sort;
 

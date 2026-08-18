@@ -739,7 +739,6 @@
     "statusEnabled": "Enabled",
     "statusDisabled": "Disabled",
     "statusPlaceholder": "Select status",
-    "isDefault": "Default",
     "sort": "Sort",
     "remark": "Remark",
     "createTime": "Created At",

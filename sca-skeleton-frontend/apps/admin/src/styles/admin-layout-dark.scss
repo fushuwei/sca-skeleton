@@ -2490,15 +2490,6 @@
     border-color: rgba(255, 255, 255, 0.12);
   }
 
-  .right-panel-header {
-    background: #252525;
-    border-bottom-color: rgba(255, 255, 255, 0.08);
-  }
-
-  .right-panel-title {
-    color: rgba(255, 255, 255, 0.87);
-  }
-
   .right-panel-placeholder {
     color: rgba(255, 255, 255, 0.45);
   }
@@ -2627,8 +2618,8 @@
     border-bottom-color: rgba(255, 255, 255, 0.06) !important;
   }
 
-  /* 选中行高亮 */
-  .dict-table .dict-row--selected {
+  /* 选中行高亮 — 整行 */
+  .dict-table tr.dict-row--selected td {
     background: rgba(0, 150, 136, 0.12) !important;
   }
 
@@ -2718,18 +2709,5 @@
 
 /* ═══════════════════════════════════════════════════════════════
  * DictDrawerContent / DictDataDrawerContent — 字典抽屉表单深色模式补充
- * 抽屉本身（header/mask/body）由 DictListView.vue 非 scoped style 覆盖；
- * 此处补充 q-toggle 组件的暗色适配
+ * 抽屉本身（header/mask/body）由 DictListView.vue 非 scoped style 覆盖
  * ═══════════════════════════════════════════════════════════════ */
-
-.body--dark .dict-data-drawer-content .q-toggle__label {
-  color: rgba(255, 255, 255, 0.87) !important;
-}
-
-.body--dark .dict-data-drawer-content .q-toggle--truthy .q-toggle__thumb::after {
-  background: #80cbc4;
-}
-
-.body--dark .dict-data-drawer-content .q-toggle__inner--truthy .q-toggle__track {
-  background: rgba(0, 150, 136, 0.5);
-}

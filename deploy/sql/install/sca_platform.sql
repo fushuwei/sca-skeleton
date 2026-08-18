@@ -426,7 +426,6 @@ CREATE TABLE IF NOT EXISTS `sys_dict_data` (
     `label`           VARCHAR(100)    NOT NULL                    COMMENT '字典标签',
     `value`           VARCHAR(100)    NOT NULL                    COMMENT '字典值',
     `status`          VARCHAR(10)     NOT NULL                    COMMENT '状态（enabled 启用，disabled 禁用）',
-    `is_default`      TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否默认（0否 1是）',
     `sort`            INT             NOT NULL DEFAULT 100        COMMENT '排序，数字越小越靠前',
     `remark`          TEXT            DEFAULT NULL                COMMENT '备注',
     `create_by`       VARCHAR(64)     DEFAULT NULL                COMMENT '创建人',

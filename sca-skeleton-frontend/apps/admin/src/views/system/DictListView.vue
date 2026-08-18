@@ -66,17 +66,13 @@ const dictColumns = computed<QTableColumn<SysDict>[]>(() => [
   { name: "name", field: "name", label: t("dictMgmt.name"), align: "left", sortable: true },
   { name: "code", field: "code", label: t("dictMgmt.code"), align: "left", sortable: true },
   { name: "status", field: "status", label: t("dictMgmt.status"), align: "left", sortable: true },
-  {
-    name: "createTime", field: "createTime", label: t("dictMgmt.createTime"), align: "left", sortable: true,
-    format: (val: string) => val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-"
-  },
   { name: "actions", field: "id", label: t("common.actions"), align: "center", sortable: false }
 ]);
 
 const dictVisibleColumns = ref(dictColumns.value.map((c) => c.name));
 
 const DICT_SORT_FIELD_MAP: Record<string, string> = {
-  name: "name", code: "code", status: "status", createTime: "create_time"
+  name: "name", code: "code", status: "status"
 };
 
 let dictInitialLoadDone = false;
@@ -163,6 +159,11 @@ function handleDictRowClick(_evt: Event, row: SysDict) {
   selectedDict.value = row;
 }
 
+/** 用于 q-table 的 row-attr，给选中行添加 class 使整行高亮 */
+function dictRowAttr(row: SysDict) {
+  return { class: selectedDict.value?.id === row.id ? "dict-row--selected" : "" };
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 右侧：字典数据列表
 // ═══════════════════════════════════════════════════════════════
@@ -189,18 +190,13 @@ const dictDataColumns = computed<QTableColumn<SysDictData>[]>(() => [
   { name: "value", field: "value", label: t("dictDataMgmt.value"), align: "left", sortable: true },
   { name: "sort", field: "sort", label: t("dictDataMgmt.sort"), align: "left", sortable: true },
   { name: "status", field: "status", label: t("dictDataMgmt.status"), align: "left", sortable: true },
-  { name: "isDefault", field: "isDefault", label: t("dictDataMgmt.isDefault"), align: "left", sortable: false },
-  {
-    name: "createTime", field: "createTime", label: t("dictDataMgmt.createTime"), align: "left", sortable: true,
-    format: (val: string) => val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-"
-  },
   { name: "actions", field: "id", label: t("common.actions"), align: "center", sortable: false }
 ]);
 
 const dictDataVisibleColumns = ref(dictDataColumns.value.map((c) => c.name));
 
 const DICT_DATA_SORT_FIELD_MAP: Record<string, string> = {
-  label: "label", value: "value", sort: "sort", status: "status", createTime: "create_time"
+  label: "label", value: "value", sort: "sort", status: "status"
 };
 
 let dictDataInitialLoadDone = false;
@@ -400,10 +396,34 @@ async function handleBatchDeleteDict() {
   } catch (error) { if (!isNotificationHandled(error)) showToast(t("common.deleteFail"), "negative"); }
 }
 
-async function handleViewDict(dict: SysDict) {
-  const res = await getDictByIdApi(dict.id);
-  if (res.code === 10_000 && res.data) { openDictDrawer("view", res.data); }
-  else { showToast(res.message || t("common.loadFail"), "negative"); }
+async function handleToggleDictStatus(dict: SysDict) {
+  const newStatus = dict.status === "enabled" ? "disabled" : "enabled";
+  try {
+    const res = await getDictByIdApi(dict.id);
+    if (res.code !== 10_000 || !res.data) {
+      showToast(res.message || t("common.loadFail"), "negative");
+      return;
+    }
+    const result = await updateDictApi({
+      id: dict.id,
+      name: res.data.name,
+      code: res.data.code,
+      status: newStatus,
+      remark: res.data.remark || undefined,
+      version: res.data.version
+    });
+    if (result.code === 10_000) {
+      showToast(newStatus === "enabled" ? t("common.enable") + t("common.operationSuccess") : t("common.disable") + t("common.operationSuccess"), "positive");
+      loadDictData();
+      if (selectedDict.value?.id === dict.id) {
+        selectedDict.value = { ...selectedDict.value, status: newStatus };
+      }
+    } else {
+      showToast(result.message || t("common.operationFail"), "negative");
+    }
+  } catch (error) {
+    if (!isNotificationHandled(error)) showToast(t("common.operationFail"), "negative");
+  }
 }
 
 async function handleEditDict(dict: SysDict) {
@@ -446,10 +466,32 @@ async function handleBatchDeleteDictData() {
   } catch (error) { if (!isNotificationHandled(error)) showToast(t("common.deleteFail"), "negative"); }
 }
 
-async function handleViewDictData(dictData: SysDictData) {
-  const res = await getDictDataByIdApi(dictData.id);
-  if (res.code === 10_000 && res.data) { openDictDataDrawer("view", res.data); }
-  else { showToast(res.message || t("common.loadFail"), "negative"); }
+async function handleToggleDictDataStatus(dictData: SysDictData) {
+  const newStatus = dictData.status === "enabled" ? "disabled" : "enabled";
+  try {
+    const res = await getDictDataByIdApi(dictData.id);
+    if (res.code !== 10_000 || !res.data) {
+      showToast(res.message || t("common.loadFail"), "negative");
+      return;
+    }
+    const result = await updateDictDataApi({
+      id: dictData.id,
+      dictId: res.data.dictId,
+      label: res.data.label,
+      value: res.data.value,
+      status: newStatus,
+      sort: res.data.sort,
+      remark: res.data.remark || undefined
+    });
+    if (result.code === 10_000) {
+      showToast(newStatus === "enabled" ? t("common.enable") + t("common.operationSuccess") : t("common.disable") + t("common.operationSuccess"), "positive");
+      loadDictDataList();
+    } else {
+      showToast(result.message || t("common.operationFail"), "negative");
+    }
+  } catch (error) {
+    if (!isNotificationHandled(error)) showToast(t("common.operationFail"), "negative");
+  }
 }
 
 async function handleEditDictData(dictData: SysDictData) {
@@ -618,27 +660,21 @@ watch(() => selectedDict.value, (val) => {
         :rows-per-page-options="[10, 20, 50, 100]"
         selection="multiple"
         flat
+        :row-attr="dictRowAttr"
         :class="['dict-table', { 'dict-table--empty': !dictRows.length }]"
         @request="loadDictData"
+        @row-click="handleDictRowClick"
       >
         <!-- 字典名称列 -->
         <template #body-cell-name="props">
-          <q-td
-            :props="props"
-            :class="{ 'dict-row--selected': selectedDict?.id === props.row.id }"
-            @click="handleDictRowClick($event, props.row)"
-          >
+          <q-td :props="props">
             <span>{{ props.row.name }}</span>
           </q-td>
         </template>
 
         <!-- 字典编码列 -->
         <template #body-cell-code="props">
-          <q-td
-            :props="props"
-            :class="{ 'dict-row--selected': selectedDict?.id === props.row.id }"
-            @click="handleDictRowClick($event, props.row)"
-          >
+          <q-td :props="props">
             <span v-if="props.value">{{ props.value }}</span>
             <span v-else class="text-grey-5">-</span>
           </q-td>
@@ -646,11 +682,7 @@ watch(() => selectedDict.value, (val) => {
 
         <!-- 状态列 -->
         <template #body-cell-status="props">
-          <q-td
-            :props="props"
-            :class="{ 'dict-row--selected': selectedDict?.id === props.row.id }"
-            @click="handleDictRowClick($event, props.row)"
-          >
+          <q-td :props="props">
             <q-badge
               v-if="props.value"
               :color="statusColorOf(props.value)"
@@ -662,30 +694,19 @@ watch(() => selectedDict.value, (val) => {
           </q-td>
         </template>
 
-        <!-- 创建时间列 -->
-        <template #body-cell-createTime="props">
-          <q-td
-            :props="props"
-            :class="{ 'dict-row--selected': selectedDict?.id === props.row.id }"
-            @click="handleDictRowClick($event, props.row)"
-          >
-            <span>{{ props.value }}</span>
-          </q-td>
-        </template>
-
         <!-- 操作列 -->
         <template #body-cell-actions="props">
-          <q-td :props="props" class="q-gutter-x-xs actions-cell">
+          <q-td :props="props" class="q-gutter-x-xs actions-cell" @click.stop>
             <q-btn
               flat
               dense
               round
               size="sm"
-              color="info"
-              icon="sym_r_visibility"
-              @click.stop="handleViewDict(props.row)"
+              :color="props.row.status === 'enabled' ? 'orange-7' : 'green-7'"
+              :icon="props.row.status === 'enabled' ? 'sym_r_block' : 'sym_r_check_circle'"
+              @click.stop="handleToggleDictStatus(props.row)"
             >
-              <q-tooltip>{{ t("common.view") }}</q-tooltip>
+              <q-tooltip>{{ props.row.status === 'enabled' ? t('common.disable') : t('common.enable') }}</q-tooltip>
             </q-btn>
             <q-btn
               flat
@@ -780,19 +801,6 @@ watch(() => selectedDict.value, (val) => {
 
     <!-- ═══ 右侧：字典数据列表 ═══ -->
     <div class="right-panel">
-      <!-- ── 右侧标题栏 ── -->
-      <div class="right-panel-header row items-center no-wrap">
-        <q-icon name="sym_r_text_snippet" size="20px" class="q-mr-sm" />
-        <span class="right-panel-title">
-          <template v-if="selectedDict">
-            {{ t('dictDataMgmt.createDictData') }} — {{ selectedDict.name }}
-          </template>
-          <template v-else>
-            {{ t('dictDataMgmt.selectDictHint') }}
-          </template>
-        </span>
-      </div>
-
       <!-- ── 右侧内容区 ── -->
       <template v-if="selectedDict">
         <!-- ── 搜索区域 ── -->
@@ -965,25 +973,6 @@ watch(() => selectedDict.value, (val) => {
             </q-td>
           </template>
 
-          <!-- 是否默认列 -->
-          <template #body-cell-isDefault="props">
-            <q-td :props="props">
-              <q-badge
-                :color="props.value === 1 ? 'teal-7' : 'grey-6'"
-                :label="props.value === 1 ? t('common.yes') : t('common.no')"
-                rounded
-                class="dict-type-badge"
-              />
-            </q-td>
-          </template>
-
-          <!-- 创建时间列 -->
-          <template #body-cell-createTime="props">
-            <q-td :props="props">
-              <span>{{ props.value }}</span>
-            </q-td>
-          </template>
-
           <!-- 操作列 -->
           <template #body-cell-actions="props">
             <q-td :props="props" class="q-gutter-x-xs actions-cell">
@@ -992,11 +981,11 @@ watch(() => selectedDict.value, (val) => {
                 dense
                 round
                 size="sm"
-                color="info"
-                icon="sym_r_visibility"
-                @click.stop="handleViewDictData(props.row)"
+                :color="props.row.status === 'enabled' ? 'orange-7' : 'green-7'"
+                :icon="props.row.status === 'enabled' ? 'sym_r_block' : 'sym_r_check_circle'"
+                @click.stop="handleToggleDictDataStatus(props.row)"
               >
-                <q-tooltip>{{ t("common.view") }}</q-tooltip>
+                <q-tooltip>{{ props.row.status === 'enabled' ? t('common.disable') : t('common.enable') }}</q-tooltip>
               </q-btn>
               <q-btn
                 flat
@@ -1091,11 +1080,11 @@ watch(() => selectedDict.value, (val) => {
 
       <!-- ── 右侧未选择字典时的空状态 ── -->
       <div v-else class="right-panel-placeholder column items-center justify-center">
-        <q-icon name="sym_r_text_snippet" size="72px" class="q-mb-md" />
-        <div class="text-h6 text-weight-medium q-mb-xs">
-          {{ t('dictDataMgmt.selectDictHint') }}
+        <q-icon name="sym_r_database_search" size="56px" class="q-mb-sm" />
+        <div class="text-body1 text-weight-medium q-mb-xs">
+          {{ t('common.noData') }}
         </div>
-        <div class="text-body2">
+        <div class="text-caption text-grey-6">
           {{ t('dictDataMgmt.selectDictFirst') }}
         </div>
       </div>
@@ -1209,24 +1198,6 @@ watch(() => selectedDict.value, (val) => {
   overflow: hidden;
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.right-panel-header {
-  flex-shrink: 0;
-  height: 40px;
-  padding: 0 12px;
-  background: #fafafa;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  user-select: none;
-}
-
-.right-panel-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.87);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .right-panel-placeholder {
@@ -1420,9 +1391,12 @@ watch(() => selectedDict.value, (val) => {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
 }
 
-/* 选中行高亮 */
-.dict-table :deep(.dict-row--selected) {
+/* 选中行高亮 — 整行 */
+.dict-table :deep(tr.dict-row--selected td) {
   background: rgba(0, 121, 107, 0.08) !important;
+}
+
+.dict-table :deep(tr.dict-row--selected) {
   cursor: pointer;
 }
 

@@ -27,7 +27,6 @@ const form = reactive({
   label: "",
   value: "",
   status: "enabled",
-  isDefault: 0,
   sort: 100,
   remark: ""
 });
@@ -50,7 +49,6 @@ function resetForm() {
   form.label = "";
   form.value = "";
   form.status = "enabled";
-  form.isDefault = 0;
   form.sort = 100;
   form.remark = "";
 }
@@ -63,7 +61,6 @@ function initForm() {
     form.label = props.dictData.label;
     form.value = props.dictData.value;
     form.status = props.dictData.status;
-    form.isDefault = props.dictData.isDefault ?? 0;
     form.sort = props.dictData.sort ?? 100;
     form.remark = props.dictData.remark || "";
   } else if (props.dictId) {
@@ -85,7 +82,6 @@ async function handleSave() {
     label: form.label,
     value: form.value,
     status: form.status,
-    isDefault: form.isDefault,
     sort: form.sort,
     remark: form.remark || undefined
   };
@@ -182,17 +178,6 @@ async function handleSave() {
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
-          />
-        </div>
-        <!-- 是否默认 -->
-        <div class="col-12 col-md-6">
-          <q-toggle
-            v-model="form.isDefault"
-            :true-value="1"
-            :false-value="0"
-            :label="t('dictDataMgmt.isDefault')"
-            :disable="drawerReadonly"
-            class="q-mt-sm"
           />
         </div>
         <!-- 备注 -->
