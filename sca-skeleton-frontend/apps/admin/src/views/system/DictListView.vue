@@ -1079,7 +1079,7 @@ watch(() => selectedDict.value, (val) => {
       </template>
 
       <!-- ── 右侧未选择字典时的空状态 ── -->
-      <div v-else class="right-panel-placeholder column items-center justify-center">
+      <div v-else class="right-panel-placeholder column items-center justify-center text-grey-7 empty-state-content">
         <q-icon name="sym_r_database_search" size="56px" class="q-mb-sm" />
         <div class="text-body1 text-weight-medium q-mb-xs">
           {{ t('common.noData') }}
