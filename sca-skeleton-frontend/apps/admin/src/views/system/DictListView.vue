@@ -398,7 +398,7 @@ async function handleToggleDictStatus(dict: SysDict) {
   try {
     const result = await updateDictStatusApi({ id: dict.id, status: newStatus });
     if (result.code === 10_000) {
-      showToast(newStatus === "enabled" ? t("common.enable") + t("common.operationSuccess") : t("common.disable") + t("common.operationSuccess"), "positive");
+      showToast(t("common.operationSuccess"), "positive");
       loadDictData();
       if (selectedDict.value?.id === dict.id) {
         selectedDict.value = { ...selectedDict.value, status: newStatus };
@@ -456,7 +456,7 @@ async function handleToggleDictDataStatus(dictData: SysDictData) {
   try {
     const result = await updateDictDataStatusApi({ id: dictData.id, status: newStatus });
     if (result.code === 10_000) {
-      showToast(newStatus === "enabled" ? t("common.enable") + t("common.operationSuccess") : t("common.disable") + t("common.operationSuccess"), "positive");
+      showToast(t("common.operationSuccess"), "positive");
       loadDictDataList();
     } else {
       showToast(result.message || t("common.operationFail"), "negative");
