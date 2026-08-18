@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.fushuwei.scaskeleton.system.mapper.SysDictDataMapper">
+
+    <!-- 分页查询字典数据列表 -->
+    <select id="selectDictDataPage" resultType="io.github.fushuwei.scaskeleton.system.api.response.dict.DictDataResponse">
+        SELECT dd.*
+        FROM sys_dict_data dd
+        WHERE dd.is_deleted = 0
+        AND dd.tenant_id = #{tenantId}
+        AND dd.dict_id = #{request.dictId}
+        <if test="request.keyword != null and request.keyword != ''">
+            AND (dd.label LIKE CONCAT('%', #{request.keyword}, '%')
+                 OR dd.value LIKE CONCAT('%', #{request.keyword}, '%'))
+        </if>
+        <if test="request.status != null and request.status != ''">
+            AND dd.status = #{request.status}
+        </if>
+        <choose>
+            <when test="request.safeSortField() != null and request.safeSortField() != ''">
+                ORDER BY ${request.safeSortField()} ${request.safeSortOrder()}
+            </when>
+            <otherwise>
+                ORDER BY dd.sort ASC
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

@@ -1,5 +1,5 @@
 /** 菜单挂载的页面组件标识（仅叶子节点需要） */
-export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "PermissionListView" | "RoleListView" | "PostListView" | "DeptListView" | "TenantPackageListView" | "TenantListView" | "OperationLogListView" | "LoginLogListView" | "DriverListView" | "DatasourceListView" | "SqlQueryView";
+export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "PermissionListView" | "RoleListView" | "PostListView" | "DeptListView" | "DictListView" | "TenantPackageListView" | "TenantListView" | "OperationLogListView" | "LoginLogListView" | "DriverListView" | "DatasourceListView" | "SqlQueryView";
 
 export interface MenuItem {
   /** 主键ID（对应 SQL id 字段），唯一标识 */
@@ -522,4 +522,65 @@ export interface TenantPackageOption {
   code: string;
   status: string;
   sort: number;
+}
+
+// ── 字典管理相关类型 ──
+
+/** 系统字典实体（对应后端 SysDict） */
+export interface SysDict {
+  id: string;
+  tenantId: string;
+  name: string;
+  code: string;
+  /** 状态：enabled / disabled */
+  status: string;
+  /** 是否内置：0-否，1-是 */
+  isBuiltin: number;
+  remark: string;
+  /** 乐观锁版本号 */
+  version: number;
+  createTime: string;
+  updateTime: string;
+  createBy: string;
+  updateBy: string;
+}
+
+/** 字典分页查询请求参数 */
+export interface DictPageRequest {
+  pageNum?: number;
+  pageSize?: number;
+  keyword?: string;
+  status?: string;
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+/** 系统字典数据实体（对应后端 SysDictData） */
+export interface SysDictData {
+  id: string;
+  tenantId: string;
+  dictId: string;
+  label: string;
+  value: string;
+  /** 状态：enabled / disabled */
+  status: string;
+  /** 是否默认值：0-否，1-是 */
+  isDefault: number;
+  sort: number;
+  remark: string;
+  createTime: string;
+  updateTime: string;
+  createBy: string;
+  updateBy: string;
+}
+
+/** 字典数据分页查询请求参数 */
+export interface DictDataPageRequest {
+  pageNum?: number;
+  pageSize?: number;
+  dictId: string;
+  keyword?: string;
+  status?: string;
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
 }
