@@ -17,7 +17,7 @@ public class ConfigPageRequest {
     /** 允许排序的字段白名单 */
     private static final Map<String, String> ALLOWED_SORT_FIELD_MAP = Map.of(
         "name", "c.name",
-        "config_key", "c.`key`",
+        "key", "c.`key`",
         "type", "c.type",
         "is_builtin", "c.is_builtin",
         "status", "c.status",

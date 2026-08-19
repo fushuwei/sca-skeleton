@@ -759,8 +759,8 @@
     "editConfig": "编辑配置",
     "viewConfig": "查看配置",
     "name": "配置名称",
-    "configKey": "配置键",
-    "configValue": "配置值",
+    "key": "配置键",
+    "value": "配置值",
     "type": "类型",
     "typeString": "字符串",
     "typeNumber": "数字",
@@ -777,7 +777,7 @@
     "createTime": "创建时间",
     "keywordPlaceholder": "请输入配置名称/键搜索",
     "nameRequired": "请输入配置名称",
-    "configKeyRequired": "请输入配置键",
+    "keyRequired": "请输入配置键",
     "typeRequired": "请选择配置类型",
     "statusRequired": "请选择状态",
     "deleteConfirm": "确认删除系统配置「{name}」？",
@@ -786,6 +786,6 @@
     "cannotDeleteBuiltinBatch": "不能删除系统内置配置：{names}",
     "saveSuccess": "保存成功",
     "saveFail": "保存失败",
-    "configValuePlaceholder": "请输入配置值"
+    "valuePlaceholder": "请输入配置值"
   }
 }

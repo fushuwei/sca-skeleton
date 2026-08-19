@@ -21,10 +21,10 @@ public class ConfigUpdateRequest {
 
     /** 配置键 */
     @NotBlank(message = "配置键不能为空")
-    private String configKey;
+    private String key;
 
     /** 配置值 */
-    private String configValue;
+    private String value;
 
     /** 类型（string/number/boolean/datetime/json） */
     @NotBlank(message = "配置类型不能为空")

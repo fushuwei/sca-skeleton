@@ -23,8 +23,8 @@ const formLoading = ref(false);
 const form = reactive({
   id: "",
   name: "",
-  configKey: "",
-  configValue: "",
+  key: "",
+  value: "",
   type: "string",
   status: "enabled",
   remark: ""
@@ -45,7 +45,7 @@ const typeOptions = computed(() => [
 
 const formRules = computed(() => ({
   name: [(v: string) => !!v?.trim() || t("configMgmt.nameRequired")],
-  configKey: [(v: string) => !!v?.trim() || t("configMgmt.configKeyRequired")],
+  key: [(v: string) => !!v?.trim() || t("configMgmt.keyRequired")],
   type: [(v: string) => !!v?.trim() || t("configMgmt.typeRequired")],
   status: [(v: string) => !!v?.trim() || t("configMgmt.statusRequired")]
 }));
@@ -53,8 +53,8 @@ const formRules = computed(() => ({
 function resetForm() {
   form.id = "";
   form.name = "";
-  form.configKey = "";
-  form.configValue = "";
+  form.key = "";
+  form.value = "";
   form.type = "string";
   form.status = "enabled";
   form.remark = "";
@@ -65,8 +65,8 @@ function initForm() {
   if (props.config) {
     form.id = props.config.id;
     form.name = props.config.name;
-    form.configKey = props.config.configKey;
-    form.configValue = props.config.configValue || "";
+    form.key = props.config.key;
+    form.value = props.config.value || "";
     form.type = props.config.type || "string";
     form.status = props.config.status || "enabled";
     form.remark = props.config.remark || "";
@@ -84,8 +84,8 @@ async function handleSave() {
 
   const data: Record<string, unknown> = {
     name: form.name,
-    configKey: form.configKey,
-    configValue: form.configValue || undefined,
+    key: form.key,
+    value: form.value || undefined,
     type: form.type,
     status: form.status,
     remark: form.remark || undefined
@@ -139,11 +139,11 @@ async function handleSave() {
         <!-- 配置键 -->
         <div class="col-12 col-md-6">
           <q-input
-            v-model.trim="form.configKey"
-            :label="t('configMgmt.configKey')"
+            v-model.trim="form.key"
+            :label="t('configMgmt.key')"
             filled
             square
-            :rules="formRules.configKey"
+            :rules="formRules.key"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
@@ -191,13 +191,13 @@ async function handleSave() {
         <!-- 配置值 -->
         <div class="col-12">
           <q-input
-            v-model="form.configValue"
-            :label="t('configMgmt.configValue')"
+            v-model="form.value"
+            :label="t('configMgmt.value')"
             filled
             square
             type="textarea"
             rows="3"
-            :placeholder="t('configMgmt.configValuePlaceholder')"
+            :placeholder="t('configMgmt.valuePlaceholder')"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space

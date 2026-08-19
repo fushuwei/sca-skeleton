@@ -29,11 +29,11 @@ public class SysConfig extends BaseEntity {
 
     /** 配置键 */
     @TableField("`key`")
-    private String configKey;
+    private String key;
 
     /** 配置值 */
     @TableField("`value`")
-    private String configValue;
+    private String value;
 
     // ==================== 属性信息 ====================
 

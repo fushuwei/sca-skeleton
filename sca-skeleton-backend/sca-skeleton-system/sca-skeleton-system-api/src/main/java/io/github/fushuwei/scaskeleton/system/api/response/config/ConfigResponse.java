@@ -22,10 +22,10 @@ public class ConfigResponse {
     private String name;
 
     /** 配置键 */
-    private String configKey;
+    private String key;
 
     /** 配置值 */
-    private String configValue;
+    private String value;
 
     /** 类型 */
     private String type;

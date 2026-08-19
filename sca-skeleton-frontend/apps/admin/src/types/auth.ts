@@ -590,8 +590,8 @@ export interface SysConfig {
   id: string;
   tenantId: string;
   name: string;
-  configKey: string;
-  configValue: string;
+  key: string;
+  value: string;
   /** 类型：string / number / boolean / datetime / json */
   type: string;
   /** 状态：enabled / disabled */

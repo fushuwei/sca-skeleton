@@ -3,12 +3,9 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.fushuwei.scaskeleton.system.mapper.SysConfigMapper">
 
-    <!-- 分页查询系统配置列表（key/value 为数据库保留字列名，须别名映射为 config_key/config_value） -->
+    <!-- 分页查询系统配置列表 -->
     <select id="selectConfigPage" resultType="io.github.fushuwei.scaskeleton.system.api.response.config.ConfigResponse">
-        SELECT c.id, c.tenant_id, c.name,
-               c.`key` AS config_key, c.`value` AS config_value,
-               c.type, c.status, c.is_builtin, c.remark, c.version,
-               c.create_by, c.create_time, c.update_by, c.update_time
+        SELECT c.*
         FROM sys_config c
         WHERE c.is_deleted = 0
         AND c.tenant_id = #{tenantId}

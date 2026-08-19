@@ -96,7 +96,7 @@ public class SysConfigServiceImpl implements SysConfigService {
         // 配置键在同一个租户内唯一
         long count = configMapper.selectCount(new LambdaQueryWrapper<SysConfig>()
             .eq(SysConfig::getTenantId, tenantId)
-            .eq(SysConfig::getConfigKey, request.getConfigKey()));
+            .eq(SysConfig::getKey, request.getKey()));
         if (count > 0) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "配置键已存在");
         }
@@ -105,8 +105,8 @@ public class SysConfigServiceImpl implements SysConfigService {
         SysConfig config = new SysConfig();
         config.setTenantId(tenantId);
         config.setName(request.getName());
-        config.setConfigKey(request.getConfigKey());
-        config.setConfigValue(request.getConfigValue());
+        config.setKey(request.getKey());
+        config.setValue(request.getValue());
         config.setType(request.getType());
         config.setStatus(request.getStatus());
         config.setIsBuiltin(0);
@@ -128,21 +128,21 @@ public class SysConfigServiceImpl implements SysConfigService {
         SysConfig config = loadConfigEntity(request.getId());
 
         // 内置配置不允许修改配置键
-        if (StringUtils.hasText(request.getConfigKey()) && !request.getConfigKey().equals(config.getConfigKey())) {
+        if (StringUtils.hasText(request.getKey()) && !request.getKey().equals(config.getKey())) {
             // 配置键在同一个租户内唯一（排除自身）
             long keyCount = configMapper.selectCount(new LambdaQueryWrapper<SysConfig>()
                 .eq(SysConfig::getTenantId, config.getTenantId())
-                .eq(SysConfig::getConfigKey, request.getConfigKey())
+                .eq(SysConfig::getKey, request.getKey())
                 .ne(SysConfig::getId, request.getId()));
             if (keyCount > 0) {
                 throw new BusinessException(ResultCode.ALREADY_EXISTS, "配置键已存在");
             }
-            config.setConfigKey(request.getConfigKey());
+            config.setKey(request.getKey());
         }
 
         // 更新其他字段
         config.setName(request.getName());
-        config.setConfigValue(request.getConfigValue());
+        config.setValue(request.getValue());
         config.setType(request.getType());
         config.setStatus(request.getStatus());
         config.setRemark(request.getRemark());

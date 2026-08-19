@@ -759,8 +759,8 @@
     "editConfig": "Edit Config",
     "viewConfig": "View Config",
     "name": "Config Name",
-    "configKey": "Config Key",
-    "configValue": "Config Value",
+    "key": "Config Key",
+    "value": "Config Value",
     "type": "Type",
     "typeString": "String",
     "typeNumber": "Number",
@@ -777,7 +777,7 @@
     "createTime": "Created At",
     "keywordPlaceholder": "Search by config name or key",
     "nameRequired": "Please enter config name",
-    "configKeyRequired": "Please enter config key",
+    "keyRequired": "Please enter config key",
     "typeRequired": "Please select config type",
     "statusRequired": "Please select status",
     "deleteConfirm": "Delete system config \"{name}\"?",
@@ -786,6 +786,6 @@
     "cannotDeleteBuiltinBatch": "Cannot delete built-in configs: {names}",
     "saveSuccess": "Saved successfully",
     "saveFail": "Failed to save",
-    "configValuePlaceholder": "Please enter config value"
+    "valuePlaceholder": "Please enter config value"
   }
 }

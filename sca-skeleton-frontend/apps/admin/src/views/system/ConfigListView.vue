@@ -122,11 +122,11 @@ const curPage = ref(1);
 
 const columns = computed<QTableColumn<SysConfig>[]>(() => [
   { name: "name", field: "name", label: t("configMgmt.name"), align: "left", sortable: true },
-  { name: "configKey", field: "configKey", label: t("configMgmt.configKey"), align: "left", sortable: true },
-  { name: "configValue", field: "configValue", label: t("configMgmt.configValue"), align: "left", sortable: false },
+  { name: "key", field: "key", label: t("configMgmt.key"), align: "left", sortable: true },
+  { name: "value", field: "value", label: t("configMgmt.value"), align: "left", sortable: false },
   { name: "type", field: "type", label: t("configMgmt.type"), align: "left", sortable: true },
   { name: "status", field: "status", label: t("configMgmt.status"), align: "left", sortable: true },
-  { name: "isBuiltin", field: "isBuiltin", label: t("configMgmt.isBuiltin"), align: "left", sortable: false },
+  { name: "isBuiltin", field: "isBuiltin", label: t("configMgmt.isBuiltin"), align: "center", sortable: true },
   {
     name: "createTime", field: "createTime", label: t("configMgmt.createTime"), align: "left", sortable: true,
     format: (val: string) => (val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-")
@@ -137,7 +137,7 @@ const columns = computed<QTableColumn<SysConfig>[]>(() => [
 const visibleColumns = ref(columns.value.map((c) => c.name));
 
 const SORT_FIELD_MAP: Record<string, string> = {
-  name: "name", configKey: "config_key", type: "type", status: "status", createTime: "create_time"
+  name: "name", key: "key", type: "type", isBuiltin: "is_builtin", status: "status", createTime: "create_time"
 };
 
 let initialLoadDone = false;
@@ -339,15 +339,15 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
         <template #body-cell-name="props">
           <q-td :props="props"><span>{{ props.row.name }}</span></q-td>
         </template>
-        <template #body-cell-configKey="props">
+        <template #body-cell-key="props">
           <q-td :props="props">
-            <span v-if="props.row.configKey">{{ props.row.configKey }}</span>
+            <span v-if="props.row.key" class="config-key-text">{{ props.row.key }}</span>
             <span v-else class="text-grey-5">-</span>
           </q-td>
         </template>
-        <template #body-cell-configValue="props">
+        <template #body-cell-value="props">
           <q-td :props="props">
-            <span v-if="props.row.configValue" :title="props.row.configValue">{{ props.row.configValue }}</span>
+            <span v-if="props.row.value" class="config-value-text" :title="props.row.value">{{ props.row.value }}</span>
             <span v-else class="text-grey-5">-</span>
           </q-td>
         </template>
