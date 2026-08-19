@@ -372,17 +372,17 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
         </template>
         <template #body-cell-actions="props">
           <q-td :props="props" class="q-gutter-x-xs actions-cell">
-            <q-btn flat dense round size="sm"
-              :color="props.row.status === 'enabled' ? 'orange-7' : 'green-7'"
-              :icon="props.row.status === 'enabled' ? 'sym_r_block' : 'sym_r_check_circle'"
-              @click.stop="handleToggleStatus(props.row)">
-              <q-tooltip>{{ props.row.status === 'enabled' ? t('common.disable') : t('common.enable') }}</q-tooltip>
-            </q-btn>
             <q-btn flat dense round size="sm" color="info" icon="sym_r_visibility" @click.stop="handleView(props.row)">
               <q-tooltip>{{ t("common.view") }}</q-tooltip>
             </q-btn>
             <q-btn flat dense round size="sm" color="primary" icon="sym_r_edit" @click.stop="handleEdit(props.row)">
               <q-tooltip>{{ t("common.edit") }}</q-tooltip>
+            </q-btn>
+            <q-btn flat dense round size="sm"
+              :color="props.row.status === 'enabled' ? 'orange-7' : 'green-7'"
+              :icon="props.row.status === 'enabled' ? 'sym_r_block' : 'sym_r_check_circle'"
+              @click.stop="handleToggleStatus(props.row)">
+              <q-tooltip>{{ props.row.status === 'enabled' ? t('common.disable') : t('common.enable') }}</q-tooltip>
             </q-btn>
             <q-btn flat dense round size="sm" color="negative" icon="sym_r_delete" @click.stop="handleDelete(props.row)">
               <q-tooltip>{{ t("common.delete") }}</q-tooltip>
