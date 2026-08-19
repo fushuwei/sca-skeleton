@@ -639,6 +639,78 @@ CREATE TABLE IF NOT EXISTS `sys_release` (
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '产品发布记录表';
 
+-- ---------------------------------------------------
+-- 通知公告表
+-- ---------------------------------------------------
+CREATE TABLE IF NOT EXISTS `sys_notice` (
+    `id`                VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
+    `tenant_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '租户ID',
+    `title`             VARCHAR(255)    NOT NULL                    COMMENT '标题',
+    `type`              VARCHAR(20)     NOT NULL                    COMMENT '类型（notice 通知，announcement 公告，system 系统消息，other 其他）',
+    `content`           LONGTEXT        DEFAULT NULL                COMMENT '内容',
+    `level`             VARCHAR(10)     NOT NULL DEFAULT 'normal'   COMMENT '重要级别（normal 普通，important 重要，urgent 紧急）',
+    `status`            VARCHAR(20)     NOT NULL DEFAULT 'draft'    COMMENT '状态（draft 草稿，published 已发布，revoked 已撤回，archived 已归档）',
+    `publisher`         VARCHAR(64)     DEFAULT NULL                COMMENT '发布人',
+    `publish_time`      DATETIME        DEFAULT NULL                COMMENT '发布时间（NULL 表示未发布）',
+    `effective_time`    DATETIME        DEFAULT NULL                COMMENT '生效时间（NULL 表示立即生效）',
+    `expire_time`       DATETIME        DEFAULT NULL                COMMENT '失效时间（NULL 表示永久有效）',
+    `is_top`            TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否置顶（0否 1是）',
+    `top_expire_time`   DATETIME        DEFAULT NULL                COMMENT '置顶到期时间（NULL 表示永久置顶）',
+    `is_popup`          TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否登录弹窗提示（0否 1是）',
+    `target_type`       VARCHAR(20)     NOT NULL DEFAULT 'all'      COMMENT '接收范围（all 全体用户，dept 指定部门，role 指定角色，user 指定用户）',
+    `read_count`        INT             NOT NULL DEFAULT 0          COMMENT '已读次数',
+    `sort`              INT             NOT NULL DEFAULT 100        COMMENT '排序，数字越小越靠前（只用于针对置顶消息排序，即存在多个置顶消息时，根据该字段进行排序，非置顶消息根据发布时间降序）',
+    `remark`            TEXT            DEFAULT NULL                COMMENT '备注',
+    `version`           INT             NOT NULL DEFAULT 0          COMMENT '乐观锁版本号',
+    `create_by`         VARCHAR(64)     DEFAULT NULL                COMMENT '创建人',
+    `create_time`       DATETIME        DEFAULT NULL                COMMENT '创建时间',
+    `update_by`         VARCHAR(64)     DEFAULT NULL                COMMENT '更新人',
+    `update_time`       DATETIME        DEFAULT NULL                COMMENT '更新时间',
+    `is_deleted`        TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否删除（0否 1是）',
+    PRIMARY KEY (`id`),
+    KEY `idx_notice_status_time` (`status`, `publish_time`),
+    KEY `idx_notice_type` (`type`),
+    KEY `idx_notice_tenant` (`tenant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知公告表';
+
+
+-- ---------------------------------------------------
+-- 通知公告接收范围目标表
+-- ---------------------------------------------------
+CREATE TABLE IF NOT EXISTS `sys_notice_target` (
+    `id`                VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
+    `tenant_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '租户ID',
+    `notice_id`         VARCHAR(64)     NOT NULL                    COMMENT '通知公告ID',
+    `target_type`       VARCHAR(20)     NOT NULL                    COMMENT '目标类型（dept 部门，role 角色，user 用户）',
+    `target_id`         VARCHAR(64)     NOT NULL                    COMMENT '目标ID（部门ID / 角色ID / 用户ID）',
+    `create_by`         VARCHAR(64)     DEFAULT NULL                COMMENT '创建人',
+    `create_time`       DATETIME        DEFAULT NULL                COMMENT '创建时间',
+    `update_by`         VARCHAR(64)     DEFAULT NULL                COMMENT '更新人',
+    `update_time`       DATETIME        DEFAULT NULL                COMMENT '更新时间',
+    `is_deleted`        TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否删除（0否 1是）',
+    PRIMARY KEY (`id`),
+    KEY `idx_target_notice` (`notice_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知公告接收范围目标表';
+
+
+-- ---------------------------------------------------
+-- 通知公告已读记录表
+-- ---------------------------------------------------
+CREATE TABLE IF NOT EXISTS `sys_notice_read` (
+    `id`                VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
+    `tenant_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '租户ID',
+    `notice_id`         VARCHAR(64)     NOT NULL                    COMMENT '通知公告ID',
+    `user_id`           VARCHAR(64)     NOT NULL                    COMMENT '用户ID',
+    `read_time`         DATETIME        DEFAULT NULL                COMMENT '读取时间',
+    `create_by`         VARCHAR(64)     DEFAULT NULL                COMMENT '创建人',
+    `create_time`       DATETIME        DEFAULT NULL                COMMENT '创建时间',
+    `update_by`         VARCHAR(64)     DEFAULT NULL                COMMENT '更新人',
+    `update_time`       DATETIME        DEFAULT NULL                COMMENT '更新时间',
+    `is_deleted`        TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否删除（0否 1是）',
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `uk_notice_user` (`notice_id`, `user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知公告已读记录表';
+
 
 -- ---------------------------------------------------
 -- xxx

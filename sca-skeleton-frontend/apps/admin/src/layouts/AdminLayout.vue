@@ -1303,7 +1303,6 @@ function beginRightDrawerResize(e) {
 .tenant-select-bar {
   width: 260px;
   padding: 6px 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .tenant-select-bar :deep(.q-field__native) {
