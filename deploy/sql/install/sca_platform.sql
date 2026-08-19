@@ -675,7 +675,7 @@ CREATE TABLE IF NOT EXISTS `sys_notice` (
 
 
 -- ---------------------------------------------------
--- 通知公告接收范围目标表
+-- 通知公告接收目标表
 -- ---------------------------------------------------
 CREATE TABLE IF NOT EXISTS `sys_notice_target` (
     `id`                VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
@@ -690,7 +690,7 @@ CREATE TABLE IF NOT EXISTS `sys_notice_target` (
     `is_deleted`        TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否删除（0否 1是）',
     PRIMARY KEY (`id`),
     KEY `idx_target_notice` (`notice_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知公告接收范围目标表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知公告接收目标表';
 
 
 -- ---------------------------------------------------
