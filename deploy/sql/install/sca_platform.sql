@@ -446,7 +446,7 @@ CREATE TABLE IF NOT EXISTS `sys_config` (
     `name`            VARCHAR(100)    NOT NULL                    COMMENT '配置名称',
     `key`             VARCHAR(100)    NOT NULL                    COMMENT '配置键',
     `value`           TEXT            DEFAULT NULL                COMMENT '配置值',
-    `type`            VARCHAR(20)     DEFAULT 'string'            COMMENT '类型',
+    `type`            VARCHAR(20)     DEFAULT 'string'            COMMENT '类型（string 字符串，number 数字，boolean 布尔值，datetime 日期时间，json JSON对象或数组）',
     `status`          VARCHAR(10)     NOT NULL                    COMMENT '状态（enabled 启用，disabled 禁用）',
     `is_builtin`      TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否内置（0否 1是）',
     `remark`          VARCHAR(500)    DEFAULT NULL                COMMENT '备注',
