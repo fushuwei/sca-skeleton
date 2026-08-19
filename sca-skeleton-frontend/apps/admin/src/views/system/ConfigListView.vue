@@ -126,6 +126,7 @@ const columns = computed<QTableColumn<SysConfig>[]>(() => [
   { name: "configValue", field: "configValue", label: t("configMgmt.configValue"), align: "left", sortable: false },
   { name: "type", field: "type", label: t("configMgmt.type"), align: "left", sortable: true },
   { name: "status", field: "status", label: t("configMgmt.status"), align: "left", sortable: true },
+  { name: "isBuiltin", field: "isBuiltin", label: t("configMgmt.isBuiltin"), align: "left", sortable: false },
   {
     name: "createTime", field: "createTime", label: t("configMgmt.createTime"), align: "left", sortable: true,
     format: (val: string) => (val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-")
@@ -279,9 +280,9 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
                 :option-label="(o: { label: string; value: string }) => (o ? t(o.label) : '')"
                 option-value="value" emit-value map-options hide-bottom-space clearable
                 transition-show="jump-up" transition-hide="jump-down"
-                class="type-select" popup-content-class="type-select-popup">
+                class="status-select" popup-content-class="status-select-popup">
                 <template v-if="!searchForm.type" v-slot:selected>
-                  <span class="type-placeholder">{{ t('configMgmt.typePlaceholder') }}</span>
+                  <span class="status-placeholder">{{ t('configMgmt.typePlaceholder') }}</span>
                 </template>
               </q-select>
             </div>
@@ -360,6 +361,13 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
           <q-td :props="props">
             <q-badge v-if="props.row.status" :color="statusColorOf(props.row.status)" :label="statusLabelOf(props.row.status)" rounded class="config-status-badge" />
             <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+        <template #body-cell-isBuiltin="props">
+          <q-td :props="props">
+            <q-badge :color="props.value === 1 ? 'red-7' : 'grey-6'"
+              :label="props.value === 1 ? t('common.yes') : t('common.no')" rounded
+              class="config-type-badge" />
           </q-td>
         </template>
         <template #body-cell-actions="props">
@@ -455,9 +463,8 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
 .search-collapse-btn :deep(.q-btn__wrapper) { min-height: 32px; padding: 0; }
 .search-collapse-btn :deep(.q-icon.material-symbols-rounded), .search-collapse-btn :deep(.material-symbols-rounded) { font-size: 20px !important; }
 .search-collapse-btn:hover { background: rgba(128, 128, 128, 0.28); }
-.type-select :deep(.q-field__control), .status-select :deep(.q-field__control) { min-height: 40px; min-width: 140px; }
-.type-select :deep(.q-field__native), .status-select :deep(.q-field__native) { color: rgba(0, 0, 0, 0.87); }
-
+.status-select :deep(.q-field__control) { min-height: 40px; min-width: 140px; }
+.status-select :deep(.q-field__native) { color: rgba(0, 0, 0, 0.87); }
 .toolbar-area { flex-shrink: 0; padding: 8px 1px; }
 .toolbar-left { gap: 6px; }
 .toolbar-btn { height: 32px; font-size: 13px; padding: 0 12px; white-space: nowrap; flex-shrink: 0; }
@@ -518,159 +525,14 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
 .config-drawer-slide-enter-from .config-local-drawer, .config-drawer-slide-leave-to .config-local-drawer { transform: translateX(100%); }
 </style>
 
-<!-- 非 scoped：下拉弹出层 & 抽屉暗色模式（Teleport to body，无法用 scoped 覆盖） -->
+<!-- 非 scoped：每页条数下拉弹出层 & 抽屉暗色模式（Teleport to body，无法用 scoped 覆盖） -->
 <style>
-.type-select-popup .q-item,
-.status-select-popup .q-item {
-  min-height: 40px;
-  padding: 0 16px;
-}
-
 .rows-per-page-popup .q-item {
   min-height: 36px;
   padding: 0 16px;
 }
 
-/* ═══ 暗色模式 — 列表页 ═══ */
-.body--dark .search-area {
-  background: #1e1e1e !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .search-area-header {
-  background: #252525 !important;
-  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
-}
-
-.body--dark .search-area-title {
-  color: rgba(255, 255, 255, 0.87) !important;
-}
-
-.body--dark .search-collapse-btn {
-  color: rgba(255, 255, 255, 0.87) !important;
-}
-
-.body--dark .search-collapse-btn:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .type-select .q-field__control,
-.body--dark .status-select .q-field__control {
-  background: #2d2d2d !important;
-}
-
-.body--dark .type-select .q-field__native,
-.body--dark .status-select .q-field__native {
-  color: rgba(255, 255, 255, 0.87) !important;
-}
-
-.body--dark .type-select .q-field__control::before,
-.body--dark .status-select .q-field__control::before {
-  border-color: rgba(255, 255, 255, 0.22) !important;
-}
-
-.body--dark .type-select .q-field--focused .q-field__control::after,
-.body--dark .status-select .q-field--focused .q-field__control::after {
-  border-color: #80cbc4 !important;
-}
-
-/* 搜索输入框暗色 */
-.body--dark .search-area .q-input .q-field__control {
-  background: #2d2d2d !important;
-}
-
-.body--dark .search-area .q-input .q-field__native {
-  color: rgba(255, 255, 255, 0.87) !important;
-}
-
-.body--dark .search-area .q-input .q-field__control::before {
-  border-color: rgba(255, 255, 255, 0.22) !important;
-}
-
-.body--dark .search-area .q-input .q-field--focused .q-field__control::after {
-  border-color: #80cbc4 !important;
-}
-
-/* 表格暗色 */
-.body--dark .config-table {
-  background: #1e1e1e !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .config-table thead tr th {
-  color: rgba(255, 255, 255, 0.8) !important;
-  background: #252525 !important;
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.body--dark .config-table tbody td {
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
-  color: rgba(255, 255, 255, 0.87) !important;
-}
-
-.body--dark .config-table tbody tr:hover td {
-  background: rgba(0, 121, 107, 0.08) !important;
-}
-
-.body--dark .config-table tbody tr.q-tr--selected td {
-  background: rgba(0, 121, 107, 0.12) !important;
-}
-
-.body--dark .config-table .q-table__bottom {
-  background: #1e1e1e !important;
-  border-top-color: rgba(255, 255, 255, 0.08) !important;
-  color: rgba(255, 255, 255, 0.6) !important;
-}
-
-.body--dark .config-table .q-table__bottom .text-grey-7 {
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-
-/* 配置键/值文本暗色 */
-.body--dark .config-key-text {
-  color: rgba(255, 255, 255, 0.75) !important;
-  background: rgba(255, 255, 255, 0.06) !important;
-}
-
-.body--dark .config-value-text {
-  color: rgba(255, 255, 255, 0.7) !important;
-}
-
-.body--dark .text-grey-5 {
-  color: rgba(255, 255, 255, 0.3) !important;
-}
-
-.body--dark .empty-state-content {
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-
-/* 下拉弹出层暗色 */
-.body--dark .type-select-popup,
-.body--dark .status-select-popup,
-.body--dark .rows-per-page-popup {
-  background: #2d2d2d !important;
-}
-
-.body--dark .type-select-popup .q-item,
-.body--dark .status-select-popup .q-item,
-.body--dark .rows-per-page-popup .q-item {
-  color: rgba(255, 255, 255, 0.87) !important;
-}
-
-.body--dark .type-select-popup .q-item.q-item--active,
-.body--dark .status-select-popup .q-item.q-item--active,
-.body--dark .rows-per-page-popup .q-item.q-item--active {
-  background: rgba(0, 121, 107, 0.15) !important;
-  color: #80cbc4 !important;
-}
-
-.body--dark .type-select-popup .q-item:hover,
-.body--dark .status-select-popup .q-item:hover,
-.body--dark .rows-per-page-popup .q-item:hover {
-  background: rgba(255, 255, 255, 0.04) !important;
-}
-
-/* ═══ 暗色模式 — 抽屉 ═══ */
+/* ═══ 暗色模式 — 抽屉（列表页暗色样式见 admin-layout-dark.scss 的 .config-list-shell） ═══ */
 .body--dark .config-local-drawer {
   background: #1e1e1e !important;
   box-shadow: -4px 0 12px rgba(0, 0, 0, 0.4);
