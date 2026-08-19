@@ -685,7 +685,8 @@ CREATE TABLE IF NOT EXISTS `sys_notice_target` (
     `update_by`         VARCHAR(64)     DEFAULT NULL                COMMENT '更新人',
     `update_time`       DATETIME        DEFAULT NULL                COMMENT '更新时间',
     `is_deleted`        TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否删除（0否 1是）',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `uk_notice_target` (`notice_id`, `target_type`, `target_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知公告接收目标表';
 
 
