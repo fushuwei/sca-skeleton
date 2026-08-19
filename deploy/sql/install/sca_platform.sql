@@ -667,10 +667,7 @@ CREATE TABLE IF NOT EXISTS `sys_notice` (
     `update_by`         VARCHAR(64)     DEFAULT NULL                COMMENT '更新人',
     `update_time`       DATETIME        DEFAULT NULL                COMMENT '更新时间',
     `is_deleted`        TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否删除（0否 1是）',
-    PRIMARY KEY (`id`),
-    KEY `idx_notice_status_time` (`status`, `publish_time`),
-    KEY `idx_notice_type` (`type`),
-    KEY `idx_notice_tenant` (`tenant_id`)
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知公告表';
 
 
@@ -688,8 +685,7 @@ CREATE TABLE IF NOT EXISTS `sys_notice_target` (
     `update_by`         VARCHAR(64)     DEFAULT NULL                COMMENT '更新人',
     `update_time`       DATETIME        DEFAULT NULL                COMMENT '更新时间',
     `is_deleted`        TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否删除（0否 1是）',
-    PRIMARY KEY (`id`),
-    KEY `idx_target_notice` (`notice_id`)
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知公告接收目标表';
 
 
@@ -707,8 +703,7 @@ CREATE TABLE IF NOT EXISTS `sys_notice_read` (
     `update_by`         VARCHAR(64)     DEFAULT NULL                COMMENT '更新人',
     `update_time`       DATETIME        DEFAULT NULL                COMMENT '更新时间',
     `is_deleted`        TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否删除（0否 1是）',
-    PRIMARY KEY (`id`),
-    UNIQUE INDEX `uk_notice_user` (`notice_id`, `user_id`)
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知公告已读记录表';
 
 
