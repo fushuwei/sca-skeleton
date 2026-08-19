@@ -1,5 +1,5 @@
 /** 菜单挂载的页面组件标识（仅叶子节点需要） */
-export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "PermissionListView" | "RoleListView" | "PostListView" | "DeptListView" | "DictListView" | "TenantPackageListView" | "TenantListView" | "OperationLogListView" | "LoginLogListView" | "DriverListView" | "DatasourceListView" | "SqlQueryView";
+export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "PermissionListView" | "RoleListView" | "PostListView" | "DeptListView" | "DictListView" | "ConfigListView" | "TenantPackageListView" | "TenantListView" | "OperationLogListView" | "LoginLogListView" | "DriverListView" | "DatasourceListView" | "SqlQueryView";
 
 export interface MenuItem {
   /** 主键ID（对应 SQL id 字段），唯一标识 */
@@ -578,6 +578,41 @@ export interface DictDataPageRequest {
   pageSize?: number;
   dictId: string;
   keyword?: string;
+  status?: string;
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+// ── 系统配置管理相关类型 ──
+
+/** 系统配置实体（对应后端 SysConfig） */
+export interface SysConfig {
+  id: string;
+  tenantId: string;
+  name: string;
+  configKey: string;
+  configValue: string;
+  /** 类型：string / number / boolean / datetime / json */
+  type: string;
+  /** 状态：enabled / disabled */
+  status: string;
+  /** 是否内置：0-否，1-是 */
+  isBuiltin: number;
+  remark: string;
+  /** 乐观锁版本号 */
+  version: number;
+  createTime: string;
+  updateTime: string;
+  createBy: string;
+  updateBy: string;
+}
+
+/** 系统配置分页查询请求参数 */
+export interface ConfigPageRequest {
+  pageNum?: number;
+  pageSize?: number;
+  keyword?: string;
+  type?: string;
   status?: string;
   sortField?: string;
   sortOrder?: "asc" | "desc";

@@ -2,6 +2,7 @@ package io.github.fushuwei.scaskeleton.system.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import io.github.fushuwei.scaskeleton.mybatis.base.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -47,4 +48,8 @@ public class SysConfig extends BaseEntity {
 
     /** 备注 */
     private String remark;
+
+    /** 乐观锁版本号 */
+    @Version
+    private Integer version;
 }

@@ -11,6 +11,7 @@ const MENU_COMPONENT_MAP: Record<MenuComponent, () => Promise<unknown>> = { // �
   PostListView: () => import("../views/system/PostListView.vue"), // 将 PostList 菜单映射到岗位管理页面。
   DeptListView: () => import("../views/system/DeptListView.vue"), // 将 DeptList 菜单映射到部门管理页面。
   DictListView: () => import("../views/system/DictListView.vue"), // 将 DictList 菜单映射到字典管理页面。
+  ConfigListView: () => import("../views/system/ConfigListView.vue"), // 将 ConfigList 菜单映射到系统配置页面。
   TenantPackageListView: () => import("../views/system/TenantPackageListView.vue"), // 将 TenantPackageList 菜单映射到套餐管理页面。
   TenantListView: () => import("../views/system/TenantListView.vue"), // 将 TenantList 菜单映射到租户管理页面。
   OperationLogListView: () => import("../views/system/OperationLogListView.vue"), // 将 OperationLogList 菜单映射到操作日志页面。
