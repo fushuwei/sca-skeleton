@@ -341,7 +341,7 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
         </template>
         <template #body-cell-configKey="props">
           <q-td :props="props">
-            <span v-if="props.row.configKey" class="config-key-text">{{ props.row.configKey }}</span>
+            <span v-if="props.row.configKey">{{ props.row.configKey }}</span>
             <span v-else class="text-grey-5">-</span>
           </q-td>
         </template>
@@ -486,7 +486,6 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
 .config-table :deep(tbody tr.q-tr--selected td) { background: rgba(0, 121, 107, 0.06) !important; }
 .config-table :deep(tbody td) { font-size: 13px; border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important; }
 
-.config-key-text { font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Consolas", monospace; font-size: 12px; color: rgba(0, 0, 0, 0.75); background: rgba(0, 0, 0, 0.04); padding: 2px 6px; border-radius: 3px; }
 .config-value-text { display: inline-block; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: rgba(0, 0, 0, 0.7); vertical-align: middle; }
 .config-type-badge, .config-status-badge { font-size: 11px; padding: 3px 10px; font-weight: 500; }
 
