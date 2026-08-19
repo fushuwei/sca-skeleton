@@ -450,6 +450,7 @@ CREATE TABLE IF NOT EXISTS `sys_config` (
     `status`          VARCHAR(10)     NOT NULL                    COMMENT '状态（enabled 启用，disabled 禁用）',
     `is_builtin`      TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否内置（0否 1是）',
     `remark`          VARCHAR(500)    DEFAULT NULL                COMMENT '备注',
+    `version`         INT             NOT NULL DEFAULT 0          COMMENT '乐观锁版本号',
     `create_by`       VARCHAR(64)     DEFAULT NULL                COMMENT '创建人',
     `create_time`     DATETIME        DEFAULT NULL                COMMENT '创建时间',
     `update_by`       VARCHAR(64)     DEFAULT NULL                COMMENT '更新人',

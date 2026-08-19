@@ -11,7 +11,7 @@
         AND c.tenant_id = #{tenantId}
         <if test="request.keyword != null and request.keyword != ''">
             AND (c.name LIKE CONCAT('%', #{request.keyword}, '%')
-                 OR c.config_key LIKE CONCAT('%', #{request.keyword}, '%'))
+                 OR c.`key` LIKE CONCAT('%', #{request.keyword}, '%'))
         </if>
         <if test="request.type != null and request.type != ''">
             AND c.type = #{request.type}
