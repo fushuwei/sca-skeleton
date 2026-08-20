@@ -852,9 +852,11 @@
     "saveSuccess": "Saved successfully",
     "saveFail": "Failed to save",
     "publishSuccess": "Published successfully",
+    "publishFail": "Failed to publish",
     "revokeSuccess": "Revoked successfully",
     "archiveSuccess": "Archived successfully",
     "publish": "Publish",
+    "saveDraft": "Save Draft",
     "revoke": "Revoke",
     "archive": "Archive"
   }

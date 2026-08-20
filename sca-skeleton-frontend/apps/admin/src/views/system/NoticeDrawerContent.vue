@@ -38,7 +38,7 @@ const form = reactive({
   isPopup: 0,
   targetType: "",
   targets: [] as NoticeTargetItem[],
-  sort: 0,
+  sort: null as number | null,
   remark: "",
   version: 0
 });
@@ -114,6 +114,25 @@ const selectedTargetIds = computed({
   }
 });
 
+// 切换“是否置顶”时：选“是”默认排序 100，选“否”清空排序和置顶到期时间
+watch(() => form.isTop, (val) => {
+  if (val === 1) {
+    form.sort = 100;
+  } else {
+    form.sort = null;
+    form.topExpireTime = "";
+  }
+});
+
+// 置顶到期时间最小值：今天 00:00:00，不能选择今天之前的日期
+const topExpireTimeMin = computed(() => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d} 00:00:00`;
+});
+
 // 切换接收范围时清空已选目标
 watch(() => form.targetType, (val, oldVal) => {
   if (val !== oldVal) {
@@ -163,7 +182,7 @@ function resetForm() {
   form.isPopup = 0;
   form.targetType = "";
   form.targets = [];
-  form.sort = 0;
+  form.sort = null;
   form.remark = "";
   form.version = 0;
 }
@@ -189,7 +208,7 @@ function initForm() {
           targetId: t.targetId
         }))
       : [];
-    form.sort = props.notice.sort ?? 0;
+    form.sort = props.notice.sort ?? null;
     form.remark = props.notice.remark || "";
     form.version = props.notice.version ?? 0;
     // 编辑/查看模式按接收范围加载选项数据
@@ -213,15 +232,20 @@ function handleClose() {
   emit("close");
 }
 
+// 记录用户点击的按钮类型，供 q-form @submit 校验通过后使用
+const pendingStatus = ref<"draft" | "published">("draft");
+
 async function handleSave() {
   if (drawerReadonly.value) return;
+
+  const status = pendingStatus.value;
 
   const data: Record<string, unknown> = {
     title: form.title,
     type: form.type,
     content: form.content,
     level: form.level,
-    status: form.status || "draft",
+    status,
     effectiveTime: form.effectiveTime || undefined,
     expireTime: form.expireTime || undefined,
     isTop: form.isTop,
@@ -245,14 +269,17 @@ async function handleSave() {
     }
 
     if (result.code === 10_000) {
-      showToast(t("noticeMgmt.saveSuccess"), "positive");
+      const msg = status === "published" ? t("noticeMgmt.publishSuccess") : t("noticeMgmt.saveSuccess");
+      showToast(msg, "positive");
       emit("saved");
     } else {
-      showToast(result.message || t("noticeMgmt.saveFail"), "negative");
+      const msg = status === "published" ? t("noticeMgmt.publishFail") : t("noticeMgmt.saveFail");
+      showToast(result.message || msg, "negative");
     }
   } catch (error) {
     if (!isNotificationHandled(error)) {
-      showToast(t("noticeMgmt.saveFail"), "negative");
+      const msg = status === "published" ? t("noticeMgmt.publishFail") : t("noticeMgmt.saveFail");
+      showToast(msg, "negative");
     }
   } finally {
     formLoading.value = false;
@@ -444,6 +471,7 @@ async function handleSave() {
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             :placeholder="t('noticeMgmt.topExpireTimePlaceholder')"
+            :min="topExpireTimeMin"
           />
         </div>
         <div v-if="form.isTop === 1" class="col-12 col-md-6">
@@ -512,12 +540,25 @@ async function handleSave() {
         type="submit"
         form="notice-drawer-form"
         color="primary"
+        outline
+        no-caps
+        :loading="formLoading"
+        class="drawer-action-btn"
+        @click="pendingStatus = 'draft'"
+      >
+        {{ t('noticeMgmt.saveDraft') }}
+      </q-btn>
+      <q-btn
+        type="submit"
+        form="notice-drawer-form"
+        color="primary"
         unelevated
         no-caps
         :loading="formLoading"
         class="drawer-action-btn"
+        @click="pendingStatus = 'published'"
       >
-        {{ t('common.confirm') }}
+        {{ t('noticeMgmt.publish') }}
       </q-btn>
     </div>
   </div>

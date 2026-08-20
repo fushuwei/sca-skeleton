@@ -852,9 +852,11 @@
     "saveSuccess": "保存成功",
     "saveFail": "保存失败",
     "publishSuccess": "发布成功",
+    "publishFail": "发布失败",
     "revokeSuccess": "撤回成功",
     "archiveSuccess": "归档成功",
     "publish": "发布",
+    "saveDraft": "保存草稿",
     "revoke": "撤回",
     "archive": "归档"
   }
