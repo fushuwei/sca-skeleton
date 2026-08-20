@@ -109,7 +109,7 @@ public class SysNoticeServiceImpl implements SysNoticeService {
         notice.setIsPopup(request.getIsPopup() != null ? request.getIsPopup() : 0);
         notice.setTargetType(request.getTargetType());
         notice.setReadCount(0);
-        notice.setSort(request.getSort() != null ? request.getSort() : 100);
+        notice.setSort(request.getIsTop() != null && request.getIsTop() == 1 ? request.getSort() : null);
         notice.setRemark(request.getRemark());
         notice.setEffectiveTime(request.getEffectiveTime());
         notice.setExpireTime(request.getExpireTime());
@@ -156,7 +156,7 @@ public class SysNoticeServiceImpl implements SysNoticeService {
         notice.setTopExpireTime(request.getTopExpireTime());
         notice.setIsPopup(request.getIsPopup() != null ? request.getIsPopup() : 0);
         notice.setTargetType(request.getTargetType());
-        notice.setSort(request.getSort() != null ? request.getSort() : 100);
+        notice.setSort(request.getIsTop() != null && request.getIsTop() == 1 ? request.getSort() : null);
         notice.setRemark(request.getRemark());
         notice.setEffectiveTime(request.getEffectiveTime());
         notice.setExpireTime(request.getExpireTime());
