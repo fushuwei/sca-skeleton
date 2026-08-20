@@ -837,6 +837,7 @@
     "createTime": "Created At",
     "keywordPlaceholder": "Search by title or content",
     "titleRequired": "Please enter title",
+    "titleMaxLength": "Title cannot exceed 255 characters",
     "typeRequired": "Please select type",
     "levelRequired": "Please select level",
     "statusRequired": "Please select status",

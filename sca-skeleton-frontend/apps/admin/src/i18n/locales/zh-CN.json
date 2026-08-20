@@ -837,6 +837,7 @@
     "createTime": "创建时间",
     "keywordPlaceholder": "请输入标题/内容搜索",
     "titleRequired": "请输入标题",
+    "titleMaxLength": "标题长度不能超过 255 个字符",
     "typeRequired": "请选择类型",
     "levelRequired": "请选择重要级别",
     "statusRequired": "请选择状态",

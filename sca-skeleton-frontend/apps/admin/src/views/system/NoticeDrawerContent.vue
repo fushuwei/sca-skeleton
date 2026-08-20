@@ -46,7 +46,7 @@ const form = reactive({
 const formRules = {
   title: [
     (v: string) => !!v?.trim() || t("noticeMgmt.titleRequired"),
-    (v: string) => v.length <= 200 || t("noticeMgmt.titleRequired")
+    (v: string) => v.length <= 255 || t("noticeMgmt.titleMaxLength")
   ],
   type: [(v: string) => !!v || t("noticeMgmt.typeRequired")],
   level: [(v: string) => !!v || t("noticeMgmt.levelRequired")],
