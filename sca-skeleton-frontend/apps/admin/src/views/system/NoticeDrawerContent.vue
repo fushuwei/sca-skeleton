@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from "vue";
+import { ref, reactive, computed, watch, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
 import type { SysNotice, NoticeTargetItem, DeptOption, RoleOption } from "../../types/auth";
@@ -114,10 +114,16 @@ const selectedTargetIds = computed({
   }
 });
 
-// 切换“是否置顶”时：选“是”默认排序 100，选“否”清空排序和置顶到期时间
+// 标记是否正在初始化表单，防止 initForm 赋值 isTop 时触发 watch 覆盖 sort 值
+let isInitializing = false;
+
+// 切换“是否置顶”时：选“是”且 sort 为空则默认 100，选“否”清空排序和置顶到期时间
 watch(() => form.isTop, (val) => {
+  if (isInitializing) return;
   if (val === 1) {
-    form.sort = 100;
+    if (form.sort == null) {
+      form.sort = 100;
+    }
   } else {
     form.sort = null;
     form.topExpireTime = "";
@@ -188,6 +194,7 @@ function resetForm() {
 }
 
 function initForm() {
+  isInitializing = true;
   resetForm();
   if (props.notice) {
     form.id = props.notice.id;
@@ -218,6 +225,8 @@ function initForm() {
       loadRoleOptions();
     }
   }
+  // 初始化完成，恢复 watch 的响应能力
+  nextTick(() => { isInitializing = false; });
 }
 
 watch(() => props.notice, initForm, { immediate: true });

@@ -911,7 +911,7 @@ onMounted(() => {
               round
               size="sm"
               color="grey-6"
-              icon="sym_r_push_pin"
+              icon="sym_r_keep_off"
               @click.stop="handleUnpinTop(props.row)"
             >
               <q-tooltip>{{ t("noticeMgmt.unpinTop") }}</q-tooltip>
