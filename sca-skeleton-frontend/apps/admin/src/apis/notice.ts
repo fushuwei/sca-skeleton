@@ -35,6 +35,14 @@ export async function updateNoticeStatusApi(data: {
   return request<null>({ method: "POST", url: "/sys/notice/status", data });
 }
 
+/** 置顶/取消置顶通知公告 */
+export async function updateNoticeTopApi(data: {
+  id: string;
+  isTop: number;
+}): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "POST", url: "/sys/notice/top", data });
+}
+
 /** 删除通知公告 */
 export async function deleteNoticeApi(id: string): Promise<ApiEnvelope<null>> {
   return request<null>({ method: "POST", url: "/sys/notice/delete", data: { id } });

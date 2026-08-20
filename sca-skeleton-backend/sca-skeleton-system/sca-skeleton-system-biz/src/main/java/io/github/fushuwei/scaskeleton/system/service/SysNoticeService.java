@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeStatusRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeTopRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeResponse;
 
@@ -52,6 +53,13 @@ public interface SysNoticeService {
      * @param request 通知公告 ID 与目标状态
      */
     void updateNoticeStatus(NoticeStatusRequest request);
+
+    /**
+     * 置顶/取消置顶通知公告
+     *
+     * @param request 通知公告 ID 与是否置顶
+     */
+    void updateNoticeTop(NoticeTopRequest request);
 
     /**
      * 删除通知公告

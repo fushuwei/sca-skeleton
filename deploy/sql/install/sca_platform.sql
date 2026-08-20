@@ -659,7 +659,7 @@ CREATE TABLE IF NOT EXISTS `sys_notice` (
     `is_popup`          TINYINT(1)      NOT NULL DEFAULT 0          COMMENT '是否登录弹窗提示（0否 1是）',
     `target_type`       VARCHAR(20)     NOT NULL                    COMMENT '接收范围（all 全体用户，dept 指定部门，role 指定角色，user 指定用户）',
     `read_count`        INT             NOT NULL DEFAULT 0          COMMENT '已读次数',
-    `sort`              INT             NOT NULL DEFAULT 100        COMMENT '排序，数字越小越靠前（只用于针对置顶消息排序，即存在多个置顶消息时，根据该字段进行排序，非置顶消息根据发布时间降序）',
+    `sort`              INT             DEFAULT NULL                COMMENT '排序，数字越小越靠前（只用于针对置顶消息排序，即存在多个置顶消息时，根据该字段进行排序，非置顶消息根据发布时间降序）',
     `remark`            TEXT            DEFAULT NULL                COMMENT '备注',
     `version`           INT             NOT NULL DEFAULT 0          COMMENT '乐观锁版本号',
     `create_by`         VARCHAR(64)     DEFAULT NULL                COMMENT '创建人',

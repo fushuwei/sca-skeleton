@@ -857,6 +857,12 @@
     "archiveSuccess": "Archived successfully",
     "publish": "Publish",
     "saveDraft": "Save Draft",
+    "pinTop": "Pin Top",
+    "unpinTop": "Unpin Top",
+    "pinTopConfirm": "Pin top notice \"{title}\"?",
+    "unpinTopConfirm": "Unpin top notice \"{title}\"?",
+    "pinTopSuccess": "Pinned successfully",
+    "unpinTopSuccess": "Unpinned successfully",
     "revoke": "Revoke",
     "archive": "Archive"
   }

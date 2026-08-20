@@ -9,6 +9,7 @@ import {
   getNoticePageApi,
   getNoticeByIdApi,
   updateNoticeStatusApi,
+  updateNoticeTopApi,
   deleteNoticeApi,
   batchDeleteNoticeApi
 } from "../../apis/notice";
@@ -506,6 +507,50 @@ async function handleArchive(row: SysNotice) {
   }
 }
 
+// 置顶
+async function handlePinTop(row: SysNotice) {
+  try {
+    await confirmDialog(t("noticeMgmt.pinTopConfirm", { title: row.title }));
+  } catch {
+    return;
+  }
+  try {
+    const result = await updateNoticeTopApi({ id: row.id, isTop: 1 });
+    if (result.code === 10_000) {
+      showToast(t("noticeMgmt.pinTopSuccess"), "positive");
+      loadTableData();
+    } else {
+      showToast(result.message || t("common.operationFail"), "negative");
+    }
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("common.operationFail"), "negative");
+    }
+  }
+}
+
+// 取消置顶
+async function handleUnpinTop(row: SysNotice) {
+  try {
+    await confirmDialog(t("noticeMgmt.unpinTopConfirm", { title: row.title }));
+  } catch {
+    return;
+  }
+  try {
+    const result = await updateNoticeTopApi({ id: row.id, isTop: 0 });
+    if (result.code === 10_000) {
+      showToast(t("noticeMgmt.unpinTopSuccess"), "positive");
+      loadTableData();
+    } else {
+      showToast(result.message || t("common.operationFail"), "negative");
+    }
+  } catch (error) {
+    if (!isNotificationHandled(error)) {
+      showToast(t("common.operationFail"), "negative");
+    }
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 生命周期
 // ═══════════════════════════════════════════════════════════════
@@ -706,12 +751,10 @@ onMounted(() => {
               <q-icon
                 v-if="props.row.isTop === 1"
                 name="sym_r_push_pin"
-                size="16px"
+                size="20px"
                 color="orange-7"
                 class="q-mr-xs"
-              >
-                <q-tooltip>{{ t('noticeMgmt.isTop') }}</q-tooltip>
-              </q-icon>
+              />
               <span class="ellipsis-2-lines notice-title-text">{{ props.value }}</span>
             </div>
           </q-td>
@@ -801,52 +844,77 @@ onMounted(() => {
               <q-tooltip>{{ t("common.view") }}</q-tooltip>
             </q-btn>
             <q-btn
-              v-if="props.row.status === 'draft'"
               flat
               dense
               round
               size="sm"
               color="primary"
               icon="sym_r_edit"
+              :disable="props.row.status !== 'draft'"
               @click.stop="handleEdit(props.row)"
             >
               <q-tooltip>{{ t("common.edit") }}</q-tooltip>
             </q-btn>
             <q-btn
-              v-if="props.row.status === 'draft'"
               flat
               dense
               round
               size="sm"
               color="positive"
               icon="sym_r_campaign"
+              :disable="props.row.status !== 'draft'"
               @click.stop="handlePublish(props.row)"
             >
               <q-tooltip>{{ t("noticeMgmt.publish") }}</q-tooltip>
             </q-btn>
             <q-btn
-              v-if="props.row.status === 'published'"
               flat
               dense
               round
               size="sm"
               color="orange"
               icon="sym_r_undo"
+              :disable="props.row.status !== 'published'"
               @click.stop="handleRevoke(props.row)"
             >
               <q-tooltip>{{ t("noticeMgmt.revoke") }}</q-tooltip>
             </q-btn>
             <q-btn
-              v-if="props.row.status === 'revoked' || props.row.status === 'published'"
               flat
               dense
               round
               size="sm"
               color="blue"
               icon="sym_r_archive"
+              :disable="props.row.status !== 'revoked' && props.row.status !== 'published'"
               @click.stop="handleArchive(props.row)"
             >
               <q-tooltip>{{ t("noticeMgmt.archive") }}</q-tooltip>
+            </q-btn>
+            <q-btn
+              v-if="props.row.isTop !== 1"
+              flat
+              dense
+              round
+              size="sm"
+              color="amber-8"
+              icon="sym_r_push_pin"
+              :disable="props.row.status === 'draft' || props.row.status === 'archived'"
+              @click.stop="handlePinTop(props.row)"
+            >
+              <q-tooltip>{{ t("noticeMgmt.pinTop") }}</q-tooltip>
+            </q-btn>
+            <q-btn
+              v-if="props.row.isTop === 1"
+              flat
+              dense
+              round
+              size="sm"
+              color="grey-6"
+              icon="sym_r_push_pin"
+              @click.stop="handleUnpinTop(props.row)"
+            >
+              <q-tooltip>{{ t("noticeMgmt.unpinTop") }}</q-tooltip>
             </q-btn>
             <q-btn
               flat

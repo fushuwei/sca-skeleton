@@ -857,6 +857,12 @@
     "archiveSuccess": "归档成功",
     "publish": "发布",
     "saveDraft": "保存草稿",
+    "pinTop": "置顶",
+    "unpinTop": "取消置顶",
+    "pinTopConfirm": "确认置顶通知公告「{title}」？",
+    "unpinTopConfirm": "确认取消置顶通知公告「{title}」？",
+    "pinTopSuccess": "置顶成功",
+    "unpinTopSuccess": "取消置顶成功",
     "revoke": "撤回",
     "archive": "归档"
   }

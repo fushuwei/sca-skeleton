@@ -9,6 +9,7 @@ import io.github.fushuwei.scaskeleton.security.context.SecurityUtils;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeStatusRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeTopRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeTargetResponse;
@@ -194,6 +195,34 @@ public class SysNoticeServiceImpl implements SysNoticeService {
         if ("published".equals(request.getStatus())) {
             wrapper.set(SysNotice::getPublisher, userId);
             wrapper.set(SysNotice::getPublishTime, now);
+        }
+
+        int affectedRows = noticeMapper.update(null, wrapper);
+        if (affectedRows == 0) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "通知公告不存在或已被删除");
+        }
+    }
+
+    /**
+     * 置顶/取消置顶通知公告
+     *
+     * @param request 通知公告 ID 与是否置顶
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateNoticeTop(NoticeTopRequest request) {
+        String userId = SecurityUtils.getUserId();
+
+        LambdaUpdateWrapper<SysNotice> wrapper = new LambdaUpdateWrapper<SysNotice>()
+            .eq(SysNotice::getId, request.getId())
+            .set(SysNotice::getIsTop, request.getIsTop())
+            .set(SysNotice::getUpdateBy, userId)
+            .set(SysNotice::getUpdateTime, LocalDateTime.now());
+
+        // 取消置顶时，清空排序和置顶到期时间
+        if (request.getIsTop() == 0) {
+            wrapper.set(SysNotice::getSort, null);
+            wrapper.set(SysNotice::getTopExpireTime, null);
         }
 
         int affectedRows = noticeMapper.update(null, wrapper);

@@ -8,6 +8,7 @@ import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticePageRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeStatusRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeTopRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysNoticeService;
@@ -70,6 +71,15 @@ public class SysNoticeController {
     @OperationLog(module = "通知公告管理", action = "变更通知公告状态")
     public Result<Void> updateStatus(@Validated @RequestBody NoticeStatusRequest request) {
         noticeService.updateNoticeStatus(request);
+        return Result.ok();
+    }
+
+    @Operation(summary = "置顶/取消置顶通知公告")
+    @PostMapping("/top")
+    @RequiresPermission("sys:notice:edit")
+    @OperationLog(module = "通知公告管理", action = "置顶/取消置顶通知公告")
+    public Result<Void> updateTop(@Validated @RequestBody NoticeTopRequest request) {
+        noticeService.updateNoticeTop(request);
         return Result.ok();
     }
 
