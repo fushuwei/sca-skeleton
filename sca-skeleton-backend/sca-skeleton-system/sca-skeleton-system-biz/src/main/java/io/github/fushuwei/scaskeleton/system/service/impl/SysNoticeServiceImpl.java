@@ -1,6 +1,5 @@
 package io.github.fushuwei.scaskeleton.system.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -118,6 +117,7 @@ public class SysNoticeServiceImpl implements SysNoticeService {
         if ("published".equals(request.getStatus())) {
             notice.setPublisher(userId);
             notice.setPublishTime(LocalDateTime.now());
+            notice.setCreateTime(notice.getPublishTime());
         }
 
         // 保存通知公告
@@ -183,16 +183,17 @@ public class SysNoticeServiceImpl implements SysNoticeService {
         SysNotice notice = loadNoticeEntity(request.getId());
         String userId = SecurityUtils.getUserId();
 
+        LocalDateTime now = LocalDateTime.now();
         LambdaUpdateWrapper<SysNotice> wrapper = new LambdaUpdateWrapper<SysNotice>()
             .eq(SysNotice::getId, request.getId())
             .set(SysNotice::getStatus, request.getStatus())
             .set(SysNotice::getUpdateBy, userId)
-            .set(SysNotice::getUpdateTime, LocalDateTime.now());
+            .set(SysNotice::getUpdateTime, now);
 
         // 如果是发布操作，设置发布人和发布时间
         if ("published".equals(request.getStatus())) {
             wrapper.set(SysNotice::getPublisher, userId);
-            wrapper.set(SysNotice::getPublishTime, LocalDateTime.now());
+            wrapper.set(SysNotice::getPublishTime, now);
         }
 
         int affectedRows = noticeMapper.update(null, wrapper);

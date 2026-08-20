@@ -27,16 +27,16 @@ const formLoading = ref(false);
 const form = reactive({
   id: "",
   title: "",
-  type: "notice",
+  type: "",
   content: "",
-  level: "normal",
+  level: "",
   status: "draft",
   effectiveTime: "",
   expireTime: "",
   isTop: 0,
   topExpireTime: "",
   isPopup: 0,
-  targetType: "all",
+  targetType: "",
   targets: [] as NoticeTargetItem[],
   sort: 0,
   remark: "",
@@ -152,16 +152,16 @@ async function loadRoleOptions() {
 function resetForm() {
   form.id = "";
   form.title = "";
-  form.type = "notice";
+  form.type = "";
   form.content = "";
-  form.level = "normal";
+  form.level = "";
   form.status = "draft";
   form.effectiveTime = "";
   form.expireTime = "";
   form.isTop = 0;
   form.topExpireTime = "";
   form.isPopup = 0;
-  form.targetType = "all";
+  form.targetType = "";
   form.targets = [];
   form.sort = 0;
   form.remark = "";
@@ -182,7 +182,7 @@ function initForm() {
     form.isTop = props.notice.isTop ?? 0;
     form.topExpireTime = props.notice.topExpireTime || "";
     form.isPopup = props.notice.isPopup ?? 0;
-    form.targetType = props.notice.targetType || "all";
+    form.targetType = props.notice.targetType || "";
     form.targets = props.notice.targets
       ? props.notice.targets.map((t) => ({
           targetType: t.targetType,
@@ -271,6 +271,7 @@ async function handleSave() {
             v-model.trim="form.title"
             :label="t('noticeMgmt.title')"
             filled
+            autogrow
             square
             :rules="formRules.title"
             :disable="drawerReadonly"
@@ -331,8 +332,8 @@ async function handleSave() {
             class="notice-content-editor"
           />
         </div>
-        <!-- 接收范围 -->
-        <div class="col-12 col-md-6">
+        <!-- 接收范围（单独占一行） -->
+        <div class="col-12">
           <q-select
             v-model="form.targetType"
             :label="t('noticeMgmt.targetType')"
@@ -349,8 +350,8 @@ async function handleSave() {
             class="required-field"
           />
         </div>
-        <!-- 接收目标 — 部门多选 -->
-        <div v-if="form.targetType === 'dept'" class="col-12 col-md-6">
+        <!-- 接收目标 — 部门多选（单独占一行） -->
+        <div v-if="form.targetType === 'dept'" class="col-12">
           <q-select
             v-model="selectedTargetIds"
             :label="t('noticeMgmt.targets')"
@@ -367,8 +368,8 @@ async function handleSave() {
             hide-bottom-space
           />
         </div>
-        <!-- 接收目标 — 角色多选 -->
-        <div v-if="form.targetType === 'role'" class="col-12 col-md-6">
+        <!-- 接收目标 — 角色多选（单独占一行） -->
+        <div v-if="form.targetType === 'role'" class="col-12">
           <q-select
             v-model="selectedTargetIds"
             :label="t('noticeMgmt.targets')"
@@ -385,8 +386,8 @@ async function handleSave() {
             hide-bottom-space
           />
         </div>
-        <!-- 接收目标 — 用户ID（手动输入） -->
-        <div v-if="form.targetType === 'user'" class="col-12 col-md-6">
+        <!-- 接收目标 — 用户ID（手动输入，单独占一行） -->
+        <div v-if="form.targetType === 'user'" class="col-12">
           <q-select
             v-model="selectedTargetIds"
             :label="t('noticeMgmt.targets')"
@@ -404,7 +405,7 @@ async function handleSave() {
             :placeholder="t('noticeMgmt.targetsPlaceholder')"
           />
         </div>
-        <!-- 是否置顶 -->
+        <!-- 是否置顶 + 登录弹窗（占一行） -->
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.isTop"
@@ -420,17 +421,6 @@ async function handleSave() {
             hide-bottom-space
           />
         </div>
-        <!-- 置顶到期时间 -->
-        <div v-if="form.isTop === 1" class="col-12 col-md-6">
-          <DateTimePicker
-            v-model="form.topExpireTime"
-            :label="t('noticeMgmt.topExpireTime')"
-            :disable="drawerReadonly"
-            :readonly="drawerReadonly"
-            :placeholder="t('noticeMgmt.topExpireTimePlaceholder')"
-          />
-        </div>
-        <!-- 登录弹窗 -->
         <div class="col-12 col-md-6">
           <q-select
             v-model="form.isPopup"
@@ -446,8 +436,17 @@ async function handleSave() {
             hide-bottom-space
           />
         </div>
-        <!-- 排序 -->
-        <div class="col-12 col-md-6">
+        <!-- 置顶到期时间 + 排序（仅当是否置顶选“是”时显示，占一行） -->
+        <div v-if="form.isTop === 1" class="col-12 col-md-6">
+          <DateTimePicker
+            v-model="form.topExpireTime"
+            :label="t('noticeMgmt.topExpireTime')"
+            :disable="drawerReadonly"
+            :readonly="drawerReadonly"
+            :placeholder="t('noticeMgmt.topExpireTimePlaceholder')"
+          />
+        </div>
+        <div v-if="form.isTop === 1" class="col-12 col-md-6">
           <q-input
             v-model.number="form.sort"
             :label="t('noticeMgmt.sort')"
@@ -467,6 +466,7 @@ async function handleSave() {
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             :placeholder="t('noticeMgmt.effectiveTimePlaceholder')"
+            :max="form.expireTime"
           />
         </div>
         <!-- 失效时间 -->
@@ -477,6 +477,7 @@ async function handleSave() {
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             :placeholder="t('noticeMgmt.expireTimePlaceholder')"
+            :min="form.effectiveTime"
           />
         </div>
         <!-- 备注 -->
@@ -487,7 +488,7 @@ async function handleSave() {
             filled
             square
             type="textarea"
-            rows="2"
+            rows="3"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
