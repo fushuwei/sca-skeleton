@@ -335,7 +335,7 @@ INSERT INTO `sys_permission` (`id`, `parent_id`, `name`, `name_en`, `type`, `cod
 	('9925', '9999', '岗位管理', 'Positions', 'menu', 'sys:post:list', '/system/post', 'PostListView', 'sym_r_nest_eco_leaf', 9915, 1, 0, 'enabled', '0,9999,9925', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
 	('9926', '9999', '字典管理', 'Dictionaries', 'menu', 'sys:dict:list', '/system/dict', 'DictListView', 'sym_r_nest_eco_leaf', 9916, 1, 0, 'enabled', '0,9999,9926', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
 	('9927', '9999', '系统配置', 'System Config', 'menu', 'sys:config:list', '/system/config', 'ConfigListView', 'sym_r_nest_eco_leaf', 9917, 1, 0, 'enabled', '0,9999,9927', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
-	('9928', '9999', '通知公告', 'Announcements', 'menu', 'sys:notice:list', '/system/notice', 'PlaceholderView', 'sym_r_nest_eco_leaf', 9918, 1, 0, 'enabled', '0,9999,9928', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
+	('9928', '9999', '通知公告', 'Announcements', 'menu', 'sys:notice:list', '/system/notice', 'NoticeListView', 'sym_r_nest_eco_leaf', 9918, 1, 0, 'enabled', '0,9999,9928', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
 	('9929', '9999', '操作日志', 'Operation Logs', 'menu', 'sys:operation-log:list', '/system/operation-log', 'OperationLogListView', 'sym_r_nest_eco_leaf', 9919, 1, 0, 'enabled', '0,9999,9929', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0),
 	('9930', '9999', '登录日志', 'Login Logs', 'menu', 'sys:login-log:list', '/system/login-log', 'LoginLogListView', 'sym_r_nest_eco_leaf', 9920, 1, 0, 'enabled', '0,9999,9930', 'admin', NULL, 0, 'system', NOW(), 'system', NOW(), 0);
 

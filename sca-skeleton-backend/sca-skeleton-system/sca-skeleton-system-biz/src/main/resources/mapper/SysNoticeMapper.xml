@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.fushuwei.scaskeleton.system.mapper.SysNoticeMapper">
+
+    <!-- 通知公告分页查询结果映射 -->
+    <resultMap id="NoticeResponseMap" type="io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeResponse">
+        <id property="id" column="id"/>
+        <result property="tenantId" column="tenant_id"/>
+        <result property="title" column="title"/>
+        <result property="type" column="type"/>
+        <result property="content" column="content"/>
+        <result property="level" column="level"/>
+        <result property="status" column="status"/>
+        <result property="publisher" column="publisher"/>
+        <result property="publishTime" column="publish_time"/>
+        <result property="effectiveTime" column="effective_time"/>
+        <result property="expireTime" column="expire_time"/>
+        <result property="isTop" column="is_top"/>
+        <result property="topExpireTime" column="top_expire_time"/>
+        <result property="isPopup" column="is_popup"/>
+        <result property="targetType" column="target_type"/>
+        <result property="readCount" column="read_count"/>
+        <result property="sort" column="sort"/>
+        <result property="remark" column="remark"/>
+        <result property="version" column="version"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="publisherName" column="publisher_name"/>
+    </resultMap>
+
+    <!-- 分页查询通知公告列表 -->
+    <select id="selectNoticePage" resultMap="NoticeResponseMap">
+        SELECT n.*,
+               u.nickname AS publisher_name
+        FROM sys_notice n
+        LEFT JOIN sys_user u ON u.id = n.publisher AND u.is_deleted = 0
+        WHERE n.is_deleted = 0
+        AND n.tenant_id = #{tenantId}
+        <if test="request.keyword != null and request.keyword != ''">
+            AND (n.title LIKE CONCAT('%', #{request.keyword}, '%')
+                 OR n.content LIKE CONCAT('%', #{request.keyword}, '%'))
+        </if>
+        <if test="request.type != null and request.type != ''">
+            AND n.type = #{request.type}
+        </if>
+        <if test="request.level != null and request.level != ''">
+            AND n.level = #{request.level}
+        </if>
+        <if test="request.status != null and request.status != ''">
+            AND n.status = #{request.status}
+        </if>
+        <choose>
+            <when test="request.safeSortField() != null and request.safeSortField() != ''">
+                ORDER BY ${request.safeSortField()} ${request.safeSortOrder()}
+            </when>
+            <otherwise>
+                ORDER BY n.is_top DESC, n.sort ASC, n.publish_time DESC, n.create_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据 ID 查询通知公告详情（包含接收目标列表） -->
+    <select id="selectNoticeById" resultMap="NoticeResponseMap">
+        SELECT n.*,
+               u.nickname AS publisher_name
+        FROM sys_notice n
+        LEFT JOIN sys_user u ON u.id = n.publisher AND u.is_deleted = 0
+        WHERE n.is_deleted = 0
+        AND n.id = #{id}
+        AND n.tenant_id = #{tenantId}
+    </select>
+
+</mapper>

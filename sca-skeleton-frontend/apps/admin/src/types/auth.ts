@@ -1,5 +1,5 @@
 /** 菜单挂载的页面组件标识（仅叶子节点需要） */
-export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "PermissionListView" | "RoleListView" | "PostListView" | "DeptListView" | "DictListView" | "ConfigListView" | "TenantPackageListView" | "TenantListView" | "OperationLogListView" | "LoginLogListView" | "DriverListView" | "DatasourceListView" | "SqlQueryView";
+export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "PermissionListView" | "RoleListView" | "PostListView" | "DeptListView" | "DictListView" | "ConfigListView" | "NoticeListView" | "TenantPackageListView" | "TenantListView" | "OperationLogListView" | "LoginLogListView" | "DriverListView" | "DatasourceListView" | "SqlQueryView";
 
 export interface MenuItem {
   /** 主键ID（对应 SQL id 字段），唯一标识 */
@@ -616,4 +616,87 @@ export interface ConfigPageRequest {
   status?: string;
   sortField?: string;
   sortOrder?: "asc" | "desc";
+}
+
+// ── 通知公告管理相关类型 ──
+
+/** 通知公告接收目标 */
+export interface NoticeTarget {
+  id?: string;
+  noticeId?: string;
+  /** 目标类型（dept 部门，role 角色，user 用户） */
+  targetType: string;
+  /** 目标 ID（部门ID / 角色ID / 用户ID） */
+  targetId: string;
+  /** 目标名称（部门名称 / 角色名称 / 用户昵称，关联查询所得） */
+  targetName?: string;
+}
+
+/** 通知公告实体（对应后端 SysNotice） */
+export interface SysNotice {
+  id: string;
+  tenantId: string;
+  title: string;
+  /** 类型（notice 通知，announcement 公告，system 系统消息，other 其他） */
+  type: string;
+  content: string;
+  /** 重要级别（normal 普通，important 重要，urgent 紧急） */
+  level: string;
+  /** 状态（draft 草稿，published 已发布，revoked 已撤回，archived 已归档） */
+  status: string;
+  /** 发布人 ID */
+  publisher: string;
+  /** 发布人名称（关联 sys_user 查询，用户不存在时为空） */
+  publisherName?: string;
+  /** 发布时间（NULL 表示未发布） */
+  publishTime: string | null;
+  /** 生效时间（NULL 表示立即生效） */
+  effectiveTime: string | null;
+  /** 失效时间（NULL 表示永久有效） */
+  expireTime: string | null;
+  /** 是否置顶（0否 1是） */
+  isTop: number;
+  /** 置顶到期时间（NULL 表示永久置顶） */
+  topExpireTime: string | null;
+  /** 是否登录弹窗提示（0否 1是） */
+  isPopup: number;
+  /** 接收范围（all 全体用户，dept 指定部门，role 指定角色，user 指定用户） */
+  targetType: string;
+  /** 已读次数 */
+  readCount: number;
+  /** 排序 */
+  sort: number;
+  remark: string;
+  /** 乐观锁版本号 */
+  version: number;
+  createTime: string;
+  updateTime: string;
+  createBy: string;
+  updateBy: string;
+  /** 接收目标列表（详情查询时返回） */
+  targets?: NoticeTarget[];
+}
+
+/** 通知公告分页查询请求参数 */
+export interface NoticePageRequest {
+  pageNum?: number;
+  pageSize?: number;
+  /** 综合搜索关键词（模糊匹配标题和内容） */
+  keyword?: string;
+  /** 类型（notice/announcement/system/other） */
+  type?: string;
+  /** 重要级别（normal/important/urgent） */
+  level?: string;
+  /** 状态（draft/published/revoked/archived） */
+  status?: string;
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+/** 通知公告接收目标项（创建/编辑请求中使用） */
+export interface NoticeTargetItem {
+  /** 目标类型（dept 部门，role 角色，user 用户） */
+  targetType: string;
+  /** 目标 ID（部门ID / 角色ID / 用户ID） */
+  targetId: string;
 }
