@@ -142,9 +142,9 @@ public class SysNoticeServiceImpl implements SysNoticeService {
         // 校验接收目标
         validateTargets(request.getTargetType(), request.getTargets());
 
-        // 已发布或已撤回的通知公告不允许编辑核心内容
-        if ("published".equals(notice.getStatus()) || "revoked".equals(notice.getStatus())) {
-            throw new BusinessException(ResultCode.FORBIDDEN, "已发布或已撤回的通知公告不允许编辑，请先归档后再操作");
+        // 已归档的通知公告不允许编辑
+        if ("archived".equals(notice.getStatus())) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "已归档的通知公告不允许编辑");
         }
 
         // 更新字段

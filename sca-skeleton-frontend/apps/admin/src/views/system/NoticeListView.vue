@@ -408,7 +408,7 @@ async function handleView(row: SysNotice) {
 }
 
 async function handleEdit(row: SysNotice) {
-  if (row.status === "published" || row.status === "revoked") {
+  if (row.status === "archived") {
     showToast(t("noticeMgmt.cannotEditPublished"), "warning");
     return;
   }
@@ -850,7 +850,7 @@ onMounted(() => {
               size="sm"
               color="primary"
               icon="sym_r_edit"
-              :disable="props.row.status !== 'draft'"
+              :disable="props.row.status === 'archived'"
               @click.stop="handleEdit(props.row)"
             >
               <q-tooltip>{{ t("common.edit") }}</q-tooltip>
@@ -899,7 +899,7 @@ onMounted(() => {
               size="sm"
               color="amber-8"
               icon="sym_r_push_pin"
-              :disable="props.row.status === 'draft' || props.row.status === 'archived'"
+              :disable="props.row.status !== 'published'"
               @click.stop="handlePinTop(props.row)"
             >
               <q-tooltip>{{ t("noticeMgmt.pinTop") }}</q-tooltip>
