@@ -139,8 +139,9 @@ const topExpireTimeMin = computed(() => {
   return `${y}-${m}-${d} 00:00:00`;
 });
 
-// 切换接收范围时清空已选目标
+// 切换接收范围时清空已选目标（初始化时跳过，避免清空编辑回显的数据）
 watch(() => form.targetType, (val, oldVal) => {
+  if (isInitializing) return;
   if (val !== oldVal) {
     form.targets = [];
     // 按需加载选项数据

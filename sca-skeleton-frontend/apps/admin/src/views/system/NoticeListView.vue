@@ -103,6 +103,30 @@ const levelColorOf = (s: string): string =>
     urgent: "red-7"
   }[s] ?? "grey-6");
 
+const targetTypeLabelOf = (s: string): string =>
+  ({
+    all: t("noticeMgmt.targetTypeAll"),
+    dept: t("noticeMgmt.targetTypeDept"),
+    role: t("noticeMgmt.targetTypeRole"),
+    user: t("noticeMgmt.targetTypeUser")
+  }[s] ?? s);
+
+const targetTypeColorOf = (s: string): string =>
+  ({
+    all: "teal-6",
+    dept: "blue-6",
+    role: "purple-6",
+    user: "amber-7"
+  }[s] ?? "grey-6");
+
+/** 格式化日期时间显示 */
+function formatDateTime(val: string): string {
+  return new Date(val).toLocaleString("zh-CN", {
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+  });
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 本地抽屉
 // ═══════════════════════════════════════════════════════════════
@@ -193,6 +217,13 @@ const columns = computed<QTableColumn<SysNotice>[]>(() => [
     sortable: true
   },
   {
+    name: "targetType",
+    field: "targetType",
+    label: t("noticeMgmt.targetType"),
+    align: "left",
+    sortable: true
+  },
+  {
     name: "publisherName",
     field: "publisherName",
     label: t("noticeMgmt.publisher"),
@@ -204,22 +235,20 @@ const columns = computed<QTableColumn<SysNotice>[]>(() => [
     field: "publishTime",
     label: t("noticeMgmt.publishTime"),
     align: "left",
-    sortable: true,
-    format: (val: string | null) =>
-      val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-"
+    sortable: true
   },
   {
     name: "isTop",
     field: "isTop",
     label: t("noticeMgmt.isTop"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
     name: "readCount",
     field: "readCount",
     label: t("noticeMgmt.readCount"),
-    align: "center",
+    align: "left",
     sortable: true
   },
   {
@@ -227,9 +256,7 @@ const columns = computed<QTableColumn<SysNotice>[]>(() => [
     field: "createTime",
     label: t("noticeMgmt.createTime"),
     align: "left",
-    sortable: true,
-    format: (val: string) =>
-      val ? new Date(val).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "-"
+    sortable: true
   },
   {
     name: "actions",
@@ -250,6 +277,7 @@ const SORT_FIELD_MAP: Record<string, string> = {
   type: "type",
   level: "level",
   status: "status",
+  targetType: "target_type",
   publishTime: "publish_time",
   isTop: "is_top",
   readCount: "read_count",
@@ -810,6 +838,28 @@ onMounted(() => {
           </q-td>
         </template>
 
+        <!-- 接收范围列 -->
+        <template #body-cell-targetType="props">
+          <q-td :props="props">
+            <q-badge
+              v-if="props.value"
+              :color="targetTypeColorOf(props.value)"
+              :label="targetTypeLabelOf(props.value)"
+              rounded
+              class="notice-type-badge"
+            />
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
+        <!-- 发布时间列 -->
+        <template #body-cell-publishTime="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ formatDateTime(props.value) }}</span>
+            <span v-else class="text-grey-5">-</span>
+          </q-td>
+        </template>
+
         <!-- 置顶列 -->
         <template #body-cell-isTop="props">
           <q-td :props="props">
@@ -825,7 +875,15 @@ onMounted(() => {
         <!-- 已读次数列 -->
         <template #body-cell-readCount="props">
           <q-td :props="props">
-            <span class="text-weight-medium">{{ props.value || 0 }}</span>
+            <span>{{ props.value || 0 }}</span>
+          </q-td>
+        </template>
+
+        <!-- 创建时间列 -->
+        <template #body-cell-createTime="props">
+          <q-td :props="props">
+            <span v-if="props.value">{{ formatDateTime(props.value) }}</span>
+            <span v-else class="text-grey-5">-</span>
           </q-td>
         </template>
 
@@ -862,7 +920,7 @@ onMounted(() => {
               size="sm"
               color="positive"
               icon="sym_r_campaign"
-              :disable="props.row.status !== 'draft'"
+              :disable="props.row.status !== 'draft' && props.row.status !== 'revoked'"
               @click.stop="handlePublish(props.row)"
             >
               <q-tooltip>{{ t("noticeMgmt.publish") }}</q-tooltip>

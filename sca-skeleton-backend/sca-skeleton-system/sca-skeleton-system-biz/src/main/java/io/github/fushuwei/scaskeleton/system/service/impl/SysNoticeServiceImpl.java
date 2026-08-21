@@ -197,6 +197,13 @@ public class SysNoticeServiceImpl implements SysNoticeService {
             wrapper.set(SysNotice::getPublishTime, now);
         }
 
+        // 归档时取消置顶：清空 isTop、sort、topExpireTime
+        if ("archived".equals(request.getStatus())) {
+            wrapper.set(SysNotice::getIsTop, 0);
+            wrapper.set(SysNotice::getSort, null);
+            wrapper.set(SysNotice::getTopExpireTime, null);
+        }
+
         int affectedRows = noticeMapper.update(null, wrapper);
         if (affectedRows == 0) {
             throw new BusinessException(ResultCode.NOT_FOUND, "通知公告不存在或已被删除");
