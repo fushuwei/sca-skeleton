@@ -242,13 +242,15 @@ function handleClose() {
   emit("close");
 }
 
-// 记录用户点击的按钮类型，供 q-form @submit 校验通过后使用
+// 记录用户点击的按钮类型，供 q-form @submit 校验通过后使用（仅新增模式使用）
 const pendingStatus = ref<"draft" | "published">("draft");
 
 async function handleSave() {
   if (drawerReadonly.value) return;
 
-  const status = pendingStatus.value;
+  const isAdd = props.mode === "add";
+  // 新增模式使用 pendingStatus（草稿/发布），编辑模式保持原始状态不变
+  const status = isAdd ? pendingStatus.value : form.status;
 
   const data: Record<string, unknown> = {
     title: form.title,
@@ -270,7 +272,7 @@ async function handleSave() {
   try {
     formLoading.value = true;
     let result;
-    if (props.mode === "add") {
+    if (isAdd) {
       result = await createNoticeApi(data);
     } else {
       data.id = form.id;
@@ -279,16 +281,16 @@ async function handleSave() {
     }
 
     if (result.code === 10_000) {
-      const msg = status === "published" ? t("noticeMgmt.publishSuccess") : t("noticeMgmt.saveSuccess");
+      const msg = isAdd && status === "published" ? t("noticeMgmt.publishSuccess") : t("noticeMgmt.saveSuccess");
       showToast(msg, "positive");
       emit("saved");
     } else {
-      const msg = status === "published" ? t("noticeMgmt.publishFail") : t("noticeMgmt.saveFail");
+      const msg = isAdd && status === "published" ? t("noticeMgmt.publishFail") : t("noticeMgmt.saveFail");
       showToast(result.message || msg, "negative");
     }
   } catch (error) {
     if (!isNotificationHandled(error)) {
-      const msg = status === "published" ? t("noticeMgmt.publishFail") : t("noticeMgmt.saveFail");
+      const msg = isAdd && status === "published" ? t("noticeMgmt.publishFail") : t("noticeMgmt.saveFail");
       showToast(msg, "negative");
     }
   } finally {
@@ -546,19 +548,36 @@ async function handleSave() {
       >
         {{ t('common.cancel') }}
       </q-btn>
+      <!-- 新增模式：保存草稿 + 发布 -->
+      <template v-if="props.mode === 'add'">
+        <q-btn
+          type="submit"
+          form="notice-drawer-form"
+          color="primary"
+          outline
+          no-caps
+          :loading="formLoading"
+          class="drawer-action-btn"
+          @click="pendingStatus = 'draft'"
+        >
+          {{ t('noticeMgmt.saveDraft') }}
+        </q-btn>
+        <q-btn
+          type="submit"
+          form="notice-drawer-form"
+          color="primary"
+          unelevated
+          no-caps
+          :loading="formLoading"
+          class="drawer-action-btn"
+          @click="pendingStatus = 'published'"
+        >
+          {{ t('noticeMgmt.publish') }}
+        </q-btn>
+      </template>
+      <!-- 编辑模式：仅保存（不改变状态） -->
       <q-btn
-        type="submit"
-        form="notice-drawer-form"
-        color="primary"
-        outline
-        no-caps
-        :loading="formLoading"
-        class="drawer-action-btn"
-        @click="pendingStatus = 'draft'"
-      >
-        {{ t('noticeMgmt.saveDraft') }}
-      </q-btn>
-      <q-btn
+        v-else
         type="submit"
         form="notice-drawer-form"
         color="primary"
@@ -566,9 +585,8 @@ async function handleSave() {
         no-caps
         :loading="formLoading"
         class="drawer-action-btn"
-        @click="pendingStatus = 'published'"
       >
-        {{ t('noticeMgmt.publish') }}
+        {{ t('common.save') }}
       </q-btn>
     </div>
   </div>

@@ -51,7 +51,8 @@
     "close": "Close",
     "yes": "Yes",
     "no": "No",
-    "searchFormInvalid": "Search conditions contain format errors, please check and retry"
+    "searchFormInvalid": "Search conditions contain format errors, please check and retry",
+    "save": "Save"
   },
   "api": {
     "timeout": "Request timed out, please try again",

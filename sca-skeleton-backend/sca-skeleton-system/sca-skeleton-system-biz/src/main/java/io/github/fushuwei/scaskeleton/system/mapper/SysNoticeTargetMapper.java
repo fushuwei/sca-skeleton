@@ -21,7 +21,7 @@ public interface SysNoticeTargetMapper extends BaseMapper<SysNoticeTarget> {
     List<SysNoticeTarget> selectByNoticeId(String noticeId);
 
     /**
-     * 根据通知公告 ID 删除接收目标（逻辑删除）
+     * 根据通知公告 ID 删除接收目标（物理删除，避免唯一索引冲突）
      *
      * @param noticeId 通知公告 ID
      * @return 影响行数

@@ -197,8 +197,8 @@ public class SysNoticeServiceImpl implements SysNoticeService {
             wrapper.set(SysNotice::getPublishTime, now);
         }
 
-        // 归档时取消置顶：清空 isTop、sort、topExpireTime
-        if ("archived".equals(request.getStatus())) {
+        // 撤回或归档时取消置顶：清空 isTop、sort、topExpireTime
+        if ("archived".equals(request.getStatus()) || "revoked".equals(request.getStatus())) {
             wrapper.set(SysNotice::getIsTop, 0);
             wrapper.set(SysNotice::getSort, null);
             wrapper.set(SysNotice::getTopExpireTime, null);

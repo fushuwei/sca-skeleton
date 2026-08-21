@@ -11,12 +11,9 @@
         ORDER BY target_type, create_time
     </select>
 
-    <!-- 根据通知公告 ID 逻辑删除接收目标 -->
-    <update id="deleteByNoticeId">
-        UPDATE sys_notice_target
-        SET is_deleted = 1
-        WHERE is_deleted = 0
-        AND notice_id = #{noticeId}
-    </update>
+    <!-- 根据通知公告 ID 物理删除接收目标（避免唯一索引冲突） -->
+    <delete id="deleteByNoticeId">
+        DELETE FROM sys_notice_target WHERE notice_id = #{noticeId}
+    </delete>
 
 </mapper>

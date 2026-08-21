@@ -51,7 +51,8 @@
     "close": "关闭",
     "yes": "是",
     "no": "否",
-    "searchFormInvalid": "搜索条件存在格式错误，请检查后再试"
+    "searchFormInvalid": "搜索条件存在格式错误，请检查后再试",
+    "save": "保存"
   },
   "api": {
     "timeout": "请求超时，请稍后重试",
