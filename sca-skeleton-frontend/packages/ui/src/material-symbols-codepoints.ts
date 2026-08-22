@@ -156,7 +156,9 @@ export const materialSymbolsCodepoints: Record<string, number> = {
   "view_column": 59628,
   "table_rows": 61697,
   "arrow_split": 59908,
-  "campaign": 59748,
-  "push_pin": 59983,
-  "archive": 57890
+  "campaign": 61257,
+  "push_pin": 61709,
+  "archive": 57673,
+  "undo": 57702,
+  "redo": 57690
 };

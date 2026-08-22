@@ -114,19 +114,48 @@ function setBtnRef(key: string, el: any) {
   popupBtnRefs[key] = el;
 }
 
-// ── 计算弹出框位置 ──
-function computePopupPosition(btnEl: HTMLElement | null): Record<string, string> {
+// ── 保存/恢复编辑器选区（弹出框打开时编辑器可能丢失焦点） ──
+let savedSelection: { from: number; to: number } | null = null;
+
+function saveSelection() {
+  if (!editor.value) return;
+  const { from, to } = editor.value.state.selection;
+  savedSelection = { from, to };
+}
+
+function restoreSelection() {
+  if (!editor.value || !savedSelection) return;
+  const { from, to } = savedSelection;
+  editor.value.commands.setTextSelection({ from, to });
+  editor.value.commands.focus();
+  savedSelection = null;
+}
+
+// ── 计算弹出框位置（自适应浏览器边界） ──
+function computePopupPosition(btnEl: HTMLElement | null, popupWidth: number = 280, popupHeight: number = 200): Record<string, string> {
   if (!btnEl) return { display: "none" };
   const rect = btnEl.getBoundingClientRect();
   const editorEl = btnEl.closest(".rich-text-editor");
   if (!editorEl) return { display: "none" };
   const editorRect = editorEl.getBoundingClientRect();
-  const left = rect.left - editorRect.left;
+  let left = rect.left - editorRect.left;
   const top = rect.bottom - editorRect.top + 2;
+  // 自适应右边边界：如果弹出框超出浏览器右侧，则左移
+  const viewportWidth = window.innerWidth;
+  const absoluteRight = rect.left + popupWidth;
+  if (absoluteRight > viewportWidth - 8) {
+    left = Math.max(0, viewportWidth - 8 - popupWidth - editorRect.left);
+  }
+  // 自适应下边边界：如果弹出框超出浏览器底部，则显示在按钮上方
+  const absoluteBottom = rect.bottom + popupHeight;
+  let finalTop = top;
+  if (absoluteBottom > window.innerHeight - 8) {
+    finalTop = rect.top - editorRect.top - popupHeight - 2;
+  }
   return {
     position: "absolute",
     left: `${left}px`,
-    top: `${top}px`,
+    top: `${finalTop}px`,
     zIndex: "100"
   };
 }
@@ -137,10 +166,16 @@ function togglePopup(type: Exclude<PopupType, null>) {
     closePopup();
     return;
   }
+  // 打开弹出框前保存编辑器选区
+  saveSelection();
   activePopup.value = type;
   nextTick(() => {
     const btnEl = popupBtnRefs[type]?.$el ?? null;
-    popupStyle.value = computePopupPosition(btnEl);
+    // 根据弹出框类型估算尺寸
+    const isColorPopup = type === "textColor" || type === "highlightColor";
+    const popupW = isColorPopup ? 220 : 300;
+    const popupH = isColorPopup ? 180 : 120;
+    popupStyle.value = computePopupPosition(btnEl, popupW, popupH);
   });
 }
 
@@ -210,6 +245,7 @@ function openLinkPopup() {
 
 function applyLink() {
   const url = linkUrl.value.trim();
+  restoreSelection();
   if (!url) {
     editor.value?.chain().focus().unsetLink().run();
   } else {
@@ -222,6 +258,7 @@ function applyLink() {
 // ── 图片弹出框 ──
 function applyImage() {
   const src = imageUrl.value.trim();
+  restoreSelection();
   if (src) {
     editor.value?.chain().focus().setImage({ src }).run();
   }
@@ -233,6 +270,7 @@ function applyImage() {
 function applyTable() {
   const rows = Math.max(1, tableRows.value || 1);
   const cols = Math.max(1, tableCols.value || 1);
+  restoreSelection();
   editor.value?.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
   closePopup();
   tableRows.value = 3;
@@ -243,30 +281,36 @@ function applyTable() {
 function applyTextColor() {
   const color = customTextColor.value.trim();
   if (!color) return;
+  restoreSelection();
   editor.value?.chain().focus().setColor(color).run();
   closePopup();
   customTextColor.value = "";
 }
 function setTextColor(color: string) {
+  restoreSelection();
   editor.value?.chain().focus().setColor(color).run();
   closePopup();
 }
 function unsetTextColor() {
+  restoreSelection();
   editor.value?.chain().focus().unsetColor().run();
   closePopup();
 }
 function applyHighlightColor() {
   const color = customHighlightColor.value.trim();
   if (!color) return;
+  restoreSelection();
   editor.value?.chain().focus().setHighlight({ color }).run();
   closePopup();
   customHighlightColor.value = "";
 }
 function setHighlight(color: string) {
+  restoreSelection();
   editor.value?.chain().focus().setHighlight({ color }).run();
   closePopup();
 }
 function unsetHighlight() {
+  restoreSelection();
   editor.value?.chain().focus().unsetHighlight().run();
   closePopup();
 }
@@ -498,7 +542,7 @@ const isActive = computed(() => ({
       <q-btn flat dense round size="xs" icon="sym_r_add_column_right" color="grey-7" @click="addColumnAfter">
         <q-tooltip>{{ t('richText.addColumnAfter') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_delete" color="negative" @click="deleteColumn">
+      <q-btn flat dense round size="xs" icon="sym_r_delete" color="grey-7" @click="deleteColumn">
         <q-tooltip>{{ t('richText.deleteColumn') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
@@ -508,7 +552,7 @@ const isActive = computed(() => ({
       <q-btn flat dense round size="xs" icon="sym_r_add_row_below" color="grey-7" @click="addRowAfter">
         <q-tooltip>{{ t('richText.addRowAfter') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_remove" color="negative" @click="deleteRow">
+      <q-btn flat dense round size="xs" icon="sym_r_remove" color="grey-7" @click="deleteRow">
         <q-tooltip>{{ t('richText.deleteRow') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
@@ -522,7 +566,7 @@ const isActive = computed(() => ({
         <q-tooltip>{{ t('richText.toggleHeaderCell') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn flat dense round size="xs" icon="sym_r_delete_forever" color="negative" @click="deleteTable">
+      <q-btn flat dense round size="xs" icon="sym_r_delete_forever" color="grey-7" @click="deleteTable">
         <q-tooltip>{{ t('richText.deleteTable') }}</q-tooltip>
       </q-btn>
     </div>
