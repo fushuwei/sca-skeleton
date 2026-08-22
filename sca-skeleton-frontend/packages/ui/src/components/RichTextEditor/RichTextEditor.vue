@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, onBeforeUnmount, computed, ref } from "vue";
+import { watch, onBeforeUnmount, computed, ref, nextTick } from "vue";
 import { useEditor, EditorContent } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -96,9 +96,80 @@ onBeforeUnmount(() => {
   editor.value?.destroy();
 });
 
-// ── 颜色选择器弹出状态 ──
-const textColorPopup = ref(false);
-const highlightColorPopup = ref(false);
+// ── 通用弹出框管理 ──
+type PopupType = "textColor" | "highlightColor" | "link" | "image" | "table" | null;
+const activePopup = ref<PopupType>(null);
+const popupStyle = ref<Record<string, string>>({});
+
+// 每个触发按钮的 ref
+const popupBtnRefs: Record<string, { $el: HTMLElement } | null> = {
+  textColor: null,
+  highlightColor: null,
+  link: null,
+  image: null,
+  table: null
+};
+
+function setBtnRef(key: string, el: any) {
+  popupBtnRefs[key] = el;
+}
+
+// ── 计算弹出框位置 ──
+function computePopupPosition(btnEl: HTMLElement | null): Record<string, string> {
+  if (!btnEl) return { display: "none" };
+  const rect = btnEl.getBoundingClientRect();
+  const editorEl = btnEl.closest(".rich-text-editor");
+  if (!editorEl) return { display: "none" };
+  const editorRect = editorEl.getBoundingClientRect();
+  const left = rect.left - editorRect.left;
+  const top = rect.bottom - editorRect.top + 2;
+  return {
+    position: "absolute",
+    left: `${left}px`,
+    top: `${top}px`,
+    zIndex: "100"
+  };
+}
+
+// ── 打开/关闭弹出框 ──
+function togglePopup(type: Exclude<PopupType, null>) {
+  if (activePopup.value === type) {
+    closePopup();
+    return;
+  }
+  activePopup.value = type;
+  nextTick(() => {
+    const btnEl = popupBtnRefs[type]?.$el ?? null;
+    popupStyle.value = computePopupPosition(btnEl);
+  });
+}
+
+function closePopup() {
+  activePopup.value = null;
+}
+
+// ── 点击外部关闭弹出框 ──
+function handleClickOutside(e: MouseEvent) {
+  if (!activePopup.value) return;
+  const target = e.target as Node;
+  const popupEl = document.querySelector(".rte-color-popup, .rte-input-popup");
+  const btnEl = popupBtnRefs[activePopup.value]?.$el as Node | undefined;
+  if (popupEl && !popupEl.contains(target) && (!btnEl || !btnEl.contains(target))) {
+    closePopup();
+  }
+}
+
+watch(activePopup, (val) => {
+  if (val) {
+    document.addEventListener("mousedown", handleClickOutside);
+  } else {
+    document.removeEventListener("mousedown", handleClickOutside);
+  }
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("mousedown", handleClickOutside);
+});
 
 // ── 预设颜色列表 ──
 const presetColors = [
@@ -108,9 +179,15 @@ const presetColors = [
   "#cc4125", "#dd7e6b", "#e69138", "#f1c232", "#6aa84f", "#45818e", "#3d85c6", "#674ea7", "#a64d79", "#85929e"
 ];
 
-// ── 自定义颜色输入值 ──
+// ── 颜色输入值 ──
 const customTextColor = ref("");
 const customHighlightColor = ref("");
+
+// ── 链接/图片/表格输入值 ──
+const linkUrl = ref("");
+const imageUrl = ref("");
+const tableRows = ref(3);
+const tableCols = ref(3);
 
 // ── 工具栏命令 ──
 function toggleBold() { editor.value?.chain().focus().toggleBold().run(); }
@@ -123,52 +200,78 @@ function toggleOrderedList() { editor.value?.chain().focus().toggleOrderedList()
 function toggleBlockquote() { editor.value?.chain().focus().toggleBlockquote().run(); }
 function toggleCodeBlock() { editor.value?.chain().focus().toggleCodeBlock().run(); }
 function setTextAlign(align: "left" | "center" | "right") { editor.value?.chain().focus().setTextAlign(align).run(); }
-function toggleLink() {
-  const href = window.prompt(t("richText.linkPrompt"));
-  if (href === null) return;
-  if (href === "") {
+
+// ── 链接弹出框 ──
+function openLinkPopup() {
+  const currentHref = (editor.value?.getAttributes("link") as { href?: string })?.href || "";
+  linkUrl.value = currentHref;
+  togglePopup("link");
+}
+
+function applyLink() {
+  const url = linkUrl.value.trim();
+  if (!url) {
     editor.value?.chain().focus().unsetLink().run();
   } else {
-    editor.value?.chain().focus().setLink({ href }).run();
+    editor.value?.chain().focus().setLink({ href: url }).run();
   }
+  closePopup();
+  linkUrl.value = "";
 }
-function insertImage() {
-  const src = window.prompt(t("richText.imagePrompt"));
+
+// ── 图片弹出框 ──
+function applyImage() {
+  const src = imageUrl.value.trim();
   if (src) {
     editor.value?.chain().focus().setImage({ src }).run();
   }
+  closePopup();
+  imageUrl.value = "";
 }
-function undo() { editor.value?.chain().focus().undo().run(); }
-function redo() { editor.value?.chain().focus().redo().run(); }
+
+// ── 表格弹出框 ──
+function applyTable() {
+  const rows = Math.max(1, tableRows.value || 1);
+  const cols = Math.max(1, tableCols.value || 1);
+  editor.value?.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
+  closePopup();
+  tableRows.value = 3;
+  tableCols.value = 3;
+}
 
 // ── 颜色命令 ──
+function applyTextColor() {
+  const color = customTextColor.value.trim();
+  if (!color) return;
+  editor.value?.chain().focus().setColor(color).run();
+  closePopup();
+  customTextColor.value = "";
+}
 function setTextColor(color: string) {
   editor.value?.chain().focus().setColor(color).run();
-  textColorPopup.value = false;
+  closePopup();
 }
 function unsetTextColor() {
   editor.value?.chain().focus().unsetColor().run();
-  textColorPopup.value = false;
+  closePopup();
+}
+function applyHighlightColor() {
+  const color = customHighlightColor.value.trim();
+  if (!color) return;
+  editor.value?.chain().focus().setHighlight({ color }).run();
+  closePopup();
+  customHighlightColor.value = "";
 }
 function setHighlight(color: string) {
-  editor.value?.chain().focus().toggleHighlight({ color }).run();
-  highlightColorPopup.value = false;
+  editor.value?.chain().focus().setHighlight({ color }).run();
+  closePopup();
 }
 function unsetHighlight() {
   editor.value?.chain().focus().unsetHighlight().run();
-  highlightColorPopup.value = false;
+  closePopup();
 }
 
 // ── 表格命令 ──
-function insertTable() {
-  const rowsStr = window.prompt(t("richText.tableRowsPrompt"), "3");
-  if (!rowsStr) return;
-  const colsStr = window.prompt(t("richText.tableColsPrompt"), "3");
-  if (!colsStr) return;
-  const rows = Math.max(1, parseInt(rowsStr, 10) || 1);
-  const cols = Math.max(1, parseInt(colsStr, 10) || 1);
-  editor.value?.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
-}
 function addColumnBefore() { editor.value?.chain().focus().addColumnBefore().run(); }
 function addColumnAfter() { editor.value?.chain().focus().addColumnAfter().run(); }
 function deleteColumn() { editor.value?.chain().focus().deleteColumn().run(); }
@@ -199,9 +302,6 @@ const isActive = computed(() => ({
   alignRight: editor.value?.isActive({ textAlign: "right" }) ?? false,
   table: editor.value?.isActive("table") ?? false
 }));
-
-const canUndo = computed(() => editor.value?.can().undo() ?? false);
-const canRedo = computed(() => editor.value?.can().redo() ?? false);
 </script>
 
 <template>
@@ -231,6 +331,13 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
         <q-tooltip>{{ t('richText.heading3') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
+      <q-btn :ref="(el) => setBtnRef('textColor', el)" flat dense round size="xs" icon="sym_r_format_color_text" :color="activePopup === 'textColor' ? 'primary' : 'grey-7'" @click="togglePopup('textColor')">
+        <q-tooltip>{{ t('richText.textColor') }}</q-tooltip>
+      </q-btn>
+      <q-btn :ref="(el) => setBtnRef('highlightColor', el)" flat dense round size="xs" icon="sym_r_format_color_fill" :color="activePopup === 'highlightColor' ? 'primary' : 'grey-7'" @click="togglePopup('highlightColor')">
+        <q-tooltip>{{ t('richText.highlightColor') }}</q-tooltip>
+      </q-btn>
+      <q-separator vertical class="rte-separator" />
       <q-btn flat dense round size="xs" icon="sym_r_format_list_bulleted" :color="isActive.bulletList ? 'primary' : 'grey-7'" @click="toggleBulletList">
         <q-tooltip>{{ t('richText.bulletList') }}</q-tooltip>
       </q-btn>
@@ -244,17 +351,6 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
         <q-tooltip>{{ t('richText.codeBlock') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
-      <!-- 字体颜色 -->
-      <q-btn flat dense round size="xs" color="grey-7" @click="textColorPopup = !textColorPopup">
-        <q-icon name="sym_r_format_color_text" size="18px" />
-        <q-tooltip>{{ t('richText.textColor') }}</q-tooltip>
-      </q-btn>
-      <!-- 背景色 -->
-      <q-btn flat dense round size="xs" color="grey-7" @click="highlightColorPopup = !highlightColorPopup">
-        <q-icon name="sym_r_format_color_fill" size="18px" />
-        <q-tooltip>{{ t('richText.highlightColor') }}</q-tooltip>
-      </q-btn>
-      <q-separator vertical class="rte-separator" />
       <q-btn flat dense round size="xs" icon="sym_r_format_align_left" :color="isActive.alignLeft ? 'primary' : 'grey-7'" @click="setTextAlign('left')">
         <q-tooltip>{{ t('richText.alignLeft') }}</q-tooltip>
       </q-btn>
@@ -265,26 +361,19 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
         <q-tooltip>{{ t('richText.alignRight') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn flat dense round size="xs" icon="sym_r_link" :color="isActive.link ? 'primary' : 'grey-7'" @click="toggleLink">
+      <q-btn :ref="(el) => setBtnRef('link', el)" flat dense round size="xs" icon="sym_r_link" :color="isActive.link ? 'primary' : 'grey-7'" @click="openLinkPopup">
         <q-tooltip>{{ t('richText.link') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_image" color="grey-7" @click="insertImage">
+      <q-btn :ref="(el) => setBtnRef('image', el)" flat dense round size="xs" icon="sym_r_image" color="grey-7" @click="togglePopup('image')">
         <q-tooltip>{{ t('richText.image') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_table" color="grey-7" @click="insertTable">
+      <q-btn :ref="(el) => setBtnRef('table', el)" flat dense round size="xs" icon="sym_r_table" color="grey-7" @click="togglePopup('table')">
         <q-tooltip>{{ t('richText.table') }}</q-tooltip>
-      </q-btn>
-      <q-separator vertical class="rte-separator" />
-      <q-btn flat dense round size="xs" icon="sym_r_undo" :disable="!canUndo" color="grey-7" @click="undo">
-        <q-tooltip>{{ t('richText.undo') }}</q-tooltip>
-      </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_redo" :disable="!canRedo" color="grey-7" @click="redo">
-        <q-tooltip>{{ t('richText.redo') }}</q-tooltip>
       </q-btn>
     </div>
 
-    <!-- 颜色选择弹出面板 -->
-    <div v-if="textColorPopup" class="rte-color-popup">
+    <!-- 字体颜色选择弹出面板 -->
+    <div v-if="activePopup === 'textColor'" class="rte-color-popup rte-input-popup" :style="popupStyle">
       <div class="rte-color-grid">
         <button
           v-for="color in presetColors"
@@ -295,7 +384,6 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
         />
       </div>
       <div class="rte-color-actions">
-        <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_r_format_clear" :label="t('richText.clearColor')" @click="unsetTextColor" />
         <q-input
           v-model="customTextColor"
           dense
@@ -303,16 +391,16 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
           square
           :label="t('richText.customColor')"
           class="rte-color-input"
-          @keyup.enter="setTextColor(customTextColor); customTextColor = ''"
-        >
-          <template #append>
-            <q-icon name="sym_r_check" class="cursor-pointer" @click="setTextColor(customTextColor); customTextColor = ''" />
-          </template>
-        </q-input>
+          @keyup.enter="applyTextColor"
+        />
+        <q-btn flat dense round icon="sym_r_format_color_reset" class="rte-clear-color-btn" @click="unsetTextColor">
+          <q-tooltip>{{ t('richText.clearColor') }}</q-tooltip>
+        </q-btn>
       </div>
     </div>
 
-    <div v-if="highlightColorPopup" class="rte-color-popup">
+    <!-- 背景颜色选择弹出面板 -->
+    <div v-if="activePopup === 'highlightColor'" class="rte-color-popup rte-input-popup" :style="popupStyle">
       <div class="rte-color-grid">
         <button
           v-for="color in presetColors"
@@ -323,7 +411,6 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
         />
       </div>
       <div class="rte-color-actions">
-        <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_r_format_clear" :label="t('richText.clearColor')" @click="unsetHighlight" />
         <q-input
           v-model="customHighlightColor"
           dense
@@ -331,30 +418,113 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
           square
           :label="t('richText.customColor')"
           class="rte-color-input"
-          @keyup.enter="setHighlight(customHighlightColor); customHighlightColor = ''"
-        >
-          <template #append>
-            <q-icon name="sym_r_check" class="cursor-pointer" @click="setHighlight(customHighlightColor); customHighlightColor = ''" />
-          </template>
-        </q-input>
+          @keyup.enter="applyHighlightColor"
+        />
+        <q-btn flat dense round icon="sym_r_format_color_reset" class="rte-clear-color-btn" @click="unsetHighlight">
+          <q-tooltip>{{ t('richText.clearColor') }}</q-tooltip>
+        </q-btn>
+      </div>
+    </div>
+
+    <!-- 链接弹出面板 -->
+    <div v-if="activePopup === 'link'" class="rte-input-popup rte-link-popup" :style="popupStyle">
+      <q-input
+        v-model="linkUrl"
+        dense
+        filled
+        square
+        :label="t('richText.linkPrompt')"
+        autofocus
+        @keyup.enter="applyLink"
+      />
+      <div class="rte-popup-actions">
+        <q-btn flat no-caps color="grey-7" :label="t('common.cancel')" @click="closePopup" />
+        <q-btn unelevated no-caps color="primary" :label="t('common.confirm')" @click="applyLink" />
+      </div>
+    </div>
+
+    <!-- 图片弹出面板 -->
+    <div v-if="activePopup === 'image'" class="rte-input-popup rte-image-popup" :style="popupStyle">
+      <q-input
+        v-model="imageUrl"
+        dense
+        filled
+        square
+        :label="t('richText.imagePrompt')"
+        autofocus
+        @keyup.enter="applyImage"
+      />
+      <div class="rte-popup-actions">
+        <q-btn flat no-caps color="grey-7" :label="t('common.cancel')" @click="closePopup" />
+        <q-btn unelevated no-caps color="primary" :label="t('common.confirm')" @click="applyImage" />
+      </div>
+    </div>
+
+    <!-- 表格弹出面板 -->
+    <div v-if="activePopup === 'table'" class="rte-input-popup rte-table-popup" :style="popupStyle">
+      <div class="rte-table-inputs">
+        <q-input
+          v-model.number="tableRows"
+          type="number"
+          dense
+          filled
+          square
+          min="1"
+          max="20"
+          :label="t('richText.tableRowsPrompt')"
+        />
+        <q-input
+          v-model.number="tableCols"
+          type="number"
+          dense
+          filled
+          square
+          min="1"
+          max="20"
+          :label="t('richText.tableColsPrompt')"
+        />
+      </div>
+      <div class="rte-popup-actions">
+        <q-btn flat no-caps color="grey-7" :label="t('common.cancel')" @click="closePopup" />
+        <q-btn unelevated no-caps color="primary" :label="t('common.confirm')" @click="applyTable" />
       </div>
     </div>
 
     <!-- 表格操作栏（仅在光标位于表格内时显示） -->
     <div v-if="!isDisabled && isActive.table" class="rte-table-toolbar">
-      <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_r_add_column_left" :label="t('richText.addColumnBefore')" @click="addColumnBefore" />
-      <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_r_add_column_right" :label="t('richText.addColumnAfter')" @click="addColumnAfter" />
-      <q-btn flat dense no-caps size="sm" color="negative" icon="sym_r_delete_column" :label="t('richText.deleteColumn')" @click="deleteColumn" />
+      <q-btn flat dense round size="xs" icon="sym_r_add_column_left" color="grey-7" @click="addColumnBefore">
+        <q-tooltip>{{ t('richText.addColumnBefore') }}</q-tooltip>
+      </q-btn>
+      <q-btn flat dense round size="xs" icon="sym_r_add_column_right" color="grey-7" @click="addColumnAfter">
+        <q-tooltip>{{ t('richText.addColumnAfter') }}</q-tooltip>
+      </q-btn>
+      <q-btn flat dense round size="xs" icon="sym_r_delete" color="negative" @click="deleteColumn">
+        <q-tooltip>{{ t('richText.deleteColumn') }}</q-tooltip>
+      </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_r_add_row_above" :label="t('richText.addRowBefore')" @click="addRowBefore" />
-      <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_r_add_row_below" :label="t('richText.addRowAfter')" @click="addRowAfter" />
-      <q-btn flat dense no-caps size="sm" color="negative" icon="sym_r_delete_row" :label="t('richText.deleteRow')" @click="deleteRow" />
+      <q-btn flat dense round size="xs" icon="sym_r_add_row_above" color="grey-7" @click="addRowBefore">
+        <q-tooltip>{{ t('richText.addRowBefore') }}</q-tooltip>
+      </q-btn>
+      <q-btn flat dense round size="xs" icon="sym_r_add_row_below" color="grey-7" @click="addRowAfter">
+        <q-tooltip>{{ t('richText.addRowAfter') }}</q-tooltip>
+      </q-btn>
+      <q-btn flat dense round size="xs" icon="sym_r_remove" color="negative" @click="deleteRow">
+        <q-tooltip>{{ t('richText.deleteRow') }}</q-tooltip>
+      </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_r_call_merge" :label="t('richText.mergeCells')" @click="mergeCells" />
-      <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_r_split" :label="t('richText.splitCell')" @click="splitCell" />
-      <q-btn flat dense no-caps size="sm" color="grey-7" icon="sym_r_table_chart" :label="t('richText.toggleHeaderCell')" @click="toggleHeaderCell" />
+      <q-btn flat dense round size="xs" icon="sym_r_cell_merge" color="grey-7" @click="mergeCells">
+        <q-tooltip>{{ t('richText.mergeCells') }}</q-tooltip>
+      </q-btn>
+      <q-btn flat dense round size="xs" icon="sym_r_call_split" color="grey-7" @click="splitCell">
+        <q-tooltip>{{ t('richText.splitCell') }}</q-tooltip>
+      </q-btn>
+      <q-btn flat dense round size="xs" icon="sym_r_table_chart" color="grey-7" @click="toggleHeaderCell">
+        <q-tooltip>{{ t('richText.toggleHeaderCell') }}</q-tooltip>
+      </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn flat dense no-caps size="sm" color="negative" icon="sym_r_delete" :label="t('richText.deleteTable')" @click="deleteTable" />
+      <q-btn flat dense round size="xs" icon="sym_r_delete_forever" color="negative" @click="deleteTable">
+        <q-tooltip>{{ t('richText.deleteTable') }}</q-tooltip>
+      </q-btn>
     </div>
 
     <!-- 编辑区 -->
@@ -362,13 +532,12 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
   </div>
 </template>
 
-
 <style scoped>
 .rich-text-editor {
   border: 1px solid rgba(0, 0, 0, 0.15);
   background: #fff;
   border-radius: 0;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
 }
 
@@ -377,7 +546,6 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
   pointer-events: none;
 }
 
-/* 工具栏 */
 .rte-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -405,15 +573,10 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
   align-self: center;
 }
 
-/* 颜色弹出面板 */
 .rte-color-popup {
-  position: absolute;
-  z-index: 10;
-  top: 36px;
-  left: 6px;
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.12);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
   padding: 8px;
   border-radius: 4px;
 }
@@ -446,38 +609,87 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
 }
 
 .rte-color-input {
-  width: 120px;
+  flex: 1 1 auto;
 }
 
-/* 表格操作栏 */
+.rte-clear-color-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+}
+
+.rte-clear-color-btn :deep(.q-btn__wrapper) {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+}
+
+.rte-clear-color-btn :deep(.q-icon) {
+  font-size: 20px;
+}
+
+.rte-clear-color-btn:hover {
+  background: rgba(128, 128, 128, 0.2);
+}
+
+.rte-input-popup {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  padding: 12px;
+  border-radius: 4px;
+  min-width: 280px;
+}
+
+.rte-table-inputs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.rte-table-inputs .q-input {
+  flex: 1 1 0;
+}
+
+.rte-popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 .rte-table-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px;
-  padding: 2px 6px;
+  gap: 1px;
+  padding: 4px 6px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   background: #f5f5f5;
 }
 
 .rte-table-toolbar .q-btn {
+  width: 28px;
   height: 28px;
-  font-size: 11px;
-  padding: 0 6px;
+  min-width: 28px;
+  min-height: 28px;
 }
 
 .rte-table-toolbar .q-btn .q-icon {
-  font-size: 16px;
+  font-size: 18px;
 }
 
-/* 编辑区 */
 .rte-content {
   min-height: 200px;
   max-height: 500px;
   overflow-y: auto;
 }
 
-/* Tiptap 编辑器内容区样式 */
 .rte-content :deep(.tiptap) {
   padding: 12px 16px;
   min-height: 200px;
@@ -567,7 +779,6 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
   outline: 2px solid #009688;
 }
 
-/* 表格样式 */
 .rte-content :deep(.tiptap table) {
   border-collapse: collapse;
   table-layout: fixed;
@@ -594,21 +805,6 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
   background: rgba(0, 150, 136, 0.08);
 }
 
-.rte-content :deep(.tiptap .column-resize-handle) {
-  position: absolute;
-  right: -2px;
-  top: 0;
-  bottom: -2px;
-  width: 4px;
-  background: rgba(0, 150, 136, 0.3);
-  pointer-events: none;
-}
-
-.rte-content :deep(.tiptap.resize-cursor) {
-  cursor: ew-resize;
-}
-
-/* Placeholder 样式 */
 .rte-content :deep(.tiptap p.is-editor-empty:first-child::before) {
   content: attr(data-placeholder);
   float: left;
@@ -618,15 +814,12 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
 }
 </style>
 
-<!-- 非 scoped：暗黑模式样式 -->
 <style>
-/* 暗黑模式 — 编辑器外壳 */
 .body--dark .rich-text-editor {
   background: #2d2d2d;
   border-color: rgba(255, 255, 255, 0.22);
 }
 
-/* 暗黑模式 — 工具栏 */
 .body--dark .rte-toolbar {
   background: #252525;
   border-bottom-color: rgba(255, 255, 255, 0.08);
@@ -640,23 +833,33 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
   color: #80cbc4 !important;
 }
 
-/* 暗黑模式 — 颜色弹出面板 */
-.body--dark .rte-color-popup {
+.body--dark .rte-color-popup,
+.body--dark .rte-input-popup {
   background: #2d2d2d;
   border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
 }
 
-.body--dark .rte-color-popup .q-field--filled .q-field__control {
+.body--dark .rte-color-popup .q-field--filled .q-field__control,
+.body--dark .rte-input-popup .q-field--filled .q-field__control {
   background: #383838 !important;
 }
 
 .body--dark .rte-color-popup .q-field__native,
-.body--dark .rte-color-popup .q-field__label {
+.body--dark .rte-color-popup .q-field__label,
+.body--dark .rte-input-popup .q-field__native,
+.body--dark .rte-input-popup .q-field__label {
   color: rgba(255, 255, 255, 0.87) !important;
 }
 
-/* 暗黑模式 — 表格操作栏 */
+.body--dark .rte-clear-color-btn {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.body--dark .rte-clear-color-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
 .body--dark .rte-table-toolbar {
   background: #252525;
   border-bottom-color: rgba(255, 255, 255, 0.08);
@@ -666,7 +869,6 @@ const canRedo = computed(() => editor.value?.can().redo() ?? false);
   color: rgba(255, 255, 255, 0.55) !important;
 }
 
-/* 暗黑模式 — 编辑区内容 */
 .body--dark .rte-content .tiptap {
   color: rgba(255, 255, 255, 0.87);
 }
