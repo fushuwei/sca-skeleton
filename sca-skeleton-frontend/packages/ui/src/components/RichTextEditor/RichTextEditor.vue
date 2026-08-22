@@ -123,12 +123,94 @@ function saveSelection() {
   savedSelection = { from, to };
 }
 
-function restoreSelection() {
-  if (!editor.value || !savedSelection) return;
-  const { from, to } = savedSelection;
-  editor.value.commands.setTextSelection({ from, to });
-  editor.value.commands.focus();
-  savedSelection = null;
+/**
+ * 恢复编辑器选区：先通过 DOM 让编辑器同步获得焦点，再恢复选区。
+ * 不使用 chain().focus()，因为 Tiptap focus 命令内部用 requestAnimationFrame
+ * 异步聚焦，导致后续命令在编辑器尚未真正获得焦点时执行。
+ * Firefox 中异步聚焦的时序差异更大，回车键触发时 setColor 会失败。
+ */
+function restoreSelectionAndFocus() {
+  if (!editor.value) return;
+  // 1. 同步让 ProseMirror 编辑器 DOM 获得焦点
+  editor.value.view.dom.focus();
+  // 2. 同步恢复选区
+  if (savedSelection) {
+    const { from, to } = savedSelection;
+    editor.value.commands.setTextSelection({ from, to });
+    savedSelection = null;
+  }
+}
+
+/**
+ * 将用户输入的颜色值规范化为 #rrggbb 格式。
+ * 支持：blue, #fff, #ffffff, rgb(0,0,128), rgba(0,0,128,1)
+ */
+function normalizeColor(input: string): string | null {
+  const raw = input.trim().toLowerCase();
+  if (!raw) return null;
+  if (/^#[0-9a-f]{6}$/.test(raw)) return raw;
+  if (/^#[0-9a-f]{3}$/.test(raw)) {
+    return "#" + raw[1] + raw[1] + raw[2] + raw[2] + raw[3] + raw[3];
+  }
+  const rgbMatch = raw.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/);
+  if (rgbMatch) {
+    const r = parseInt(rgbMatch[1], 10);
+    const g = parseInt(rgbMatch[2], 10);
+    const b = parseInt(rgbMatch[3], 10);
+    if (r <= 255 && g <= 255 && b <= 255) {
+      return "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("");
+    }
+  }
+  if (/^[a-z]+$/.test(raw)) {
+    const probe = document.createElement("div");
+    probe.style.color = raw;
+    probe.style.display = "none";
+    document.body.appendChild(probe);
+    const computed = window.getComputedStyle(probe).color;
+    document.body.removeChild(probe);
+    const m = computed.match(/rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/);
+    if (m) {
+      const r = parseInt(m[1], 10);
+      const g = parseInt(m[2], 10);
+      const b = parseInt(m[3], 10);
+      return "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("");
+    }
+  }
+  return null;
+}
+
+/**
+ * 颜色输入框的 keydown 处理：跨浏览器兼容的回车提交。
+ * 不使用 @keyup.enter，因为 Vue 的 withKeys 修饰符在 Firefox 中
+ * 可能因 Quasar useSplitAttrs 的事件转发时序而不触发。
+ * 改用 @keydown 手动检查 event.key，在 keydown 阶段（焦点尚未变化）就处理。
+ */
+function onColorKeydown(e: KeyboardEvent, type: "text" | "highlight") {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    e.stopPropagation();
+    if (type === "text") {
+      applyTextColor();
+    } else {
+      applyHighlightColor();
+    }
+  }
+}
+
+function onLinkKeydown(e: KeyboardEvent) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    e.stopPropagation();
+    applyLink();
+  }
+}
+
+function onImageKeydown(e: KeyboardEvent) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    e.stopPropagation();
+    applyImage();
+  }
 }
 
 // ── 计算弹出框位置（自适应浏览器边界） ──
@@ -168,6 +250,9 @@ function togglePopup(type: Exclude<PopupType, null>) {
   }
   // 打开弹出框前保存编辑器选区
   saveSelection();
+  // 打开颜色弹出框时清空自定义颜色输入框
+  if (type === "textColor") customTextColor.value = "";
+  if (type === "highlightColor") customHighlightColor.value = "";
   activePopup.value = type;
   nextTick(() => {
     const btnEl = popupBtnRefs[type]?.$el ?? null;
@@ -245,11 +330,11 @@ function openLinkPopup() {
 
 function applyLink() {
   const url = linkUrl.value.trim();
-  restoreSelection();
-  if (!url) {
-    editor.value?.chain().focus().unsetLink().run();
+  restoreSelectionAndFocus();
+  if (url) {
+    editor.value?.chain().setLink({ href: url }).run();
   } else {
-    editor.value?.chain().focus().setLink({ href: url }).run();
+    editor.value?.chain().unsetLink().run();
   }
   closePopup();
   linkUrl.value = "";
@@ -258,9 +343,9 @@ function applyLink() {
 // ── 图片弹出框 ──
 function applyImage() {
   const src = imageUrl.value.trim();
-  restoreSelection();
   if (src) {
-    editor.value?.chain().focus().setImage({ src }).run();
+    restoreSelectionAndFocus();
+    editor.value?.chain().setImage({ src }).run();
   }
   closePopup();
   imageUrl.value = "";
@@ -270,8 +355,8 @@ function applyImage() {
 function applyTable() {
   const rows = Math.max(1, tableRows.value || 1);
   const cols = Math.max(1, tableCols.value || 1);
-  restoreSelection();
-  editor.value?.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
+  restoreSelectionAndFocus();
+  editor.value?.chain().insertTable({ rows, cols, withHeaderRow: true }).run();
   closePopup();
   tableRows.value = 3;
   tableCols.value = 3;
@@ -279,39 +364,39 @@ function applyTable() {
 
 // ── 颜色命令 ──
 function applyTextColor() {
-  const color = customTextColor.value.trim();
-  if (!color) return;
-  restoreSelection();
-  editor.value?.chain().focus().setColor(color).run();
+  const normalized = normalizeColor(customTextColor.value);
+  if (!normalized) return;
+  restoreSelectionAndFocus();
+  editor.value?.chain().setColor(normalized).run();
   closePopup();
   customTextColor.value = "";
 }
 function setTextColor(color: string) {
-  restoreSelection();
-  editor.value?.chain().focus().setColor(color).run();
+  restoreSelectionAndFocus();
+  editor.value?.chain().setColor(color).run();
   closePopup();
 }
 function unsetTextColor() {
-  restoreSelection();
-  editor.value?.chain().focus().unsetColor().run();
+  restoreSelectionAndFocus();
+  editor.value?.chain().unsetColor().run();
   closePopup();
 }
 function applyHighlightColor() {
-  const color = customHighlightColor.value.trim();
-  if (!color) return;
-  restoreSelection();
-  editor.value?.chain().focus().setHighlight({ color }).run();
+  const normalized = normalizeColor(customHighlightColor.value);
+  if (!normalized) return;
+  restoreSelectionAndFocus();
+  editor.value?.chain().setHighlight({ color: normalized }).run();
   closePopup();
   customHighlightColor.value = "";
 }
 function setHighlight(color: string) {
-  restoreSelection();
-  editor.value?.chain().focus().setHighlight({ color }).run();
+  restoreSelectionAndFocus();
+  editor.value?.chain().setHighlight({ color }).run();
   closePopup();
 }
 function unsetHighlight() {
-  restoreSelection();
-  editor.value?.chain().focus().unsetHighlight().run();
+  restoreSelectionAndFocus();
+  editor.value?.chain().unsetHighlight().run();
   closePopup();
 }
 
@@ -435,7 +520,7 @@ const isActive = computed(() => ({
           square
           :label="t('richText.customColor')"
           class="rte-color-input"
-          @keyup.enter="applyTextColor"
+          @keydown="onColorKeydown($event, 'text')"
         />
         <q-btn flat dense round icon="sym_r_format_color_reset" class="rte-clear-color-btn" @click="unsetTextColor">
           <q-tooltip>{{ t('richText.clearColor') }}</q-tooltip>
@@ -462,7 +547,7 @@ const isActive = computed(() => ({
           square
           :label="t('richText.customColor')"
           class="rte-color-input"
-          @keyup.enter="applyHighlightColor"
+          @keydown="onColorKeydown($event, 'highlight')"
         />
         <q-btn flat dense round icon="sym_r_format_color_reset" class="rte-clear-color-btn" @click="unsetHighlight">
           <q-tooltip>{{ t('richText.clearColor') }}</q-tooltip>
@@ -479,7 +564,7 @@ const isActive = computed(() => ({
         square
         :label="t('richText.linkPrompt')"
         autofocus
-        @keyup.enter="applyLink"
+        @keydown="onLinkKeydown"
       />
       <div class="rte-popup-actions">
         <q-btn flat no-caps color="grey-7" :label="t('common.cancel')" @click="closePopup" />
@@ -496,7 +581,7 @@ const isActive = computed(() => ({
         square
         :label="t('richText.imagePrompt')"
         autofocus
-        @keyup.enter="applyImage"
+        @keydown="onImageKeydown"
       />
       <div class="rte-popup-actions">
         <q-btn flat no-caps color="grey-7" :label="t('common.cancel')" @click="closePopup" />
@@ -542,7 +627,7 @@ const isActive = computed(() => ({
       <q-btn flat dense round size="xs" icon="sym_r_add_column_right" color="grey-7" @click="addColumnAfter">
         <q-tooltip>{{ t('richText.addColumnAfter') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_delete" color="grey-7" @click="deleteColumn">
+      <q-btn flat dense round size="xs" icon="sym_r_remove" color="grey-7" @click="deleteColumn">
         <q-tooltip>{{ t('richText.deleteColumn') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
