@@ -1679,18 +1679,4 @@ onMounted(() => {
 .body--dark .notice-drawer-footer {
   border-top-color: rgba(255, 255, 255, 0.08);
 }
-
-/* 抽屉内编辑器深色模式 */
-.body--dark .notice-content-editor {
-  background: #2d2d2d;
-  color: rgba(255, 255, 255, 0.87);
-}
-
-.body--dark .notice-content-editor .q-field__control {
-  background: #2d2d2d;
-}
-
-.body--dark .notice-content-editor .q-field__native {
-  color: rgba(255, 255, 255, 0.87);
-}
 </style>

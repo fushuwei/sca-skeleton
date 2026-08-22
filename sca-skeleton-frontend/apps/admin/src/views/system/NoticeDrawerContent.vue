@@ -7,6 +7,7 @@ import { createNoticeApi, updateNoticeApi } from "../../apis/notice";
 import { getDeptOptionsApi } from "../../apis/dept";
 import { getRoleOptionsApi } from "../../apis/role";
 import DateTimePicker from "../../components/DateTimePicker.vue";
+import { RichTextEditor } from "@repo/ui";
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -357,18 +358,11 @@ async function handleSave() {
         </div>
         <!-- 内容 -->
         <div class="col-12">
-          <q-input
+          <RichTextEditor
             v-model="form.content"
-            :label="t('noticeMgmt.content')"
-            filled
-            square
-            type="textarea"
-            rows="6"
             :placeholder="t('noticeMgmt.contentPlaceholder')"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
-            hide-bottom-space
-            class="notice-content-editor"
           />
         </div>
         <!-- 接收范围（单独占一行） -->
