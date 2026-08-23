@@ -2152,15 +2152,15 @@ function beginRightDrawerResize(e) {
 
 /*
  * q-menu Teleport 到 body，必须用非 scoped 样式。
- * 弹窗宽度 380px，高度由 NotificationPanel 固定，圆角阴影与 Quasar 弹出层视觉一致。
+ * 弹窗宽度 450px，高度由 NotificationPanel 固定，圆角阴影与 Quasar 弹出层视觉一致。
  * 注意：Quasar 给 q-menu 同时附加 scroll 工具类（QMenu.js 渲染 class 含 "scroll"），
  * 其 .scroll { overflow: auto } 与核心 .q-menu { overflow-y: auto } 均为单类选择器，
  * 与本规则特异性相同、只能靠源顺序取胜，太脆弱——必须 !important 才能稳定
  * 去掉外层纵向滚动条；内部滚动完全由面板内的 QScrollArea 负责。
  */
 .notification-q-menu {
-  width: 380px !important;
-  max-width: 380px !important;
+  width: 450px !important;
+  max-width: 450px !important;
   border-radius: 8px !important;
   overflow: hidden !important;
   overflow-y: hidden !important;
