@@ -219,6 +219,21 @@ public class SysNoticeServiceImpl implements SysNoticeService {
         if (affectedRows == 0) {
             throw new BusinessException(ResultCode.NOT_FOUND, "通知公告不存在或已被删除");
         }
+
+        /*
+         * 撤回时物理删除全部已读记录并清零阅读数：
+         * 保证下次重新发布（无论是否编辑内容）时所有人对该公告均为未读状态，
+         * 避免用户因历史已读而忽略更新后的重要信息。
+         * 注意必须物理删除：逻辑删除会在表中残留旧行，触发唯一键
+         * uk_notice_user(notice_id, user_id) 冲突，导致重新发布后无法再次标记已读。
+         */
+        if ("revoked".equals(request.getStatus())) {
+            noticeReadMapper.physicalDeleteByNoticeId(request.getId());
+            LambdaUpdateWrapper<SysNotice> resetWrapper = new LambdaUpdateWrapper<SysNotice>()
+                .eq(SysNotice::getId, request.getId())
+                .set(SysNotice::getReadCount, 0);
+            noticeMapper.update(null, resetWrapper);
+        }
     }
 
     /**

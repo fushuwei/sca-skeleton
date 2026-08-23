@@ -29,4 +29,9 @@
         ON DUPLICATE KEY UPDATE id = id
     </insert>
 
+    <!-- 按通知公告 ID 物理删除已读记录（撤回公告时使用），绕过 @TableLogic 逻辑删除 -->
+    <delete id="physicalDeleteByNoticeId">
+        DELETE FROM sys_notice_read WHERE notice_id = #{noticeId}
+    </delete>
+
 </mapper>

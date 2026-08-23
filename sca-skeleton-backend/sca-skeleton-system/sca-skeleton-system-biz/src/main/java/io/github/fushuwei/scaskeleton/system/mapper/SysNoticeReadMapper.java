@@ -39,4 +39,14 @@ public interface SysNoticeReadMapper extends BaseMapper<SysNoticeRead> {
      * @return 插入行数
      */
     int batchInsertReadRecords(@Param("tenantId") String tenantId, @Param("userId") String userId, @Param("noticeIds") List<String> noticeIds);
+
+    /**
+     * 按通知公告 ID 物理删除已读记录（撤回公告时使用）。
+     * 必须物理删除而非逻辑删除：表上存在唯一键 uk_notice_user(notice_id, user_id)，
+     * 若逻辑删除保留旧行，公告重新发布后再次标记已读会触发唯一键冲突。
+     *
+     * @param noticeId 通知公告 ID
+     * @return 删除行数
+     */
+    int physicalDeleteByNoticeId(@Param("noticeId") String noticeId);
 }
