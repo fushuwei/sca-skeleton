@@ -242,7 +242,7 @@ defineExpose({
         {{ t("notification.panelTitle") }}
         <q-badge
           v-if="unreadBadge > 0"
-          color="teal"
+          color="primary"
           rounded
           dense
           :label="unreadBadge > 99 ? '99+' : unreadBadge"
@@ -256,7 +256,7 @@ defineExpose({
         dense
         :label="t('notification.markAllRead')"
         icon="sym_r_done_all"
-        color="teal"
+        color="primary"
         class="mark-all-btn"
         :disable="unreadBadge === 0"
         :loading="markingAllRead"
@@ -317,7 +317,7 @@ defineExpose({
               no-caps
               dense
               :label="t('notification.markRead')"
-              color="teal"
+              color="primary"
               size="11px"
               @click.stop="handleMarkRead(item)"
             />
@@ -327,7 +327,7 @@ defineExpose({
               no-caps
               dense
               :label="t('notification.detailBtn')"
-              color="teal"
+              color="primary"
               size="11px"
               @click.stop="openNoticeDetail(item)"
             />
@@ -357,7 +357,7 @@ defineExpose({
         boundary-links
         size="sm"
         flat
-        color="teal"
+        color="primary"
         @update:model-value="onPageChange"
       />
     </div>
@@ -408,6 +408,11 @@ defineExpose({
   min-width: 16px;
   height: 16px;
   padding: 0 5px;
+}
+
+/* 暗色主题下的未读数徽标：与暗色主题按钮/分页一致使用青色 */
+.body--dark .header-unread-badge {
+  background: rgba(0, 150, 136, 0.85) !important;
 }
 
 .mark-all-btn {
@@ -651,6 +656,25 @@ defineExpose({
 
 .panel-footer :deep(.q-pagination__content .q-btn.q-btn--standard) {
   font-weight: 700;
+}
+
+/*
+ * 暗色主题：与列表页暗色分页样式（admin-layout-dark.scss）保持一致——
+ * 当前页按钮青色填充白字，其余按钮青色文字。
+ */
+.body--dark .panel-footer :deep(.q-pagination__content .q-btn:not(.q-btn--flat)) {
+  background: rgba(0, 150, 136, 0.85) !important;
+  color: white !important;
+}
+
+.body--dark .panel-footer :deep(.q-pagination__content .q-btn.q-btn--flat) {
+  color: rgba(0, 150, 136, 0.85) !important;
+}
+
+/* 暗色主题下的文字按钮（全部已读 / 标记已读 / 详情）：与列表页暗色按钮一致使用青色 */
+.body--dark .mark-all-btn,
+.body--dark .notice-item__action :deep(.q-btn) {
+  color: rgba(0, 150, 136, 0.85) !important;
 }
 
 .body--dark .panel-footer {
