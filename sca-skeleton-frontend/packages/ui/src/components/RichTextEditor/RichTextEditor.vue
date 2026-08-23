@@ -49,8 +49,14 @@ const isDisabled = computed(() => props.disable || props.readonly);
 // ── 全屏状态 ──
 const isFullscreen = ref(false);
 
-// ── 预览状态 ──
+// ── 源码模式状态 ──
+const isSourceCode = ref(false);
+
+// ── 预览模式状态 ──
 const isPreview = ref(false);
+
+// ── 工具栏按钮禁用状态（源码/预览模式下禁用除全屏外的所有按钮） ──
+const isToolbarLocked = computed(() => isSourceCode.value || isPreview.value);
 
 // ── 最近使用颜色（字体颜色 / 背景颜色各自独立） ──
 const recentTextColors = ref<string[]>([]);
@@ -338,6 +344,7 @@ const colorInputRules = [
 
 // ── 链接/图片/表格输入值 ──
 const linkUrl = ref("");
+const linkText = ref("");
 const imageUrl = ref("");
 const tableRows = ref(3);
 const tableCols = ref(3);
@@ -358,81 +365,123 @@ function setTextAlign(align: "left" | "center" | "right") { editor.value?.chain(
 function undo() { editor.value?.chain().focus().undo().run(); }
 function redo() { editor.value?.chain().focus().redo().run(); }
 
-// ── 清除格式 ──
+// ── 清除格式（清除选中文字上的所有格式：marks + 节点类型重置为段落 + 对齐重置） ──
 function clearAllMarks() {
-  editor.value?.chain().focus()
-    .unsetColor()
-    .unsetHighlight()
-    .unsetBold()
-    .unsetItalic()
-    .unsetStrike()
-    .unsetUnderline()
-    .unsetLink()
-    .run();
+  if (!editor.value) return;
+  const { state, view } = editor.value;
+  const { from, to } = state.selection;
+  if (from === to) return;
+
+  let tr = state.tr;
+
+  // 1. 清除选区范围内所有已有的 marks（加粗、斜体、颜色、背景色、链接等）
+  state.schema.marks.forEach((markType: any) => {
+    tr = tr.removeMark(from, to, markType);
+  });
+
+  // 2. 将选区范围内的块级节点重置为段落（清除标题、列表、引用、代码块等格式）
+  //    同时清除 textAlign 属性（TextAlign 扩展使用 globalAttributes 实现，不是 mark）
+  const { paragraph } = state.schema.nodes;
+  state.doc.nodesBetween(from, to, (node: any, pos: number) => {
+    if (node.isBlock && pos >= from && pos + node.nodeSize <= to) {
+      // 跳过 table、tableRow、tableCell 等表格节点
+      if (node.type.name !== "table" &&
+          node.type.name !== "tableRow" &&
+          node.type.name !== "tableCell" &&
+          node.type.name !== "tableHeader") {
+        // 重置为段落，同时清除 textAlign 属性
+        tr = tr.setNodeMarkup(pos, paragraph, {});
+      }
+    }
+  });
+
+  view.dispatch(tr);
 }
 
 // ── 格式刷 ──
 // 状态：idle（空闲）| copying（已复制格式，等待选择目标文本）
 const formatPainterState = ref<"idle" | "copying">("idle");
-// 保存的选区格式（marks）
-let copiedMarks: Record<string, any>[] | null = null;
+// 保存的选区格式（marks + 块级节点类型）
+let copiedMarks: { type: any; attrs: Record<string, any> }[] | null = null;
+let copiedBlockType: { type: any; attrs: Record<string, any> } | null = null;
 
 function toggleFormatPainter() {
   if (formatPainterState.value === "idle") {
-    // 进入复制模式：保存当前选区的 marks
+    // 进入复制模式：保存当前选区的 marks 和块级节点类型
     if (!editor.value) return;
     const { from, to } = editor.value.state.selection;
-    if (from === to) {
-      // 没有选中文本，无法复制格式
-      return;
-    }
-    // 获取选中范围内的 marks（取选区起始位置的 marks）
+    if (from === to) return; // 没有选中文本
+
+    // 保存 marks
     copiedMarks = editor.value.state.selection.$from.marks().map((m: any) => ({
       type: m.type,
       attrs: { ...m.attrs }
     }));
+
+    // 保存块级节点类型（取选区起始位置的块级节点）
+    const $from = editor.value.state.selection.$from;
+    const blockNode = $from.parent;
+    if (blockNode && blockNode.type) {
+      copiedBlockType = {
+        type: blockNode.type,
+        attrs: { ...blockNode.attrs }
+      };
+    }
+
     formatPainterState.value = "copying";
   } else {
     // 退出格式刷模式
     formatPainterState.value = "idle";
     copiedMarks = null;
+    copiedBlockType = null;
   }
 }
 
 /**
  * 编辑器 mouseup 事件：当格式刷处于 copying 状态时，
- * 将复制的 marks 应用到新选中的文本上，然后退出格式刷模式。
- * 使用 mouseup 而非 click，确保在用户完成文本选择（释放鼠标）后触发。
+ * 将复制的格式（marks + 块级节点类型）应用到新选中的文本上，然后退出格式刷模式。
  */
 function onEditorMouseupForFormatPainter() {
-  if (formatPainterState.value !== "copying" || !editor.value || !copiedMarks) return;
-  const { from, to } = editor.value.state.selection;
+  if (formatPainterState.value !== "copying" || !editor.value) return;
+  const { state, view } = editor.value;
+  const { from, to } = state.selection;
   if (from === to) return; // 没有选中文本
 
-  const { state } = editor.value;
   let tr = state.tr;
 
-  // 1. 清除选区范围内所有已有的 marks
-  state.schema.marks.forEach((markType: any) => {
+  // 1. 应用 marks：先清除所有 marks，再添加复制的 marks
+  if (copiedMarks) {
+    // 清除选区范围内所有已有的 marks
+    state.schema.marks.forEach((markType: any) => {
+      tr = tr.removeMark(from, to, markType);
+    });
+    // 添加复制的 marks
+    copiedMarks.forEach((mark: any) => {
+      tr = tr.addMark(from, to, mark.type.create(mark.attrs));
+    });
+  }
+
+  // 2. 应用块级节点类型：将选区范围内的块级节点转换为复制的节点类型
+  if (copiedBlockType) {
+    const { type: blockType, attrs: blockAttrs } = copiedBlockType;
     state.doc.nodesBetween(from, to, (node: any, pos: number) => {
-      if (node.isText) {
-        node.marks.forEach((m: any) => {
-          if (m.type === markType) {
-            tr = tr.removeMark(from, to, markType);
-          }
-        });
+      // 只处理选区范围内的顶层块级节点，且不是表格相关节点
+      if (node.isBlock && pos >= from && pos + node.nodeSize <= to &&
+          node.type.name !== "table" &&
+          node.type.name !== "tableRow" &&
+          node.type.name !== "tableCell" &&
+          node.type.name !== "tableHeader") {
+        if (node.type !== blockType) {
+          tr = tr.setNodeMarkup(pos, blockType, blockAttrs);
+        }
       }
     });
-  });
+  }
 
-  // 2. 逐个添加复制的 marks
-  copiedMarks.forEach((mark: any) => {
-    tr = tr.addMark(from, to, mark.type.create(mark.attrs));
-  });
-
-  editor.value.view.dispatch(tr);
+  view.dispatch(tr);
   formatPainterState.value = "idle";
   copiedMarks = null;
+  copiedBlockType = null;
 }
 
 // ── 全屏切换 ──
@@ -440,34 +489,86 @@ function toggleFullscreen() {
   isFullscreen.value = !isFullscreen.value;
 }
 
-// ── 预览切换（以 HTML 源码形式展示编辑器内容） ──
+// ── 源码模式切换（以 HTML 源码形式编辑） ──
+const sourceCode = ref("");
+function toggleSourceCode() {
+  isSourceCode.value = !isSourceCode.value;
+  if (isSourceCode.value) {
+    sourceCode.value = editor.value?.getHTML() || "";
+    editor.value?.setEditable(false);
+  } else {
+    // 退出源码模式时，将编辑后的 HTML 同步回编辑器
+    editor.value?.commands.setContent(sourceCode.value, { emitUpdate: true });
+    editor.value?.setEditable(!isDisabled.value);
+    sourceCode.value = "";
+  }
+}
+
+// ── 预览模式切换（以 HTML 渲染形式展示编辑器内容） ──
 const previewHtml = ref("");
 function togglePreview() {
   isPreview.value = !isPreview.value;
   if (isPreview.value) {
     previewHtml.value = editor.value?.getHTML() || "";
+    editor.value?.setEditable(false);
   } else {
+    editor.value?.setEditable(!isDisabled.value);
     previewHtml.value = "";
   }
 }
 
 // ── 链接弹出框 ──
 function openLinkPopup() {
-  const currentHref = (editor.value?.getAttributes("link") as { href?: string })?.href || "";
+  if (!editor.value) return;
+  const currentHref = (editor.value.getAttributes("link") as { href?: string })?.href || "";
   linkUrl.value = currentHref;
+  // 如果已选中文字，自动提取为链接文本
+  const { from, to } = editor.value.state.selection;
+  if (from !== to) {
+    linkText.value = editor.value.state.doc.textBetween(from, to, " ");
+  } else {
+    // 如果当前在链接上，提取链接文本
+    if (currentHref) {
+      const linkNode = editor.value.state.selection.$from.parent;
+      if (linkNode && linkNode.marks.some((m: any) => m.type.name === "link")) {
+        linkText.value = linkNode.textContent;
+      } else {
+        linkText.value = "";
+      }
+    } else {
+      linkText.value = "";
+    }
+  }
   togglePopup("link");
 }
 
 function applyLink() {
   const url = linkUrl.value.trim();
+  const text = linkText.value.trim();
+  if (!editor.value) return;
   restoreSelectionAndFocus();
   if (url) {
-    editor.value?.chain().setLink({ href: url }).run();
+    if (text) {
+      // 有链接文本：先删除选中内容，再插入带链接的文本
+      const { from, to } = editor.value.state.selection;
+      if (from !== to) {
+        editor.value.chain().deleteRange({ from, to }).run();
+      }
+      editor.value.chain().insertContent({
+        type: "text",
+        text: text,
+        marks: [{ type: "link", attrs: { href: url } }]
+      }).run();
+    } else {
+      // 没有链接文本：直接给选中的文字添加链接
+      editor.value.chain().setLink({ href: url }).run();
+    }
   } else {
-    editor.value?.chain().unsetLink().run();
+    editor.value.chain().unsetLink().run();
   }
   closePopup();
   linkUrl.value = "";
+  linkText.value = "";
 }
 
 // ── 图片弹出框 ──
@@ -550,6 +651,7 @@ function unsetHighlight() {
  * 3. 用户可以在 input 中正常输入颜色值，同时看到编辑器中文字仍被选中。
  */
 function onColorInputMousedown(e: MouseEvent) {
+  // 阻止 mousedown 默认行为，防止编辑器失焦导致选区高亮消失
   e.preventDefault();
   // 从事件绑定的元素（q-input 根 div）查找内部 input 元素
   const container = e.currentTarget as HTMLElement;
@@ -593,87 +695,90 @@ const isActive = computed(() => ({
 </script>
 
 <template>
-  <div class="rich-text-editor" :class="{ 'is-disabled': isDisabled, 'is-fullscreen': isFullscreen, 'is-preview': isPreview }">
+  <div class="rich-text-editor" :class="{ 'is-disabled': isDisabled, 'is-fullscreen': isFullscreen, 'is-preview': isPreview, 'is-source-code': isSourceCode }">
     <!-- 工具栏 -->
     <div v-if="!isDisabled" class="rte-toolbar">
-      <q-btn flat dense round size="xs" icon="sym_r_undo" color="grey-7" @click="undo">
+      <q-btn flat dense round size="xs" icon="sym_r_undo" color="grey-7" :disable="isToolbarLocked" @click="undo">
         <q-tooltip>{{ t('richText.undo') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_redo" color="grey-7" @click="redo">
+      <q-btn flat dense round size="xs" icon="sym_r_redo" color="grey-7" :disable="isToolbarLocked" @click="redo">
         <q-tooltip>{{ t('richText.redo') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn flat dense round size="xs" icon="sym_r_format_clear" color="grey-7" @click="clearAllMarks">
+      <q-btn flat dense round size="xs" icon="sym_r_format_clear" color="grey-7" :disable="isToolbarLocked" @click="clearAllMarks">
         <q-tooltip>{{ t('richText.clearFormat') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_content_paste" :color="formatPainterState === 'copying' ? 'primary' : 'grey-7'" @click="toggleFormatPainter">
+      <q-btn flat dense round size="xs" icon="sym_r_content_paste" :color="formatPainterState === 'copying' ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleFormatPainter">
         <q-tooltip>{{ t('richText.formatPainter') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn flat dense round size="xs" icon="sym_r_format_bold" :color="isActive.bold ? 'primary' : 'grey-7'" @click="toggleBold">
+      <q-btn flat dense round size="xs" icon="sym_r_format_bold" :color="isActive.bold ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleBold">
         <q-tooltip>{{ t('richText.bold') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_format_italic" :color="isActive.italic ? 'primary' : 'grey-7'" @click="toggleItalic">
+      <q-btn flat dense round size="xs" icon="sym_r_format_italic" :color="isActive.italic ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleItalic">
         <q-tooltip>{{ t('richText.italic') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_format_underlined" :color="isActive.underline ? 'primary' : 'grey-7'" @click="toggleUnderline">
+      <q-btn flat dense round size="xs" icon="sym_r_format_underlined" :color="isActive.underline ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleUnderline">
         <q-tooltip>{{ t('richText.underline') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_strikethrough_s" :color="isActive.strike ? 'primary' : 'grey-7'" @click="toggleStrike">
+      <q-btn flat dense round size="xs" icon="sym_r_strikethrough_s" :color="isActive.strike ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleStrike">
         <q-tooltip>{{ t('richText.strikethrough') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn flat dense round size="xs" icon="sym_r_format_h1" :color="isActive.h1 ? 'primary' : 'grey-7'" @click="toggleHeading(1)">
+      <q-btn flat dense round size="xs" icon="sym_r_format_h1" :color="isActive.h1 ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleHeading(1)">
         <q-tooltip>{{ t('richText.heading1') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_format_h2" :color="isActive.h2 ? 'primary' : 'grey-7'" @click="toggleHeading(2)">
+      <q-btn flat dense round size="xs" icon="sym_r_format_h2" :color="isActive.h2 ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleHeading(2)">
         <q-tooltip>{{ t('richText.heading2') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_format_h3" :color="isActive.h3 ? 'primary' : 'grey-7'" @click="toggleHeading(3)">
+      <q-btn flat dense round size="xs" icon="sym_r_format_h3" :color="isActive.h3 ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleHeading(3)">
         <q-tooltip>{{ t('richText.heading3') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn :ref="(el) => setBtnRef('textColor', el)" flat dense round size="xs" icon="sym_r_format_color_text" :color="activePopup === 'textColor' ? 'primary' : 'grey-7'" @click="togglePopup('textColor')">
+      <q-btn :ref="(el) => setBtnRef('textColor', el)" flat dense round size="xs" icon="sym_r_format_color_text" :color="activePopup === 'textColor' ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="togglePopup('textColor')">
         <q-tooltip>{{ t('richText.textColor') }}</q-tooltip>
       </q-btn>
-      <q-btn :ref="(el) => setBtnRef('highlightColor', el)" flat dense round size="xs" icon="sym_r_format_color_fill" :color="activePopup === 'highlightColor' ? 'primary' : 'grey-7'" @click="togglePopup('highlightColor')">
+      <q-btn :ref="(el) => setBtnRef('highlightColor', el)" flat dense round size="xs" icon="sym_r_format_color_fill" :color="activePopup === 'highlightColor' ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="togglePopup('highlightColor')">
         <q-tooltip>{{ t('richText.highlightColor') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn flat dense round size="xs" icon="sym_r_format_list_bulleted" :color="isActive.bulletList ? 'primary' : 'grey-7'" @click="toggleBulletList">
+      <q-btn flat dense round size="xs" icon="sym_r_format_list_bulleted" :color="isActive.bulletList ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleBulletList">
         <q-tooltip>{{ t('richText.bulletList') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_format_list_numbered" :color="isActive.orderedList ? 'primary' : 'grey-7'" @click="toggleOrderedList">
+      <q-btn flat dense round size="xs" icon="sym_r_format_list_numbered" :color="isActive.orderedList ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleOrderedList">
         <q-tooltip>{{ t('richText.orderedList') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_format_quote" :color="isActive.blockquote ? 'primary' : 'grey-7'" @click="toggleBlockquote">
+      <q-btn flat dense round size="xs" icon="sym_r_format_quote" :color="isActive.blockquote ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleBlockquote">
         <q-tooltip>{{ t('richText.quote') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_code_blocks" :color="isActive.codeBlock ? 'primary' : 'grey-7'" @click="toggleCodeBlock">
+      <q-btn flat dense round size="xs" icon="sym_r_code_blocks" :color="isActive.codeBlock ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleCodeBlock">
         <q-tooltip>{{ t('richText.codeBlock') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn flat dense round size="xs" icon="sym_r_format_align_left" :color="isActive.alignLeft ? 'primary' : 'grey-7'" @click="setTextAlign('left')">
+      <q-btn flat dense round size="xs" icon="sym_r_format_align_left" :color="isActive.alignLeft ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="setTextAlign('left')">
         <q-tooltip>{{ t('richText.alignLeft') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_format_align_center" :color="isActive.alignCenter ? 'primary' : 'grey-7'" @click="setTextAlign('center')">
+      <q-btn flat dense round size="xs" icon="sym_r_format_align_center" :color="isActive.alignCenter ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="setTextAlign('center')">
         <q-tooltip>{{ t('richText.alignCenter') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_format_align_right" :color="isActive.alignRight ? 'primary' : 'grey-7'" @click="setTextAlign('right')">
+      <q-btn flat dense round size="xs" icon="sym_r_format_align_right" :color="isActive.alignRight ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="setTextAlign('right')">
         <q-tooltip>{{ t('richText.alignRight') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn :ref="(el) => setBtnRef('link', el)" flat dense round size="xs" icon="sym_r_link" :color="isActive.link ? 'primary' : 'grey-7'" @click="openLinkPopup">
+      <q-btn :ref="(el) => setBtnRef('link', el)" flat dense round size="xs" icon="sym_r_link" :color="isActive.link ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="openLinkPopup">
         <q-tooltip>{{ t('richText.link') }}</q-tooltip>
       </q-btn>
-      <q-btn :ref="(el) => setBtnRef('image', el)" flat dense round size="xs" icon="sym_r_image" color="grey-7" @click="togglePopup('image')">
+      <q-btn :ref="(el) => setBtnRef('image', el)" flat dense round size="xs" icon="sym_r_image" color="grey-7" :disable="isToolbarLocked" @click="togglePopup('image')">
         <q-tooltip>{{ t('richText.image') }}</q-tooltip>
       </q-btn>
-      <q-btn :ref="(el) => setBtnRef('table', el)" flat dense round size="xs" icon="sym_r_table" color="grey-7" @click="togglePopup('table')">
+      <q-btn :ref="(el) => setBtnRef('table', el)" flat dense round size="xs" icon="sym_r_table" color="grey-7" :disable="isToolbarLocked" @click="togglePopup('table')">
         <q-tooltip>{{ t('richText.table') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn flat dense round size="xs" :icon="isPreview ? 'sym_r_preview_off' : 'sym_r_preview'" :color="isPreview ? 'primary' : 'grey-7'" @click="togglePreview">
+      <q-btn flat dense round size="xs" :icon="isSourceCode ? 'sym_r_edit' : 'sym_r_html'" :color="isSourceCode ? 'primary' : 'grey-7'" @click="toggleSourceCode">
+        <q-tooltip>{{ isSourceCode ? t('richText.exitSourceCode') : t('richText.sourceCode') }}</q-tooltip>
+      </q-btn>
+      <q-btn flat dense round size="xs" :icon="isPreview ? 'sym_r_preview_off' : 'sym_r_preview'" :color="isPreview ? 'primary' : 'grey-7'" :disable="isSourceCode" @click="togglePreview">
         <q-tooltip>{{ isPreview ? t('richText.exitPreview') : t('richText.preview') }}</q-tooltip>
       </q-btn>
       <q-btn flat dense round size="xs" :icon="isFullscreen ? 'sym_r_fullscreen_exit' : 'sym_r_fullscreen'" :color="isFullscreen ? 'primary' : 'grey-7'" @click="toggleFullscreen">
@@ -770,12 +875,20 @@ const isActive = computed(() => ({
     <!-- 链接弹出面板 -->
     <div v-if="activePopup === 'link'" class="rte-input-popup rte-link-popup" :style="popupStyle">
       <q-input
+        v-model="linkText"
+        dense
+        filled
+        square
+        :label="t('richText.linkText')"
+        @keydown="onLinkKeydown"
+      />
+      <q-input
         v-model="linkUrl"
         dense
         filled
         square
         :label="t('richText.linkPrompt')"
-        autofocus
+        class="rte-link-url-input"
         @keydown="onLinkKeydown"
       />
       <div class="rte-popup-actions">
@@ -869,11 +982,11 @@ const isActive = computed(() => ({
     </div>
 
     <!-- 编辑区 -->
-    <EditorContent :editor="editor" class="rte-content" :class="{ 'is-hidden': isPreview }" @mouseup="onEditorMouseupForFormatPainter" />
-    <!-- 预览区（以 HTML 源码形式展示） -->
-    <div v-if="isPreview" class="rte-preview-content">
-      <pre class="rte-preview-pre">{{ previewHtml }}</pre>
-    </div>
+    <EditorContent :editor="editor" class="rte-content" :class="{ 'is-hidden': isPreview || isSourceCode }" @mouseup="onEditorMouseupForFormatPainter" />
+    <!-- 源码编辑区 -->
+    <textarea v-if="isSourceCode" v-model="sourceCode" class="rte-source-textarea"></textarea>
+    <!-- 预览区（以 HTML 渲染形式展示） -->
+    <div v-if="isPreview" class="rte-preview-content" v-html="previewHtml"></div>
     <!-- 全屏遮罩层 -->
     <div v-if="isFullscreen" class="rte-fullscreen-overlay" @click="toggleFullscreen"></div>
   </div>
@@ -1078,8 +1191,9 @@ const isActive = computed(() => ({
   display: none;
 }
 
-/* 预览模式 */
-.rich-text-editor.is-preview .rte-content {
+/* 预览模式 / 源码模式 */
+.rich-text-editor.is-preview .rte-content,
+.rich-text-editor.is-source-code .rte-content {
   max-height: none;
 }
 
@@ -1091,23 +1205,50 @@ const isActive = computed(() => ({
   min-height: 200px;
   max-height: 500px;
   overflow-y: auto;
-  background: #f5f5f5;
+  background: #fff;
+  padding: 12px 16px;
 }
 
-.rte-preview-pre {
-  margin: 0;
+.rte-preview-content :deep(p) { margin: 0 0 0.5em; }
+.rte-preview-content :deep(h1) { font-size: 1.6em; font-weight: 700; margin: 0.8em 0 0.4em; }
+.rte-preview-content :deep(h2) { font-size: 1.4em; font-weight: 700; margin: 0.7em 0 0.4em; }
+.rte-preview-content :deep(h3) { font-size: 1.2em; font-weight: 600; margin: 0.6em 0 0.3em; }
+.rte-preview-content :deep(ul) { padding-left: 1.5em; list-style: disc; margin: 0 0 0.5em; }
+.rte-preview-content :deep(ol) { padding-left: 1.5em; list-style: decimal; margin: 0 0 0.5em; }
+.rte-preview-content :deep(blockquote) { border-left: 3px solid rgba(0,0,0,0.15); padding-left: 1em; margin: 0 0 0.5em; color: rgba(0,0,0,0.6); font-style: italic; }
+.rte-preview-content :deep(pre) { background: #f5f5f5; border-radius: 4px; padding: 0.75em 1em; margin: 0 0 0.5em; overflow-x: auto; }
+.rte-preview-content :deep(code) { background: rgba(0,0,0,0.06); border-radius: 3px; padding: 2px 5px; font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace; font-size: 0.9em; }
+.rte-preview-content :deep(a) { color: #009688; text-decoration: underline; }
+.rte-preview-content :deep(img) { max-width: 100%; height: auto; border-radius: 4px; margin: 0.5em 0; }
+.rte-preview-content :deep(table) { border-collapse: collapse; table-layout: fixed; width: 100%; margin: 0 0 0.5em; }
+.rte-preview-content :deep(td), .rte-preview-content :deep(th) { border: 1px solid rgba(0,0,0,0.12); padding: 6px 10px; }
+.rte-preview-content :deep(th) { background: #f5f5f5; font-weight: 600; }
+
+.rte-source-textarea {
+  width: 100%;
+  min-height: 200px;
+  max-height: 500px;
+  resize: none;
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   padding: 12px 16px;
   font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
   font-size: 13px;
   line-height: 1.6;
   color: rgba(0, 0, 0, 0.87);
-  white-space: pre-wrap;
-  word-break: break-all;
+  background: #f5f5f5;
+  outline: none;
+  resize: vertical;
 }
 
-.rich-text-editor.is-fullscreen .rte-preview-content {
+.rich-text-editor.is-fullscreen .rte-preview-content,
+.rich-text-editor.is-fullscreen .rte-source-textarea {
   flex: 1 1 auto;
   max-height: none;
+}
+
+.rte-link-url-input {
+  margin-top: 8px;
 }
 
 .rte-content :deep(.tiptap) {
@@ -1336,10 +1477,12 @@ const isActive = computed(() => ({
 }
 
 .body--dark .rte-preview-content {
-  background: #1e1e1e;
+  background: #2d2d2d;
 }
 
-.body--dark .rte-preview-pre {
+.body--dark .rte-source-textarea {
+  background: #1e1e1e;
   color: rgba(255, 255, 255, 0.87);
+  border-top-color: rgba(255, 255, 255, 0.08);
 }
 </style>
