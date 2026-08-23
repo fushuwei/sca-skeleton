@@ -16,6 +16,9 @@ import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 import { useI18n } from "vue-i18n";
 
+// ── 常量 ──
+const MAX_RECENT_COLORS = 8;
+
 defineOptions({
   name: "RichTextEditor"
 });
@@ -42,6 +45,28 @@ const emit = defineEmits<{
 }>();
 
 const isDisabled = computed(() => props.disable || props.readonly);
+
+// ── 全屏状态 ──
+const isFullscreen = ref(false);
+
+// ── 预览状态 ──
+const isPreview = ref(false);
+
+// ── 最近使用颜色（字体颜色 / 背景颜色各自独立） ──
+const recentTextColors = ref<string[]>([]);
+const recentHighlightColors = ref<string[]>([]);
+
+/**
+ * 将颜色加入最近使用列表（先进先出，去重，最多 MAX_RECENT_COLORS 个）。
+ * 最新使用的颜色放在列表最左边（index 0）。
+ */
+function pushRecentColor(list: { value: string[] }, color: string) {
+  const normalized = normalizeColor(color);
+  if (!normalized) return;
+  const filtered = list.value.filter((c) => c.toLowerCase() !== normalized.toLowerCase());
+  filtered.unshift(normalized);
+  list.value = filtered.slice(0, MAX_RECENT_COLORS);
+}
 
 const editor = useEditor({
   content: props.modelValue || "",
@@ -303,6 +328,14 @@ const presetColors = [
 const customTextColor = ref("");
 const customHighlightColor = ref("");
 
+// ── 颜色输入框校验规则 ──
+const colorInputRules = [
+  (v: string) => {
+    if (!v || !v.trim()) return true; // 空值合法（不操作）
+    return normalizeColor(v) !== null || t("richText.invalidColor");
+  }
+];
+
 // ── 链接/图片/表格输入值 ──
 const linkUrl = ref("");
 const imageUrl = ref("");
@@ -320,6 +353,34 @@ function toggleOrderedList() { editor.value?.chain().focus().toggleOrderedList()
 function toggleBlockquote() { editor.value?.chain().focus().toggleBlockquote().run(); }
 function toggleCodeBlock() { editor.value?.chain().focus().toggleCodeBlock().run(); }
 function setTextAlign(align: "left" | "center" | "right") { editor.value?.chain().focus().setTextAlign(align).run(); }
+
+// ── 清除格式 ──
+function clearAllMarks() {
+  editor.value?.chain().focus()
+    .unsetColor()
+    .unsetHighlight()
+    .unsetBold()
+    .unsetItalic()
+    .unsetStrike()
+    .unsetUnderline()
+    .unsetLink()
+    .run();
+}
+
+// ── 全屏切换 ──
+function toggleFullscreen() {
+  isFullscreen.value = !isFullscreen.value;
+}
+
+// ── 预览切换 ──
+function togglePreview() {
+  isPreview.value = !isPreview.value;
+  if (isPreview.value) {
+    editor.value?.setEditable(false);
+  } else {
+    editor.value?.setEditable(!isDisabled.value);
+  }
+}
 
 // ── 链接弹出框 ──
 function openLinkPopup() {
@@ -365,15 +426,17 @@ function applyTable() {
 // ── 颜色命令 ──
 function applyTextColor() {
   const normalized = normalizeColor(customTextColor.value);
-  if (!normalized) return;
+  if (!normalized) return; // 输入无效时不执行任何操作，保留文本原色
   restoreSelectionAndFocus();
   editor.value?.chain().setColor(normalized).run();
+  pushRecentColor(recentTextColors, normalized);
   closePopup();
   customTextColor.value = "";
 }
 function setTextColor(color: string) {
   restoreSelectionAndFocus();
   editor.value?.chain().setColor(color).run();
+  pushRecentColor(recentTextColors, color);
   closePopup();
 }
 function unsetTextColor() {
@@ -383,21 +446,48 @@ function unsetTextColor() {
 }
 function applyHighlightColor() {
   const normalized = normalizeColor(customHighlightColor.value);
-  if (!normalized) return;
+  if (!normalized) return; // 输入无效时不执行任何操作，保留文本原色
   restoreSelectionAndFocus();
   editor.value?.chain().setHighlight({ color: normalized }).run();
+  pushRecentColor(recentHighlightColors, normalized);
   closePopup();
   customHighlightColor.value = "";
 }
 function setHighlight(color: string) {
   restoreSelectionAndFocus();
   editor.value?.chain().setHighlight({ color }).run();
+  pushRecentColor(recentHighlightColors, color);
   closePopup();
 }
 function unsetHighlight() {
   restoreSelectionAndFocus();
   editor.value?.chain().unsetHighlight().run();
   closePopup();
+}
+
+/**
+ * 颜色输入框 mousedown 事件处理：阻止默认的焦点转移，
+ * 让 ProseMirror 编辑器保留焦点（从而保留文字选中状态的视觉高亮），
+ * 同时手动将焦点设置到 input 框上，让用户可以输入颜色。
+ *
+ * ProseMirror 在 dom.blur() 时会清除选区的视觉高亮，
+ * 但 selection 状态仍保留在 editor.state 中。
+ * 通过 preventDefault 阻止 mousedown 的默认行为（焦点转移），
+ * 编辑器不会触发 blur，选区高亮得以保留。
+ * 然后手动 focus input，让用户可以正常输入。
+ */
+function onColorInputMousedown(e: MouseEvent) {
+  // 阻止 mousedown 默认行为，防止编辑器失焦导致选区高亮消失
+  e.preventDefault();
+  // 手动将焦点设置到 input 上（不影响编辑器的选区状态）
+  const input = e.target as HTMLElement;
+  // 从事件目标往上找 input 元素
+  const inputEl = input.tagName === "INPUT"
+    ? input
+    : input.querySelector("input") || (input.closest?.(".q-field")?.querySelector("input"));
+  if (inputEl) {
+    (inputEl as HTMLInputElement).focus();
+  }
 }
 
 // ── 表格命令 ──
@@ -434,7 +524,7 @@ const isActive = computed(() => ({
 </script>
 
 <template>
-  <div class="rich-text-editor" :class="{ 'is-disabled': isDisabled }">
+  <div class="rich-text-editor" :class="{ 'is-disabled': isDisabled, 'is-fullscreen': isFullscreen, 'is-preview': isPreview }">
     <!-- 工具栏 -->
     <div v-if="!isDisabled" class="rte-toolbar">
       <q-btn flat dense round size="xs" icon="sym_r_format_bold" :color="isActive.bold ? 'primary' : 'grey-7'" @click="toggleBold">
@@ -499,10 +589,33 @@ const isActive = computed(() => ({
       <q-btn :ref="(el) => setBtnRef('table', el)" flat dense round size="xs" icon="sym_r_table" color="grey-7" @click="togglePopup('table')">
         <q-tooltip>{{ t('richText.table') }}</q-tooltip>
       </q-btn>
+      <q-separator vertical class="rte-separator" />
+      <q-btn flat dense round size="xs" icon="sym_r_format_clear" color="grey-7" @click="clearAllMarks">
+        <q-tooltip>{{ t('richText.clearFormat') }}</q-tooltip>
+      </q-btn>
+      <q-btn flat dense round size="xs" :icon="isPreview ? 'sym_r_edit_off' : 'sym_r_preview'" :color="isPreview ? 'primary' : 'grey-7'" @click="togglePreview">
+        <q-tooltip>{{ isPreview ? t('richText.exitPreview') : t('richText.preview') }}</q-tooltip>
+      </q-btn>
+      <q-btn flat dense round size="xs" :icon="isFullscreen ? 'sym_r_fullscreen_exit' : 'sym_r_fullscreen'" :color="isFullscreen ? 'primary' : 'grey-7'" @click="toggleFullscreen">
+        <q-tooltip>{{ isFullscreen ? t('richText.exitFullscreen') : t('richText.fullscreen') }}</q-tooltip>
+      </q-btn>
     </div>
 
     <!-- 字体颜色选择弹出面板 -->
     <div v-if="activePopup === 'textColor'" class="rte-color-popup rte-input-popup" :style="popupStyle">
+      <!-- 最近使用的颜色 -->
+      <div v-if="recentTextColors.length > 0" class="rte-recent-colors">
+        <span class="rte-recent-label">{{ t('richText.recentColors') }}</span>
+        <div class="rte-recent-grid">
+          <button
+            v-for="color in recentTextColors"
+            :key="'recent-text-' + color"
+            class="rte-color-swatch"
+            :style="{ background: color }"
+            @click="setTextColor(color)"
+          />
+        </div>
+      </div>
       <div class="rte-color-grid">
         <button
           v-for="color in presetColors"
@@ -519,8 +632,11 @@ const isActive = computed(() => ({
           filled
           square
           :label="t('richText.customColor')"
+          :rules="colorInputRules"
+          hide-bottom-space
           class="rte-color-input"
           @keydown="onColorKeydown($event, 'text')"
+          @mousedown="onColorInputMousedown"
         />
         <q-btn flat dense round icon="sym_r_format_color_reset" class="rte-clear-color-btn" @click="unsetTextColor">
           <q-tooltip>{{ t('richText.clearColor') }}</q-tooltip>
@@ -530,6 +646,19 @@ const isActive = computed(() => ({
 
     <!-- 背景颜色选择弹出面板 -->
     <div v-if="activePopup === 'highlightColor'" class="rte-color-popup rte-input-popup" :style="popupStyle">
+      <!-- 最近使用的颜色 -->
+      <div v-if="recentHighlightColors.length > 0" class="rte-recent-colors">
+        <span class="rte-recent-label">{{ t('richText.recentColors') }}</span>
+        <div class="rte-recent-grid">
+          <button
+            v-for="color in recentHighlightColors"
+            :key="'recent-hl-' + color"
+            class="rte-color-swatch"
+            :style="{ background: color }"
+            @click="setHighlight(color)"
+          />
+        </div>
+      </div>
       <div class="rte-color-grid">
         <button
           v-for="color in presetColors"
@@ -546,8 +675,11 @@ const isActive = computed(() => ({
           filled
           square
           :label="t('richText.customColor')"
+          :rules="colorInputRules"
+          hide-bottom-space
           class="rte-color-input"
           @keydown="onColorKeydown($event, 'highlight')"
+          @mousedown="onColorInputMousedown"
         />
         <q-btn flat dense round icon="sym_r_format_color_reset" class="rte-clear-color-btn" @click="unsetHighlight">
           <q-tooltip>{{ t('richText.clearColor') }}</q-tooltip>
@@ -627,7 +759,7 @@ const isActive = computed(() => ({
       <q-btn flat dense round size="xs" icon="sym_r_add_column_right" color="grey-7" @click="addColumnAfter">
         <q-tooltip>{{ t('richText.addColumnAfter') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_remove" color="grey-7" @click="deleteColumn">
+      <q-btn flat dense round size="xs" icon="remove" color="grey-7" @click="deleteColumn">
         <q-tooltip>{{ t('richText.deleteColumn') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
@@ -637,7 +769,7 @@ const isActive = computed(() => ({
       <q-btn flat dense round size="xs" icon="sym_r_add_row_below" color="grey-7" @click="addRowAfter">
         <q-tooltip>{{ t('richText.addRowAfter') }}</q-tooltip>
       </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_remove" color="grey-7" @click="deleteRow">
+      <q-btn flat dense round size="xs" icon="remove" color="grey-7" @click="deleteRow">
         <q-tooltip>{{ t('richText.deleteRow') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
@@ -658,6 +790,8 @@ const isActive = computed(() => ({
 
     <!-- 编辑区 -->
     <EditorContent :editor="editor" class="rte-content" />
+    <!-- 全屏遮罩层 -->
+    <div v-if="isFullscreen" class="rte-fullscreen-overlay" @click="toggleFullscreen"></div>
   </div>
 </template>
 
@@ -715,6 +849,25 @@ const isActive = computed(() => ({
   grid-template-columns: repeat(10, 1fr);
   gap: 3px;
   margin-bottom: 8px;
+}
+
+.rte-recent-colors {
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.rte-recent-label {
+  display: block;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.5);
+  margin-bottom: 4px;
+}
+
+.rte-recent-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
 }
 
 .rte-color-swatch {
@@ -817,6 +970,33 @@ const isActive = computed(() => ({
   min-height: 200px;
   max-height: 500px;
   overflow-y: auto;
+}
+
+/* 全屏模式 */
+.rich-text-editor.is-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rich-text-editor.is-fullscreen .rte-content {
+  flex: 1 1 auto;
+  max-height: none;
+}
+
+.rte-fullscreen-overlay {
+  display: none;
+}
+
+/* 预览模式 */
+.rich-text-editor.is-preview .rte-content {
+  max-height: none;
 }
 
 .rte-content :deep(.tiptap) {
@@ -1034,5 +1214,13 @@ const isActive = computed(() => ({
 
 .body--dark .rte-content .tiptap p.is-editor-empty:first-child::before {
   color: rgba(255, 255, 255, 0.35);
+}
+
+.body--dark .rte-recent-colors {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.body--dark .rte-recent-label {
+  color: rgba(255, 255, 255, 0.5);
 }
 </style>
