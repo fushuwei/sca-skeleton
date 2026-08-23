@@ -594,11 +594,13 @@ defineExpose({
 
 .notice-item__action {
   flex-shrink: 0;
+  /* 撑满条目高度并垂直居中：未读时「已读/详情」等距堆叠，已读时「详情」单独居中 */
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
-  margin-top: 2px;
+  justify-content: center;
+  gap: 4px;
 }
 
 .panel-footer {
