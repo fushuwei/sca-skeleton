@@ -1,5 +1,5 @@
 import { request } from "./http";
-import type { ApiEnvelope, SysNotice, NoticePageRequest, IPage } from "../types/auth";
+import type { ApiEnvelope, SysNotice, NoticePageRequest, NoticeInboxItem, IPage } from "../types/auth";
 
 /** 分页查询通知公告列表 */
 export async function getNoticePageApi(
@@ -55,5 +55,27 @@ export async function batchDeleteNoticeApi(ids: string[]): Promise<ApiEnvelope<n
 
 /** 标记通知公告为已读 */
 export async function markNoticeAsReadApi(id: string): Promise<ApiEnvelope<null>> {
-  return request<null>({ method: "POST", url: `/sys/notice/read/${id}` });
+  return request<null>({ method: "POST", url: "/sys/notice/read", data: { id } });
+}
+
+/** 查询当前用户未读通知数量 */
+export async function getUnreadNoticeCountApi(): Promise<ApiEnvelope<number>> {
+  return request<number>({ method: "GET", url: "/sys/notice/unread/count" });
+}
+
+/** 查询当前用户消息收件箱（弹窗展示用） */
+export async function getNoticeInboxApi(
+  pageNum = 1,
+  pageSize = 10
+): Promise<ApiEnvelope<IPage<NoticeInboxItem>>> {
+  return request<IPage<NoticeInboxItem>>({
+    method: "GET",
+    url: "/sys/notice/inbox",
+    params: { pageNum, pageSize }
+  });
+}
+
+/** 全部标记已读 */
+export async function markAllNoticeAsReadApi(): Promise<ApiEnvelope<null>> {
+  return request<null>({ method: "POST", url: "/sys/notice/read/all" });
 }

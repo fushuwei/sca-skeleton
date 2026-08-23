@@ -6,6 +6,7 @@ import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticePageReques
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeStatusRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeTopRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeInboxResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeResponse;
 
 import java.util.List;
@@ -81,4 +82,25 @@ public interface SysNoticeService {
      * @param noticeId 通知公告 ID
      */
     void markAsRead(String noticeId);
+
+    /**
+     * 查询当前用户的未读通知公告数量
+     *
+     * @return 未读数量
+     */
+    long getUnreadCount();
+
+    /**
+     * 分页查询当前用户的消息收件箱（可见通知公告列表，含已读状态）
+     *
+     * @param pageNum  页码
+     * @param pageSize 每页大小
+     * @return 分页结果
+     */
+    IPage<NoticeInboxResponse> getNoticeInbox(int pageNum, int pageSize);
+
+    /**
+     * 将当前用户所有未读通知公告标记为已读
+     */
+    void markAllAsRead();
 }

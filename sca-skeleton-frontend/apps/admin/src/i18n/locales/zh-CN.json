@@ -789,6 +789,19 @@
     "saveFail": "保存失败",
     "valuePlaceholder": "请输入配置值"
   },
+  "notification": {
+    "panelTitle": "消息通知",
+    "emptyHint": "新的通知发布后将显示在这里",
+    "markRead": "已读",
+    "markAllRead": "全部已读",
+    "markAllReadSuccess": "已全部标记为已读",
+    "readTooltip": "已读",
+    "topBadge": "置顶",
+    "justNow": "刚刚",
+    "minutesAgo": "{count} 分钟前",
+    "hoursAgo": "{count} 小时前",
+    "daysAgo": "{count} 天前"
+  },
   "noticeMgmt": {
     "createNotice": "添加公告",
     "addNotice": "添加公告",

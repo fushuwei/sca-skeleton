@@ -12,4 +12,21 @@
         LIMIT 1
     </select>
 
+    <!-- 查询用户所有已读通知公告 ID 列表 -->
+    <select id="selectReadNoticeIdsByUserId" resultType="java.lang.String">
+        SELECT notice_id FROM sys_notice_read
+        WHERE is_deleted = 0
+        AND user_id = #{userId}
+    </select>
+
+    <!-- 批量插入已读记录（用于「全部标记已读」），唯一键 (notice_id, user_id) 冲突时跳过 -->
+    <insert id="batchInsertReadRecords">
+        INSERT INTO sys_notice_read (id, tenant_id, notice_id, user_id, read_time, create_time)
+        VALUES
+        <foreach collection="noticeIds" item="noticeId" separator=",">
+            (REPLACE(UUID(), '-', ''), #{tenantId}, #{noticeId}, #{userId}, NOW(), NOW())
+        </foreach>
+        ON DUPLICATE KEY UPDATE id = id
+    </insert>
+
 </mapper>

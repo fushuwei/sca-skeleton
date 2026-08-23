@@ -700,3 +700,25 @@ export interface NoticeTargetItem {
   /** 目标 ID（部门ID / 角色ID / 用户ID） */
   targetId: string;
 }
+
+/** 消息通知收件箱项（铃铛弹窗展示用） */
+export interface NoticeInboxItem {
+  id: string;
+  title: string;
+  /** 类型（notice 通知，announcement 公告，system 系统消息，other 其他） */
+  type: string;
+  /** 内容（HTML 富文本，前端弹窗展示摘要时需截断/去标签） */
+  content: string;
+  /** 重要级别（normal 普通，important 重要，urgent 紧急） */
+  level: string;
+  /** 是否置顶（0否 1是） */
+  isTop: number;
+  /** 发布人名称 */
+  publisherName?: string;
+  /** 发布时间 */
+  publishTime: string | null;
+  /** 当前用户是否已读 */
+  isRead: boolean;
+  /** 读取时间（未读时为 null） */
+  readTime: string | null;
+}

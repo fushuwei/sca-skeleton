@@ -8,7 +8,9 @@ import { useAuthStore } from "../stores/auth";
 import { flattenRoutableMenus, getIconForMenuRouteName } from "../utils/menu-tree";
 import { persistDark, persistLocale, quasarLangForLocale } from "../i18n";
 import { getTenantListApi } from "../apis/tenant";
+import { getUnreadNoticeCountApi } from "../apis/notice";
 import { isNotificationHandled, showToast } from "@repo/shared";
+import NotificationPanel from "../components/NotificationPanel.vue";
 
 const LOGO_URL = import.meta.env.BASE_URL + "images/logo.png";
 
@@ -149,6 +151,58 @@ function toggleColorTheme() {
   persistDark($q.dark.isActive);
 }
 
+// ═══════════════════════════════════════════════════════════════
+// 消息通知：未读数查询 + 轮询
+// ═══════════════════════════════════════════════════════════════
+
+/** 未读通知数量（0 时不显示徽标） */
+const unreadNoticeCount = ref(0);
+/** NotificationPanel 组件引用 */
+const notificationPanelRef = ref(null);
+/** 轮询定时器 ID */
+let unreadPollTimer = null;
+/** 轮询间隔（毫秒）：60 秒 */
+const UNREAD_POLL_INTERVAL = 60_000;
+
+/** 查询未读通知数量 */
+async function fetchUnreadCount() {
+  if (!authStore.isLoggedIn) return;
+  try {
+    const result = await getUnreadNoticeCountApi();
+    if (result.code === 10_000) {
+      unreadNoticeCount.value = Number(result.data) || 0;
+    }
+  } catch {
+    // 静默失败，不影响正常使用
+  }
+}
+
+/** 通知面板未读数变化回调 */
+function handleUnreadCountChange(count) {
+  // 面板内操作后同步本地未读数
+  if (count === 0) {
+    unreadNoticeCount.value = 0;
+  } else {
+    // 面板只通知本地已加载数据中的未读数，重新查询精确值
+    fetchUnreadCount();
+  }
+}
+
+/** 通知面板展开时刷新数据 */
+function handleNotificationPanelShow() {
+  // q-menu 的 @show 事件在动画开始时触发，此时组件可能还未完成挂载
+  // nextTick 确保 NotificationPanel 组件已挂载后再调用 refresh
+  nextTick(() => {
+    notificationPanelRef.value?.refresh?.();
+  });
+}
+
+/** 通知面板收起 */
+function handleNotificationPanelHide() {
+  // 面板关闭后重新查询未读数（可能面板内标记了部分已读）
+  fetchUnreadCount();
+}
+
 /** Header 语言菜单：同步 vue-i18n、`$q.lang` 与 localStorage。 */
 function applyHeaderLocale(code) {
   if (locale.value === code) {
@@ -158,6 +212,16 @@ function applyHeaderLocale(code) {
   $q.lang.set(quasarLangForLocale(code));
   persistLocale(code);
 }
+
+// ═══════════════════════════════════════════════════════════════
+// 全局事件：通知公告发布后实时刷新未读数
+// ═══════════════════════════════════════════════════════════════
+
+/** 自定义事件名：通知公告发布/状态变更 */
+const NOTICE_CHANGED_EVENT = "sca:notice-changed";
+
+/** 全局事件监听回调（在 onMounted 中注册，onUnmounted 中移除） */
+let noticeChangeHandler = null;
 
 function translateMenuItemTitle(item) {
   void locale.value;
@@ -471,6 +535,13 @@ onMounted(() => {
   locateCurrentTab(false);
   // 右上角租户切换下拉框：加载全部租户（仅超管）
   loadTenantOptions();
+  // 消息通知：初始化加载未读数 + 启动轮询
+  fetchUnreadCount();
+  unreadPollTimer = setInterval(fetchUnreadCount, UNREAD_POLL_INTERVAL);
+
+  // 监听通知公告发布/状态变更事件，实时刷新未读数
+  noticeChangeHandler = () => fetchUnreadCount();
+  window.addEventListener(NOTICE_CHANGED_EVENT, noticeChangeHandler);
 });
 
 watch(
@@ -668,6 +739,16 @@ onUnmounted(() => {
   window.removeEventListener("pointercancel", endRightDrawerResize, POINTER_CAPTURE_OPTS);
   document.body.style.cursor = "";
   document.body.style.userSelect = "";
+  // 清理未读数轮询定时器
+  if (unreadPollTimer) {
+    clearInterval(unreadPollTimer);
+    unreadPollTimer = null;
+  }
+  // 移除通知公告变更事件监听
+  if (noticeChangeHandler) {
+    window.removeEventListener(NOTICE_CHANGED_EVENT, noticeChangeHandler);
+    noticeChangeHandler = null;
+  }
 });
 
 function openRightDrawer(title, icon) {
@@ -799,14 +880,40 @@ function beginRightDrawerResize(e) {
           >
             <q-tooltip>{{ t('layout.globalSearch') }}</q-tooltip>
           </q-btn>
+          <!-- 消息通知（带未读徽标 + 弹窗消息列表） -->
           <q-btn
             flat
             round
             icon="sym_r_notifications"
             class="top-action-btn"
-            @click="openRightDrawer(t('layout.notifications'), 'sym_r_notifications')"
+            :aria-label="t('layout.notifications')"
           >
+            <q-badge
+              v-if="unreadNoticeCount > 0"
+              color="red-7"
+              floating
+              rounded
+              class="top-notif-badge"
+              :label="unreadNoticeCount > 99 ? '99+' : unreadNoticeCount"
+            />
             <q-tooltip>{{ t('layout.notifications') }}</q-tooltip>
+            <q-menu
+              class="notification-q-menu"
+              anchor="bottom middle"
+              self="top middle"
+              :offset="userPillMenuOffset"
+              transition-show="jump-down"
+              transition-hide="jump-up"
+              :dark="$q.dark.isActive"
+              @show="handleNotificationPanelShow"
+              @hide="handleNotificationPanelHide"
+            >
+              <NotificationPanel
+                ref="notificationPanelRef"
+                :unread-count="unreadNoticeCount"
+                @unread-count-change="handleUnreadCountChange"
+              />
+            </q-menu>
           </q-btn>
           <!--
           <q-btn
@@ -2039,5 +2146,48 @@ function beginRightDrawerResize(e) {
 
 .bottom-toolbar-copyright a:hover {
   opacity: 0.8;
+}
+
+/* ═══════════════ 消息通知弹窗 ═══════════════ */
+
+/*
+ * q-menu Teleport 到 body，必须用非 scoped 样式。
+ * 弹窗宽度 380px，最大高度 480px，圆角阴影，与 Quasar 弹出层视觉一致。
+ */
+.notification-q-menu {
+  width: 380px !important;
+  max-width: 380px !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+.body--dark .notification-q-menu {
+  background: #2d2d2d !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+/*
+ * q-menu 默认 padding 16px，通知面板内部已有自己的 padding，
+ * 需要清零外层 padding 使面板填满弹窗。
+ * 面板高度由 NotificationPanel 内部固定（min(480px, 70vh)），
+ * 此处不再额外约束 q-menu 内容区高度。
+ */
+.notification-q-menu .q-menu__content {
+  padding: 0 !important;
+}
+
+/*
+ * 未读数徽标：右上角浮动圆角徽标，使用 red-7 配色。
+ * Quasar q-badge floating 默认在右上角偏上方，调整使其更贴合铃铛图标。
+ */
+.top-notif-badge {
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  top: 4px;
+  right: 4px;
 }
 </style>

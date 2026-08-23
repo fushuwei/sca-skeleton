@@ -459,6 +459,7 @@ async function handleDelete(row: SysNotice) {
     if (result.code === 10_000) {
       showToast(t("common.deleteSuccess"), "positive");
       loadTableData();
+      dispatchNoticeChangedEvent();
     } else {
       showToast(result.message || t("common.deleteFail"), "negative");
     }
@@ -467,6 +468,11 @@ async function handleDelete(row: SysNotice) {
       showToast(t("common.deleteFail"), "negative");
     }
   }
+}
+
+/** 通知公告发布/状态变更后，通知顶部铃铛刷新未读数 */
+function dispatchNoticeChangedEvent() {
+  window.dispatchEvent(new CustomEvent("sca:notice-changed"));
 }
 
 // 发布
@@ -481,6 +487,7 @@ async function handlePublish(row: SysNotice) {
     if (result.code === 10_000) {
       showToast(t("noticeMgmt.publishSuccess"), "positive");
       loadTableData();
+      dispatchNoticeChangedEvent();
     } else {
       showToast(result.message || t("common.operationFail"), "negative");
     }
@@ -503,6 +510,7 @@ async function handleRevoke(row: SysNotice) {
     if (result.code === 10_000) {
       showToast(t("noticeMgmt.revokeSuccess"), "positive");
       loadTableData();
+      dispatchNoticeChangedEvent();
     } else {
       showToast(result.message || t("common.operationFail"), "negative");
     }
@@ -525,6 +533,7 @@ async function handleArchive(row: SysNotice) {
     if (result.code === 10_000) {
       showToast(t("noticeMgmt.archiveSuccess"), "positive");
       loadTableData();
+      dispatchNoticeChangedEvent();
     } else {
       showToast(result.message || t("common.operationFail"), "negative");
     }

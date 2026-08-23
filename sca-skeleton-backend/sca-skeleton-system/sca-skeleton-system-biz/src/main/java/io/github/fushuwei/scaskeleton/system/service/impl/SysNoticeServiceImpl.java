@@ -1,5 +1,6 @@
 package io.github.fushuwei.scaskeleton.system.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -11,18 +12,24 @@ import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticePageReques
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeStatusRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeTopRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeInboxResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeTargetResponse;
 import io.github.fushuwei.scaskeleton.system.converter.NoticeConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysNotice;
 import io.github.fushuwei.scaskeleton.system.entity.SysNoticeRead;
 import io.github.fushuwei.scaskeleton.system.entity.SysNoticeTarget;
+import io.github.fushuwei.scaskeleton.system.entity.SysUserDept;
+import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.mapper.SysNoticeMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysNoticeReadMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysNoticeTargetMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysUserDeptMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysNoticeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -30,8 +37,10 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 通知公告管理 Service 实现类
@@ -46,6 +55,8 @@ public class SysNoticeServiceImpl implements SysNoticeService {
     private final SysNoticeMapper noticeMapper;
     private final SysNoticeTargetMapper noticeTargetMapper;
     private final SysNoticeReadMapper noticeReadMapper;
+    private final SysUserRoleMapper userRoleMapper;
+    private final SysUserDeptMapper userDeptMapper;
     private final NoticeConverter noticeConverter;
 
     /**
@@ -291,8 +302,13 @@ public class SysNoticeServiceImpl implements SysNoticeService {
         String tenantId = SecurityUtils.getTenantId();
         String userId = SecurityUtils.getUserId();
 
-        // 校验通知公告存在
-        loadNoticeEntity(noticeId);
+        // 校验通知公告存在且对当前用户可见（已发布、有效期内、接收范围包含当前用户），
+        // 防止对草稿/已撤回/非本人接收范围的公告标记已读（越权写）
+        List<String> deptIds = getUserDeptIds(tenantId, userId);
+        List<String> roleIds = getUserRoleIds(tenantId, userId);
+        if (noticeMapper.countVisibleNoticeById(tenantId, userId, deptIds, roleIds, noticeId) == 0) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "通知公告不存在或不可见");
+        }
 
         // 检查是否已读
         SysNoticeRead existingRead = noticeReadMapper.selectByNoticeIdAndUserId(noticeId, userId);
@@ -301,13 +317,18 @@ public class SysNoticeServiceImpl implements SysNoticeService {
             return;
         }
 
-        // 新增已读记录
+        // 新增已读记录（(notice_id, user_id) 唯一键兜底并发重复插入）
         SysNoticeRead readRecord = new SysNoticeRead();
         readRecord.setTenantId(tenantId);
         readRecord.setNoticeId(noticeId);
         readRecord.setUserId(userId);
         readRecord.setReadTime(LocalDateTime.now());
-        noticeReadMapper.insert(readRecord);
+        try {
+            noticeReadMapper.insert(readRecord);
+        } catch (DuplicateKeyException e) {
+            // 并发场景下已被标记已读，直接返回
+            return;
+        }
 
         // 更新通知公告的已读次数（+1）
         LambdaUpdateWrapper<SysNotice> wrapper = new LambdaUpdateWrapper<SysNotice>()
@@ -316,7 +337,114 @@ public class SysNoticeServiceImpl implements SysNoticeService {
         noticeMapper.update(null, wrapper);
     }
 
+    /**
+     * 查询当前用户的未读通知公告数量
+     *
+     * @return 未读数量
+     */
+    @Override
+    public long getUnreadCount() {
+        String tenantId = SecurityUtils.getTenantId();
+        String userId = SecurityUtils.getUserId();
+
+        // 查询当前用户的部门 ID 列表和角色 ID 列表
+        List<String> deptIds = getUserDeptIds(tenantId, userId);
+        List<String> roleIds = getUserRoleIds(tenantId, userId);
+
+        return noticeMapper.selectUnreadCount(tenantId, userId, deptIds, roleIds);
+    }
+
+    /**
+     * 分页查询当前用户的消息收件箱（可见通知公告列表，含已读状态）
+     *
+     * @param pageNum  页码
+     * @param pageSize 每页大小
+     * @return 分页结果
+     */
+    @Override
+    public IPage<NoticeInboxResponse> getNoticeInbox(int pageNum, int pageSize) {
+        String tenantId = SecurityUtils.getTenantId();
+        String userId = SecurityUtils.getUserId();
+
+        // 查询当前用户的部门 ID 列表和角色 ID 列表
+        List<String> deptIds = getUserDeptIds(tenantId, userId);
+        List<String> roleIds = getUserRoleIds(tenantId, userId);
+
+        Page<NoticeInboxResponse> page = new Page<>(pageNum, pageSize);
+        return noticeMapper.selectInboxPage(page, tenantId, userId, deptIds, roleIds);
+    }
+
+    /**
+     * 将当前用户所有未读通知公告标记为已读
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markAllAsRead() {
+        String tenantId = SecurityUtils.getTenantId();
+        String userId = SecurityUtils.getUserId();
+
+        // 查询当前用户的部门 ID 列表和角色 ID 列表
+        List<String> deptIds = getUserDeptIds(tenantId, userId);
+        List<String> roleIds = getUserRoleIds(tenantId, userId);
+
+        // 查询所有未读通知公告 ID 列表
+        List<String> unreadNoticeIds = noticeMapper.selectUnreadNoticeIds(tenantId, userId, deptIds, roleIds);
+        if (CollectionUtils.isEmpty(unreadNoticeIds)) {
+            return;
+        }
+
+        // 批量插入已读记录
+        noticeReadMapper.batchInsertReadRecords(tenantId, userId, unreadNoticeIds);
+
+        // 批量更新通知公告的已读次数（每条 +1，单条 SQL 避免逐条更新）
+        noticeMapper.batchIncreaseReadCount(tenantId, unreadNoticeIds);
+    }
+
     // ==================== 私有方法 ====================
+
+    /**
+     * 查询当前用户的部门 ID 列表
+     * <p>
+     * 当用户无部门时返回包含占位符 "none" 的列表，避免 SQL 中 IN () 语法错误。
+     *
+     * @param tenantId 租户 ID
+     * @param userId   用户 ID
+     * @return 部门 ID 列表（不为空）
+     */
+    private List<String> getUserDeptIds(String tenantId, String userId) {
+        List<SysUserDept> userDepts = userDeptMapper.selectList(
+            new LambdaQueryWrapper<SysUserDept>()
+                .eq(SysUserDept::getTenantId, tenantId)
+                .eq(SysUserDept::getUserId, userId)
+        );
+        List<String> deptIds = userDepts.stream()
+            .map(SysUserDept::getDeptId)
+            .filter(StringUtils::hasText)
+            .collect(Collectors.toList());
+        return deptIds.isEmpty() ? Collections.singletonList("none") : deptIds;
+    }
+
+    /**
+     * 查询当前用户的角色 ID 列表
+     * <p>
+     * 当用户无角色时返回包含占位符 "none" 的列表，避免 SQL 中 IN () 语法错误。
+     *
+     * @param tenantId 租户 ID
+     * @param userId   用户 ID
+     * @return 角色 ID 列表（不为空）
+     */
+    private List<String> getUserRoleIds(String tenantId, String userId) {
+        List<SysUserRole> userRoles = userRoleMapper.selectList(
+            new LambdaQueryWrapper<SysUserRole>()
+                .eq(SysUserRole::getTenantId, tenantId)
+                .eq(SysUserRole::getUserId, userId)
+        );
+        List<String> roleIds = userRoles.stream()
+            .map(SysUserRole::getRoleId)
+            .filter(StringUtils::hasText)
+            .collect(Collectors.toList());
+        return roleIds.isEmpty() ? Collections.singletonList("none") : roleIds;
+    }
 
     /**
      * 根据 ID 加载通知公告实体并校验存在性与租户隔离

@@ -7,9 +7,11 @@ import io.github.fushuwei.scaskeleton.security.annotation.RequiresPermission;
 import io.github.fushuwei.scaskeleton.system.api.request.DeleteRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeCreateRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticePageRequest;
+import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeReadRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeStatusRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeTopRequest;
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeUpdateRequest;
+import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeInboxResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysNoticeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -102,10 +104,30 @@ public class SysNoticeController {
     }
 
     @Operation(summary = "标记通知公告为已读")
-    @PostMapping("/read/{id}")
-    @RequiresPermission("sys:notice:list")
-    public Result<Void> markAsRead(@PathVariable String id) {
-        noticeService.markAsRead(id);
+    @PostMapping("/read")
+    public Result<Void> markAsRead(@Validated @RequestBody NoticeReadRequest request) {
+        noticeService.markAsRead(request.getId());
+        return Result.ok();
+    }
+
+    @Operation(summary = "查询当前用户未读通知数量")
+    @GetMapping("/unread/count")
+    public Result<Long> getUnreadCount() {
+        return Result.ok(noticeService.getUnreadCount());
+    }
+
+    @Operation(summary = "查询当前用户消息收件箱（弹窗展示用）")
+    @GetMapping("/inbox")
+    public Result<IPage<NoticeInboxResponse>> getInbox(
+            @RequestParam(defaultValue = "1") int pageNum,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        return Result.ok(noticeService.getNoticeInbox(pageNum, pageSize));
+    }
+
+    @Operation(summary = "全部标记已读")
+    @PostMapping("/read/all")
+    public Result<Void> markAllAsRead() {
+        noticeService.markAllAsRead();
         return Result.ok();
     }
 }

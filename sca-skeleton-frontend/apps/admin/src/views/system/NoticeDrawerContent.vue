@@ -284,6 +284,10 @@ async function handleSave() {
     if (result.code === 10_000) {
       const msg = isAdd && status === "published" ? t("noticeMgmt.publishSuccess") : t("noticeMgmt.saveSuccess");
       showToast(msg, "positive");
+      // 通知公告发布/状态变更后，通知顶部铃铛刷新未读数
+      if (status === "published") {
+        window.dispatchEvent(new CustomEvent("sca:notice-changed"));
+      }
       emit("saved");
     } else {
       const msg = isAdd && status === "published" ? t("noticeMgmt.publishFail") : t("noticeMgmt.saveFail");
