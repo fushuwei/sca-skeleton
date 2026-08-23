@@ -356,8 +356,10 @@ defineExpose({
   display: flex;
   flex-direction: column;
   /* 固定高度（矮屏自适应）：q-menu 内容区高度为 auto，height:100% 无法解析，
-     且 QScrollArea 内部绝对定位不贡献内容高度，必须给确定高度否则列表塌陷为 0 */
-  height: min(480px, 70vh);
+     且 QScrollArea 内部绝对定位不贡献内容高度，必须给确定高度否则列表塌陷为 0。
+     取 64vh 而非更高：外层 q-menu 有核心样式 max-height:65vh 且 overflow 已 hidden，
+     面板一旦超过 65vh，底部（分页栏）会被裁掉且无法滚动到 */
+  height: min(480px, 64vh);
 }
 
 .panel-header {

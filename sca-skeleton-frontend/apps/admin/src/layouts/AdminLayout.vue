@@ -2152,10 +2152,11 @@ function beginRightDrawerResize(e) {
 
 /*
  * q-menu Teleport 到 body，必须用非 scoped 样式。
- * 弹窗宽度 380px，最大高度 480px，圆角阴影，与 Quasar 弹出层视觉一致。
- * 注意：Quasar 给 q-menu 附加了 scroll 工具类（overflow: auto），
- * 特异性 .q-menu.scroll 高于单类选择器，必须 !important 才能去掉外层纵向滚动条；
- * 内部滚动完全由面板内的 QScrollArea 负责。
+ * 弹窗宽度 380px，高度由 NotificationPanel 固定，圆角阴影与 Quasar 弹出层视觉一致。
+ * 注意：Quasar 给 q-menu 同时附加 scroll 工具类（QMenu.js 渲染 class 含 "scroll"），
+ * 其 .scroll { overflow: auto } 与核心 .q-menu { overflow-y: auto } 均为单类选择器，
+ * 与本规则特异性相同、只能靠源顺序取胜，太脆弱——必须 !important 才能稳定
+ * 去掉外层纵向滚动条；内部滚动完全由面板内的 QScrollArea 负责。
  */
 .notification-q-menu {
   width: 380px !important;
@@ -2169,16 +2170,6 @@ function beginRightDrawerResize(e) {
 .body--dark .notification-q-menu {
   background: #2d2d2d !important;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4) !important;
-}
-
-/*
- * q-menu 默认 padding 16px，通知面板内部已有自己的 padding，
- * 需要清零外层 padding 使面板填满弹窗。
- * 面板高度由 NotificationPanel 内部固定（min(480px, 70vh)），
- * 此处不再额外约束 q-menu 内容区高度。
- */
-.notification-q-menu .q-menu__content {
-  padding: 0 !important;
 }
 
 /*
