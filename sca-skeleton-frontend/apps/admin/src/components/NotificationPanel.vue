@@ -4,12 +4,6 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { isNotificationHandled, showToast } from "@repo/shared";
 import type { NoticeInboxItem } from "../types/auth";
-// 类型图标 / 底色 / 级别徽章色映射与详情页（NoticeDetailView）共用，见 constants/notification-meta.ts
-import {
-  noticeTypeIconMap as typeIconMap,
-  noticeTypeColorMap as typeColorMap,
-  noticeLevelColorMap as levelColorMap
-} from "../constants/notification-meta";
 import {
   getNoticeInboxApi,
   markNoticeAsReadApi,
@@ -50,6 +44,29 @@ const unreadCount = computed(() => notices.value.filter((n) => !n.isRead).length
 
 /** 头部徽标展示的未读数：优先使用父组件传入的精确值 */
 const unreadBadge = computed(() => props.unreadCount ?? unreadCount.value);
+
+/** 类型 → 图标映射（与 NoticeDetailView 内的同名映射保持一致） */
+const typeIconMap: Record<string, string> = {
+  notice: "sym_r_campaign",
+  announcement: "sym_r_newspaper",
+  system: "sym_r_settings",
+  other: "sym_r_info"
+};
+
+/** 类型 → 颜色映射（与 NoticeDetailView 内的同名映射保持一致） */
+const typeColorMap: Record<string, string> = {
+  notice: "#1976d2",
+  announcement: "#7e57c2",
+  system: "#607d8b",
+  other: "#78909c"
+};
+
+/** 级别 → 标签颜色映射（与 NoticeDetailView 内的同名映射保持一致） */
+const levelColorMap: Record<string, string> = {
+  normal: "grey-6",
+  important: "orange-7",
+  urgent: "red-7"
+};
 
 // ═══════════════════════════════════════════════════════════════
 // 工具方法

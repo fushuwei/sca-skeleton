@@ -12,14 +12,32 @@ import { useI18n } from "vue-i18n";
 import { isNotificationHandled, showToast } from "@repo/shared";
 import { getNoticeByIdApi } from "../../apis/notice";
 import type { SysNotice } from "../../types/auth";
-import {
-  noticeTypeIconMap,
-  noticeTypeColorMap,
-  noticeLevelColorMap
-} from "../../constants/notification-meta";
 
 const route = useRoute();
 const { t } = useI18n({ useScope: "global" });
+
+/** 类型 → 图标映射（与 NotificationPanel 内的同名映射保持一致） */
+const noticeTypeIconMap: Record<string, string> = {
+  notice: "sym_r_campaign",
+  announcement: "sym_r_newspaper",
+  system: "sym_r_settings",
+  other: "sym_r_info"
+};
+
+/** 类型 → 图标圆片背景色（与 NotificationPanel 内的同名映射保持一致） */
+const noticeTypeColorMap: Record<string, string> = {
+  notice: "#1976d2",
+  announcement: "#7e57c2",
+  system: "#607d8b",
+  other: "#78909c"
+};
+
+/** 级别 → q-badge 颜色（与 NotificationPanel 内的同名映射保持一致） */
+const noticeLevelColorMap: Record<string, string> = {
+  normal: "grey-6",
+  important: "orange-7",
+  urgent: "red-7"
+};
 
 const loading = ref(false);
 const loadFailed = ref(false);
