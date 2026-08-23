@@ -627,6 +627,32 @@ defineExpose({
   flex-shrink: 0;
 }
 
+/*
+ * 分页器按钮：与业务功能列表页（.table-bottom）的分页样式保持一致——
+ * 30px 圆形按钮、10px 字号，视觉统一。
+ */
+.panel-footer :deep(.q-pagination__content .q-btn) {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  font-size: 10px !important;
+}
+
+.panel-footer :deep(.q-pagination__content .q-btn .q-focus-helper) {
+  border-radius: 50%;
+}
+
+.panel-footer :deep(.q-pagination__content .q-btn .q-icon) {
+  font-size: 20px;
+}
+
+.panel-footer :deep(.q-pagination__content .q-btn.q-btn--standard) {
+  font-weight: 700;
+}
+
 .body--dark .panel-footer {
   border-top-color: rgba(255, 255, 255, 0.06);
 }
