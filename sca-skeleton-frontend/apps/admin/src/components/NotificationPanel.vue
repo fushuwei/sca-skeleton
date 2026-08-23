@@ -390,6 +390,11 @@ defineExpose({
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  /* 英文等长文案时允许标题收缩省略，避免把头部撑出横向滚动 */
+  min-width: 0;
+  flex-shrink: 1;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .body--dark .panel-title {
@@ -413,6 +418,15 @@ defineExpose({
 .panel-scroll {
   flex: 1;
   min-height: 0;
+}
+
+/*
+ * 禁用横向滚动：QScrollArea 的内容容器（__content）会按内容的固有宽度
+ * 设置 inline width，英文等更宽的文案会把容器撑出横向滚动条。
+ * 强制其宽度恒等于宿主宽度，配合文本断行即可彻底杜绝横向滚动。
+ */
+.panel-scroll :deep(.q-scrollarea__content) {
+  width: 100% !important;
 }
 
 /* 加载中 / 空状态：撑满面板剩余空间，水平垂直居中（与列表页空数据效果一致） */
@@ -569,6 +583,8 @@ defineExpose({
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  /* 英文长单词 / URL 强制断行，避免撑出横向滚动 */
+  overflow-wrap: anywhere;
 }
 
 .body--dark .notice-item__content {
