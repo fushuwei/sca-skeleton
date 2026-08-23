@@ -191,11 +191,11 @@ async function handleMarkAllRead() {
   }
 }
 
+/**
+ * 点击整行：等价于「详情」按钮——新开 tab 打开阅读页，未读时顺带标记已读
+ */
 function handleViewDetail(item: NoticeInboxItem) {
-  // 点击消息项时标记为已读（完整阅读请点「详情」按钮，新 tab 打开独立页面）
-  if (!item.isRead) {
-    handleMarkRead(item);
-  }
+  openNoticeDetail(item);
 }
 
 /**
