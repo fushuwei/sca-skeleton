@@ -453,7 +453,7 @@ defineExpose({
 }
 
 .notice-list {
-  padding: 4px 0;
+  padding: 0;
 }
 
 .notice-item {
