@@ -808,6 +808,7 @@ function beginRightDrawerResize(e) {
           >
             <q-tooltip>{{ t('layout.notifications') }}</q-tooltip>
           </q-btn>
+          <!--
           <q-btn
             flat
             round
@@ -817,6 +818,7 @@ function beginRightDrawerResize(e) {
           >
             <q-tooltip>{{ t('layout.recycleBin') }}</q-tooltip>
           </q-btn>
+          -->
           <q-btn
             flat
             round
