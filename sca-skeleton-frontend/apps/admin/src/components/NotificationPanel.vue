@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 import { isNotificationHandled, showToast } from "@repo/shared";
 import type { NoticeInboxItem } from "../types/auth";
+// 类型图标 / 底色 / 级别徽章色映射与详情页（NoticeDetailView）共用，见 constants/notification-meta.ts
+import {
+  noticeTypeIconMap as typeIconMap,
+  noticeTypeColorMap as typeColorMap,
+  noticeLevelColorMap as levelColorMap
+} from "../constants/notification-meta";
 import {
   getNoticeInboxApi,
   markNoticeAsReadApi,
@@ -10,6 +17,7 @@ import {
 } from "../apis/notice";
 
 const { t } = useI18n({ useScope: "global" });
+const router = useRouter();
 
 const props = defineProps<{
   /** 父组件维护的精确未读数（用于头部徽标展示） */
@@ -42,29 +50,6 @@ const unreadCount = computed(() => notices.value.filter((n) => !n.isRead).length
 
 /** 头部徽标展示的未读数：优先使用父组件传入的精确值 */
 const unreadBadge = computed(() => props.unreadCount ?? unreadCount.value);
-
-/** 类型 → 图标映射 */
-const typeIconMap: Record<string, string> = {
-  notice: "sym_r_campaign",
-  announcement: "sym_r_newspaper",
-  system: "sym_r_settings",
-  other: "sym_r_info"
-};
-
-/** 类型 → 颜色映射 */
-const typeColorMap: Record<string, string> = {
-  notice: "#1976d2",
-  announcement: "#7e57c2",
-  system: "#607d8b",
-  other: "#78909c"
-};
-
-/** 级别 → 标签颜色映射 */
-const levelColorMap: Record<string, string> = {
-  normal: "grey-6",
-  important: "orange-7",
-  urgent: "red-7"
-};
 
 // ═══════════════════════════════════════════════════════════════
 // 工具方法
@@ -190,12 +175,22 @@ async function handleMarkAllRead() {
 }
 
 function handleViewDetail(item: NoticeInboxItem) {
-  // 点击消息项时标记为已读并跳转到通知公告详情页
+  // 点击消息项时标记为已读（完整阅读请点「详情」按钮，新 tab 打开独立页面）
   if (!item.isRead) {
     handleMarkRead(item);
   }
-  // 后续可路由到通知公告详情页
-  // router.push(`/system/notice? id=${item.id}`);
+}
+
+/**
+ * 新开浏览器 tab 查看公告详情（独立 HTML 阅读页 /notice-detail/:id）。
+ * 同源共享 localStorage，新 tab 自动携带登录态；查看即视为已读。
+ */
+function openNoticeDetail(item: NoticeInboxItem) {
+  if (!item.isRead) {
+    handleMarkRead(item);
+  }
+  const { href } = router.resolve({ name: "NoticeDetail", params: { id: item.id } });
+  window.open(href, "_blank", "noopener");
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -318,6 +313,18 @@ defineExpose({
             >
               <q-tooltip>{{ t("notification.readTooltip") }}</q-tooltip>
             </q-icon>
+            <!-- 详情：新开浏览器 tab 渲染公告完整内容 -->
+            <q-btn
+              flat
+              no-caps
+              dense
+              :label="t('notification.detailBtn')"
+              icon-right="sym_r_open_in_new"
+              color="teal"
+              size="11px"
+              class="detail-btn"
+              @click.stop="openNoticeDetail(item)"
+            />
           </div>
         </div>
       </div>
@@ -582,12 +589,19 @@ defineExpose({
 .notice-item__action {
   flex-shrink: 0;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
   margin-top: 2px;
 }
 
 .read-icon {
   opacity: 0.5;
+}
+
+/* 详情按钮：图标略小、与已读按钮纵向对齐 */
+.detail-btn :deep(.q-icon) {
+  font-size: 13px;
 }
 
 .panel-footer {
