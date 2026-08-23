@@ -365,123 +365,22 @@ function setTextAlign(align: "left" | "center" | "right") { editor.value?.chain(
 function undo() { editor.value?.chain().focus().undo().run(); }
 function redo() { editor.value?.chain().focus().redo().run(); }
 
-// ── 清除格式（清除选中文字上的所有格式：marks + 节点类型重置为段落 + 对齐重置） ──
+// ── 清除格式（清除选中文字上的所有格式） ──
+// 使用 Tiptap 的 chain 命令组合，确保所有类型的格式都被清除：
+// 1. unsetAllMarks：清除所有 marks（加粗、斜体、颜色、背景色、链接等）
+// 2. clearNodes：清除所有块级节点格式（标题→段落、列表→段落、引用→段落、代码块→段落）
+//    clearNodes 内部会处理 lift（提升列表项为段落）等复杂嵌套结构
+// 3. 各 unset 命令：补充清除 underline、strike 等非 StarterKit 内置 marks
 function clearAllMarks() {
-  if (!editor.value) return;
-  const { state, view } = editor.value;
-  const { from, to } = state.selection;
-  if (from === to) return;
-
-  let tr = state.tr;
-
-  // 1. 清除选区范围内所有已有的 marks（加粗、斜体、颜色、背景色、链接等）
-  state.schema.marks.forEach((markType: any) => {
-    tr = tr.removeMark(from, to, markType);
-  });
-
-  // 2. 将选区范围内的块级节点重置为段落（清除标题、列表、引用、代码块等格式）
-  //    同时清除 textAlign 属性（TextAlign 扩展使用 globalAttributes 实现，不是 mark）
-  const { paragraph } = state.schema.nodes;
-  state.doc.nodesBetween(from, to, (node: any, pos: number) => {
-    if (node.isBlock && pos >= from && pos + node.nodeSize <= to) {
-      // 跳过 table、tableRow、tableCell 等表格节点
-      if (node.type.name !== "table" &&
-          node.type.name !== "tableRow" &&
-          node.type.name !== "tableCell" &&
-          node.type.name !== "tableHeader") {
-        // 重置为段落，同时清除 textAlign 属性
-        tr = tr.setNodeMarkup(pos, paragraph, {});
-      }
-    }
-  });
-
-  view.dispatch(tr);
-}
-
-// ── 格式刷 ──
-// 状态：idle（空闲）| copying（已复制格式，等待选择目标文本）
-const formatPainterState = ref<"idle" | "copying">("idle");
-// 保存的选区格式（marks + 块级节点类型）
-let copiedMarks: { type: any; attrs: Record<string, any> }[] | null = null;
-let copiedBlockType: { type: any; attrs: Record<string, any> } | null = null;
-
-function toggleFormatPainter() {
-  if (formatPainterState.value === "idle") {
-    // 进入复制模式：保存当前选区的 marks 和块级节点类型
-    if (!editor.value) return;
-    const { from, to } = editor.value.state.selection;
-    if (from === to) return; // 没有选中文本
-
-    // 保存 marks
-    copiedMarks = editor.value.state.selection.$from.marks().map((m: any) => ({
-      type: m.type,
-      attrs: { ...m.attrs }
-    }));
-
-    // 保存块级节点类型（取选区起始位置的块级节点）
-    const $from = editor.value.state.selection.$from;
-    const blockNode = $from.parent;
-    if (blockNode && blockNode.type) {
-      copiedBlockType = {
-        type: blockNode.type,
-        attrs: { ...blockNode.attrs }
-      };
-    }
-
-    formatPainterState.value = "copying";
-  } else {
-    // 退出格式刷模式
-    formatPainterState.value = "idle";
-    copiedMarks = null;
-    copiedBlockType = null;
-  }
-}
-
-/**
- * 编辑器 mouseup 事件：当格式刷处于 copying 状态时，
- * 将复制的格式（marks + 块级节点类型）应用到新选中的文本上，然后退出格式刷模式。
- */
-function onEditorMouseupForFormatPainter() {
-  if (formatPainterState.value !== "copying" || !editor.value) return;
-  const { state, view } = editor.value;
-  const { from, to } = state.selection;
-  if (from === to) return; // 没有选中文本
-
-  let tr = state.tr;
-
-  // 1. 应用 marks：先清除所有 marks，再添加复制的 marks
-  if (copiedMarks) {
-    // 清除选区范围内所有已有的 marks
-    state.schema.marks.forEach((markType: any) => {
-      tr = tr.removeMark(from, to, markType);
-    });
-    // 添加复制的 marks
-    copiedMarks.forEach((mark: any) => {
-      tr = tr.addMark(from, to, mark.type.create(mark.attrs));
-    });
-  }
-
-  // 2. 应用块级节点类型：将选区范围内的块级节点转换为复制的节点类型
-  if (copiedBlockType) {
-    const { type: blockType, attrs: blockAttrs } = copiedBlockType;
-    state.doc.nodesBetween(from, to, (node: any, pos: number) => {
-      // 只处理选区范围内的顶层块级节点，且不是表格相关节点
-      if (node.isBlock && pos >= from && pos + node.nodeSize <= to &&
-          node.type.name !== "table" &&
-          node.type.name !== "tableRow" &&
-          node.type.name !== "tableCell" &&
-          node.type.name !== "tableHeader") {
-        if (node.type !== blockType) {
-          tr = tr.setNodeMarkup(pos, blockType, blockAttrs);
-        }
-      }
-    });
-  }
-
-  view.dispatch(tr);
-  formatPainterState.value = "idle";
-  copiedMarks = null;
-  copiedBlockType = null;
+  editor.value?.chain().focus()
+    .unsetAllMarks()
+    .clearNodes()
+    .unsetUnderline()
+    .unsetStrike()
+    .unsetColor()
+    .unsetHighlight()
+    .unsetLink()
+    .run();
 }
 
 // ── 全屏切换 ──
@@ -489,7 +388,7 @@ function toggleFullscreen() {
   isFullscreen.value = !isFullscreen.value;
 }
 
-// ── 源码模式切换（以 HTML 源码形式编辑） ──
+// ── 源码模式切换（以 HTML 源码形式只读展示） ──
 const sourceCode = ref("");
 function toggleSourceCode() {
   isSourceCode.value = !isSourceCode.value;
@@ -497,8 +396,6 @@ function toggleSourceCode() {
     sourceCode.value = editor.value?.getHTML() || "";
     editor.value?.setEditable(false);
   } else {
-    // 退出源码模式时，将编辑后的 HTML 同步回编辑器
-    editor.value?.commands.setContent(sourceCode.value, { emitUpdate: true });
     editor.value?.setEditable(!isDisabled.value);
     sourceCode.value = "";
   }
@@ -642,23 +539,16 @@ function unsetHighlight() {
  * 点击自定义颜色输入框时，浏览器默认行为会将焦点和 selection
  * 从编辑器转移到 input 上，导致编辑器中选中文字的高亮消失。
  *
- * 解决方案：
- * 1. preventDefault() 阻止 mousedown 的默认行为（焦点/selection 转移），
- *    这样 window.getSelection() 仍然保留编辑器中的选区，
- *    ::selection 伪元素继续显示选中高亮。
- * 2. 手动调用 input.focus() 将焦点设置到 input 上。
- *    focus() 不会改变 window.getSelection()，所以编辑器选区高亮得以保留。
- * 3. 用户可以在 input 中正常输入颜色值，同时看到编辑器中文字仍被选中。
+ * 原方案用 preventDefault() 阻止 mousedown 默认行为，虽然保留了选区高亮，
+ * 但阻止了 Quasar q-input 内部的 mousedown 处理流程，导致输入框无法正常输入。
+ *
+ * 现方案：只阻止冒泡（防止 document 上的 handleClickOutside 关闭弹出框），
+ * 不阻止默认行为，让 input 正常获得焦点和输入能力。
+ * 编辑器选区高亮会消失，但这是浏览器原生行为，可接受。
  */
 function onColorInputMousedown(e: MouseEvent) {
-  // 阻止 mousedown 默认行为，防止编辑器失焦导致选区高亮消失
-  e.preventDefault();
-  // 从事件绑定的元素（q-input 根 div）查找内部 input 元素
-  const container = e.currentTarget as HTMLElement;
-  const inputEl = container.querySelector("input") as HTMLInputElement | null;
-  if (inputEl) {
-    inputEl.focus();
-  }
+  // 只阻止冒泡，不阻止默认行为，让 input 正常获得焦点和输入能力
+  e.stopPropagation();
 }
 
 // ── 表格命令 ──
@@ -704,12 +594,8 @@ const isActive = computed(() => ({
       <q-btn flat dense round size="xs" icon="sym_r_redo" color="grey-7" :disable="isToolbarLocked" @click="redo">
         <q-tooltip>{{ t('richText.redo') }}</q-tooltip>
       </q-btn>
-      <q-separator vertical class="rte-separator" />
       <q-btn flat dense round size="xs" icon="sym_r_format_clear" color="grey-7" :disable="isToolbarLocked" @click="clearAllMarks">
         <q-tooltip>{{ t('richText.clearFormat') }}</q-tooltip>
-      </q-btn>
-      <q-btn flat dense round size="xs" icon="sym_r_content_paste" :color="formatPainterState === 'copying' ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleFormatPainter">
-        <q-tooltip>{{ t('richText.formatPainter') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
       <q-btn flat dense round size="xs" icon="sym_r_format_bold" :color="isActive.bold ? 'primary' : 'grey-7'" :disable="isToolbarLocked" @click="toggleBold">
@@ -775,12 +661,13 @@ const isActive = computed(() => ({
         <q-tooltip>{{ t('richText.table') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn flat dense round size="xs" :icon="isSourceCode ? 'sym_r_edit' : 'sym_r_html'" :color="isSourceCode ? 'primary' : 'grey-7'" @click="toggleSourceCode">
+      <q-btn flat dense round size="xs" :icon="isSourceCode ? 'sym_r_edit' : 'sym_r_html'" :color="isSourceCode ? 'primary' : 'grey-7'" :disable="isPreview" @click="toggleSourceCode">
         <q-tooltip>{{ isSourceCode ? t('richText.exitSourceCode') : t('richText.sourceCode') }}</q-tooltip>
       </q-btn>
       <q-btn flat dense round size="xs" :icon="isPreview ? 'sym_r_preview_off' : 'sym_r_preview'" :color="isPreview ? 'primary' : 'grey-7'" :disable="isSourceCode" @click="togglePreview">
         <q-tooltip>{{ isPreview ? t('richText.exitPreview') : t('richText.preview') }}</q-tooltip>
       </q-btn>
+      <q-separator vertical class="rte-separator" />
       <q-btn flat dense round size="xs" :icon="isFullscreen ? 'sym_r_fullscreen_exit' : 'sym_r_fullscreen'" :color="isFullscreen ? 'primary' : 'grey-7'" @click="toggleFullscreen">
         <q-tooltip>{{ isFullscreen ? t('richText.exitFullscreen') : t('richText.fullscreen') }}</q-tooltip>
       </q-btn>
@@ -982,9 +869,11 @@ const isActive = computed(() => ({
     </div>
 
     <!-- 编辑区 -->
-    <EditorContent :editor="editor" class="rte-content" :class="{ 'is-hidden': isPreview || isSourceCode }" @mouseup="onEditorMouseupForFormatPainter" />
-    <!-- 源码编辑区 -->
-    <textarea v-if="isSourceCode" v-model="sourceCode" class="rte-source-textarea"></textarea>
+    <EditorContent :editor="editor" class="rte-content" :class="{ 'is-hidden': isPreview || isSourceCode }" />
+    <!-- 源码区（只读展示 HTML 源码） -->
+    <div v-if="isSourceCode" class="rte-source-content">
+      <pre class="rte-source-pre">{{ sourceCode }}</pre>
+    </div>
     <!-- 预览区（以 HTML 渲染形式展示） -->
     <div v-if="isPreview" class="rte-preview-content" v-html="previewHtml"></div>
     <!-- 全屏遮罩层 -->
@@ -1224,25 +1113,26 @@ const isActive = computed(() => ({
 .rte-preview-content :deep(td), .rte-preview-content :deep(th) { border: 1px solid rgba(0,0,0,0.12); padding: 6px 10px; }
 .rte-preview-content :deep(th) { background: #f5f5f5; font-weight: 600; }
 
-.rte-source-textarea {
-  width: 100%;
+.rte-source-content {
   min-height: 200px;
   max-height: 500px;
-  resize: none;
-  border: none;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  overflow-y: auto;
+  background: #f5f5f5;
+}
+
+.rte-source-pre {
+  margin: 0;
   padding: 12px 16px;
   font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
   font-size: 13px;
   line-height: 1.6;
   color: rgba(0, 0, 0, 0.87);
-  background: #f5f5f5;
-  outline: none;
-  resize: vertical;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .rich-text-editor.is-fullscreen .rte-preview-content,
-.rich-text-editor.is-fullscreen .rte-source-textarea {
+.rich-text-editor.is-fullscreen .rte-source-content {
   flex: 1 1 auto;
   max-height: none;
 }
@@ -1480,9 +1370,11 @@ const isActive = computed(() => ({
   background: #2d2d2d;
 }
 
-.body--dark .rte-source-textarea {
+.body--dark .rte-source-content {
   background: #1e1e1e;
+}
+
+.body--dark .rte-source-pre {
   color: rgba(255, 255, 255, 0.87);
-  border-top-color: rgba(255, 255, 255, 0.08);
 }
 </style>

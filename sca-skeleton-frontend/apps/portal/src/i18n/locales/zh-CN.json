@@ -361,7 +361,6 @@
     "highlightColor": "背景颜色",
     "clearColor": "清除颜色",
     "clearFormat": "清除格式",
-    "formatPainter": "格式刷",
     "fullscreen": "全屏",
     "exitFullscreen": "退出全屏",
     "preview": "预览",
