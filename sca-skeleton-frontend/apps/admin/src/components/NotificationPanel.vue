@@ -321,25 +321,14 @@ defineExpose({
               size="11px"
               @click.stop="handleMarkRead(item)"
             />
-            <q-icon
-              v-else
-              name="sym_r_check_circle"
-              size="16px"
-              color="grey-5"
-              class="read-icon"
-            >
-              <q-tooltip>{{ t("notification.readTooltip") }}</q-tooltip>
-            </q-icon>
             <!-- 详情：新开浏览器 tab 渲染公告完整内容 -->
             <q-btn
               flat
               no-caps
               dense
               :label="t('notification.detailBtn')"
-              icon-right="sym_r_open_in_new"
               color="teal"
               size="11px"
-              class="detail-btn"
               @click.stop="openNoticeDetail(item)"
             />
           </div>
@@ -610,15 +599,6 @@ defineExpose({
   align-items: flex-end;
   gap: 2px;
   margin-top: 2px;
-}
-
-.read-icon {
-  opacity: 0.5;
-}
-
-/* 详情按钮：图标略小、与已读按钮纵向对齐 */
-.detail-btn :deep(.q-icon) {
-  font-size: 13px;
 }
 
 .panel-footer {
