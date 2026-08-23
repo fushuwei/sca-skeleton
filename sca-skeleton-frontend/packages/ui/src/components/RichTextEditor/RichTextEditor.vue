@@ -354,6 +354,10 @@ function toggleBlockquote() { editor.value?.chain().focus().toggleBlockquote().r
 function toggleCodeBlock() { editor.value?.chain().focus().toggleCodeBlock().run(); }
 function setTextAlign(align: "left" | "center" | "right") { editor.value?.chain().focus().setTextAlign(align).run(); }
 
+// ── 撤销/重做 ──
+function undo() { editor.value?.chain().focus().undo().run(); }
+function redo() { editor.value?.chain().focus().redo().run(); }
+
 // ── 清除格式 ──
 function clearAllMarks() {
   editor.value?.chain().focus()
@@ -367,18 +371,83 @@ function clearAllMarks() {
     .run();
 }
 
+// ── 格式刷 ──
+// 状态：idle（空闲）| copying（已复制格式，等待选择目标文本）
+const formatPainterState = ref<"idle" | "copying">("idle");
+// 保存的选区格式（marks）
+let copiedMarks: Record<string, any>[] | null = null;
+
+function toggleFormatPainter() {
+  if (formatPainterState.value === "idle") {
+    // 进入复制模式：保存当前选区的 marks
+    if (!editor.value) return;
+    const { from, to } = editor.value.state.selection;
+    if (from === to) {
+      // 没有选中文本，无法复制格式
+      return;
+    }
+    // 获取选中范围内的 marks（取选区起始位置的 marks）
+    copiedMarks = editor.value.state.selection.$from.marks().map((m: any) => ({
+      type: m.type,
+      attrs: { ...m.attrs }
+    }));
+    formatPainterState.value = "copying";
+  } else {
+    // 退出格式刷模式
+    formatPainterState.value = "idle";
+    copiedMarks = null;
+  }
+}
+
+/**
+ * 编辑器 mouseup 事件：当格式刷处于 copying 状态时，
+ * 将复制的 marks 应用到新选中的文本上，然后退出格式刷模式。
+ * 使用 mouseup 而非 click，确保在用户完成文本选择（释放鼠标）后触发。
+ */
+function onEditorMouseupForFormatPainter() {
+  if (formatPainterState.value !== "copying" || !editor.value || !copiedMarks) return;
+  const { from, to } = editor.value.state.selection;
+  if (from === to) return; // 没有选中文本
+
+  const { state } = editor.value;
+  let tr = state.tr;
+
+  // 1. 清除选区范围内所有已有的 marks
+  state.schema.marks.forEach((markType: any) => {
+    state.doc.nodesBetween(from, to, (node: any, pos: number) => {
+      if (node.isText) {
+        node.marks.forEach((m: any) => {
+          if (m.type === markType) {
+            tr = tr.removeMark(from, to, markType);
+          }
+        });
+      }
+    });
+  });
+
+  // 2. 逐个添加复制的 marks
+  copiedMarks.forEach((mark: any) => {
+    tr = tr.addMark(from, to, mark.type.create(mark.attrs));
+  });
+
+  editor.value.view.dispatch(tr);
+  formatPainterState.value = "idle";
+  copiedMarks = null;
+}
+
 // ── 全屏切换 ──
 function toggleFullscreen() {
   isFullscreen.value = !isFullscreen.value;
 }
 
-// ── 预览切换 ──
+// ── 预览切换（以 HTML 源码形式展示编辑器内容） ──
+const previewHtml = ref("");
 function togglePreview() {
   isPreview.value = !isPreview.value;
   if (isPreview.value) {
-    editor.value?.setEditable(false);
+    previewHtml.value = editor.value?.getHTML() || "";
   } else {
-    editor.value?.setEditable(!isDisabled.value);
+    previewHtml.value = "";
   }
 }
 
@@ -466,27 +535,27 @@ function unsetHighlight() {
 }
 
 /**
- * 颜色输入框 mousedown 事件处理：阻止默认的焦点转移，
- * 让 ProseMirror 编辑器保留焦点（从而保留文字选中状态的视觉高亮），
- * 同时手动将焦点设置到 input 框上，让用户可以输入颜色。
+ * 颜色输入框 mousedown 事件处理。
  *
- * ProseMirror 在 dom.blur() 时会清除选区的视觉高亮，
- * 但 selection 状态仍保留在 editor.state 中。
- * 通过 preventDefault 阻止 mousedown 的默认行为（焦点转移），
- * 编辑器不会触发 blur，选区高亮得以保留。
- * 然后手动 focus input，让用户可以正常输入。
+ * 核心问题：当用户在编辑器中选中文字后打开颜色弹出框，
+ * 点击自定义颜色输入框时，浏览器默认行为会将焦点和 selection
+ * 从编辑器转移到 input 上，导致编辑器中选中文字的高亮消失。
+ *
+ * 解决方案：
+ * 1. preventDefault() 阻止 mousedown 的默认行为（焦点/selection 转移），
+ *    这样 window.getSelection() 仍然保留编辑器中的选区，
+ *    ::selection 伪元素继续显示选中高亮。
+ * 2. 手动调用 input.focus() 将焦点设置到 input 上。
+ *    focus() 不会改变 window.getSelection()，所以编辑器选区高亮得以保留。
+ * 3. 用户可以在 input 中正常输入颜色值，同时看到编辑器中文字仍被选中。
  */
 function onColorInputMousedown(e: MouseEvent) {
-  // 阻止 mousedown 默认行为，防止编辑器失焦导致选区高亮消失
   e.preventDefault();
-  // 手动将焦点设置到 input 上（不影响编辑器的选区状态）
-  const input = e.target as HTMLElement;
-  // 从事件目标往上找 input 元素
-  const inputEl = input.tagName === "INPUT"
-    ? input
-    : input.querySelector("input") || (input.closest?.(".q-field")?.querySelector("input"));
+  // 从事件绑定的元素（q-input 根 div）查找内部 input 元素
+  const container = e.currentTarget as HTMLElement;
+  const inputEl = container.querySelector("input") as HTMLInputElement | null;
   if (inputEl) {
-    (inputEl as HTMLInputElement).focus();
+    inputEl.focus();
   }
 }
 
@@ -527,6 +596,20 @@ const isActive = computed(() => ({
   <div class="rich-text-editor" :class="{ 'is-disabled': isDisabled, 'is-fullscreen': isFullscreen, 'is-preview': isPreview }">
     <!-- 工具栏 -->
     <div v-if="!isDisabled" class="rte-toolbar">
+      <q-btn flat dense round size="xs" icon="sym_r_undo" color="grey-7" @click="undo">
+        <q-tooltip>{{ t('richText.undo') }}</q-tooltip>
+      </q-btn>
+      <q-btn flat dense round size="xs" icon="sym_r_redo" color="grey-7" @click="redo">
+        <q-tooltip>{{ t('richText.redo') }}</q-tooltip>
+      </q-btn>
+      <q-separator vertical class="rte-separator" />
+      <q-btn flat dense round size="xs" icon="sym_r_format_clear" color="grey-7" @click="clearAllMarks">
+        <q-tooltip>{{ t('richText.clearFormat') }}</q-tooltip>
+      </q-btn>
+      <q-btn flat dense round size="xs" icon="sym_r_content_paste" :color="formatPainterState === 'copying' ? 'primary' : 'grey-7'" @click="toggleFormatPainter">
+        <q-tooltip>{{ t('richText.formatPainter') }}</q-tooltip>
+      </q-btn>
+      <q-separator vertical class="rte-separator" />
       <q-btn flat dense round size="xs" icon="sym_r_format_bold" :color="isActive.bold ? 'primary' : 'grey-7'" @click="toggleBold">
         <q-tooltip>{{ t('richText.bold') }}</q-tooltip>
       </q-btn>
@@ -590,10 +673,7 @@ const isActive = computed(() => ({
         <q-tooltip>{{ t('richText.table') }}</q-tooltip>
       </q-btn>
       <q-separator vertical class="rte-separator" />
-      <q-btn flat dense round size="xs" icon="sym_r_format_clear" color="grey-7" @click="clearAllMarks">
-        <q-tooltip>{{ t('richText.clearFormat') }}</q-tooltip>
-      </q-btn>
-      <q-btn flat dense round size="xs" :icon="isPreview ? 'sym_r_edit_off' : 'sym_r_preview'" :color="isPreview ? 'primary' : 'grey-7'" @click="togglePreview">
+      <q-btn flat dense round size="xs" :icon="isPreview ? 'sym_r_preview_off' : 'sym_r_preview'" :color="isPreview ? 'primary' : 'grey-7'" @click="togglePreview">
         <q-tooltip>{{ isPreview ? t('richText.exitPreview') : t('richText.preview') }}</q-tooltip>
       </q-btn>
       <q-btn flat dense round size="xs" :icon="isFullscreen ? 'sym_r_fullscreen_exit' : 'sym_r_fullscreen'" :color="isFullscreen ? 'primary' : 'grey-7'" @click="toggleFullscreen">
@@ -789,7 +869,11 @@ const isActive = computed(() => ({
     </div>
 
     <!-- 编辑区 -->
-    <EditorContent :editor="editor" class="rte-content" />
+    <EditorContent :editor="editor" class="rte-content" :class="{ 'is-hidden': isPreview }" @mouseup="onEditorMouseupForFormatPainter" />
+    <!-- 预览区（以 HTML 源码形式展示） -->
+    <div v-if="isPreview" class="rte-preview-content">
+      <pre class="rte-preview-pre">{{ previewHtml }}</pre>
+    </div>
     <!-- 全屏遮罩层 -->
     <div v-if="isFullscreen" class="rte-fullscreen-overlay" @click="toggleFullscreen"></div>
   </div>
@@ -996,6 +1080,33 @@ const isActive = computed(() => ({
 
 /* 预览模式 */
 .rich-text-editor.is-preview .rte-content {
+  max-height: none;
+}
+
+.rte-content.is-hidden {
+  display: none;
+}
+
+.rte-preview-content {
+  min-height: 200px;
+  max-height: 500px;
+  overflow-y: auto;
+  background: #f5f5f5;
+}
+
+.rte-preview-pre {
+  margin: 0;
+  padding: 12px 16px;
+  font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.87);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.rich-text-editor.is-fullscreen .rte-preview-content {
+  flex: 1 1 auto;
   max-height: none;
 }
 
@@ -1222,5 +1333,13 @@ const isActive = computed(() => ({
 
 .body--dark .rte-recent-label {
   color: rgba(255, 255, 255, 0.5);
+}
+
+.body--dark .rte-preview-content {
+  background: #1e1e1e;
+}
+
+.body--dark .rte-preview-pre {
+  color: rgba(255, 255, 255, 0.87);
 }
 </style>
