@@ -442,6 +442,7 @@ async function handleSave() {
             :rules="formRules.targets"
             :disable="drawerReadonly"
             hide-bottom-space
+            class="required-field"
           />
         </div>
         <!-- 接收目标 — 角色多选（单独占一行） -->
@@ -460,6 +461,7 @@ async function handleSave() {
             :rules="formRules.targets"
             :disable="drawerReadonly"
             hide-bottom-space
+            class="required-field"
           />
         </div>
         <!-- 接收目标 — 指定用户（输入用户名/昵称/真实姓名异步搜索，回车选中；chip 展示用户名，实际保存用户 ID） -->
@@ -484,6 +486,7 @@ async function handleSave() {
             :disable="drawerReadonly"
             hide-bottom-space
             :placeholder="t('noticeMgmt.targetsUserPlaceholder')"
+            class="required-field"
           />
         </div>
         <!-- 是否置顶 + 登录弹窗（占一行） -->
