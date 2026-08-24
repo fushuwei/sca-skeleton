@@ -20,16 +20,14 @@ const { t } = useI18n({ useScope: "global" });
 const noticeTypeIconMap: Record<string, string> = {
   notice: "sym_r_campaign",
   announcement: "sym_r_newspaper",
-  system: "sym_r_settings",
-  other: "sym_r_info"
+  system: "sym_r_settings"
 };
 
 /** 类型 → 图标圆片背景色（与 NotificationPanel 内的同名映射保持一致） */
 const noticeTypeColorMap: Record<string, string> = {
   notice: "#1976d2",
   announcement: "#7e57c2",
-  system: "#607d8b",
-  other: "#78909c"
+  system: "#607d8b"
 };
 
 /** 级别 → q-badge 颜色（与 NotificationPanel 内的同名映射保持一致） */
@@ -45,7 +43,7 @@ const notice = ref<SysNotice | null>(null);
 
 /** 类型标签文案（noticeMgmt.typeXxx） */
 const typeLabel = computed(() => {
-  const key = notice.value?.type ?? "other";
+  const key = notice.value?.type ?? "notice";
   const cap = key.charAt(0).toUpperCase() + key.slice(1);
   return t(`noticeMgmt.type${cap}`);
 });
@@ -124,10 +122,10 @@ onMounted(() => {
         <div class="article-badges">
           <span
             class="type-chip"
-            :style="{ backgroundColor: noticeTypeColorMap[notice.type] || noticeTypeColorMap.other }"
+            :style="{ backgroundColor: noticeTypeColorMap[notice.type] || noticeTypeColorMap.system }"
           >
             <q-icon
-              :name="noticeTypeIconMap[notice.type] || noticeTypeIconMap.other"
+              :name="noticeTypeIconMap[notice.type] || noticeTypeIconMap.system"
               size="14px"
               color="white"
             />

@@ -64,8 +64,7 @@ const formRules = {
 const typeOptions = computed(() => [
   { label: t("noticeMgmt.typeNotice"), value: "notice" },
   { label: t("noticeMgmt.typeAnnouncement"), value: "announcement" },
-  { label: t("noticeMgmt.typeSystem"), value: "system" },
-  { label: t("noticeMgmt.typeOther"), value: "other" }
+  { label: t("noticeMgmt.typeSystem"), value: "system" }
 ]);
 
 // ── 级别选项 ──

@@ -637,7 +637,7 @@ export interface SysNotice {
   id: string;
   tenantId: string;
   title: string;
-  /** 类型（notice 通知，announcement 公告，system 系统消息，other 其他） */
+  /** 类型（notice 通知，announcement 公告，system 系统消息） */
   type: string;
   content: string;
   /** 重要级别（normal 普通，important 重要，urgent 紧急） */
@@ -683,7 +683,7 @@ export interface NoticePageRequest {
   pageSize?: number;
   /** 综合搜索关键词（模糊匹配标题和内容） */
   keyword?: string;
-  /** 类型（notice/announcement/system/other） */
+  /** 类型（notice/announcement/system） */
   type?: string;
   /** 重要级别（normal/important/urgent） */
   level?: string;
@@ -705,7 +705,7 @@ export interface NoticeTargetItem {
 export interface NoticeInboxItem {
   id: string;
   title: string;
-  /** 类型（notice 通知，announcement 公告，system 系统消息，other 其他） */
+  /** 类型（notice 通知，announcement 公告，system 系统消息） */
   type: string;
   /** 内容（HTML 富文本，前端弹窗展示摘要时需截断/去标签） */
   content: string;

@@ -49,16 +49,14 @@ const unreadBadge = computed(() => props.unreadCount ?? unreadCount.value);
 const typeIconMap: Record<string, string> = {
   notice: "sym_r_campaign",
   announcement: "sym_r_newspaper",
-  system: "sym_r_settings",
-  other: "sym_r_info"
+  system: "sym_r_settings"
 };
 
 /** 类型 → 颜色映射（与 NoticeDetailView 内的同名映射保持一致） */
 const typeColorMap: Record<string, string> = {
   notice: "#1976d2",
   announcement: "#7e57c2",
-  system: "#607d8b",
-  other: "#78909c"
+  system: "#607d8b"
 };
 
 /** 级别 → 标签颜色映射（与 NoticeDetailView 内的同名映射保持一致） */
@@ -279,8 +277,8 @@ defineExpose({
           <!-- 未读标记条 -->
           <div v-if="!item.isRead" class="unread-indicator" />
 
-          <div class="notice-item__icon" :style="{ backgroundColor: typeColorMap[item.type] || typeColorMap.other }">
-            <q-icon :name="typeIconMap[item.type] || typeIconMap.other" size="18px" color="white" />
+          <div class="notice-item__icon" :style="{ backgroundColor: typeColorMap[item.type] || typeColorMap.system }">
+            <q-icon :name="typeIconMap[item.type] || typeIconMap.system" size="18px" color="white" />
           </div>
 
           <div class="notice-item__body">

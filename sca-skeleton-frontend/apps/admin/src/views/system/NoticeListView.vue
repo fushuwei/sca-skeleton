@@ -46,8 +46,7 @@ const statusOptions = [
 const typeOptions = [
   { label: "noticeMgmt.typeNotice", value: "notice" },
   { label: "noticeMgmt.typeAnnouncement", value: "announcement" },
-  { label: "noticeMgmt.typeSystem", value: "system" },
-  { label: "noticeMgmt.typeOther", value: "other" }
+  { label: "noticeMgmt.typeSystem", value: "system" }
 ];
 
 // ── 级别选项 ──
@@ -77,16 +76,14 @@ const typeLabelOf = (s: string): string =>
   ({
     notice: t("noticeMgmt.typeNotice"),
     announcement: t("noticeMgmt.typeAnnouncement"),
-    system: t("noticeMgmt.typeSystem"),
-    other: t("noticeMgmt.typeOther")
+    system: t("noticeMgmt.typeSystem")
   }[s] ?? s);
 
 const typeColorOf = (s: string): string =>
   ({
     notice: "blue-6",
     announcement: "teal-6",
-    system: "purple-6",
-    other: "grey-6"
+    system: "purple-6"
   }[s] ?? "grey-6");
 
 const levelLabelOf = (s: string): string =>

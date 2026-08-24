@@ -42,7 +42,7 @@ public class NoticePageRequest {
     /** 综合搜索关键词（模糊匹配标题和内容） */
     private String keyword;
 
-    /** 类型（notice/announcement/system/other） */
+    /** 类型（notice/announcement/system） */
     private String type;
 
     /** 重要级别（normal/important/urgent） */

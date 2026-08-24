@@ -646,7 +646,7 @@ CREATE TABLE IF NOT EXISTS `sys_notice` (
     `id`                VARCHAR(64)     NOT NULL                    COMMENT '主键ID，唯一标识',
     `tenant_id`         VARCHAR(64)     DEFAULT NULL                COMMENT '租户ID',
     `title`             VARCHAR(255)    NOT NULL                    COMMENT '标题',
-    `type`              VARCHAR(20)     NOT NULL                    COMMENT '类型（notice 通知，announcement 公告，system 系统消息，other 其他）',
+    `type`              VARCHAR(20)     NOT NULL                    COMMENT '类型（notice 通知，announcement 公告，system 系统消息）',
     `content`           LONGTEXT        DEFAULT NULL                COMMENT '内容',
     `level`             VARCHAR(10)     NOT NULL                    COMMENT '重要级别（normal 普通，important 重要，urgent 紧急）',
     `status`            VARCHAR(20)     NOT NULL                    COMMENT '状态（draft 草稿，published 已发布，revoked 已撤回，archived 已归档）',

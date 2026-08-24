@@ -1,7 +1,5 @@
 package io.github.fushuwei.scaskeleton.system.api.request.notice;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -23,8 +21,9 @@ public class NoticeUpdateRequest {
     @jakarta.validation.constraints.NotBlank(message = "标题不能为空")
     private String title;
 
-    /** 类型（notice 通知，announcement 公告，system 系统消息，other 其他） */
+    /** 类型（notice 通知，announcement 公告，system 系统消息） */
     @jakarta.validation.constraints.NotBlank(message = "类型不能为空")
+    @jakarta.validation.constraints.Pattern(regexp = "^(notice|announcement|system)$", message = "类型只能是 notice、announcement 或 system")
     private String type;
 
     /** 内容 */

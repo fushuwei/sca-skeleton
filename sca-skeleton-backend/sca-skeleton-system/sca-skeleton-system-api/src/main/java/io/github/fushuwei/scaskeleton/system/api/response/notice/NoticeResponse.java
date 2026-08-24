@@ -22,7 +22,7 @@ public class NoticeResponse {
     /** 标题 */
     private String title;
 
-    /** 类型（notice 通知，announcement 公告，system 系统消息，other 其他） */
+    /** 类型（notice 通知，announcement 公告，system 系统消息） */
     private String type;
 
     /** 内容 */
