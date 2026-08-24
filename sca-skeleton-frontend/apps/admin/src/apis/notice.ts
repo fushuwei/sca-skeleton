@@ -1,5 +1,14 @@
 import { request } from "./http";
-import type { ApiEnvelope, SysNotice, NoticePageRequest, NoticeInboxItem, IPage } from "../types/auth";
+import type { ApiEnvelope, SysNotice, NoticePageRequest, NoticeInboxItem, UserOption, IPage } from "../types/auth";
+
+/** 搜索用户选项（接收范围=指定用户时，输入用户名/昵称/真实姓名模糊搜索，选中后保存用户 ID） */
+export async function getNoticeUserOptionsApi(keyword: string): Promise<ApiEnvelope<UserOption[]>> {
+  return request<UserOption[]>({
+    method: "GET",
+    url: "/sys/notice/user-options",
+    params: { keyword }
+  });
+}
 
 /** 分页查询通知公告列表 */
 export async function getNoticePageApi(

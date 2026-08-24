@@ -845,6 +845,7 @@
     "targetTypePlaceholder": "Select target scope",
     "targets": "Targets",
     "targetsPlaceholder": "Select targets",
+    "targetsUserPlaceholder": "Type username / nickname / name to search, press Enter to select",
     "readCount": "Read Count",
     "sort": "Sort",
     "remark": "Remark",

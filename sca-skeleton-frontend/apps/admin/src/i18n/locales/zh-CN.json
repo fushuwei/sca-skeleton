@@ -845,6 +845,7 @@
     "targetTypePlaceholder": "请选择接收范围",
     "targets": "接收目标",
     "targetsPlaceholder": "请选择接收目标",
+    "targetsUserPlaceholder": "输入用户名/昵称/真实姓名搜索，回车选中",
     "readCount": "已读次数",
     "sort": "排序",
     "remark": "备注",

@@ -701,6 +701,18 @@ export interface NoticeTargetItem {
   targetId: string;
 }
 
+/** 用户选项（通知公告「指定用户」搜索下拉用：展示 username，保存 id） */
+export interface UserOption {
+  /** 用户 ID（UUID，实际保存到接收目标的值） */
+  id: string;
+  /** 登录用户名 */
+  username: string;
+  /** 昵称 */
+  nickname: string;
+  /** 真实姓名 */
+  realName: string;
+}
+
 /** 消息通知收件箱项（铃铛弹窗展示用） */
 export interface NoticeInboxItem {
   id: string;

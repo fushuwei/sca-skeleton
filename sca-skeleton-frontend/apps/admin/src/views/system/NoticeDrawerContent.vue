@@ -2,8 +2,8 @@
 import { ref, reactive, computed, watch, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { SysNotice, NoticeTargetItem, DeptOption, RoleOption } from "../../types/auth";
-import { createNoticeApi, updateNoticeApi } from "../../apis/notice";
+import type { SysNotice, NoticeTargetItem, DeptOption, RoleOption, UserOption } from "../../types/auth";
+import { createNoticeApi, updateNoticeApi, getNoticeUserOptionsApi } from "../../apis/notice";
 import { getDeptOptionsApi } from "../../apis/dept";
 import { getRoleOptionsApi } from "../../apis/role";
 import DateTimePicker from "../../components/DateTimePicker.vue";
@@ -102,6 +102,39 @@ const roleMultiOptions = computed(() =>
   roleOptions.value.map((r) => ({ label: r.name, value: r.id }))
 );
 
+// 用户搜索选项（指定用户：输入用户名异步搜索，chip 展示用户名，实际保存用户 ID）
+const userOptions = ref<{ label: string; value: string }[]>([]);
+
+/** 后端用户选项 → 下拉选项（label 展示「用户名（昵称）」，value 为用户 ID） */
+function toUserSelectOptions(users: UserOption[]): { label: string; value: string }[] {
+  return users.map((u) => ({
+    label: u.nickname ? `${u.username}（${u.nickname}）` : u.username,
+    value: u.id
+  }));
+}
+
+/** 输入用户名/昵称/真实姓名异步搜索（q-select @filter，防抖由 input-debounce 控制），回车/点击选中 */
+async function filterUserOptions(
+  val: string,
+  update: (fn: () => void) => void,
+  abort: () => void
+) {
+  const keyword = val.trim();
+  if (!keyword) {
+    abort();
+    return;
+  }
+  try {
+    const result = await getNoticeUserOptionsApi(keyword);
+    update(() => {
+      userOptions.value =
+        result.code === 10_000 && result.data ? toUserSelectOptions(result.data) : [];
+    });
+  } catch {
+    abort();
+  }
+}
+
 // 当前接收范围对应的已选目标 ID 列表
 const selectedTargetIds = computed({
   get: () => form.targets.map((t) => t.targetId),
@@ -139,11 +172,12 @@ const topExpireTimeMin = computed(() => {
   return `${y}-${m}-${d} 00:00:00`;
 });
 
-// 切换接收范围时清空已选目标（初始化时跳过，避免清空编辑回显的数据）
+// 切换接收范围时清空已选目标和用户搜索选项（初始化时跳过，避免清空编辑回显的数据）
 watch(() => form.targetType, (val, oldVal) => {
   if (isInitializing) return;
   if (val !== oldVal) {
     form.targets = [];
+    userOptions.value = [];
     // 按需加载选项数据
     if (val === "dept") {
       loadDeptOptions();
@@ -189,6 +223,7 @@ function resetForm() {
   form.isPopup = 0;
   form.targetType = "";
   form.targets = [];
+  userOptions.value = [];
   form.sort = null;
   form.remark = "";
   form.version = 0;
@@ -224,6 +259,11 @@ function initForm() {
       loadDeptOptions();
     } else if (form.targetType === "role") {
       loadRoleOptions();
+    } else if (form.targetType === "user") {
+      // 用详情返回的 targetName（用户名，后端回填）预置选项，保证已选 chip 回显为用户名而非 UUID
+      userOptions.value = (props.notice.targets ?? [])
+        .filter((t) => t.targetType === "user")
+        .map((t) => ({ label: t.targetName || t.targetId, value: t.targetId }));
     }
   }
   // 初始化完成，恢复 watch 的响应能力
@@ -422,7 +462,7 @@ async function handleSave() {
             hide-bottom-space
           />
         </div>
-        <!-- 接收目标 — 用户ID（手动输入，单独占一行） -->
+        <!-- 接收目标 — 指定用户（输入用户名/昵称/真实姓名异步搜索，回车选中；chip 展示用户名，实际保存用户 ID） -->
         <div v-if="form.targetType === 'user'" class="col-12">
           <q-select
             v-model="selectedTargetIds"
@@ -430,15 +470,20 @@ async function handleSave() {
             filled
             square
             use-input
+            hide-dropdown-icon
             use-chips
             multiple
-            hide-dropdown-icon
-            input-debounce="0"
-            new-value-mode="add-unique"
+            emit-value
+            map-options
+            option-value="value"
+            option-label="label"
+            input-debounce="300"
+            :options="userOptions"
+            @filter="filterUserOptions"
             :rules="formRules.targets"
             :disable="drawerReadonly"
             hide-bottom-space
-            :placeholder="t('noticeMgmt.targetsPlaceholder')"
+            :placeholder="t('noticeMgmt.targetsUserPlaceholder')"
           />
         </div>
         <!-- 是否置顶 + 登录弹窗（占一行） -->

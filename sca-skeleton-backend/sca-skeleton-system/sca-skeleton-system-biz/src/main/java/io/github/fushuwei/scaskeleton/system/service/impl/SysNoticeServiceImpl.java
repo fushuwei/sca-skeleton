@@ -15,16 +15,19 @@ import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeUpdateRequ
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeInboxResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeTargetResponse;
+import io.github.fushuwei.scaskeleton.system.api.response.notice.UserOptionResponse;
 import io.github.fushuwei.scaskeleton.system.converter.NoticeConverter;
 import io.github.fushuwei.scaskeleton.system.entity.SysNotice;
 import io.github.fushuwei.scaskeleton.system.entity.SysNoticeRead;
 import io.github.fushuwei.scaskeleton.system.entity.SysNoticeTarget;
+import io.github.fushuwei.scaskeleton.system.entity.SysUser;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserDept;
 import io.github.fushuwei.scaskeleton.system.entity.SysUserRole;
 import io.github.fushuwei.scaskeleton.system.mapper.SysNoticeMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysNoticeReadMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysNoticeTargetMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserDeptMapper;
+import io.github.fushuwei.scaskeleton.system.mapper.SysUserMapper;
 import io.github.fushuwei.scaskeleton.system.mapper.SysUserRoleMapper;
 import io.github.fushuwei.scaskeleton.system.service.SysNoticeService;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +42,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -57,6 +61,7 @@ public class SysNoticeServiceImpl implements SysNoticeService {
     private final SysNoticeReadMapper noticeReadMapper;
     private final SysUserRoleMapper userRoleMapper;
     private final SysUserDeptMapper userDeptMapper;
+    private final SysUserMapper userMapper;
     private final NoticeConverter noticeConverter;
 
     /**
@@ -89,8 +94,57 @@ public class SysNoticeServiceImpl implements SysNoticeService {
         // 查询接收目标列表
         List<SysNoticeTarget> targets = noticeTargetMapper.selectByNoticeId(id);
         List<NoticeTargetResponse> targetResponses = noticeConverter.toNoticeTargetResponseList(targets);
+
+        // 为 user 类型目标回填用户名（targetName），供前端编辑/查看模式回显已选用户 chip
+        List<String> targetUserIds = targets.stream()
+            .filter(t -> "user".equals(t.getTargetType()))
+            .map(SysNoticeTarget::getTargetId)
+            .toList();
+        if (!targetUserIds.isEmpty()) {
+            Map<String, String> usernameById = userMapper.selectList(new LambdaQueryWrapper<SysUser>()
+                    .eq(SysUser::getTenantId, tenantId)
+                    .in(SysUser::getId, targetUserIds)).stream()
+                .collect(Collectors.toMap(SysUser::getId, SysUser::getUsername, (a, b) -> a));
+            for (NoticeTargetResponse target : targetResponses) {
+                if ("user".equals(target.getTargetType())) {
+                    target.setTargetName(usernameById.get(target.getTargetId()));
+                }
+            }
+        }
+
         response.setTargets(targetResponses);
         return response;
+    }
+
+    /**
+     * 搜索用户选项（接收范围=指定用户时，按用户名/昵称/真实姓名模糊搜索当前租户用户）
+     * <p>
+     * 前端展示 username/nickname，选中后仅保存 {@code id}（用户 UUID）到接收目标。
+     *
+     * @param keyword 搜索关键词
+     * @return 用户选项列表（最多 20 条）
+     */
+    @Override
+    public List<UserOptionResponse> searchUserOptions(String keyword) {
+        if (!StringUtils.hasText(keyword)) {
+            return Collections.emptyList();
+        }
+        String tenantId = SecurityUtils.getTenantId();
+        String kw = keyword.trim();
+        List<SysUser> users = userMapper.selectList(new LambdaQueryWrapper<SysUser>()
+            .eq(SysUser::getTenantId, tenantId)
+            .and(w -> w.like(SysUser::getUsername, kw)
+                .or().like(SysUser::getNickname, kw)
+                .or().like(SysUser::getRealName, kw))
+            .last("LIMIT 20"));
+        return users.stream().map(user -> {
+            UserOptionResponse option = new UserOptionResponse();
+            option.setId(user.getId());
+            option.setUsername(user.getUsername());
+            option.setNickname(user.getNickname());
+            option.setRealName(user.getRealName());
+            return option;
+        }).toList();
     }
 
     /**

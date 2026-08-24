@@ -8,6 +8,7 @@ import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeTopRequest
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeInboxResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeResponse;
+import io.github.fushuwei.scaskeleton.system.api.response.notice.UserOptionResponse;
 
 import java.util.List;
 
@@ -75,6 +76,14 @@ public interface SysNoticeService {
      * @param ids 通知公告 ID 列表
      */
     void batchDeleteNotices(List<String> ids);
+
+    /**
+     * 搜索用户选项（接收范围=指定用户时，按用户名/昵称/真实姓名模糊搜索当前租户用户）
+     *
+     * @param keyword 搜索关键词
+     * @return 用户选项列表（最多 20 条）
+     */
+    List<UserOptionResponse> searchUserOptions(String keyword);
 
     /**
      * 标记通知公告为已读

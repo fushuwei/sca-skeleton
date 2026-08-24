@@ -13,6 +13,7 @@ import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeTopRequest
 import io.github.fushuwei.scaskeleton.system.api.request.notice.NoticeUpdateRequest;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeInboxResponse;
 import io.github.fushuwei.scaskeleton.system.api.response.notice.NoticeResponse;
+import io.github.fushuwei.scaskeleton.system.api.response.notice.UserOptionResponse;
 import io.github.fushuwei.scaskeleton.system.service.SysNoticeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,6 +41,13 @@ public class SysNoticeController {
     @RequiresPermission("sys:notice:list")
     public Result<IPage<NoticeResponse>> page(@Validated NoticePageRequest request) {
         return Result.ok(noticeService.pageNotices(request));
+    }
+
+    @Operation(summary = "搜索用户选项（接收范围=指定用户时用）", description = "按用户名/昵称/真实姓名模糊搜索当前租户用户，前端展示用户名、保存用户 ID")
+    @GetMapping("/user-options")
+    @RequiresPermission("sys:notice:list")
+    public Result<List<UserOptionResponse>> userOptions(@RequestParam(required = false) String keyword) {
+        return Result.ok(noticeService.searchUserOptions(keyword));
     }
 
     @Operation(summary = "根据 ID 查询通知公告详情")
