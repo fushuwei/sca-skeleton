@@ -127,11 +127,3 @@ mvn spring-boot:run -pl sca-skeleton-gateway
 # 启动认证服务
 mvn spring-boot:run -pl sca-skeleton-auth
 ```
-
-## 协作约束（摘要）
-
-- 根目录仅承载治理与聚合能力，不承载业务实现
-- 前后端目录物理隔离，边界不可跨越
-- 子工程规则目录固定：
-    - `sca-skeleton-backend/.cursor/rules/`
-    - `sca-skeleton-frontend/.cursor/rules/`
