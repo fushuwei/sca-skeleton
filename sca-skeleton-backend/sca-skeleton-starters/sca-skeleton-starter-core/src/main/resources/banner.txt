@@ -1,0 +1,11 @@
+${AnsiColor.BRIGHT_GREEN}${AnsiStyle.BOLD}
+
+ ▄▄  ▗▄  ▗▖      ▄▄ ▐       ▝▜       ▗
+▐▘ ▘▗▘ ▘ ▐▌     ▐▘ ▘▐ ▗  ▄▖  ▐   ▄▖ ▗▟▄  ▄▖ ▗▗▖
+▝▙▄ ▐    ▌▐     ▝▙▄ ▐▗▘ ▐▘▐  ▐  ▐▘▐  ▐  ▐▘▜ ▐▘▐
+  ▝▌▐    ▙▟       ▝▌▐▜  ▐▀▀  ▐  ▐▀▀  ▐  ▐ ▐ ▐ ▐
+▝▄▟▘ ▚▄▘▐  ▌    ▝▄▟▘▐ ▚ ▝▙▞  ▝▄ ▝▙▞  ▝▄ ▝▙▛ ▐ ▐
+
+${AnsiColor.CYAN}${AnsiStyle.BOLD}
+ ::  ${spring.application.name}  ::  (${revision})
+${AnsiStyle.NORMAL}
