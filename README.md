@@ -4,6 +4,41 @@
 
 `sca-skeleton` 是一个前后端分离的 Monorepo 初始化骨架，用于统一仓库治理、目录边界与工程协作方式。
 
+## 界面预览
+
+<table align="center">
+<tr>
+<td align="center"><img src="docs/screenshot/01.png" width="280"></td>
+<td align="center"><img src="docs/screenshot/02.png" width="280"></td>
+<td align="center"><img src="docs/screenshot/03.png" width="280"></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshot/04.png" width="280"></td>
+<td align="center"><img src="docs/screenshot/05.png" width="280"></td>
+<td align="center"><img src="docs/screenshot/06.png" width="280"></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshot/07.png" width="280"></td>
+<td align="center"><img src="docs/screenshot/08.png" width="280"></td>
+<td align="center"><img src="docs/screenshot/09.png" width="280"></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshot/10.png" width="280"></td>
+<td align="center"><img src="docs/screenshot/11.png" width="280"></td>
+<td align="center"><img src="docs/screenshot/12.png" width="280"></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshot/13.png" width="280"></td>
+<td align="center"><img src="docs/screenshot/14.png" width="280"></td>
+<td align="center"><img src="docs/screenshot/15.png" width="280"></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshot/16.png" width="280"></td>
+<td align="center"><img src="docs/screenshot/17.png" width="280"></td>
+<td align="center"><img src="docs/screenshot/18.png" width="280"></td>
+</tr>
+</table>
+
 ## 项目结构
 
 ```text
