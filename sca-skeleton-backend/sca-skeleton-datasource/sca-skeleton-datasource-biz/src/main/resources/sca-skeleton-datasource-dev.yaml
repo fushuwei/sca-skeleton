@@ -57,7 +57,7 @@ sca:
     # 驱动存储配置
     driver:
       storage-type: local
-      base-path: ${user.dir}/drivers
+      base-path: /Users/fuwei/Documents/Workspace/work/sca-skeleton/drivers
     # 连接池全局配额
     pool:
       global-max-connections: 200
