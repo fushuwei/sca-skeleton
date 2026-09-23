@@ -28,14 +28,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <!-- 第三方依赖版本 -->
-        <spring-boot.version>4.1.1</spring-boot.version>
-        <lombok.version>1.18.46</lombok.version>
-        <mapstruct.version>1.6.3</mapstruct.version>
-
         <!-- Maven 插件版本 -->
         <flatten-maven-plugin.version>1.8.0</flatten-maven-plugin.version>
         <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
+        <spring-boot-maven-plugin.version>4.1.1</spring-boot-maven-plugin.version>
     </properties>
 
     <build>
