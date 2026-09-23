@@ -60,40 +60,58 @@
 
 ### 后端
 
-| 技术栈              | 版本       | 说明                    |
-|---------------------|------------|-------------------------|
-| Java                | 25         | 最新 LTS 版本           |
-| Spring Boot         | 4.1.1      | 应用框架                |
-| Spring Cloud        | 2025.1.3   | 微服务框架              |
-| Spring Cloud Alibaba| 2025.1.0.0 | Nacos 注册/配置中心     |
-| Nacos Server        | 3.2.4      | 内嵌注册/配置中心服务端 |
-| MyBatis-Plus        | 3.5.17     | 增强型 MyBatis          |
-| Redis (Redisson)    | 4.7.0      | 分布式锁、Session 共享  |
-| MinIO SDK           | 9.0.3      | 对象存储                |
-| Lombok              | 1.18.46    | 代码简化                |
-| MapStruct           | 1.6.3      | 对象映射                |
-| Hutool              | 5.8.47     | 工具类集合              |
-| ip2region           | 3.3.7      | 离线 IP 归属地查询      |
-| uuid-creator        | 6.1.1      | UUID 生成               |
-| EasyCaptcha         | 1.6.2      | 验证码生成              |
-| SpringDoc OpenAPI   | 3.1.1      | API 文档                |
-
-> 后端第三方依赖版本统一定义在 `sca-skeleton-backend/sca-skeleton-dependencies`（BOM）中，各模块通过 `import` 引入，模块自身不声明版本号。例外：`sca-skeleton-alibaba-nacos` 为独立模块，自带版本定义。
+| 技术栈               | 版本       | 说明                    |
+|----------------------|------------|-------------------------|
+| Java                 | 25         | 最新 LTS 版本           |
+| Spring Boot          | 4.1.1      | 应用框架                |
+| Spring Cloud         | 2025.1.3   | 微服务框架              |
+| Spring Cloud Alibaba | 2025.1.0.0 | Nacos 注册/配置中心     |
+| Nacos Server         | 3.2.4      | 内嵌注册/配置中心服务端 |
+| MyBatis-Plus         | 3.5.17     | 增强型 MyBatis          |
+| Redis (Redisson)     | 4.7.0      | 分布式锁、Session 共享  |
+| MinIO SDK            | 9.0.3      | 对象存储                |
+| Lombok               | 1.18.46    | 代码简化                |
+| MapStruct            | 1.6.3      | 对象映射                |
+| Hutool               | 5.8.47     | 工具类集合              |
+| ip2region            | 3.3.7      | 离线 IP 归属地查询      |
+| uuid-creator         | 6.1.1      | UUID 生成               |
+| EasyCaptcha          | 1.6.2      | 验证码生成              |
+| SpringDoc OpenAPI    | 3.1.1      | API 文档                |
 
 ### 前端
 
-| 技术栈      | 版本    | 说明                            |
-|-------------|---------|---------------------------------|
-| Vue         | 3.5.33  | 核心框架                        |
-| Vite        | 8.0.16  | 构建与开发服务                  |
-| TypeScript  | 6.0.3   | 类型系统                        |
-| Pinia       | 3.0.4   | 状态管理                        |
-| Vue Router  | 5.0.6   | 路由管理                        |
-| pnpm        | 10.33.2 | 包管理与 workspace              |
-| Turborepo   | 2.9.6   | Monorepo 任务编排               |
-| Quasar      | 2.21.4  | 后台管理与前台门户共用 UI 框架  |
-| axios       | 1.15.2  | HTTP 请求                       |
-| vue-i18n    | ^10.0.7 | 国际化支持                      |
+| 技术栈                     | 版本    | 说明                            |
+|----------------------------|---------|---------------------------------|
+| Vue                        | 3.5.33  | 核心框架                        |
+| Vue Router                 | 5.0.6   | 路由管理                        |
+| Pinia                      | 3.0.4   | 状态管理                        |
+| Quasar                     | 2.21.4  | UI 框架（admin 与 portal 共用） |
+| @quasar/extras             | 1.18.0  | Quasar 图标与字体资源           |
+| @quasar/vite-plugin        | 1.11.0  | Quasar 的 Vite 集成插件         |
+| axios                      | 1.15.2  | HTTP 请求                       |
+| vue-i18n                   | 10.0.8  | 国际化（zh-CN / en-US）         |
+| CodeMirror                 | 6.0.2   | 代码编辑器内核（SQL 编辑器）    |
+| @codemirror/view           | 6.43.8  | 编辑器视图层                    |
+| @codemirror/state          | 6.7.1   | 编辑器状态管理                  |
+| @codemirror/lang-sql       | 6.10.0  | SQL 语法高亮                    |
+| @codemirror/theme-one-dark | 6.1.3   | 编辑器深色主题                  |
+| TipTap                     | 3.30.2  | 富文本编辑器（含 12 个扩展包）  |
+| zxcvbn-ts                  | 4.1.2   | 密码强度评估                    |
+| sql-formatter              | 15.8.2  | SQL 格式化                      |
+| Vite                       | 8.0.16  | 构建与开发服务                  |
+| @vitejs/plugin-vue         | 6.0.6   | Vue 单文件组件编译              |
+| TypeScript                 | 6.0.3   | 类型系统                        |
+| vue-tsc                    | 3.2.8   | 类型检查（`vue-tsc --noEmit`）  |
+| sass                       | 1.99.0  | Sass 样式编译                   |
+| pnpm                       | 10.33.2 | 包管理与 workspace              |
+| Turborepo                  | 2.9.6   | Monorepo 任务编排               |
+| ESLint                     | 10.2.1  | 代码检查                        |
+| typescript-eslint          | 8.59.2  | TypeScript 检查规则             |
+| eslint-plugin-vue          | 10.9.1  | Vue 单文件组件检查规则          |
+| Prettier                   | 3.8.3   | 代码格式化                      |
+| Vitest                     | 4.1.5   | 单元测试                        |
+| @vue/test-utils            | 2.4.9   | Vue 组件测试工具                |
+| Playwright                 | 1.61.0  | 端到端测试                      |
 
 ## 架构特点
 
