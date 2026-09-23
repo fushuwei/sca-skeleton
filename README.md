@@ -60,35 +60,40 @@
 
 ### 后端
 
-| 类别   | 技术                 | 版本       | 说明                   |
-|--------|----------------------|------------|------------------------|
-| 语言   | Java                 | 25         | 最新 LTS 版本          |
-| 框架   | Spring Boot          | 4.0.6      | 应用框架               |
-| 云原生 | Spring Cloud         | 2025.1.1   | 微服务框架             |
-|        | Spring Cloud Alibaba | 2025.1.0.0 | Nacos 注册/配置中心    |
-| ORM    | MyBatis-Plus         | 3.5.16     | 增强型 MyBatis         |
-| 缓存   | Redis (Redisson)     | 4.3.0      | 分布式锁、Session 共享 |
-| 工具   | Lombok               | 1.18.46    | 代码简化               |
-|        | MapStruct            | 1.6.3      | 对象映射               |
-| 工具库 | Hutool               | 5.8.44     | 工具类集合             |
-| 文档   | SpringDoc OpenAPI    | 3.0.3      | API 文档               |
+| 技术栈              | 版本       | 说明                    |
+|---------------------|------------|-------------------------|
+| Java                | 25         | 最新 LTS 版本           |
+| Spring Boot         | 4.1.1      | 应用框架                |
+| Spring Cloud        | 2025.1.3   | 微服务框架              |
+| Spring Cloud Alibaba| 2025.1.0.0 | Nacos 注册/配置中心     |
+| Nacos Server        | 3.2.4      | 内嵌注册/配置中心服务端 |
+| MyBatis-Plus        | 3.5.17     | 增强型 MyBatis          |
+| Redis (Redisson)    | 4.7.0      | 分布式锁、Session 共享  |
+| MinIO SDK           | 9.0.3      | 对象存储                |
+| Lombok              | 1.18.46    | 代码简化                |
+| MapStruct           | 1.6.3      | 对象映射                |
+| Hutool              | 5.8.47     | 工具类集合              |
+| ip2region           | 3.3.7      | 离线 IP 归属地查询      |
+| uuid-creator        | 6.1.1      | UUID 生成               |
+| EasyCaptcha         | 1.6.2      | 验证码生成              |
+| SpringDoc OpenAPI   | 3.1.1      | API 文档                |
+
+> 后端第三方依赖版本统一定义在 `sca-skeleton-backend/sca-skeleton-dependencies`（BOM）中，各模块通过 `import` 引入，模块自身不声明版本号。例外：`sca-skeleton-alibaba-nacos` 为独立模块，自带版本定义。
 
 ### 前端
 
-| 类别      | 技术           | 版本    | 说明               |
-|-----------|----------------|---------|--------------------|
-| 框架      | Vue            | 3.5.33  | 核心框架           |
-| 构建      | Vite           | 8.0.16  | 构建与开发服务     |
-| 类型      | TypeScript     | 6.0.3   | 类型系统           |
-| 状态      | Pinia          | 3.0.4   | 状态管理           |
-| 路由      | Vue Router     | 5.0.6   | 路由管理           |
-| 包管理    | pnpm           | 10.33.2 | 包管理与 workspace |
-| 编排      | Turborepo      | 2.9.6   | Monorepo 任务编排  |
-| Admin UI  | Quasar         | 2.19.3  | 后台管理 UI 框架   |
-| Portal UI | ant-design-vue | 4.2.6   | 前台门户 UI 组件库 |
-|           | unocss         | 66.6.8  | 原子化 CSS         |
-| HTTP      | axios          | 1.15.2  | HTTP 请求          |
-| 国际化    | vue-i18n       | ^10.0.7 | 国际化支持         |
+| 技术栈      | 版本    | 说明                            |
+|-------------|---------|---------------------------------|
+| Vue         | 3.5.33  | 核心框架                        |
+| Vite        | 8.0.16  | 构建与开发服务                  |
+| TypeScript  | 6.0.3   | 类型系统                        |
+| Pinia       | 3.0.4   | 状态管理                        |
+| Vue Router  | 5.0.6   | 路由管理                        |
+| pnpm        | 10.33.2 | 包管理与 workspace              |
+| Turborepo   | 2.9.6   | Monorepo 任务编排               |
+| Quasar      | 2.21.4  | 后台管理与前台门户共用 UI 框架  |
+| axios       | 1.15.2  | HTTP 请求                       |
+| vue-i18n    | ^10.0.7 | 国际化支持                      |
 
 ## 架构特点
 
