@@ -34,7 +34,7 @@ public class MinioUtils {
                 PutObjectArgs.builder()
                     .bucket(properties.getBucket())
                     .object(objectKey)
-                    .stream(inputStream, size, -1)
+                    .stream(inputStream, size, -1L)
                     .contentType(contentType != null ? contentType : "application/octet-stream")
                     .build());
         } catch (Exception e) {

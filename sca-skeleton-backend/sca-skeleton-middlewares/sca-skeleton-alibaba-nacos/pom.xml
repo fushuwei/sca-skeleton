@@ -19,7 +19,7 @@
     </description>
 
     <properties>
-        <nacos.version>3.2.1</nacos.version>
+        <nacos.version>3.2.4</nacos.version>
         <jraft.version>1.4.0</jraft.version>
     </properties>
 
