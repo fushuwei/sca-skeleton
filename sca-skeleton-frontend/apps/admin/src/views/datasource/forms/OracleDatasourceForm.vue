@@ -311,7 +311,7 @@ defineExpose({ validate, getPayload, isDirty });
           hide-bottom-space
           class="required-field"
         >
-          <template v-slot:selected-item="scope">
+          <template #selected-item="scope">
             <div v-if="scope.opt" class="row items-center no-wrap">
               <DbTypeIcon :db-type="DB_TYPE" :size="20" class="q-mr-xs" />
               <span>{{ scope.opt.label }}</span>
@@ -337,8 +337,6 @@ defineExpose({ validate, getPayload, isDirty });
       <div class="col-12 col-md-6">
         <q-input
           :model-value="form.port"
-          @update:model-value="onPortInput"
-          @keydown="onPortKeydown"
           type="text"
           inputmode="numeric"
           :label="t('datasourceMgmt.port')"
@@ -349,6 +347,8 @@ defineExpose({ validate, getPayload, isDirty });
           :readonly="readonlyMode"
           hide-bottom-space
           class="required-field"
+          @update:model-value="onPortInput"
+          @keydown="onPortKeydown"
         />
       </div>
       <!-- 连接方式（Oracle 特有：服务名 / SID） -->

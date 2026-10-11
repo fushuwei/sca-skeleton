@@ -2,6 +2,7 @@ import js from "@eslint/js";
 import vue from "eslint-plugin-vue";
 import tseslint from "typescript-eslint";
 import globals from "globals";
+import prettier from "eslint-config-prettier";
 
 export default [
   {
@@ -32,5 +33,9 @@ export default [
     rules: {
       "vue/multi-word-component-names": "off"
     }
-  }
+  },
+  // 必须放在最后：关闭所有与 Prettier 冲突的格式化类规则
+  // （如 vue/max-attributes-per-line、vue/html-indent 等），
+  // 否则 ESLint 要求"每属性换行"而 Prettier 按 printWidth=100 折行，两边互相打架。
+  prettier
 ];

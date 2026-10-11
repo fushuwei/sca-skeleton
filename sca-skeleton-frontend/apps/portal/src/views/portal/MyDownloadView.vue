@@ -128,9 +128,9 @@ function copyLink(row: DownloadRow): void {
 
     <div class="my-download-list-shell">
       <q-table
+        v-model:pagination="tablePagination"
         :rows="downloads"
         :columns="columns"
-        v-model:pagination="tablePagination"
         row-key="resource"
         :rows-per-page-options="[10, 20, 50, 100]"
         flat

@@ -262,7 +262,8 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
             <span class="search-area-title">{{ t("common.searchCondition") }}</span>
           </div>
           <q-space />
-          <q-btn flat dense round size="20px"
+          <q-btn
+flat dense round size="20px"
             :icon="searchExpanded ? 'sym_r_expand_less' : 'sym_r_expand_more'"
             class="search-collapse-btn" @click="searchExpanded = !searchExpanded">
             <q-tooltip style="white-space: nowrap">{{ searchExpanded ? t("common.collapseSearch") : t("common.expandSearch") }}</q-tooltip>
@@ -271,28 +272,31 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
         <div v-show="searchExpanded" class="search-area-body">
           <div class="row q-col-gutter-sm items-end">
             <div class="col">
-              <q-input v-model="searchForm.keyword" filled square dense
+              <q-input
+v-model="searchForm.keyword" filled square dense
                 :placeholder="t('configMgmt.keywordPlaceholder')" hide-bottom-space clearable
                 @keyup.enter="handleSearch" />
             </div>
             <div class="col-auto">
-              <q-select v-model="searchForm.type" filled square dense :options="typeOptions"
+              <q-select
+v-model="searchForm.type" filled square dense :options="typeOptions"
                 :option-label="(o: { label: string; value: string }) => (o ? t(o.label) : '')"
                 option-value="value" emit-value map-options hide-bottom-space clearable
                 transition-show="jump-up" transition-hide="jump-down"
                 class="status-select" popup-content-class="status-select-popup">
-                <template v-if="!searchForm.type" v-slot:selected>
+                <template v-if="!searchForm.type" #selected>
                   <span class="status-placeholder">{{ t('configMgmt.typePlaceholder') }}</span>
                 </template>
               </q-select>
             </div>
             <div class="col-auto">
-              <q-select v-model="searchForm.status" filled square dense :options="statusOptions"
+              <q-select
+v-model="searchForm.status" filled square dense :options="statusOptions"
                 :option-label="(o: { label: string; value: string }) => (o ? t(o.label) : '')"
                 option-value="value" emit-value map-options hide-bottom-space clearable
                 transition-show="jump-up" transition-hide="jump-down"
                 class="status-select" popup-content-class="status-select-popup">
-                <template v-if="!searchForm.status" v-slot:selected>
+                <template v-if="!searchForm.status" #selected>
                   <span class="status-placeholder">{{ t('configMgmt.statusPlaceholder') }}</span>
                 </template>
               </q-select>
@@ -320,7 +324,8 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
             <q-icon name="sym_r_add" size="20px" class="q-mr-xs" />
             {{ t('configMgmt.createConfig') }}
           </q-btn>
-          <q-btn color="white" text-color="negative" outline dense no-caps class="toolbar-btn"
+          <q-btn
+color="white" text-color="negative" outline dense no-caps class="toolbar-btn"
             :disable="!selectedRows.length" @click.stop="handleBatchDelete">
             <q-icon name="sym_r_delete" size="20px" class="q-mr-xs" />
             {{ t('common.batchDelete') }}
@@ -330,7 +335,8 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
       </div>
 
       <!-- 表格 -->
-      <q-table v-model:selected="selectedRows" v-model:pagination="tablePagination"
+      <q-table
+v-model:selected="selectedRows" v-model:pagination="tablePagination"
         :rows="tableRows" :columns="columns" :visible-columns="visibleColumns"
         row-key="id" :loading="tableLoading" :rows-per-page-options="[10, 20, 50, 100]"
         selection="multiple" flat
@@ -365,7 +371,8 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
         </template>
         <template #body-cell-isBuiltin="props">
           <q-td :props="props">
-            <q-badge :color="props.value === 1 ? 'red-7' : 'grey-6'"
+            <q-badge
+:color="props.value === 1 ? 'red-7' : 'grey-6'"
               :label="props.value === 1 ? t('common.yes') : t('common.no')" rounded
               class="config-type-badge" />
           </q-td>
@@ -378,7 +385,8 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
             <q-btn flat dense round size="sm" color="primary" icon="sym_r_edit" @click.stop="handleEdit(props.row)">
               <q-tooltip>{{ t("common.edit") }}</q-tooltip>
             </q-btn>
-            <q-btn flat dense round size="sm"
+            <q-btn
+flat dense round size="sm"
               :color="props.row.status === 'enabled' ? 'orange-7' : 'green-7'"
               :icon="props.row.status === 'enabled' ? 'sym_r_block' : 'sym_r_check_circle'"
               @click.stop="handleToggleStatus(props.row)">
@@ -400,19 +408,22 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
           <div class="row items-center full-width table-bottom">
             <span>{{ t("common.totalRows", { count: tableTotal }) }}<template v-if="selectedRows.length">，{{ t("common.selectedRows", { count: selectedRows.length }) }}</template></span>
             <q-space />
-            <q-pagination v-model="curPage" :max="props.pagesNumber" :max-pages="7" size="sm"
+            <q-pagination
+v-model="curPage" :max="props.pagesNumber" :max-pages="7" size="sm"
               color="primary" boundary-links direction-links
               icon-first="keyboard_double_arrow_left" icon-prev="keyboard_arrow_left"
               icon-next="keyboard_arrow_right" icon-last="keyboard_double_arrow_right"
               @update:model-value="onPageChange" />
             <span class="text-caption text-grey-7 q-ml-md q-mr-sm">{{ t("common.rowsPerPageLabel") }}</span>
-            <q-select v-model="tablePagination.rowsPerPage" :options="[10, 20, 50, 100]"
+            <q-select
+v-model="tablePagination.rowsPerPage" :options="[10, 20, 50, 100]"
               dense flat borderless class="rows-per-page-select" popup-content-class="rows-per-page-popup"
               @update:model-value="handleSearch">
               <template #append><span class="text-caption">{{ t("common.rowsPerPageUnit") }}</span></template>
             </q-select>
             <span class="text-caption text-grey-7 q-ml-md">{{ t("common.jumpToLabel") }}</span>
-            <q-input v-model.number="jumpToPage" dense flat borderless class="jump-to-page-input"
+            <q-input
+v-model.number="jumpToPage" dense flat borderless class="jump-to-page-input"
               input-class="text-center"
               :placeholder="String((props.pagesNumber || 1) <= 1 ? 1 : (curPage >= (props.pagesNumber || 1) ? 1 : curPage + 1))"
               @keyup.enter="handleJumpToPage" />
@@ -438,7 +449,8 @@ onMounted(() => { loadTableData(); initialLoadDone = true; });
               </q-btn>
             </div>
             <div class="config-drawer-body">
-              <ConfigDrawerContent :mode="drawerMode" :config="drawerConfig"
+              <ConfigDrawerContent
+:mode="drawerMode" :config="drawerConfig"
                 @close="closeConfigDrawer" @saved="handleDrawerSaved" />
             </div>
           </div>

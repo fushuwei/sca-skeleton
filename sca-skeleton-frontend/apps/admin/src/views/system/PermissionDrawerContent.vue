@@ -475,12 +475,12 @@ async function handleSave() {
                 </q-input>
                 <q-scroll-area style="height: 300px">
                   <q-tree
+                    v-model:expanded="menuTreeExpanded"
                     class="permission-parent-tree"
                     :nodes="filteredMenuTreeNodes"
                     node-key="id"
                     label-key="label"
                     children-key="children"
-                    v-model:expanded="menuTreeExpanded"
                     no-connectors
                     dense
                     no-nodes-label=" "

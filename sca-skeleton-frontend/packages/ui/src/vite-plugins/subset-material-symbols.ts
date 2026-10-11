@@ -7,6 +7,15 @@ import { create as createFont } from "fontkit";
 import subsetFont from "subset-font";
 
 /**
+ * fontkit 未提供可直接引用的字形类型，这里按本文件实际使用到的字段声明最小结构，
+ * 避免用 `any` 绕过类型检查（同时满足 @typescript-eslint/no-explicit-any）。
+ */
+type FontKitFont = {
+  characterSet: Iterable<number>;
+  glyphForCodePoint(codePoint: number): { name?: string } | null;
+};
+
+/**
  * Vite 插件：扫描代码中实际使用的 Material Symbols 图标，子集化字体（5MB → ~140KB）。
  *
  * 渲染机制（关键背景）：
@@ -79,7 +88,7 @@ export function subsetMaterialSymbols(): Plugin {
       console.log(`[subset] 扫描到 ${icons.size} 个图标`);
 
       // 3. fontkit 解析 cmap，构建 name → codepoint 映射
-      const font = createFont(fontBuffer) as any;
+      const font = createFont(fontBuffer) as unknown as FontKitFont;
       const nameToCodepoint = new Map<string, number>();
       for (const cp of font.characterSet) {
         const glyph = font.glyphForCodePoint(cp);

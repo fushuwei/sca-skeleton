@@ -424,11 +424,11 @@ async function copyToClipboard(text: string) {
       v-else
       :key="treeKey"
       ref="treeRef"
+      v-model:expanded="expandedKeys"
       :nodes="nodes"
       node-key="key"
       label-key="label"
       children-key="children"
-      v-model:expanded="expandedKeys"
       no-connectors
       dense
       :filter="filter"

@@ -283,7 +283,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.domain" v-slot:selected>
+                <template v-if="!searchForm.domain" #selected>
                   <span class="status-placeholder">{{ t('resourceCatalog.colDomain') }}</span>
                 </template>
               </q-select>
@@ -306,7 +306,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.type" v-slot:selected>
+                <template v-if="!searchForm.type" #selected>
                   <span class="status-placeholder">{{ t('resourceCatalog.colType') }}</span>
                 </template>
               </q-select>

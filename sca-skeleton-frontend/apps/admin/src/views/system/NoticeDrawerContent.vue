@@ -481,12 +481,12 @@ async function handleSave() {
             option-label="label"
             input-debounce="300"
             :options="userOptions"
-            @filter="filterUserOptions"
             :rules="formRules.targets"
             :disable="drawerReadonly"
             hide-bottom-space
             :placeholder="t('noticeMgmt.targetsUserPlaceholder')"
             class="required-field"
+            @filter="filterUserOptions"
           />
         </div>
         <!-- 是否置顶 + 登录弹窗（占一行） -->

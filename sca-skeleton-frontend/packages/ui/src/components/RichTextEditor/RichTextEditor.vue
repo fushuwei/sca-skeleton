@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { watch, onBeforeUnmount, computed, ref, nextTick } from "vue";
+import type { ComponentPublicInstance } from "vue";
 import { useEditor, EditorContent } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -141,8 +142,16 @@ const popupBtnRefs: Record<string, { $el: HTMLElement } | null> = {
   table: null
 };
 
-function setBtnRef(key: string, el: any) {
-  popupBtnRefs[key] = el;
+/**
+ * 模板 ref 回调：Vue 传入的可能是原生 Element，也可能是组件实例（ComponentPublicInstance）。
+ * 统一归一化为 { $el }，供后续 $el 定位使用。
+ */
+function setBtnRef(key: string, el: Element | ComponentPublicInstance | null) {
+  if (!el) {
+    popupBtnRefs[key] = null;
+    return;
+  }
+  popupBtnRefs[key] = { $el: ("$el" in el ? el.$el : el) as HTMLElement };
 }
 
 // ── 保存/恢复编辑器选区（弹出框打开时编辑器可能丢失焦点） ──
@@ -427,7 +436,7 @@ function openLinkPopup() {
     // 如果当前在链接上，提取链接文本
     if (currentHref) {
       const linkNode = editor.value.state.selection.$from.parent;
-      if (linkNode && linkNode.marks.some((m: any) => m.type.name === "link")) {
+      if (linkNode && linkNode.marks.some((m: { type: { name: string } }) => m.type.name === "link")) {
         linkText.value = linkNode.textContent;
       } else {
         linkText.value = "";
@@ -875,6 +884,9 @@ const isActive = computed(() => ({
       <pre class="rte-source-pre">{{ sourceCode }}</pre>
     </div>
     <!-- 预览区（以 HTML 渲染形式展示） -->
+    <!-- 安全提示：预览区按设计需渲染 HTML，内容来自编辑器自身（含用户粘贴片段），
+         保存/展示链路需由业务侧做 HTML 消毒。 -->
+    <!-- eslint-disable-next-line vue/no-v-html -- 富文本预览需按 HTML 渲染，见上方安全提示 -->
     <div v-if="isPreview" class="rte-preview-content" v-html="previewHtml"></div>
     <!-- 全屏遮罩层 -->
     <div v-if="isFullscreen" class="rte-fullscreen-overlay" @click="toggleFullscreen"></div>

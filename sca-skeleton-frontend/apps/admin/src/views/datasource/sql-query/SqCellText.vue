@@ -52,8 +52,8 @@ async function copyValue() {
       @mouseenter="onEnter"
       @mouseleave="onLeave"
     >{{ String(value) }}<q-tooltip
-        no-parent-event
         v-model="showTooltip"
+        no-parent-event
         anchor="top middle"
         self="bottom middle"
         max-width="600px"

@@ -556,7 +556,7 @@ watch(() => selectedDict.value, (val) => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!dictSearchForm.status" v-slot:selected>
+                <template v-if="!dictSearchForm.status" #selected>
                   <span class="status-placeholder">{{ t('dictMgmt.statusPlaceholder') }}</span>
                 </template>
               </q-select>
@@ -833,7 +833,7 @@ watch(() => selectedDict.value, (val) => {
                   class="status-select"
                   popup-content-class="status-select-popup"
                 >
-                  <template v-if="!dictDataSearchForm.status" v-slot:selected>
+                  <template v-if="!dictDataSearchForm.status" #selected>
                     <span class="status-placeholder">{{ t('dictDataMgmt.statusPlaceholder') }}</span>
                   </template>
                 </q-select>

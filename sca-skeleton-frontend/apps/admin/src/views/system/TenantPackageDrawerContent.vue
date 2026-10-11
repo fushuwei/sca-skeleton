@@ -487,7 +487,6 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-input
             :model-value="form.code"
-            @update:model-value="onCodeInput"
             :label="t('tenantPackageMgmt.code')"
             filled
             square
@@ -496,6 +495,7 @@ async function handleSave() {
             :readonly="drawerReadonly"
             hide-bottom-space
             class="required-field"
+            @update:model-value="onCodeInput"
           />
         </div>
         <!-- 套餐状态 -->
@@ -533,8 +533,6 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-input
             :model-value="form.userLimit"
-            @update:model-value="(v) => onLimitInput('userLimit', v)"
-            @keydown="onNumericKeydown"
             type="text"
             inputmode="numeric"
             :label="t('tenantPackageMgmt.userLimit')"
@@ -545,14 +543,14 @@ async function handleSave() {
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
+            @update:model-value="(v) => onLimitInput('userLimit', v)"
+            @keydown="onNumericKeydown"
           />
         </div>
         <!-- API调用限制 -->
         <div class="col-12 col-md-6">
           <q-input
             :model-value="form.apiLimit"
-            @update:model-value="(v) => onLimitInput('apiLimit', v)"
-            @keydown="onNumericKeydown"
             type="text"
             inputmode="numeric"
             :label="t('tenantPackageMgmt.apiLimit')"
@@ -563,14 +561,14 @@ async function handleSave() {
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
+            @update:model-value="(v) => onLimitInput('apiLimit', v)"
+            @keydown="onNumericKeydown"
           />
         </div>
         <!-- 存储限制 -->
         <div class="col-12 col-md-6">
           <q-input
             :model-value="form.storageLimit"
-            @update:model-value="(v) => onLimitInput('storageLimit', v)"
-            @keydown="onNumericKeydown"
             type="text"
             inputmode="numeric"
             :label="t('tenantPackageMgmt.storageLimit')"
@@ -581,14 +579,14 @@ async function handleSave() {
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
+            @update:model-value="(v) => onLimitInput('storageLimit', v)"
+            @keydown="onNumericKeydown"
           />
         </div>
         <!-- 有效期天数 -->
         <div class="col-12 col-md-6">
           <q-input
             :model-value="form.expireDays"
-            @update:model-value="(v) => onLimitInput('expireDays', v)"
-            @keydown="onNumericKeydown"
             type="text"
             inputmode="numeric"
             :label="t('tenantPackageMgmt.expireDays')"
@@ -599,6 +597,8 @@ async function handleSave() {
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
+            @update:model-value="(v) => onLimitInput('expireDays', v)"
+            @keydown="onNumericKeydown"
           />
         </div>
       </div>
@@ -663,12 +663,12 @@ async function handleSave() {
             </div>
             <q-tree
               v-else
+              v-model:expanded="permTreeExpanded"
+              v-model:ticked="permTreeTicked"
               :nodes="filteredPermTreeNodes"
               node-key="id"
               label-key="label"
               children-key="children"
-              v-model:expanded="permTreeExpanded"
-              v-model:ticked="permTreeTicked"
               tick-strategy="leaf-filtered"
               no-connectors
               dense

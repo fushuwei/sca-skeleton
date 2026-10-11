@@ -489,7 +489,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.dataScope" v-slot:selected>
+                <template v-if="!searchForm.dataScope" #selected>
                   <span class="status-placeholder">{{ t('roleMgmt.scopePlaceholder') }}</span>
                 </template>
               </q-select>
@@ -512,7 +512,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.realm" v-slot:selected>
+                <template v-if="!searchForm.realm" #selected>
                   <span class="status-placeholder">{{ t('roleMgmt.realmPlaceholder') }}</span>
                 </template>
               </q-select>

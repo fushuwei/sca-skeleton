@@ -367,8 +367,8 @@ function submitForm(): void {
           <q-item
             v-for="tp in templates"
             :key="tp.id"
-            clickable
             v-ripple
+            clickable
             active-class="template-item--active"
             :active="tp.id === activeTemplateId"
             class="template-item"

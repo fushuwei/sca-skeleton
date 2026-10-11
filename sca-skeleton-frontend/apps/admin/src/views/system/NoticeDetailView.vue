@@ -147,6 +147,10 @@ onMounted(() => {
       <q-separator />
 
       <!-- 富文本正文（管理端富文本编辑器产出） -->
+      <!-- 安全提示：此处为富文本渲染，须保留 HTML 标签。风险由后端收敛——
+           通知内容入库/出库需过滤 script、on* 事件等可执行片段，否则存在存储型 XSS。
+           请勿在未确认后端过滤前放大 v-html 的使用范围。 -->
+      <!-- eslint-disable-next-line vue/no-v-html -- 富文本内容需按 HTML 渲染，见上方安全提示 -->
       <div class="rich-content" v-html="notice.content" />
     </article>
   </div>

@@ -653,7 +653,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.type" v-slot:selected>
+                <template v-if="!searchForm.type" #selected>
                   <span class="status-placeholder">{{ t('noticeMgmt.typePlaceholder') }}</span>
                 </template>
               </q-select>
@@ -676,7 +676,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.level" v-slot:selected>
+                <template v-if="!searchForm.level" #selected>
                   <span class="status-placeholder">{{ t('noticeMgmt.levelPlaceholder') }}</span>
                 </template>
               </q-select>
@@ -699,7 +699,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.status" v-slot:selected>
+                <template v-if="!searchForm.status" #selected>
                   <span class="status-placeholder">{{ t('noticeMgmt.statusPlaceholder') }}</span>
                 </template>
               </q-select>

@@ -129,7 +129,6 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-input
             :model-value="form.code"
-            @update:model-value="onCodeInput"
             :prefix="CODE_PREFIX"
             :label="t('postMgmt.code')"
             filled
@@ -139,6 +138,7 @@ async function handleSave() {
             :readonly="drawerReadonly"
             hide-bottom-space
             class="required-field"
+            @update:model-value="onCodeInput"
           />
         </div>
         <!-- 排序 -->

@@ -282,13 +282,13 @@ const unreadCount = computed(() => 3);
           </div>
           <q-separator />
           <q-list dense class="user-menu-action-list">
-            <q-item clickable v-close-popup @click="handleMenuClick('/portal/profile')">
+            <q-item v-close-popup clickable @click="handleMenuClick('/portal/profile')">
               <q-item-section>{{ t('layout.personalCenter') }}</q-item-section>
             </q-item>
-            <q-item clickable v-close-popup @click="handleMenuClick('/portal/profile')">
+            <q-item v-close-popup clickable @click="handleMenuClick('/portal/profile')">
               <q-item-section>{{ t('layout.changePassword') }}</q-item-section>
             </q-item>
-            <q-item clickable v-close-popup @click="handleLogout">
+            <q-item v-close-popup clickable @click="handleLogout">
               <q-item-section class="text-negative">{{ t('layout.logout') }}</q-item-section>
             </q-item>
           </q-list>
@@ -311,6 +311,7 @@ const unreadCount = computed(() => 3);
     <q-footer bordered class="bottom-footer">
       <q-toolbar class="bottom-toolbar">
         <div class="bottom-toolbar-meta">
+          <!-- eslint-disable-next-line vue/no-v-html -- 内容来自本地 i18n 文案（layout.copyright），非用户/服务端输入，无注入风险 -->
           <div class="bottom-toolbar-copyright" v-html="$t('layout.copyright')"></div>
         </div>
       </q-toolbar>

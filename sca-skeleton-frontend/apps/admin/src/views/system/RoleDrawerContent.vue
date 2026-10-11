@@ -725,7 +725,6 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-input
             :model-value="form.code"
-            @update:model-value="onCodeInput"
             :prefix="CODE_PREFIX"
             :label="t('roleMgmt.code')"
             filled
@@ -735,6 +734,7 @@ async function handleSave() {
             :readonly="drawerReadonly"
             hide-bottom-space
             class="required-field"
+            @update:model-value="onCodeInput"
           >
             <template v-if="mode === 'edit'" #append>
               <q-icon name="sym_r_lock" size="18px" color="grey-6">
@@ -822,18 +822,18 @@ async function handleSave() {
                   </div>
                   <q-tree
                     v-else
+                    v-model:expanded="deptTreeExpanded"
                     :nodes="filteredDeptTreeNodes"
                     node-key="id"
                     label-key="label"
                     children-key="children"
-                    v-model:expanded="deptTreeExpanded"
                     :ticked="deptTreeTicked"
-                    @update:ticked="onDeptTicked"
                     tick-strategy="strict"
                     no-connectors
                     dense
                     class="perm-tree"
                     no-nodes-label=" "
+                    @update:ticked="onDeptTicked"
                   >
                     <template #default-header="scope">
                       <!-- 行结构复用权限树的 perm-tree-node（40px 行高/占满整行），与套餐权限面板树一致 -->
@@ -950,12 +950,12 @@ async function handleSave() {
             </div>
             <q-tree
               v-else
+              v-model:expanded="permTreeExpanded"
+              v-model:ticked="permTreeTicked"
               :nodes="filteredPermTreeNodes"
               node-key="id"
               label-key="label"
               children-key="children"
-              v-model:expanded="permTreeExpanded"
-              v-model:ticked="permTreeTicked"
               tick-strategy="leaf-filtered"
               no-connectors
               dense

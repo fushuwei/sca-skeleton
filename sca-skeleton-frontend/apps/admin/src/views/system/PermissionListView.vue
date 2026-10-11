@@ -778,8 +778,8 @@ onMounted(() => {
             round
             size="20px"
             icon="sym_r_chevron_left"
-            @click="leftPanelCollapsed = true"
             class="left-panel-collapse-btn"
+            @click="leftPanelCollapsed = true"
           >
             <q-tooltip>{{ t("permissionMgmt.collapseTree") }}</q-tooltip>
           </q-btn>
@@ -795,11 +795,11 @@ onMounted(() => {
 
             <q-tree
               v-else
+              v-model:expanded="menuTreeExpanded"
               :nodes="menuTreeWithRoot"
               node-key="id"
               label-key="label"
               children-key="children"
-              v-model:expanded="menuTreeExpanded"
               no-connectors
               dense
               class="permission-tree"
@@ -904,7 +904,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.type" v-slot:selected>
+                <template v-if="!searchForm.type" #selected>
                   <span class="status-placeholder">{{ t('permissionMgmt.typePlaceholder') }}</span>
                 </template>
               </q-select>
@@ -927,7 +927,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.realm" v-slot:selected>
+                <template v-if="!searchForm.realm" #selected>
                   <span class="status-placeholder">{{ t('permissionMgmt.realmPlaceholder') }}</span>
                 </template>
               </q-select>
@@ -950,7 +950,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.status" v-slot:selected>
+                <template v-if="!searchForm.status" #selected>
                   <span class="status-placeholder">{{ t('permissionMgmt.statusPlaceholder') }}</span>
                 </template>
               </q-select>

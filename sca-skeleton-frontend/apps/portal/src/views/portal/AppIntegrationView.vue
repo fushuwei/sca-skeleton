@@ -422,7 +422,7 @@ onMounted(() => {
                     class="status-select"
                     popup-content-class="status-select-popup"
                   >
-                    <template v-if="!searchForm.status" v-slot:selected>
+                    <template v-if="!searchForm.status" #selected>
                       <span class="status-placeholder">{{ t('appIntegration.colStatus') }}</span>
                     </template>
                   </q-select>
@@ -692,7 +692,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="create-dialog__actions">
-          <q-btn flat no-caps :label="t('common.cancel')" v-close-popup class="btn-cancel" />
+          <q-btn v-close-popup flat no-caps :label="t('common.cancel')" class="btn-cancel" />
           <q-btn unelevated no-caps :label="t('appIntegration.confirmCreate')" class="btn-primary" @click="createApp" />
         </div>
       </q-card>

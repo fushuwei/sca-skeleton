@@ -474,11 +474,11 @@ function formatFileSize(bytes: number | string): string {
             :loading="nameChecking"
             :error="!!nameError"
             :error-message="nameError"
-            @blur="onNameBlur"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
             class="required-field"
+            @blur="onNameBlur"
           />
         </div>
         <!-- 数据库类型 -->
@@ -491,20 +491,20 @@ function formatFileSize(bytes: number | string): string {
             :options="DB_TYPE_OPTIONS"
             emit-value
             map-options
-            @update:model-value="onDbTypeChange"
             :rules="formRules.dbType"
             :disable="drawerReadonly"
             :readonly="drawerReadonly"
             hide-bottom-space
             class="required-field"
+            @update:model-value="onDbTypeChange"
           >
-            <template v-slot:selected-item="scope">
+            <template #selected-item="scope">
               <div v-if="scope.opt" class="row items-center no-wrap">
                 <DbTypeIcon :db-type="scope.opt.value" :size="20" class="q-mr-xs" />
                 <span>{{ scope.opt.label }}</span>
               </div>
             </template>
-            <template v-slot:option="scope">
+            <template #option="scope">
               <q-item v-bind="scope.itemProps">
                 <q-item-section avatar style="min-width: auto; padding-right: 8px;">
                   <DbTypeIcon :db-type="scope.opt.value" :size="20" />

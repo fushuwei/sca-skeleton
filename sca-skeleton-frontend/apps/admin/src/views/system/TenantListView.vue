@@ -529,7 +529,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.status" v-slot:selected>
+                <template v-if="!searchForm.status" #selected>
                   <span class="status-placeholder">{{ t('tenantMgmt.statusPlaceholder') }}</span>
                 </template>
               </q-select>
@@ -552,7 +552,7 @@ onMounted(() => {
                 class="package-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.packageId" v-slot:selected>
+                <template v-if="!searchForm.packageId" #selected>
                   <span class="status-placeholder">{{ t('tenantMgmt.packagePlaceholder') }}</span>
                 </template>
               </q-select>

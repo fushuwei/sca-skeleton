@@ -58,8 +58,8 @@ function navigateTo(path: string): void {
         <q-item
           v-for="item in navItems"
           :key="item.path"
-          clickable
           v-ripple
+          clickable
           :active="isNavActive(item.path)"
           active-class="profile-nav-item--active"
           class="profile-nav-item"

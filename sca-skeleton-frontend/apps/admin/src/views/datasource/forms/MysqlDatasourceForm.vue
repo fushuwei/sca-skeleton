@@ -456,7 +456,7 @@ defineExpose({ validate, getPayload, isDirty });
           hide-bottom-space
           class="required-field"
         >
-          <template v-slot:selected-item="scope">
+          <template #selected-item="scope">
             <div v-if="scope.opt" class="row items-center no-wrap">
               <DbTypeIcon :db-type="DB_TYPE" :size="20" class="q-mr-xs" />
               <span>{{ scope.opt.label }}</span>
@@ -482,8 +482,6 @@ defineExpose({ validate, getPayload, isDirty });
       <div class="col-12 col-md-6">
         <q-input
           :model-value="form.port"
-          @update:model-value="onPortInput"
-          @keydown="onNumericKeydown"
           type="text"
           inputmode="numeric"
           :label="t('datasourceMgmt.port')"
@@ -494,6 +492,8 @@ defineExpose({ validate, getPayload, isDirty });
           :readonly="readonlyMode"
           hide-bottom-space
           class="required-field"
+          @update:model-value="onPortInput"
+          @keydown="onNumericKeydown"
         />
       </div>
       <!-- 数据库名 -->
@@ -649,8 +649,6 @@ defineExpose({ validate, getPayload, isDirty });
                 <div v-for="field in POOL_FIELDS" :key="field.key" class="col-6">
                   <q-input
                     :model-value="poolConfig[field.key]"
-                    @update:model-value="(v) => onPoolInput(field.key, v)"
-                    @keydown="onNumericKeydown"
                     type="text"
                     inputmode="numeric"
                     :label="t(field.labelKey)"
@@ -659,6 +657,8 @@ defineExpose({ validate, getPayload, isDirty });
                     :disable="readonlyMode"
                     :readonly="readonlyMode"
                     hide-bottom-space
+                    @update:model-value="(v) => onPoolInput(field.key, v)"
+                    @keydown="onNumericKeydown"
                   />
                 </div>
               </div>

@@ -283,8 +283,8 @@ onUnmounted(() => {
               <div class="md3-text-field-wrapper">
                 <q-icon name="sym_r_person" class="login-icon field-icon" />
                 <input
-                  v-model="username"
                   ref="usernameInput"
+                  v-model="username"
                   class="md3-text-field with-icon"
                   :class="{ error: usernameErrorVisible }"
                   type="text"
@@ -304,8 +304,8 @@ onUnmounted(() => {
               <div class="md3-text-field-wrapper">
                 <q-icon name="sym_r_lock" class="login-icon field-icon" />
                 <input
-                  v-model="password"
                   ref="passwordInput"
+                  v-model="password"
                   class="md3-text-field with-icon"
                   :class="{ error: passwordErrorVisible }"
                   :type="passwordVisible ? 'text' : 'password'"
@@ -327,8 +327,8 @@ onUnmounted(() => {
               <div class="md3-text-field-wrapper">
                 <q-icon name="sym_r_verified_user" class="login-icon field-icon" />
                 <input
-                  v-model="captchaCode"
                   ref="captchaInput"
+                  v-model="captchaCode"
                   class="md3-text-field with-icon captcha-input"
                   :class="{ error: captchaErrorVisible }"
                   type="text"

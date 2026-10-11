@@ -34,7 +34,12 @@ const props = withDefaults(
   }>(),
   {
     modelValue: "",
-    clearable: true
+    clearable: true,
+    // 以下 prop 显式声明缺省：Vue 中可选非 Boolean prop 的缺省值本就是 undefined，
+    // 此处补齐仅为满足 vue/require-default-prop，运行时行为不变
+    placeholder: undefined,
+    min: undefined,
+    max: undefined
   }
 );
 

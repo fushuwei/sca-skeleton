@@ -494,14 +494,14 @@ onMounted(() => {
                 <q-tooltip>{{ t('sqlQuery.datasourceRefresh') }}</q-tooltip>
               </q-icon>
             </template>
-            <template v-slot:selected>
+            <template #selected>
               <div v-if="currentDatasource" class="row items-center no-wrap">
                 <DbTypeIcon :db-type="currentDatasource.dbType" :size="18" class="q-mr-xs" />
                 <span class="ellipsis">{{ currentDatasource.label }}</span>
               </div>
               <span v-else class="status-placeholder">{{ t('sqlQuery.datasourcePlaceholder') }}</span>
             </template>
-            <template v-slot:option="scope">
+            <template #option="scope">
               <q-item v-bind="scope.itemProps">
                 <q-item-section avatar style="min-width: auto; padding-right: 8px;">
                   <DbTypeIcon :db-type="scope.opt.dbType" :size="18" />

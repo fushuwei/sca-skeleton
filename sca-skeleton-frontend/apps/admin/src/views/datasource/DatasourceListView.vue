@@ -545,14 +545,14 @@ onMounted(async () => {
                 class="status-select db-type-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-slot:selected>
+                <template #selected>
                   <div v-if="searchForm.dbType" class="row items-center no-wrap">
                     <DbTypeIcon :db-type="searchForm.dbType" :size="18" class="q-mr-xs" />
                     <span>{{ getDbTypeLabel(searchForm.dbType) }}</span>
                   </div>
                   <span v-else class="status-placeholder">{{ t('datasourceMgmt.dbTypePlaceholder') }}</span>
                 </template>
-                <template v-slot:option="scope">
+                <template #option="scope">
                   <q-item v-bind="scope.itemProps">
                     <q-item-section avatar style="min-width: auto; padding-right: 8px;">
                       <DbTypeIcon :db-type="scope.opt.value" :size="20" />
@@ -582,7 +582,7 @@ onMounted(async () => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="searchForm.isEnabled === undefined || searchForm.isEnabled === null" v-slot:selected>
+                <template v-if="searchForm.isEnabled === undefined || searchForm.isEnabled === null" #selected>
                   <span class="status-placeholder">{{ t('datasourceMgmt.enabledPlaceholder') }}</span>
                 </template>
               </q-select>
@@ -605,7 +605,7 @@ onMounted(async () => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="searchForm.status === undefined || searchForm.status === null || searchForm.status === ''" v-slot:selected>
+                <template v-if="searchForm.status === undefined || searchForm.status === null || searchForm.status === ''" #selected>
                   <span class="status-placeholder">{{ t('datasourceMgmt.statusPlaceholder') }}</span>
                 </template>
               </q-select>

@@ -471,7 +471,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.status" v-slot:selected>
+                <template v-if="!searchForm.status" #selected>
                   <span class="status-placeholder">{{ t('tenantPackageMgmt.statusPlaceholder') }}</span>
                 </template>
               </q-select>

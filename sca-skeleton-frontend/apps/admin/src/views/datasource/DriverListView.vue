@@ -445,7 +445,7 @@ onMounted(() => {
                 popup-content-class="status-select-popup"
               >
                 <!-- 选中时展示图标 + 标签 -->
-                <template v-slot:selected>
+                <template #selected>
                   <div v-if="searchForm.dbType" class="row items-center no-wrap">
                     <DbTypeIcon :db-type="searchForm.dbType" :size="18" class="q-mr-xs" />
                     <span>{{ getDbTypeLabel(searchForm.dbType) }}</span>
@@ -453,7 +453,7 @@ onMounted(() => {
                   <span v-else class="status-placeholder">{{ t('driverMgmt.dbTypePlaceholder') }}</span>
                 </template>
                 <!-- 下拉选项：图标 + 标签 -->
-                <template v-slot:option="scope">
+                <template #option="scope">
                   <q-item v-bind="scope.itemProps">
                     <q-item-section avatar style="min-width: auto; padding-right: 8px;">
                       <DbTypeIcon :db-type="scope.opt.value" :size="20" />

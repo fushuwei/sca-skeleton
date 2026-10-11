@@ -178,9 +178,9 @@ function revoke(row: RequestRow): void {
 
     <div class="my-request-list-shell">
       <q-table
+        v-model:pagination="tablePagination"
         :rows="filteredRows"
         :columns="columns"
-        v-model:pagination="tablePagination"
         row-key="requestNo"
         :rows-per-page-options="[10, 20, 50, 100]"
         flat

@@ -707,12 +707,12 @@ async function handleSave() {
                 </q-input>
                 <q-scroll-area style="height: 300px">
                   <q-tree
+                    v-model:expanded="deptTreeExpanded"
                     class="user-dept-tree"
                     :nodes="filteredDeptTreeNodes"
                     node-key="id"
                     label-key="label"
                     children-key="children"
-                    v-model:expanded="deptTreeExpanded"
                     no-connectors
                     dense
                     no-nodes-label=" "

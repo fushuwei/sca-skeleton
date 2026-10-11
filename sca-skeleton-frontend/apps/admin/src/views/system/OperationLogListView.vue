@@ -584,7 +584,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="searchForm.isSuccess == null" v-slot:selected>
+                <template v-if="searchForm.isSuccess == null" #selected>
                   <span class="status-placeholder">{{ t('operationLog.status') }}</span>
                 </template>
               </q-select>

@@ -624,8 +624,8 @@ onMounted(() => {
             round
             size="20px"
             icon="sym_r_chevron_left"
-            @click="leftPanelCollapsed = true"
             class="left-panel-collapse-btn"
+            @click="leftPanelCollapsed = true"
           >
             <q-tooltip>{{ t("deptMgmt.collapseDeptTree") }}</q-tooltip>
           </q-btn>
@@ -641,11 +641,11 @@ onMounted(() => {
 
             <q-tree
               v-else
+              v-model:expanded="deptTreeExpanded"
               :nodes="deptTreeWithRoot"
               node-key="id"
               label-key="label"
               children-key="children"
-              v-model:expanded="deptTreeExpanded"
               no-connectors
               dense
               class="dept-tree"
@@ -744,7 +744,7 @@ onMounted(() => {
                 class="status-select"
                 popup-content-class="status-select-popup"
               >
-                <template v-if="!searchForm.status" v-slot:selected>
+                <template v-if="!searchForm.status" #selected>
                   <span class="status-placeholder">{{ t('deptMgmt.statusPlaceholder') }}</span>
                 </template>
               </q-select>

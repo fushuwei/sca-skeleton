@@ -214,7 +214,6 @@ async function handleSave() {
         <div class="col-12 col-md-6">
           <q-input
             :model-value="form.code"
-            @update:model-value="onCodeInput"
             :label="t('tenantMgmt.code')"
             filled
             square
@@ -223,6 +222,7 @@ async function handleSave() {
             :readonly="drawerReadonly"
             hide-bottom-space
             class="required-field"
+            @update:model-value="onCodeInput"
           />
         </div>
         <!-- 套餐选择 -->

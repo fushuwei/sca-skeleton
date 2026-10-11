@@ -1031,10 +1031,10 @@ function beginRightDrawerResize(e) {
                 transition-show="jump-up"
                 transition-hide="jump-down"
                 :aria-label="t('layout.tenantSwitcherAria')"
-                @update:model-value="handleTenantChange"
                 popup-content-class="status-select-popup"
+                @update:model-value="handleTenantChange"
               >
-                <template v-if="!currentTenantId" v-slot:selected>
+                <template v-if="!currentTenantId" #selected>
                   <span class="status-placeholder">{{ t('layout.tenantSelectPlaceholder') }}</span>
                 </template>
               </q-select>
@@ -1300,6 +1300,7 @@ function beginRightDrawerResize(e) {
         </q-btn>
         <div class="bottom-toolbar-meta">
           <div>{{ t('layout.versionLabel') }}</div>
+          <!-- eslint-disable-next-line vue/no-v-html -- 内容来自本地 i18n 文案（layout.copyright），非用户/服务端输入，无注入风险 -->
           <div class="bottom-toolbar-copyright" v-html="$t('layout.copyright')"></div>
         </div>
         <div class="bottom-toolbar-footer-actions row items-center no-wrap">
