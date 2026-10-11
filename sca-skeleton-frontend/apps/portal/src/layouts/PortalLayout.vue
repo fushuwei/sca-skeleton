@@ -4,7 +4,6 @@ import { useRoute, useRouter } from "vue-router";
 import { useQuasar } from "quasar";
 import { useI18n } from "vue-i18n";
 import { usePortalAuthStore } from "../stores/auth";
-import { flattenRoutableMenus } from "../utils/menu-tree";
 import type { MenuItem } from "../types/auth";
 import { persistDark, persistLocale, quasarLangForLocale } from "../i18n";
 
@@ -47,9 +46,6 @@ const topNavMenus = computed(() => {
   void locale.value;
   return authStore.menus;
 });
-
-/** 全部可路由叶子路径集合，用于判断当前路由是否落在某一级菜单的子树内 */
-const allLeafPaths = computed(() => flattenRoutableMenus(authStore.menus).map((m) => m.path));
 
 function translateMenuItemTitle(item: MenuItem): string {
   void locale.value;

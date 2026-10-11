@@ -2,13 +2,9 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { usePortalAuthStore } from "../../stores/auth";
 
 const router = useRouter();
 const { t } = useI18n({ useScope: "global" });
-const authStore = usePortalAuthStore();
-
-const username = computed(() => authStore.profile?.nickname ?? t("layout.defaultNickname"));
 
 interface StatCard {
   key: string;

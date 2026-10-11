@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Dark } from "quasar";
 import { showToast, isNotificationHandled } from "@repo/shared";
@@ -371,9 +371,9 @@ function handleExport() {
 // 面板布局（左面板宽度 + 编辑器/结果纵向分栏）
 // ============================================================
 
-const sidebarVisible = ref(true);
-const sidebarWidth = ref(300);
-const editorPct = ref(45);
+const sidebarVisible = ref(prefs.sidebarVisible ?? true);
+const sidebarWidth = ref(prefs.sidebarWidth ?? 300);
+const editorPct = ref(prefs.editorPct ?? 45);
 /** 拖拽进行中标记：为 true 时禁用 width 过渡，保证拖拽跟手不卡顿 */
 const isResizing = ref(false);
 
@@ -662,7 +662,7 @@ onMounted(() => {
                 indicator-color="primary"
                 class="sq-result-tabs"
               >
-                <q-tab name="result" @click="">
+                <q-tab name="result">
                   <div class="row items-center no-wrap">
                     <q-icon name="sym_r_grid_on" size="20px" class="q-mr-xs" />
                     <span>{{ t('sqlQuery.result') }}</span>

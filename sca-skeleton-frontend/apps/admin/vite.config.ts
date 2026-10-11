@@ -1,5 +1,5 @@
 import { fileURLToPath, URL } from "node:url";
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv, type ProxyOptions } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { quasar, transformAssetUrls } from "@quasar/vite-plugin";
 import { overrideFontDisplay } from "@repo/ui/vite-plugins/override-font-display";
@@ -10,8 +10,8 @@ export default defineConfig(({ mode }) => {
   const gatewayTarget = env.VITE_GATEWAY_TARGET || "";
 
   // 代理配置：转发浏览器真实 IP 到网关，确保登录日志/操作日志记录真实客户端 IP 而非代理 IP
-  const configureProxy = (proxy: any) => {
-    proxy.on("proxyReq", (proxyReq: any, req: any) => {
+  const configureProxy: NonNullable<ProxyOptions["configure"]> = (proxy) => {
+    proxy.on("proxyReq", (proxyReq, req) => {
       const clientIp = req.socket.remoteAddress;
       if (clientIp) {
         // 处理 IPv6 映射的 IPv4 地址（::ffff:192.168.1.104 -> 192.168.1.104）

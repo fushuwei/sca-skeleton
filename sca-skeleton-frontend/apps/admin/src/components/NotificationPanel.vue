@@ -40,10 +40,10 @@ let lastRefreshTime = 0;
 // 计算属性
 // ═══════════════════════════════════════════════════════════════
 
-const unreadCount = computed(() => notices.value.filter((n) => !n.isRead).length);
+const localUnreadCount = computed(() => notices.value.filter((n) => !n.isRead).length);
 
 /** 头部徽标展示的未读数：优先使用父组件传入的精确值 */
-const unreadBadge = computed(() => props.unreadCount ?? unreadCount.value);
+const unreadBadge = computed(() => props.unreadCount ?? localUnreadCount.value);
 
 /** 类型 → 图标映射（与 NoticeDetailView 内的同名映射保持一致） */
 const typeIconMap: Record<string, string> = {
@@ -107,7 +107,7 @@ function notifyUnreadCount() {
   // 未读总数 = 总未读数（如果当前页展示了所有未读则用本地计数）
   // 由于弹窗只加载第一页，更准确的未读数需要单独查询
   // 这里用本地已加载数据中的未读数通知父组件做 UI 更新
-  emit("unreadCountChange", unreadCount.value);
+  emit("unreadCountChange", localUnreadCount.value);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -164,7 +164,7 @@ async function handleMarkRead(item: NoticeInboxItem) {
 }
 
 async function handleMarkAllRead() {
-  if (unreadCount.value === 0 && totalCount.value === 0) return;
+  if (localUnreadCount.value === 0 && totalCount.value === 0) return;
   markingAllRead.value = true;
   try {
     const result = await markAllNoticeAsReadApi();
