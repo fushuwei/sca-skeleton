@@ -42,8 +42,11 @@ export function subsetMaterialSymbols(): Plugin {
       // Vite 启动时 cwd 为各 app 目录（apps/admin 或 apps/portal），从该处解析 @quasar/extras
       const require = createRequire(process.cwd() + "/package.json");
       const extrasPkgPath = require.resolve("@quasar/extras/package.json");
+      // @quasar/extras 2.x 将图标包从包根目录移至 exports/ 子目录
+      const pkgRoot = dirname(extrasPkgPath);
       const webFontDir = join(
-        dirname(extrasPkgPath),
+        pkgRoot,
+        "exports",
         "material-symbols-rounded",
         "web-font"
       );
