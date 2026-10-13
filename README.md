@@ -82,36 +82,38 @@
 
 | 技术栈                     | 版本    | 说明                            |
 |----------------------------|---------|---------------------------------|
-| Vue                        | 3.5.33  | 核心框架                        |
-| Vue Router                 | 5.0.6   | 路由管理                        |
-| Pinia                      | 3.0.4   | 状态管理                        |
-| Quasar                     | 2.21.4  | UI 框架（admin 与 portal 共用） |
-| @quasar/extras             | 1.18.0  | Quasar 图标与字体资源           |
-| @quasar/vite-plugin        | 1.11.0  | Quasar 的 Vite 集成插件         |
-| axios                      | 1.15.2  | HTTP 请求                       |
-| vue-i18n                   | 10.0.8  | 国际化（zh-CN / en-US）         |
+| Vue                        | 3.5.43  | 核心框架                        |
+| Vue Router                 | 5.4.0   | 路由管理                        |
+| Pinia                      | 4.0.3   | 状态管理                        |
+| Quasar                     | 2.35.0  | UI 框架（admin 与 portal 共用） |
+| @quasar/extras             | 2.1.0   | Quasar 图标与字体资源           |
+| @quasar/vite-plugin        | 2.0.2   | Quasar 的 Vite 集成插件         |
+| axios                      | 1.20.0  | HTTP 请求                       |
+| vue-i18n                   | 11.4.14 | 国际化（zh-CN / en-US）         |
 | CodeMirror                 | 6.0.2   | 代码编辑器内核（SQL 编辑器）    |
-| @codemirror/view           | 6.43.8  | 编辑器视图层                    |
-| @codemirror/state          | 6.7.1   | 编辑器状态管理                  |
+| @codemirror/view           | 6.43.14 | 编辑器视图层                    |
+| @codemirror/state          | 6.7.6   | 编辑器状态管理                  |
 | @codemirror/lang-sql       | 6.10.0  | SQL 语法高亮                    |
 | @codemirror/theme-one-dark | 6.1.3   | 编辑器深色主题                  |
-| TipTap                     | 3.30.2  | 富文本编辑器（含 12 个扩展包）  |
-| zxcvbn-ts                  | 4.1.2   | 密码强度评估                    |
-| sql-formatter              | 15.8.2  | SQL 格式化                      |
-| Vite                       | 8.0.16  | 构建与开发服务                  |
-| @vitejs/plugin-vue         | 6.0.6   | Vue 单文件组件编译              |
+| TipTap                     | 3.31.4  | 富文本编辑器（含 12 个扩展包）  |
+| zxcvbn-ts                  | 4.2.0   | 密码强度评估                    |
+| sql-formatter              | 15.9.0  | SQL 格式化                      |
+| Vite                       | 8.3.4   | 构建与开发服务                  |
+| @vitejs/plugin-vue         | 6.0.9   | Vue 单文件组件编译              |
 | TypeScript                 | 6.0.3   | 类型系统                        |
-| vue-tsc                    | 3.2.8   | 类型检查（`vue-tsc --noEmit`）  |
-| sass                       | 1.99.0  | Sass 样式编译                   |
+| vue-tsc                    | 3.3.13  | 类型检查（`vue-tsc --noEmit`）  |
+| sass                       | 1.105.1 | Sass 样式编译                   |
 | pnpm                       | 10.33.2 | 包管理与 workspace              |
-| Turborepo                  | 2.9.6   | Monorepo 任务编排               |
-| ESLint                     | 10.2.1  | 代码检查                        |
-| typescript-eslint          | 8.59.2  | TypeScript 检查规则             |
-| eslint-plugin-vue          | 10.9.1  | Vue 单文件组件检查规则          |
-| Prettier                   | 3.8.3   | 代码格式化                      |
-| Vitest                     | 4.1.5   | 单元测试                        |
-| @vue/test-utils            | 2.4.9   | Vue 组件测试工具                |
-| Playwright                 | 1.61.0  | 端到端测试                      |
+| Turborepo                  | 2.11.7  | Monorepo 任务编排               |
+| ESLint                     | 10.12.0 | 代码检查                        |
+| @eslint/js                 | 10.0.1  | ESLint 官方推荐规则集           |
+| typescript-eslint          | 8.71.1  | TypeScript 检查规则             |
+| eslint-plugin-vue          | 10.11.1 | Vue 单文件组件检查规则          |
+| eslint-config-prettier     | 10.1.8  | 关闭与 Prettier 冲突的排版规则  |
+| Prettier                   | 3.9.9   | 代码格式化                      |
+| Vitest                     | 5.0.3   | 单元测试                        |
+| @vue/test-utils            | 2.5.1   | Vue 组件测试工具                |
+| Playwright                 | 1.64.0  | 端到端测试                      |
 
 ## 架构特点
 
