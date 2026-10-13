@@ -3041,3 +3041,43 @@
     color: rgba(255, 255, 255, 0.55) !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+ * DrawerContent 抽屉底部操作按钮 & SSO 配置页操作按钮 — 全局深色模式覆盖
+ *
+ * 所有 DrawerContent 组件（TenantDrawerContent / UserDrawerContent / RoleDrawerContent /
+ * PermissionDrawerContent / DeptDrawerContent / DictDrawerContent / DictDataDrawerContent /
+ * PostDrawerContent / ConfigDrawerContent / NoticeDrawerContent / TenantPackageDrawerContent /
+ * DatasourceDrawerContent / DriverDrawerContent）的底部按钮均使用
+ * `.drawer-action-btn` 类名；SsoCasConfigView / SsoOauth2ConfigView 使用
+ * `.sso-action-btn` 类名。各组件 dark 样式只覆盖了表单字段与分隔线，
+ * 未覆盖按钮颜色。
+ *
+ * Quasar 在 dark 模式下不会自动改变 `primary`（#009688）颜色值，
+ * 导致 `color="primary" unelevated` 实心按钮和 `color="primary" outline`
+ * 描边按钮在 dark 模式下仍为明亮主题的青绿色。
+ *
+ * 此处统一覆盖，色值与列表页工具栏按钮（.toolbar-area / .search-btn）保持一致。
+ * ═══════════════════════════════════════════════════════════════ */
+.body--dark .drawer-action-btn.q-btn--unelevated:not(.q-btn--outline),
+.body--dark .sso-action-btn.q-btn--unelevated:not(.q-btn--outline) {
+  background: rgba(0, 150, 136, 0.85) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.body--dark .drawer-action-btn.q-btn--unelevated:not(.q-btn--outline):hover,
+.body--dark .sso-action-btn.q-btn--unelevated:not(.q-btn--outline):hover {
+  background: rgba(0, 150, 136, 1) !important;
+}
+
+.body--dark .drawer-action-btn.q-btn--outline,
+.body--dark .sso-action-btn.q-btn--outline {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: rgba(255, 255, 255, 0.87) !important;
+  background: transparent !important;
+}
+
+.body--dark .drawer-action-btn.q-btn--outline:hover,
+.body--dark .sso-action-btn.q-btn--outline:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
