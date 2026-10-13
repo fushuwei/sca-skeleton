@@ -49,8 +49,8 @@ const authMethodOptions = computed(() => [
 ]);
 
 const pkceMethodOptions = computed(() => [
-  { label: "S256", value: "S256" },
-  { label: "plain", value: "plain" }
+  { label: "S256", description: t('ssoConfig.pkceS256Desc'), value: "S256" },
+  { label: "plain", description: t('ssoConfig.pkcePlainDesc'), value: "plain" }
 ]);
 
 const bindingPolicyOptions = computed(() => [
@@ -217,30 +217,32 @@ onMounted(loadConfig);
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space
                 />
               </div>
-              <div class="col-12 col-md-4">
+              <div class="col-12">
                 <q-toggle v-model="form.useDiscovery" :label="t('ssoConfig.useDiscovery')" :disable="!editing" dense />
               </div>
-              <div class="col-12">
-                <q-input
-                  v-model.trim="form.issuer" :label="t('ssoConfig.issuer')"
-                  filled square :disable="!editing" :readonly="!editing" hide-bottom-space
-                  :rules="editing ? rules.issuer : []"
-                  :placeholder="t('ssoConfig.issuerPlaceholder')"
-                  :hint="t('ssoConfig.issuerHint')"
-                />
-              </div>
+              <template v-if="!manualEndpoints">
+                <div class="col-12">
+                  <q-input
+                    v-model.trim="form.issuer" :label="t('ssoConfig.issuer')"
+                    filled square :disable="!editing" :readonly="!editing" hide-bottom-space
+                    :rules="editing ? rules.issuer : []"
+                    :placeholder="t('ssoConfig.issuerPlaceholder')"
+                    :hint="t('ssoConfig.issuerHint')"
+                  />
+                </div>
+              </template>
               <template v-if="manualEndpoints">
                 <div class="col-12 col-md-6">
-                  <q-input v-model.trim="form.authorizationUri" :label="t('ssoConfig.authorizationUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.authorizationUri : []" />
+                  <q-input v-model.trim="form.authorizationUri" :label="t('ssoConfig.authorizationUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.authorizationUri : []" :placeholder="t('ssoConfig.authorizationUriPlaceholder')" />
                 </div>
                 <div class="col-12 col-md-6">
-                  <q-input v-model.trim="form.tokenUri" :label="t('ssoConfig.tokenUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.tokenUri : []" />
+                  <q-input v-model.trim="form.tokenUri" :label="t('ssoConfig.tokenUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.tokenUri : []" :placeholder="t('ssoConfig.tokenUriPlaceholder')" />
                 </div>
                 <div class="col-12 col-md-6">
-                  <q-input v-model.trim="form.userInfoUri" :label="t('ssoConfig.userInfoUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.userInfoUri : []" />
+                  <q-input v-model.trim="form.userInfoUri" :label="t('ssoConfig.userInfoUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.userInfoUri : []" :placeholder="t('ssoConfig.userInfoUriPlaceholder')" />
                 </div>
                 <div class="col-12 col-md-6">
-                  <q-input v-model.trim="form.jwkSetUri" :label="t('ssoConfig.jwkSetUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :hint="t('ssoConfig.jwkSetUriHint')" />
+                  <q-input v-model.trim="form.jwkSetUri" :label="t('ssoConfig.jwkSetUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :hint="t('ssoConfig.jwkSetUriHint')" :placeholder="t('ssoConfig.jwkSetUriPlaceholder')" />
                 </div>
               </template>
               <!-- 客户端参数 -->
@@ -270,7 +272,7 @@ onMounted(loadConfig);
                 <q-input v-model.trim="form.logoutUri" :label="t('ssoConfig.logoutUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.logoutUriPlaceholder')" :hint="t('ssoConfig.logoutUriHint')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.scope" :label="t('ssoConfig.scope')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :hint="t('ssoConfig.scopeHint')" />
+                <q-input v-model.trim="form.scope" :label="t('ssoConfig.scope')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.scopePlaceholder')" :hint="t('ssoConfig.scopeHint')" />
               </div>
               <div class="col-12 col-md-6">
                 <q-input v-model="form.responseType" :label="t('ssoConfig.responseType')" filled square readonly disable :hint="t('ssoConfig.responseTypeHint')" />
@@ -282,15 +284,24 @@ onMounted(loadConfig);
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space
                 />
               </div>
-              <div class="col-12 col-md-3">
+              <div class="col-12">
                 <q-toggle v-model="form.usePkce" :label="t('ssoConfig.usePkce')" :disable="!editing" dense />
               </div>
-              <div class="col-12 col-md-3">
+              <div class="col-12 col-md-6">
                 <q-select
                   v-if="form.usePkce" v-model="form.pkceMethod" :label="t('ssoConfig.pkceMethod')"
                   :options="pkceMethodOptions" option-label="label" option-value="value" emit-value map-options
-                  filled square dense :disable="!editing" :readonly="!editing" hide-bottom-space
-                />
+                  filled square :disable="!editing" :readonly="!editing" hide-bottom-space
+                >
+                  <template #option="scope">
+                    <q-item v-bind="scope.itemProps">
+                      <q-item-section>
+                        <q-item-label>{{ scope.opt.label }}</q-item-label>
+                        <q-item-label caption>{{ scope.opt.description }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                </q-select>
               </div>
               <div class="col-12">
                 <q-input v-model="form.remark" :label="t('ssoConfig.remark')" type="textarea" rows="2" autogrow filled square :disable="!editing" :readonly="!editing" hide-bottom-space />

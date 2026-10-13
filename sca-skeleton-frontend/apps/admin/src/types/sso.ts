@@ -183,7 +183,7 @@ export function defaultOauth2Config(): Oauth2Config {
     jwkSetUri: "",
     redirectUri: "",
     logoutUri: "",
-    scope: "openid profile email",
+    scope: "",
     responseType: "code",
     clientAuthenticationMethod: "client_secret_basic",
     usePkce: true,
