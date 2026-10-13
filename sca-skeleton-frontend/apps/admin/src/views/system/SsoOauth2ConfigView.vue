@@ -31,24 +31,12 @@ let snapshot: Oauth2Config = defaultOauth2Config();
  * 折叠分组默认展开态：与 CAS 页一致，把「服务端连接信息」（发现 issuer + 手动端点）
  * 和备注并入「基本信息」，不再单列成组；保留客户端参数/属性映射/扩展参数。
  */
-const SECTION_DEFAULTS = {
+const openSections = reactive({
   basic: true,
   client: true,
   attr: false,
   extra: false
-};
-const openSections = reactive<Record<keyof typeof SECTION_DEFAULTS, boolean>>({
-  ...SECTION_DEFAULTS
 });
-
-function expandAllSections() {
-  (Object.keys(openSections) as (keyof typeof openSections)[]).forEach(
-    (k) => (openSections[k] = true)
-  );
-}
-function resetSections() {
-  Object.assign(openSections, SECTION_DEFAULTS);
-}
 
 const { enabled, toggling, handleToggle } = useSsoEnable("OAUTH2", () =>
   t('ssoConfig.providerCas')
@@ -128,7 +116,6 @@ async function loadConfig() {
 function startEdit() {
   snapshot = JSON.parse(JSON.stringify(form)) as Oauth2Config;
   revealSecret.value = false;
-  expandAllSections();
   editing.value = true;
 }
 
@@ -136,7 +123,6 @@ async function cancelEdit() {
   Object.assign(form, JSON.parse(JSON.stringify(snapshot)) as Oauth2Config);
   editing.value = false;
   revealSecret.value = false;
-  resetSections();
   await formRef.value?.resetValidation();
 }
 
@@ -157,7 +143,6 @@ async function handleSave() {
       showToast(t('ssoConfig.saveSuccess'), "positive");
       editing.value = false;
       revealSecret.value = false;
-      resetSections();
       await loadConfig();
     } else {
       showToast(result.message || t('ssoConfig.saveFail'), "negative");

@@ -41,23 +41,11 @@ let snapshotDirty = false;
  * 原「校验选项」（renew/gateway/ignoreSsl）与「默认一律跳 SSO、已登录即免登」的
  * 校园统一登录场景相冲突或冗余，已整体移除。
  */
-const SECTION_DEFAULTS = {
+const openSections = reactive({
   basic: true,
   attr: false,
   extra: false
-};
-const openSections = reactive<Record<keyof typeof SECTION_DEFAULTS, boolean>>({
-  ...SECTION_DEFAULTS
 });
-
-function expandAllSections() {
-  (Object.keys(openSections) as (keyof typeof openSections)[]).forEach(
-    (k) => (openSections[k] = true)
-  );
-}
-function resetSections() {
-  Object.assign(openSections, SECTION_DEFAULTS);
-}
 
 const { enabled, toggling, handleToggle } = useSsoEnable("CAS", () =>
   t('ssoConfig.providerOauth2')
@@ -153,7 +141,6 @@ async function loadConfig() {
 function startEdit() {
   snapshot = JSON.parse(JSON.stringify(form)) as CasConfig;
   snapshotDirty = validateUrlDirty.value;
-  expandAllSections();
   editing.value = true;
 }
 
@@ -161,7 +148,6 @@ async function cancelEdit() {
   Object.assign(form, JSON.parse(JSON.stringify(snapshot)) as CasConfig);
   validateUrlDirty.value = snapshotDirty;
   editing.value = false;
-  resetSections();
   await formRef.value?.resetValidation();
 }
 
@@ -175,7 +161,6 @@ async function handleSave() {
     if (result.code === 10_000) {
       showToast(t('ssoConfig.saveSuccess'), "positive");
       editing.value = false;
-      resetSections();
       snapshot = JSON.parse(JSON.stringify(payload)) as CasConfig;
       snapshotDirty = validateUrlDirty.value;
     } else {

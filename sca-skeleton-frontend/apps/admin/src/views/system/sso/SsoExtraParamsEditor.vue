@@ -53,7 +53,7 @@ function patchRow(index: number, field: keyof SsoExtraParam, value: string) {
           @update:model-value="(v: unknown) => patchRow(index, 'key', String(v ?? ''))"
         />
       </div>
-      <div class="col-12 col-sm-5">
+      <div class="col">
         <q-input
           :model-value="row.value"
           :label="t('ssoConfig.extraParamValue')"
@@ -65,14 +65,15 @@ function patchRow(index: number, field: keyof SsoExtraParam, value: string) {
           @update:model-value="(v: unknown) => patchRow(index, 'value', String(v ?? ''))"
         />
       </div>
-      <div class="col-12 col-sm-2 flex justify-end">
+      <div class="col-auto flex items-center">
         <q-btn
           flat
           dense
           round
-          size="md"
           color="negative"
           icon="sym_r_delete_outline"
+          size="20px"
+          class="extra-params-delete-btn"
           :disable="readonly"
           @click="removeRow(index)"
         >
@@ -85,13 +86,15 @@ function patchRow(index: number, field: keyof SsoExtraParam, value: string) {
       v-if="!readonly"
       flat
       dense
-      no-caps
+      round
       color="primary"
       icon="sym_r_add"
-      :label="t('ssoConfig.addExtraParam')"
-      class="q-mt-xs"
+      size="20px"
+      class="extra-params-add-btn"
       @click="addRow"
-    />
+    >
+      <q-tooltip>{{ t('ssoConfig.addExtraParam') }}</q-tooltip>
+    </q-btn>
     <div v-else-if="!modelValue.length" class="text-grey-6 q-mt-xs">
       {{ t("ssoConfig.noExtraParam") }}
     </div>
@@ -101,6 +104,13 @@ function patchRow(index: number, field: keyof SsoExtraParam, value: string) {
 <style scoped>
 .extra-params-editor {
   width: 100%;
+}
+
+/* 添加/删除按钮：统一 32px 圆形按钮，icon 20px */
+.extra-params-add-btn,
+.extra-params-delete-btn {
+  width: 32px;
+  height: 32px;
 }
 </style>
 
