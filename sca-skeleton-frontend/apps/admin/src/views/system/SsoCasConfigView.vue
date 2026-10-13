@@ -19,7 +19,6 @@ import SsoStatusBadge from "./sso/SsoStatusBadge.vue";
 
 const { t } = useI18n({ useScope: "global" });
 
-const loading = ref(false);
 const saving = ref(false);
 const editing = ref(false);
 const formRef = ref<QForm | null>(null);
@@ -125,7 +124,6 @@ watch(
 );
 
 async function loadConfig() {
-  loading.value = true;
   try {
     const result = await getCasConfigApi();
     if (result.code === 10_000 && result.data) {
@@ -149,8 +147,6 @@ async function loadConfig() {
     if (!isNotificationHandled(error)) {
       showToast(t('ssoConfig.loadFail'), "negative");
     }
-  } finally {
-    loading.value = false;
   }
 }
 
@@ -199,9 +195,7 @@ onMounted(loadConfig);
 
 <template>
   <div class="sso-config-page">
-    <q-spinner-dots v-if="loading" size="40px" color="teal" class="page-loading" />
-
-    <div v-else class="sso-config-shell">
+    <div class="sso-config-shell">
       <!-- 头部：标题 + 启用开关 + 编辑/保存动作（不再包卡片，手风琴卡片本身即唯一外框） -->
       <div class="sso-config-header row items-center no-wrap">
         <div class="col">
@@ -431,11 +425,6 @@ onMounted(loadConfig);
   padding: 20px 24px;
 }
 
-.page-loading {
-  display: block;
-  margin: 15vh auto;
-}
-
 /* 页面级容器：不再套卡片，避免与手风琴卡片形成「框中框」 */
 .sso-config-shell {
   max-width: 1120px;
@@ -499,5 +488,42 @@ onMounted(loadConfig);
 .body--dark .sso-config-page .sso-readonly-pill {
   color: rgba(255, 255, 255, 0.6);
   background: rgba(255, 255, 255, 0.08);
+}
+
+/*
+ * 暗色态表单字段整体覆写：比照各抽屉「添加/修改」表单（UserDrawerContent 等）的
+ * .body--dark 字段块，统一 .sso-form 内所有 filled/square q-input、q-select 在深底下的
+ * 底色、输入文字、标签(标题)、占位符、下边框与聚焦强调色，修复沿用浅色配色导致的
+ * 标签/占位符看不清、主题不兼容问题。聚焦标签与下划线用 #80cbc4（全站暗色表单统一 teal），
+ * 手风琴组头 accent 仍用 #4db6ac（与 MysqlDatasourceForm 一致），二者各有分工、不混用。
+ */
+.body--dark .sso-config-page .sso-form .q-field__control {
+  background: #2d2d2d;
+}
+
+.body--dark .sso-config-page .sso-form .q-field__native,
+.body--dark .sso-config-page .sso-form .q-field__prefix,
+.body--dark .sso-config-page .sso-form .q-field__suffix {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.body--dark .sso-config-page .sso-form .q-field__native::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.body--dark .sso-config-page .sso-form .q-field__label {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.body--dark .sso-config-page .sso-form .q-field--focused .q-field__label {
+  color: #80cbc4;
+}
+
+.body--dark .sso-config-page .sso-form .q-field__control::before {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.body--dark .sso-config-page .sso-form .q-field--focused .q-field__control::after {
+  border-color: #80cbc4;
 }
 </style>
