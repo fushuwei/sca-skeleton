@@ -103,3 +103,19 @@ function patchRow(index: number, field: keyof SsoExtraParam, value: string) {
   width: 100%;
 }
 </style>
+
+<style>
+/*
+ * 暗色态：flat 按钮颜色适配。
+ * Quasar dark 模式不会自动调整 primary（#009688）颜色值，
+ * 在暗色背景上偏亮且饱和度过高。此处统一为 #4db6ac（与手风琴图标暗色态一致），
+ * negative 按钮用更柔和的红色变体，与全站暗色模式操作按钮风格保持一致。
+ */
+.body--dark .extra-params-editor .q-btn--flat.text-primary {
+  color: #4db6ac !important;
+}
+
+.body--dark .extra-params-editor .q-btn--flat.text-negative {
+  color: #ef5350 !important;
+}
+</style>

@@ -456,9 +456,10 @@ onMounted(loadConfig);
 /*
  * 暗色态表单字段整体覆写：比照各抽屉「添加/修改」表单（UserDrawerContent 等）的
  * .body--dark 字段块，统一 .sso-form 内所有 filled/square q-input、q-select 在深底下的
- * 底色、输入文字、标签(标题)、占位符、下边框与聚焦强调色，修复沿用浅色配色导致的
- * 标签/占位符看不清、主题不兼容问题。聚焦标签与下划线用 #80cbc4（全站暗色表单统一 teal），
+ * 底色、输入文字、标签(标题)、下边框与聚焦强调色，修复沿用浅色配色导致的
+ * 标签看不清、主题不兼容问题。聚焦标签与下划线用 #80cbc4（全站暗色表单统一 teal），
  * 手风琴组头 accent 仍用 #4db6ac（与 MysqlDatasourceForm 一致），二者各有分工、不混用。
+ * 注意：不覆盖 ::placeholder，让 Quasar dark 模式自行处理占位符颜色（与 UserDrawerContent 一致）。
  */
 .body--dark .sso-config-page .sso-form .q-field__control {
   background: #2d2d2d;
@@ -468,10 +469,6 @@ onMounted(loadConfig);
 .body--dark .sso-config-page .sso-form .q-field__prefix,
 .body--dark .sso-config-page .sso-form .q-field__suffix {
   color: rgba(255, 255, 255, 0.87);
-}
-
-.body--dark .sso-config-page .sso-form .q-field__native::placeholder {
-  color: rgba(255, 255, 255, 0.4);
 }
 
 .body--dark .sso-config-page .sso-form .q-field__label {
