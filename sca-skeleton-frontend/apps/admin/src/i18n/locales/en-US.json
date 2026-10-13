@@ -1032,7 +1032,7 @@
     "usePkce": "Enable PKCE",
     "pkceMethod": "PKCE Method",
     "logoutUri": "Logout Endpoint",
-    "logoutUriPlaceholder": "e.g. https://sso.ustb.edu.cn/idp/authCenter/GLO",
+    "logoutUriPlaceholder": "e.g. https://sso.university.edu.cn/idp/authCenter/GLO",
     "logoutUriHint": "Used for global logout / OIDC end_session_endpoint. When the user signs out of this system, they are redirected here to terminate the IdP session."
   }
 }

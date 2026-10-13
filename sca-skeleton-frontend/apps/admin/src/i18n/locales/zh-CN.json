@@ -1032,7 +1032,7 @@
     "usePkce": "启用 PKCE",
     "pkceMethod": "PKCE 方法",
     "logoutUri": "登出端点（Logout）",
-    "logoutUriPlaceholder": "例如 https://sso.ustb.edu.cn/idp/authCenter/GLO",
+    "logoutUriPlaceholder": "例如 https://sso.university.edu.cn/idp/authCenter/GLO",
     "logoutUriHint": "用于全局退出 / OIDC end_session_endpoint，用户在本系统登出时重定向到此地址注销 IdP 会话"
   }
 }
