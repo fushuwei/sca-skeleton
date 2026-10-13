@@ -935,7 +935,6 @@
     "providerCas": "CAS Single Sign-On",
     "providerOauth2": "OAuth2/OIDC Single Sign-On",
     "enableSwitch": "Enable",
-    "readonlyBadge": "Read-only",
     "enabledBadge": "Enabled",
     "disabledBadge": "Disabled",
     "notEnabledHint": "Single sign-on is currently disabled. Users sign in with local username and password.",

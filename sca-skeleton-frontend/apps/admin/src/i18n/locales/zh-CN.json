@@ -935,7 +935,6 @@
     "providerCas": "CAS 统一身份认证",
     "providerOauth2": "OAuth2/OIDC 统一身份认证",
     "enableSwitch": "启用",
-    "readonlyBadge": "只读",
     "enabledBadge": "已启用",
     "disabledBadge": "未启用",
     "notEnabledHint": "当前未启用统一身份认证，用户将使用系统本地账号密码登录。",

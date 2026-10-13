@@ -212,19 +212,18 @@ onMounted(loadConfig);
         </div>
 
         <div class="row items-center no-wrap q-gutter-x-md">
-          <div class="row items-center no-wrap">
-            <span class="text-body2 q-mr-sm">{{ t('ssoConfig.enableSwitch') }}</span>
+          <div class="sso-enable-control">
+            <span class="sso-enable-control__label">{{ t('ssoConfig.enableSwitch') }}</span>
             <q-toggle
               :model-value="enabled"
               :disable="toggling"
               color="positive"
               @update:model-value="(v: boolean) => handleToggle(v)"
             />
-            <q-spinner v-if="toggling" size="18px" class="q-ml-xs" />
+            <q-spinner v-if="toggling" size="16px" />
           </div>
 
           <template v-if="!editing">
-            <q-badge v-if="!enabled" color="grey-6" :label="t('ssoConfig.readonlyBadge')" />
             <q-btn
               outline
               no-caps
@@ -457,5 +456,30 @@ onMounted(loadConfig);
 
 .sso-form {
   width: 100%;
+}
+
+/* 启用开关做成药丸控件，避免「文字 + 裸开关」的松散感 */
+.sso-enable-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px 2px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.045);
+}
+
+.sso-enable-control__label {
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+}
+</style>
+
+<style>
+.body--dark .sso-config-page .sso-enable-control {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.body--dark .sso-config-page .sso-enable-control__label {
+  color: rgba(255, 255, 255, 0.65);
 }
 </style>
