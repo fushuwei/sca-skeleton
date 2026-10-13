@@ -20,6 +20,8 @@ const MENU_COMPONENT_MAP: Record<MenuComponent, () => Promise<unknown>> = { // �
   DriverListView: () => import("../views/datasource/DriverListView.vue"), // 将 DriverList 菜单映射到驱动管理页面。
   DatasourceListView: () => import("../views/datasource/DatasourceListView.vue"), // 将 DatasourceList 菜单映射到数据源管理页面。
   SqlQueryView: () => import("../views/datasource/SqlQueryView.vue"), // 将 SqlQuery 菜单映射到数据查询页面。
+  SsoCasConfigView: () => import("../views/system/SsoCasConfigView.vue"), // 将统一认证 CAS 配置菜单映射到 CAS 配置页面。
+  SsoOauth2ConfigView: () => import("../views/system/SsoOauth2ConfigView.vue"), // 将统一认证 OAuth2 配置菜单映射到 OAuth2/OIDC 配置页面。
   PlaceholderView: () => import("../views/common/PlaceholderView.vue") // 通用占位页。
 }; // 结束菜单组件映射表定义。
 

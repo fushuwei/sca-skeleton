@@ -1,5 +1,5 @@
 /** 菜单挂载的页面组件标识（仅叶子节点需要） */
-export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "PermissionListView" | "RoleListView" | "PostListView" | "DeptListView" | "DictListView" | "ConfigListView" | "NoticeListView" | "TenantPackageListView" | "TenantListView" | "OperationLogListView" | "LoginLogListView" | "DriverListView" | "DatasourceListView" | "SqlQueryView";
+export type MenuComponent = "DashboardView" | "UserCenterView" | "PlaceholderView" | "UserListView" | "PermissionListView" | "RoleListView" | "PostListView" | "DeptListView" | "DictListView" | "ConfigListView" | "NoticeListView" | "TenantPackageListView" | "TenantListView" | "OperationLogListView" | "LoginLogListView" | "DriverListView" | "DatasourceListView" | "SqlQueryView" | "SsoCasConfigView" | "SsoOauth2ConfigView";
 
 export interface MenuItem {
   /** 主键ID（对应 SQL id 字段），唯一标识 */
