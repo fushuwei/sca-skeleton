@@ -28,12 +28,11 @@ const form = reactive<Oauth2Config>(defaultOauth2Config());
 let snapshot: Oauth2Config = defaultOauth2Config();
 
 /**
- * 折叠分组默认展开态：与 CAS 页一致，把「服务端连接信息」（发现 issuer + 手动端点）
- * 和备注并入「基本信息」，不再单列成组；保留客户端参数/属性映射/扩展参数。
+ * 折叠分组默认展开态：与 CAS 页一致——基本信息默认展开，属性映射/扩展参数收起。
+ * 客户端参数已并入基本信息（与 CAS「服务端连接 + 核心配置同属一组」对称）。
  */
 const openSections = reactive({
   basic: true,
-  client: true,
   attr: false,
   extra: false
 });
@@ -201,7 +200,7 @@ onMounted(loadConfig);
       <!-- 表单主体：分组折叠，进入编辑态自动全展开 -->
       <q-form ref="formRef" class="sso-form">
         <SsoSectionGroup>
-          <!-- 基本信息：名称/绑定策略 + 服务端连接信息（发现 issuer、手动端点）+ 备注 -->
+          <!-- 基本信息：名称/绑定策略 + 服务端连接信息（发现 issuer、手动端点）+ 客户端参数 + 备注 -->
           <SsoSection
             v-model:open="openSections.basic"
             icon="sym_r_dns"
@@ -244,19 +243,7 @@ onMounted(loadConfig);
                   <q-input v-model.trim="form.jwkSetUri" :label="t('ssoConfig.jwkSetUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :hint="t('ssoConfig.jwkSetUriHint')" />
                 </div>
               </template>
-              <div class="col-12">
-                <q-input v-model="form.remark" :label="t('ssoConfig.remark')" type="textarea" rows="2" autogrow filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
-              </div>
-            </div>
-          </SsoSection>
-
-          <!-- 客户端参数 -->
-          <SsoSection
-            v-model:open="openSections.client"
-            icon="sym_r_vpn_key"
-            :title="t('ssoConfig.sectionClient')"
-          >
-            <div class="row q-col-gutter-md">
+              <!-- 客户端参数 -->
               <div class="col-12 col-md-6">
                 <q-input v-model.trim="form.clientId" :label="t('ssoConfig.clientId')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.clientId : []" class="required-field" />
               </div>
@@ -301,6 +288,9 @@ onMounted(loadConfig);
                   :options="pkceMethodOptions" option-label="label" option-value="value" emit-value map-options
                   filled square dense :disable="!editing" :readonly="!editing" hide-bottom-space
                 />
+              </div>
+              <div class="col-12">
+                <q-input v-model="form.remark" :label="t('ssoConfig.remark')" type="textarea" rows="2" autogrow filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
               </div>
             </div>
           </SsoSection>

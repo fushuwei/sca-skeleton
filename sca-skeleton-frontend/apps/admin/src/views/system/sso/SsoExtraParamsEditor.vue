@@ -72,9 +72,8 @@ function patchRow(index: number, field: keyof SsoExtraParam, value: string) {
           round
           color="negative"
           icon="sym_r_delete_outline"
-          size="20px"
-          class="extra-params-delete-btn"
           :disable="readonly"
+          class="extra-params-delete-btn"
           @click="removeRow(index)"
         >
           <q-tooltip>{{ t("common.delete") }}</q-tooltip>
@@ -89,7 +88,6 @@ function patchRow(index: number, field: keyof SsoExtraParam, value: string) {
       round
       color="primary"
       icon="sym_r_add"
-      size="20px"
       class="extra-params-add-btn"
       @click="addRow"
     >
@@ -106,11 +104,19 @@ function patchRow(index: number, field: keyof SsoExtraParam, value: string) {
   width: 100%;
 }
 
-/* 添加/删除按钮：统一 32px 圆形按钮，icon 20px */
+/* 添加/删除按钮：统一 32px 圆形按钮，icon 20px（与列表页操作列按钮尺寸一致）。
+   Quasar round dense 按钮的 min-width/min-height 会覆盖 width/height，需 !important。 */
 .extra-params-add-btn,
 .extra-params-delete-btn {
-  width: 32px;
-  height: 32px;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+}
+
+.extra-params-add-btn :deep(.q-icon),
+.extra-params-delete-btn :deep(.q-icon) {
+  font-size: 20px;
 }
 </style>
 
