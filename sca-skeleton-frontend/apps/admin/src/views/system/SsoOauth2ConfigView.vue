@@ -404,7 +404,7 @@ onMounted(loadConfig);
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 2px 10px 2px 12px;
+  padding: 8px 10px 8px 12px;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.045);
 }
