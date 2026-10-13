@@ -189,6 +189,10 @@ onMounted(loadConfig);
           <div class="row items-center no-wrap">
             <div class="text-h6">{{ t('ssoConfig.oauth2Title') }}</div>
             <SsoStatusBadge :enabled="enabled" class="q-ml-sm" />
+            <span v-if="!editing" class="sso-readonly-pill q-ml-sm">
+              <q-icon name="sym_r_lock" size="13px" />
+              {{ t("ssoConfig.readonlyBadge") }}
+            </span>
           </div>
           <div class="text-caption text-grey-7">{{ t('ssoConfig.oauth2Subtitle') }}</div>
         </div>
@@ -206,11 +210,11 @@ onMounted(loadConfig);
           </div>
 
           <template v-if="!editing">
-            <q-btn outline no-caps color="primary" icon="sym_r_edit" :label="t('common.edit')" @click="startEdit" />
+            <q-btn unelevated no-caps color="primary" :label="t('common.edit')" class="sso-action-btn" @click="startEdit" />
           </template>
           <template v-else>
-            <q-btn flat no-caps :label="t('common.cancel')" @click="cancelEdit" />
-            <q-btn unelevated no-caps color="primary" icon="sym_r_save" :label="t('common.save')" :loading="saving" @click="handleSave" />
+            <q-btn outline no-caps color="grey-7" :label="t('common.cancel')" class="sso-action-btn" @click="cancelEdit" />
+            <q-btn unelevated no-caps color="primary" :label="t('common.save')" :loading="saving" class="sso-action-btn" @click="handleSave" />
           </template>
         </div>
       </div>
@@ -405,6 +409,11 @@ onMounted(loadConfig);
   width: 100%;
 }
 
+/* 头部操作按钮统一最小宽度，对齐「添加用户」抽屉底部按钮 */
+.sso-action-btn {
+  min-width: 72px;
+}
+
 /* 启用开关做成药丸控件，避免「文字 + 裸开关」的松散感 */
 .sso-enable-control {
   display: inline-flex;
@@ -420,6 +429,21 @@ onMounted(loadConfig);
   color: rgba(0, 0, 0, 0.6);
 }
 
+/* 只读模式徽标：非编辑态提示表单当前不可直接修改，软底 + 锁图标，弱化不抢状态徽章 */
+.sso-readonly-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.7;
+  white-space: nowrap;
+  color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.05);
+}
+
 .required-field :deep(.q-field__label::after) {
   content: " *";
   color: var(--q-negative);
@@ -433,5 +457,10 @@ onMounted(loadConfig);
 
 .body--dark .sso-config-page .sso-enable-control__label {
   color: rgba(255, 255, 255, 0.65);
+}
+
+.body--dark .sso-config-page .sso-readonly-pill {
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.08);
 }
 </style>

@@ -937,6 +937,7 @@
     "enableSwitch": "Enable",
     "enabledBadge": "Enabled",
     "disabledBadge": "Disabled",
+    "readonlyBadge": "Read-only",
     "notEnabledHint": "Single sign-on is currently disabled. Users sign in with local username and password.",
     "enableConflictConfirm": "\"{other}\" is already enabled. Only one SSO method can be active at a time. Enabling the current method will automatically disable \"{other}\". Continue?",
     "enableSuccess": "Enabled",

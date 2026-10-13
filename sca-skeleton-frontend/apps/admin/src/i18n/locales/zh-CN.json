@@ -937,6 +937,7 @@
     "enableSwitch": "启用",
     "enabledBadge": "已启用",
     "disabledBadge": "未启用",
+    "readonlyBadge": "只读",
     "notEnabledHint": "当前未启用统一身份认证，用户将使用系统本地账号密码登录。",
     "enableConflictConfirm": "「{other}」当前已启用。同一时间只能启用一种统一登录方式，启用当前方式将自动停用「{other}」，是否继续？",
     "enableSuccess": "已启用",
