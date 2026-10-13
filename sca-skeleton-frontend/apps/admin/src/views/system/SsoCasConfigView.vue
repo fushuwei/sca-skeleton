@@ -37,12 +37,13 @@ let snapshotDirty = false;
 
 /**
  * 折叠分组默认展开态：只放开「基本信息」（已并入服务端连接与备注），
- * 校验选项/属性映射/扩展参数收起以缩短页面。
- * CAS 服务端连接、备注本就属于「配置这个 CAS」的基础信息，不再单列成组。
+ * 属性映射/扩展参数收起以缩短页面。
+ * CAS 服务端连接、备注本就属于「配置这个 CAS」的基础信息，不再单列成组；
+ * 原「校验选项」（renew/gateway/ignoreSsl）与「默认一律跳 SSO、已登录即免登」的
+ * 校园统一登录场景相冲突或冗余，已整体移除。
  */
 const SECTION_DEFAULTS = {
   basic: true,
-  advanced: false,
   attr: false,
   extra: false
 };
@@ -363,25 +364,6 @@ onMounted(loadConfig);
                   type="textarea" rows="2" autogrow
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space
                 />
-              </div>
-            </div>
-          </SsoSection>
-
-          <!-- 高级选项 -->
-          <SsoSection
-            v-model:open="openSections.advanced"
-            icon="sym_r_tune"
-            :title="t('ssoConfig.sectionCasAdvanced')"
-          >
-            <div class="row q-col-gutter-md items-center">
-              <div class="col-12 col-md-4">
-                <q-toggle v-model="form.renew" :label="t('ssoConfig.renew')" :disable="!editing" dense />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-toggle v-model="form.gateway" :label="t('ssoConfig.gateway')" :disable="!editing" dense />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-toggle v-model="form.ignoreSslErrors" :label="t('ssoConfig.ignoreSsl')" :disable="!editing" dense />
               </div>
             </div>
           </SsoSection>

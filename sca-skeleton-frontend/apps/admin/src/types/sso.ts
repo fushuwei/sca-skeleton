@@ -72,12 +72,6 @@ export interface CasConfig {
   protocolVersion: "V2" | "V3";
   /** 票据校验端点路径 */
   validateUrl: string;
-  /** 是否强制重新认证（renew） */
-  renew: boolean;
-  /** 是否网关模式（gateway，不弹登录页） */
-  gateway: boolean;
-  /** 是否忽略 SSL 证书校验 */
-  ignoreSslErrors: boolean;
 
   // ── 用户绑定 ──
   bindingPolicy: SsoBindingPolicy;
@@ -155,9 +149,6 @@ export function defaultCasConfig(): CasConfig {
     logoutUrl: "/logout",
     protocolVersion: "V3",
     validateUrl: "/p3/serviceValidate",
-    renew: false,
-    gateway: false,
-    ignoreSslErrors: false,
     bindingPolicy: "AUTO_CREATE",
     attributeMapping: {
       principal: "user_id",
