@@ -15,6 +15,7 @@ import { useSsoEnable } from "../../composables/useSsoEnable";
 import SsoExtraParamsEditor from "./sso/SsoExtraParamsEditor.vue";
 import SsoSection from "./sso/SsoSection.vue";
 import SsoSectionGroup from "./sso/SsoSectionGroup.vue";
+import SsoStatusBadge from "./sso/SsoStatusBadge.vue";
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -205,11 +206,7 @@ onMounted(loadConfig);
         <div class="col">
           <div class="row items-center no-wrap">
             <div class="text-h6">{{ t('ssoConfig.casTitle') }}</div>
-            <q-badge
-              class="q-ml-sm"
-              :color="enabled ? 'positive' : 'grey-6'"
-              :label="enabled ? t('ssoConfig.enabledBadge') : t('ssoConfig.disabledBadge')"
-            />
+            <SsoStatusBadge :enabled="enabled" class="q-ml-sm" />
           </div>
           <div class="text-caption text-grey-7">{{ t('ssoConfig.casSubtitle') }}</div>
         </div>
