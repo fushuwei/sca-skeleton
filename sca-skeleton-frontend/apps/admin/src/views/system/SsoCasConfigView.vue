@@ -57,9 +57,9 @@ const protocolOptions = computed(() => [
 ]);
 
 const bindingPolicyOptions = computed(() => [
-  { label: t('ssoConfig.bindingAutoCreate'), value: "AUTO_CREATE" },
-  { label: t('ssoConfig.bindingAutoBind'), value: "AUTO_BIND_BY_MATCH" },
-  { label: t('ssoConfig.bindingRequirePrebind'), value: "REQUIRE_PREBIND" }
+  { label: t('ssoConfig.bindingAutoCreate'), description: t('ssoConfig.bindingAutoCreateDesc'), value: "AUTO_CREATE" },
+  { label: t('ssoConfig.bindingAutoBind'), description: t('ssoConfig.bindingAutoBindDesc'), value: "AUTO_BIND_BY_MATCH" },
+  { label: t('ssoConfig.bindingRequirePrebind'), description: t('ssoConfig.bindingRequirePrebindDesc'), value: "REQUIRE_PREBIND" }
 ]);
 
 const rules = computed(() => ({
@@ -202,6 +202,7 @@ onMounted(loadConfig);
               :model-value="enabled"
               :disable="toggling"
               color="positive"
+              dense
               @update:model-value="(v: boolean) => handleToggle(v)"
             />
             <q-spinner v-if="toggling" size="16px" />
@@ -249,21 +250,23 @@ onMounted(loadConfig);
             :title="t('ssoConfig.sectionBasic')"
           >
             <div class="row q-col-gutter-md">
-              <div class="col-12 col-md-6">
-                <q-input
-                  v-model.trim="form.name"
-                  :label="t('ssoConfig.configName')"
-                  filled square :disable="!editing" :readonly="!editing" hide-bottom-space
-                />
-              </div>
-              <div class="col-12 col-md-6">
+              <div class="col-12">
                 <q-select
                   v-model="form.bindingPolicy"
                   :label="t('ssoConfig.bindingPolicy')"
                   :options="bindingPolicyOptions"
                   option-label="label" option-value="value" emit-value map-options
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space
-                />
+                >
+                  <template #option="scope">
+                    <q-item v-bind="scope.itemProps">
+                      <q-item-section>
+                        <q-item-label>{{ scope.opt.label }}</q-item-label>
+                        <q-item-label caption>{{ scope.opt.description }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                </q-select>
               </div>
               <div class="col-12">
                 <q-input
@@ -283,6 +286,20 @@ onMounted(loadConfig);
                   :placeholder="t('ssoConfig.serviceUrlPlaceholder')"
                 />
               </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model.trim="form.loginUrl"
+                  :label="t('ssoConfig.loginUrl')"
+                  filled square :disable="!editing" :readonly="!editing" hide-bottom-space
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model.trim="form.logoutUrl"
+                  :label="t('ssoConfig.logoutUrl')"
+                  filled square :disable="!editing" :readonly="!editing" hide-bottom-space
+                />
+              </div>
               <div class="col-12 col-md-4">
                 <q-select
                   v-model="form.protocolVersion"
@@ -292,21 +309,7 @@ onMounted(loadConfig);
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space
                 />
               </div>
-              <div class="col-12 col-md-4">
-                <q-input
-                  v-model.trim="form.loginUrl"
-                  :label="t('ssoConfig.loginUrl')"
-                  filled square :disable="!editing" :readonly="!editing" hide-bottom-space
-                />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-input
-                  v-model.trim="form.logoutUrl"
-                  :label="t('ssoConfig.logoutUrl')"
-                  filled square :disable="!editing" :readonly="!editing" hide-bottom-space
-                />
-              </div>
-              <div class="col-12">
+              <div class="col-12 col-md-8">
                 <q-input
                   :model-value="form.validateUrl"
                   :label="t('ssoConfig.validateUrl')"

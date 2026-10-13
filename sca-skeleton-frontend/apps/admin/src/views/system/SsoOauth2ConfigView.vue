@@ -54,9 +54,9 @@ const pkceMethodOptions = computed(() => [
 ]);
 
 const bindingPolicyOptions = computed(() => [
-  { label: t('ssoConfig.bindingAutoCreate'), value: "AUTO_CREATE" },
-  { label: t('ssoConfig.bindingAutoBind'), value: "AUTO_BIND_BY_MATCH" },
-  { label: t('ssoConfig.bindingRequirePrebind'), value: "REQUIRE_PREBIND" }
+  { label: t('ssoConfig.bindingAutoCreate'), description: t('ssoConfig.bindingAutoCreateDesc'), value: "AUTO_CREATE" },
+  { label: t('ssoConfig.bindingAutoBind'), description: t('ssoConfig.bindingAutoBindDesc'), value: "AUTO_BIND_BY_MATCH" },
+  { label: t('ssoConfig.bindingRequirePrebind'), description: t('ssoConfig.bindingRequirePrebindDesc'), value: "REQUIRE_PREBIND" }
 ]);
 
 /** 需要手动填写端点的条件：未启用 OIDC Discovery */
@@ -182,6 +182,7 @@ onMounted(loadConfig);
               :model-value="enabled"
               :disable="toggling"
               color="positive"
+              dense
               @update:model-value="(v: boolean) => handleToggle(v)"
             />
             <q-spinner v-if="toggling" size="16px" />
@@ -207,15 +208,21 @@ onMounted(loadConfig);
             :title="t('ssoConfig.sectionBasic')"
           >
             <div class="row q-col-gutter-md">
-              <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.name" :label="t('ssoConfig.configName')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
-              </div>
-              <div class="col-12 col-md-6">
+              <div class="col-12">
                 <q-select
                   v-model="form.bindingPolicy" :label="t('ssoConfig.bindingPolicy')"
                   :options="bindingPolicyOptions" option-label="label" option-value="value" emit-value map-options
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space
-                />
+                >
+                  <template #option="scope">
+                    <q-item v-bind="scope.itemProps">
+                      <q-item-section>
+                        <q-item-label>{{ scope.opt.label }}</q-item-label>
+                        <q-item-label caption>{{ scope.opt.description }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                </q-select>
               </div>
               <div class="col-12">
                 <q-toggle v-model="form.useDiscovery" :label="t('ssoConfig.useDiscovery')" :disable="!editing" dense />
@@ -277,7 +284,7 @@ onMounted(loadConfig);
               <div class="col-12 col-md-6">
                 <q-input v-model="form.responseType" :label="t('ssoConfig.responseType')" filled square readonly disable :hint="t('ssoConfig.responseTypeHint')" />
               </div>
-              <div class="col-12 col-md-6">
+              <div class="col-12">
                 <q-select
                   v-model="form.clientAuthenticationMethod" :label="t('ssoConfig.clientAuthMethod')"
                   :options="authMethodOptions" option-label="label" option-value="value" emit-value map-options
@@ -287,7 +294,7 @@ onMounted(loadConfig);
               <div class="col-12">
                 <q-toggle v-model="form.usePkce" :label="t('ssoConfig.usePkce')" :disable="!editing" dense />
               </div>
-              <div class="col-12 col-md-6">
+              <div class="col-12">
                 <q-select
                   v-if="form.usePkce" v-model="form.pkceMethod" :label="t('ssoConfig.pkceMethod')"
                   :options="pkceMethodOptions" option-label="label" option-value="value" emit-value map-options
