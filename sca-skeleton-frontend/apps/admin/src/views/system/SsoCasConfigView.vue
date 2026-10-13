@@ -57,8 +57,8 @@ const protocolOptions = computed(() => [
 ]);
 
 const bindingPolicyOptions = computed(() => [
-  { label: t('ssoConfig.bindingAutoCreate'), description: t('ssoConfig.bindingAutoCreateDesc'), value: "AUTO_CREATE" },
   { label: t('ssoConfig.bindingAutoBind'), description: t('ssoConfig.bindingAutoBindDesc'), value: "AUTO_BIND_BY_MATCH" },
+  { label: t('ssoConfig.bindingAutoCreate'), description: t('ssoConfig.bindingAutoCreateDesc'), value: "AUTO_CREATE" },
   { label: t('ssoConfig.bindingRequirePrebind'), description: t('ssoConfig.bindingRequirePrebindDesc'), value: "REQUIRE_PREBIND" }
 ]);
 

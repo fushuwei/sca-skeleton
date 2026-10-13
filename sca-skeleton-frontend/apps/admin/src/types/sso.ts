@@ -151,7 +151,7 @@ export function defaultCasConfig(): CasConfig {
     logoutUrl: "/logout",
     protocolVersion: "V3",
     validateUrl: "/p3/serviceValidate",
-    bindingPolicy: "AUTO_CREATE",
+    bindingPolicy: "AUTO_BIND_BY_MATCH",
     attributeMapping: {
       principal: "",
       username: "",
@@ -188,7 +188,7 @@ export function defaultOauth2Config(): Oauth2Config {
     clientAuthenticationMethod: "client_secret_basic",
     usePkce: true,
     pkceMethod: "S256",
-    bindingPolicy: "AUTO_CREATE",
+    bindingPolicy: "AUTO_BIND_BY_MATCH",
     attributeMapping: {
       principal: "",
       username: "",

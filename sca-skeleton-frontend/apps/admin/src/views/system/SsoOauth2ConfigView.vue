@@ -54,8 +54,8 @@ const pkceMethodOptions = computed(() => [
 ]);
 
 const bindingPolicyOptions = computed(() => [
-  { label: t('ssoConfig.bindingAutoCreate'), description: t('ssoConfig.bindingAutoCreateDesc'), value: "AUTO_CREATE" },
   { label: t('ssoConfig.bindingAutoBind'), description: t('ssoConfig.bindingAutoBindDesc'), value: "AUTO_BIND_BY_MATCH" },
+  { label: t('ssoConfig.bindingAutoCreate'), description: t('ssoConfig.bindingAutoCreateDesc'), value: "AUTO_CREATE" },
   { label: t('ssoConfig.bindingRequirePrebind'), description: t('ssoConfig.bindingRequirePrebindDesc'), value: "REQUIRE_PREBIND" }
 ]);
 
@@ -294,9 +294,9 @@ onMounted(loadConfig);
               <div class="col-12">
                 <q-toggle v-model="form.usePkce" :label="t('ssoConfig.usePkce')" :disable="!editing" dense />
               </div>
-              <div class="col-12">
+              <div v-if="form.usePkce" class="col-12">
                 <q-select
-                  v-if="form.usePkce" v-model="form.pkceMethod" :label="t('ssoConfig.pkceMethod')"
+                  v-model="form.pkceMethod" :label="t('ssoConfig.pkceMethod')"
                   :options="pkceMethodOptions" option-label="label" option-value="value" emit-value map-options
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space
                 >
