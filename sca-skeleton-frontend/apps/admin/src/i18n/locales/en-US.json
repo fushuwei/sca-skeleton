@@ -977,7 +977,21 @@
     "validateUrlHintManual": "Manually customized; switching protocol will not overwrite. Click the icon on the right to restore auto mode.",
     "resetValidateUrl": "Restore auto",
     "casAttrHint": "Enter the attribute names to read from the CAS validation response. Leave blank to skip a field.",
+    "casAttrPhPrincipal": "e.g. uid / user_id",
+    "casAttrPhUsername": "e.g. cn / displayName",
+    "casAttrPhRealName": "e.g. cn / displayName",
+    "casAttrPhEmail": "e.g. mail",
+    "casAttrPhPhone": "e.g. phoneNumber / telephoneNumber",
+    "casAttrPhDept": "e.g. department / ou",
+    "casAttrPhRoles": "e.g. role / memberOf",
     "oauth2AttrHint": "Enter the field names to read from the userinfo response (dotted paths supported, e.g. user.email).",
+    "oauth2AttrPhPrincipal": "e.g. sub",
+    "oauth2AttrPhUsername": "e.g. preferred_username",
+    "oauth2AttrPhRealName": "e.g. name",
+    "oauth2AttrPhEmail": "e.g. email",
+    "oauth2AttrPhPhone": "e.g. phone_number",
+    "oauth2AttrPhDept": "e.g. department",
+    "oauth2AttrPhRoles": "e.g. roles / groups",
     "attrPrincipal": "Unique Identifier (principal / sub)",
     "attrUsername": "Username Attribute",
     "attrRealName": "Real Name Attribute",
@@ -1016,6 +1030,9 @@
     "authMethodJwt": "JWT assertion (client_secret_jwt)",
     "authMethodPrivateKeyJwt": "Asymmetric JWT (private_key_jwt)",
     "usePkce": "Enable PKCE",
-    "pkceMethod": "PKCE Method"
+    "pkceMethod": "PKCE Method",
+    "logoutUri": "Logout Endpoint",
+    "logoutUriPlaceholder": "e.g. https://sso.ustb.edu.cn/idp/authCenter/GLO",
+    "logoutUriHint": "Used for global logout / OIDC end_session_endpoint. When the user signs out of this system, they are redirected here to terminate the IdP session."
   }
 }

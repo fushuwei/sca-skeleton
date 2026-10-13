@@ -112,6 +112,8 @@ export interface Oauth2Config {
   jwkSetUri?: string;
   /** 回调地址 */
   redirectUri: string;
+  /** 登出端点（全局退出 / end_session_endpoint） */
+  logoutUri: string;
 
   // ── 授权流程参数 ──
   /** 申请作用域（OIDC 至少含 openid） */
@@ -151,11 +153,11 @@ export function defaultCasConfig(): CasConfig {
     validateUrl: "/p3/serviceValidate",
     bindingPolicy: "AUTO_CREATE",
     attributeMapping: {
-      principal: "user_id",
-      username: "username",
+      principal: "",
+      username: "",
       realName: "",
-      email: "mail",
-      phone: "mobile",
+      email: "",
+      phone: "",
       dept: "",
       roles: ""
     },
@@ -180,6 +182,7 @@ export function defaultOauth2Config(): Oauth2Config {
     userInfoUri: "",
     jwkSetUri: "",
     redirectUri: "",
+    logoutUri: "",
     scope: "openid profile email",
     responseType: "code",
     clientAuthenticationMethod: "client_secret_basic",
@@ -187,13 +190,13 @@ export function defaultOauth2Config(): Oauth2Config {
     pkceMethod: "S256",
     bindingPolicy: "AUTO_CREATE",
     attributeMapping: {
-      principal: "sub",
-      username: "preferred_username",
-      realName: "name",
-      email: "email",
-      phone: "phone_number",
-      dept: "department",
-      roles: "roles"
+      principal: "",
+      username: "",
+      realName: "",
+      email: "",
+      phone: "",
+      dept: "",
+      roles: ""
     },
     extraParams: [],
     remark: ""

@@ -361,25 +361,25 @@ onMounted(loadConfig);
           >
             <div class="row q-col-gutter-md">
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.principal" :label="t('ssoConfig.attrPrincipal')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.principal" :label="t('ssoConfig.attrPrincipal')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.casAttrPhPrincipal')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.username" :label="t('ssoConfig.attrUsername')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.username" :label="t('ssoConfig.attrUsername')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.casAttrPhUsername')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.realName" :label="t('ssoConfig.attrRealName')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.realName" :label="t('ssoConfig.attrRealName')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.casAttrPhRealName')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.email" :label="t('ssoConfig.attrEmail')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.email" :label="t('ssoConfig.attrEmail')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.casAttrPhEmail')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.phone" :label="t('ssoConfig.attrPhone')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.phone" :label="t('ssoConfig.attrPhone')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.casAttrPhPhone')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.dept" :label="t('ssoConfig.attrDept')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.dept" :label="t('ssoConfig.attrDept')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.casAttrPhDept')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.roles" :label="t('ssoConfig.attrRoles')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.roles" :label="t('ssoConfig.attrRoles')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.casAttrPhRoles')" />
               </div>
             </div>
           </SsoSection>

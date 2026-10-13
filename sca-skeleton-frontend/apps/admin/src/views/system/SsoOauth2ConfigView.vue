@@ -266,6 +266,9 @@ onMounted(loadConfig);
               <div class="col-12">
                 <q-input v-model.trim="form.redirectUri" :label="t('ssoConfig.redirectUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.redirectUri : []" class="required-field" :placeholder="t('ssoConfig.redirectUriPlaceholder')" />
               </div>
+              <div class="col-12">
+                <q-input v-model.trim="form.logoutUri" :label="t('ssoConfig.logoutUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.logoutUriPlaceholder')" :hint="t('ssoConfig.logoutUriHint')" />
+              </div>
               <div class="col-12 col-md-6">
                 <q-input v-model.trim="form.scope" :label="t('ssoConfig.scope')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :hint="t('ssoConfig.scopeHint')" />
               </div>
@@ -309,25 +312,25 @@ onMounted(loadConfig);
           >
             <div class="row q-col-gutter-md">
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.principal" :label="t('ssoConfig.attrPrincipal')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.principal" :label="t('ssoConfig.attrPrincipal')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.oauth2AttrPhPrincipal')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.username" :label="t('ssoConfig.attrUsername')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.username" :label="t('ssoConfig.attrUsername')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.oauth2AttrPhUsername')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.realName" :label="t('ssoConfig.attrRealName')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.realName" :label="t('ssoConfig.attrRealName')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.oauth2AttrPhRealName')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.email" :label="t('ssoConfig.attrEmail')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.email" :label="t('ssoConfig.attrEmail')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.oauth2AttrPhEmail')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.phone" :label="t('ssoConfig.attrPhone')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.phone" :label="t('ssoConfig.attrPhone')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.oauth2AttrPhPhone')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.dept" :label="t('ssoConfig.attrDept')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.dept" :label="t('ssoConfig.attrDept')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.oauth2AttrPhDept')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.attributeMapping.roles" :label="t('ssoConfig.attrRoles')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space />
+                <q-input v-model.trim="form.attributeMapping.roles" :label="t('ssoConfig.attrRoles')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.oauth2AttrPhRoles')" />
               </div>
             </div>
           </SsoSection>

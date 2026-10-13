@@ -977,7 +977,21 @@
     "validateUrlHintManual": "已手动定制，切换协议版本不再自动覆盖；点击右侧图标可恢复自动",
     "resetValidateUrl": "恢复自动",
     "casAttrHint": "填写从 CAS 校验响应中读取的属性名称，留空表示不映射该字段。",
+    "casAttrPhPrincipal": "例如 uid / user_id",
+    "casAttrPhUsername": "例如 cn / displayName",
+    "casAttrPhRealName": "例如 cn / displayName",
+    "casAttrPhEmail": "例如 mail",
+    "casAttrPhPhone": "例如 phoneNumber / telephoneNumber",
+    "casAttrPhDept": "例如 department / ou",
+    "casAttrPhRoles": "例如 role / memberOf",
     "oauth2AttrHint": "填写从 userinfo 响应中读取的字段名称（支持点路径，如 user.email）。",
+    "oauth2AttrPhPrincipal": "例如 sub",
+    "oauth2AttrPhUsername": "例如 preferred_username",
+    "oauth2AttrPhRealName": "例如 name",
+    "oauth2AttrPhEmail": "例如 email",
+    "oauth2AttrPhPhone": "例如 phone_number",
+    "oauth2AttrPhDept": "例如 department",
+    "oauth2AttrPhRoles": "例如 roles / groups",
     "attrPrincipal": "唯一标识属性（principal / sub）",
     "attrUsername": "用户名属性",
     "attrRealName": "真实姓名属性",
@@ -1016,6 +1030,9 @@
     "authMethodJwt": "JWT 断言（client_secret_jwt）",
     "authMethodPrivateKeyJwt": "非对称密钥 JWT（private_key_jwt）",
     "usePkce": "启用 PKCE",
-    "pkceMethod": "PKCE 方法"
+    "pkceMethod": "PKCE 方法",
+    "logoutUri": "登出端点（Logout）",
+    "logoutUriPlaceholder": "例如 https://sso.ustb.edu.cn/idp/authCenter/GLO",
+    "logoutUriHint": "用于全局退出 / OIDC end_session_endpoint，用户在本系统登出时重定向到此地址注销 IdP 会话"
   }
 }
