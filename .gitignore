@@ -88,6 +88,9 @@ ip2region/
 # Material Symbols 子集字体（build 时由 Vite 插件 subset-material-symbols 自动生成，dev 用 @quasar/extras 完整字体）
 sca-skeleton-frontend/packages/ui/fonts/Material_Symbols/
 
+# Maven dependency:build-classpath 默认输出（IDE/手工执行时在各模块目录生成）
+cp.txt
+
 # AI models and agents
 .claude/
 .cursor/
