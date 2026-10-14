@@ -8,7 +8,7 @@
 import { ref, reactive, computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { QForm } from "quasar";
+import type { QForm, QInput } from "quasar";
 import { getCasConfigApi, saveCasConfigApi } from "../../apis/sso-config";
 import { defaultCasConfig, type CasConfig } from "../../types/sso";
 import { useSsoEnable } from "../../composables/useSsoEnable";
@@ -22,6 +22,8 @@ const { t } = useI18n({ useScope: "global" });
 const saving = ref(false);
 const editing = ref(false);
 const formRef = ref<QForm | null>(null);
+const adminServiceUrlRef = ref<QInput | null>(null);
+const portalServiceUrlRef = ref<QInput | null>(null);
 
 const form = reactive<CasConfig>(defaultCasConfig());
 /** 进入编辑前的快照，用于「取消」回滚 */
@@ -116,6 +118,19 @@ watch(
     if (!validateUrlDirty.value) {
       form.validateUrl = computeValidateUrl();
     }
+  }
+);
+
+/**
+ * 跨字段联动校验：admin 和 portal 回调地址「至少填一个」。
+ * 当用户修改其中一个时，另一个若曾标红也需自动清除，避免填了一个另一个还红着。
+ * 只校验这两个字段，不触发表单其他字段。
+ */
+watch(
+  () => [form.adminServiceUrl, form.portalServiceUrl],
+  () => {
+    adminServiceUrlRef.value?.validate();
+    portalServiceUrlRef.value?.validate();
   }
 );
 
@@ -290,6 +305,7 @@ onMounted(loadConfig);
               </div>
               <div class="col-12 col-md-6">
                 <q-input
+                  ref="adminServiceUrlRef"
                   v-model.trim="form.adminServiceUrl"
                   :label="t('ssoConfig.adminServiceUrl')"
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space
@@ -300,6 +316,7 @@ onMounted(loadConfig);
               </div>
               <div class="col-12 col-md-6">
                 <q-input
+                  ref="portalServiceUrlRef"
                   v-model.trim="form.portalServiceUrl"
                   :label="t('ssoConfig.portalServiceUrl')"
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space

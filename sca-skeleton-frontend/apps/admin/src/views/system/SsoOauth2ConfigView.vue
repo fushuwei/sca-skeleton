@@ -5,10 +5,10 @@
  * 与 CAS 页对称为「只读表单 + 编辑保存」；顶部启用开关互斥。
  * clientSecret 后端回显为掩码（clientSecretMasked），未改动则保存时不覆盖。
  */
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { showToast, isNotificationHandled } from "@repo/shared";
-import type { QForm } from "quasar";
+import type { QForm, QInput } from "quasar";
 import { getOauth2ConfigApi, saveOauth2ConfigApi } from "../../apis/sso-config";
 import { defaultOauth2Config, type Oauth2Config } from "../../types/sso";
 import { useSsoEnable } from "../../composables/useSsoEnable";
@@ -23,6 +23,8 @@ const saving = ref(false);
 const editing = ref(false);
 const revealSecret = ref(false);
 const formRef = ref<QForm | null>(null);
+const adminRedirectUriRef = ref<QInput | null>(null);
+const portalRedirectUriRef = ref<QInput | null>(null);
 
 const form = reactive<Oauth2Config>(defaultOauth2Config());
 let snapshot: Oauth2Config = defaultOauth2Config();
@@ -82,6 +84,19 @@ const rules = computed(() => ({
   tokenUri: [(v: string) => !manualEndpoints.value || !!v?.trim() || t('ssoConfig.required')],
   userInfoUri: [(v: string) => !manualEndpoints.value || !!v?.trim() || t('ssoConfig.required')]
 }));
+
+/**
+ * 跨字段联动校验：admin 和 portal 回调地址「至少填一个」。
+ * 当用户修改其中一个时，另一个若曾标红也需自动清除，避免填了一个另一个还红着。
+ * 只校验这两个字段，不触发表单其他字段（如 clientId、authorizationUri 等）。
+ */
+watch(
+  () => [form.adminRedirectUri, form.portalRedirectUri],
+  () => {
+    adminRedirectUriRef.value?.validate();
+    portalRedirectUriRef.value?.validate();
+  }
+);
 
 /** 属性映射已配置项数（非空字段），收起时在组头徽标提示 */
 const attrConfiguredCount = computed(
@@ -280,10 +295,10 @@ onMounted(loadConfig);
                 </div>
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.adminRedirectUri" :label="t('ssoConfig.adminRedirectUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.adminRedirectUri : []" :placeholder="t('ssoConfig.adminRedirectUriPlaceholder')" :hint="t('ssoConfig.adminRedirectUriHint')" />
+                <q-input ref="adminRedirectUriRef" v-model.trim="form.adminRedirectUri" :label="t('ssoConfig.adminRedirectUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.adminRedirectUri : []" :placeholder="t('ssoConfig.adminRedirectUriPlaceholder')" :hint="t('ssoConfig.adminRedirectUriHint')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.portalRedirectUri" :label="t('ssoConfig.portalRedirectUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.portalRedirectUri : []" :placeholder="t('ssoConfig.portalRedirectUriPlaceholder')" :hint="t('ssoConfig.portalRedirectUriHint')" />
+                <q-input ref="portalRedirectUriRef" v-model.trim="form.portalRedirectUri" :label="t('ssoConfig.portalRedirectUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.portalRedirectUri : []" :placeholder="t('ssoConfig.portalRedirectUriPlaceholder')" :hint="t('ssoConfig.portalRedirectUriHint')" />
               </div>
               <div class="col-12">
                 <q-input v-model.trim="form.logoutUri" :label="t('ssoConfig.logoutUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.logoutUriPlaceholder')" :hint="t('ssoConfig.logoutUriHint')" />
