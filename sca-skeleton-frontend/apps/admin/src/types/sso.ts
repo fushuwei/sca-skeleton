@@ -56,10 +56,8 @@ export interface CasConfig {
   id?: string;
   /** 乐观锁版本号 */
   version?: number;
-  /** 配置名称 */
-  name: string;
-  /** 是否启用（与 OAuth2 互斥） */
-  enabled: boolean;
+  /** 是否启用（与 OAuth2 互斥；保存时不提交，由独立开关控制） */
+  enabled?: boolean;
 
   // ── 服务端连接参数 ──
   /** CAS 服务器地址前缀，如 https://cas.university.edu/cas */
@@ -90,8 +88,7 @@ export interface CasConfig {
 export interface Oauth2Config {
   id?: string;
   version?: number;
-  name: string;
-  enabled: boolean;
+  enabled?: boolean;
 
   // ── 端点发现 ──
   /** 是否使用 OIDC Discovery 自动发现端点 */
@@ -149,7 +146,6 @@ export interface Oauth2Config {
 /** CAS 表单默认值 */
 export function defaultCasConfig(): CasConfig {
   return {
-    name: "",
     enabled: false,
     serverUrlPrefix: "",
     adminServiceUrl: "",
@@ -176,7 +172,6 @@ export function defaultCasConfig(): CasConfig {
 /** OAuth2/OIDC 表单默认值 */
 export function defaultOauth2Config(): Oauth2Config {
   return {
-    name: "",
     enabled: false,
     useDiscovery: true,
     issuer: "",

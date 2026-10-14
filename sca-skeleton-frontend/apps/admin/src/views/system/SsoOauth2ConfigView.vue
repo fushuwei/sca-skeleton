@@ -65,10 +65,12 @@ const manualEndpoints = computed(() => !form.useDiscovery);
 const rules = computed(() => ({
   clientId: [(v: string) => !!v?.trim() || t('ssoConfig.required')],
   adminRedirectUri: [
-    (v: string) => /^https?:\/\//i.test(v?.trim() ?? "") || t('ssoConfig.urlHttpRule')
+    (v: string) => !v?.trim() || /^https?:\/\//i.test(v.trim()) || t('ssoConfig.urlHttpRule'),
+    () => (form.adminRedirectUri?.trim() || form.portalRedirectUri?.trim()) ? true : t('ssoConfig.callbackRequiredHint')
   ],
   portalRedirectUri: [
-    (v: string) => /^https?:\/\//i.test(v?.trim() ?? "") || t('ssoConfig.urlHttpRule')
+    (v: string) => !v?.trim() || /^https?:\/\//i.test(v.trim()) || t('ssoConfig.urlHttpRule'),
+    () => (form.adminRedirectUri?.trim() || form.portalRedirectUri?.trim()) ? true : t('ssoConfig.callbackRequiredHint')
   ],
   issuer: [
     (v: string) =>
@@ -133,8 +135,7 @@ async function handleSave() {
   if (!valid) return;
   saving.value = true;
   try {
-    const copy: Oauth2Config = JSON.parse(JSON.stringify(form));
-    copy.enabled = enabled.value;
+    const { enabled: _, ...copy } = JSON.parse(JSON.stringify(form)) as Oauth2Config;
     // clientSecret 仍为掩码（用户未改）时剔除，交由服务端保留原值
     if (copy.clientSecretMasked) {
       copy.clientSecret = "";
@@ -243,13 +244,13 @@ onMounted(loadConfig);
               </template>
               <template v-if="manualEndpoints">
                 <div class="col-12 col-md-6">
-                  <q-input v-model.trim="form.authorizationUri" :label="t('ssoConfig.authorizationUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.authorizationUri : []" :placeholder="t('ssoConfig.authorizationUriPlaceholder')" />
+                  <q-input v-model.trim="form.authorizationUri" :label="t('ssoConfig.authorizationUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.authorizationUri : []" class="required-field" :placeholder="t('ssoConfig.authorizationUriPlaceholder')" />
                 </div>
                 <div class="col-12 col-md-6">
-                  <q-input v-model.trim="form.tokenUri" :label="t('ssoConfig.tokenUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.tokenUri : []" :placeholder="t('ssoConfig.tokenUriPlaceholder')" />
+                  <q-input v-model.trim="form.tokenUri" :label="t('ssoConfig.tokenUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.tokenUri : []" class="required-field" :placeholder="t('ssoConfig.tokenUriPlaceholder')" />
                 </div>
                 <div class="col-12 col-md-6">
-                  <q-input v-model.trim="form.userInfoUri" :label="t('ssoConfig.userInfoUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.userInfoUri : []" :placeholder="t('ssoConfig.userInfoUriPlaceholder')" />
+                  <q-input v-model.trim="form.userInfoUri" :label="t('ssoConfig.userInfoUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.userInfoUri : []" class="required-field" :placeholder="t('ssoConfig.userInfoUriPlaceholder')" />
                 </div>
                 <div class="col-12 col-md-6">
                   <q-input v-model.trim="form.jwkSetUri" :label="t('ssoConfig.jwkSetUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :hint="t('ssoConfig.jwkSetUriHint')" :placeholder="t('ssoConfig.jwkSetUriPlaceholder')" />
@@ -276,10 +277,10 @@ onMounted(loadConfig);
                 </div>
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.adminRedirectUri" :label="t('ssoConfig.adminRedirectUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.adminRedirectUri : []" class="required-field" :placeholder="t('ssoConfig.adminRedirectUriPlaceholder')" :hint="t('ssoConfig.adminRedirectUriHint')" />
+                <q-input v-model.trim="form.adminRedirectUri" :label="t('ssoConfig.adminRedirectUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.adminRedirectUri : []" :placeholder="t('ssoConfig.adminRedirectUriPlaceholder')" :hint="t('ssoConfig.adminRedirectUriHint')" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model.trim="form.portalRedirectUri" :label="t('ssoConfig.portalRedirectUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.portalRedirectUri : []" class="required-field" :placeholder="t('ssoConfig.portalRedirectUriPlaceholder')" :hint="t('ssoConfig.portalRedirectUriHint')" />
+                <q-input v-model.trim="form.portalRedirectUri" :label="t('ssoConfig.portalRedirectUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.portalRedirectUri : []" :placeholder="t('ssoConfig.portalRedirectUriPlaceholder')" :hint="t('ssoConfig.portalRedirectUriHint')" />
               </div>
               <div class="col-12">
                 <q-input v-model.trim="form.logoutUri" :label="t('ssoConfig.logoutUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.logoutUriPlaceholder')" :hint="t('ssoConfig.logoutUriHint')" />

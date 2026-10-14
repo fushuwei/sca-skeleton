@@ -38,9 +38,10 @@ export function useSsoEnable(
     if (toggling.value) return;
     toggling.value = true;
     try {
-      if (next) {
-        // 开启前先探测另一方是否已启用
-        const otherEnabled = await checkOtherEnabled();
+    let otherEnabled = false;
+    if (next) {
+      // 开启前先探测另一方是否已启用
+      otherEnabled = await checkOtherEnabled();
         if (otherEnabled) {
           try {
             await confirmDialog({
@@ -54,7 +55,7 @@ export function useSsoEnable(
           }
         }
       }
-      const result = await setSsoEnabledApi(provider, next, true);
+      const result = await setSsoEnabledApi(provider, next, otherEnabled);
       if (result.code === 10_000) {
         enabled.value = next;
         showToast(next ? t("ssoConfig.enableSuccess") : t("ssoConfig.disableSuccess"), "positive");

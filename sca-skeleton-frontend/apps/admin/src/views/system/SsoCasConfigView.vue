@@ -64,15 +64,20 @@ const bindingPolicyOptions = computed(() => [
 
 const rules = computed(() => ({
   serverUrlPrefix: [
+    (v: string) => !!v?.trim() || t('ssoConfig.required'),
     (v: string) => /^https?:\/\//i.test(v?.trim() ?? "") || t('ssoConfig.urlHttpRule')
   ],
   adminServiceUrl: [
-    (v: string) => /^https?:\/\//i.test(v?.trim() ?? "") || t('ssoConfig.urlHttpRule')
+    (v: string) => !v?.trim() || /^https?:\/\//i.test(v.trim()) || t('ssoConfig.urlHttpRule'),
+    () => (form.adminServiceUrl?.trim() || form.portalServiceUrl?.trim()) ? true : t('ssoConfig.callbackRequiredHint')
   ],
   portalServiceUrl: [
-    (v: string) => /^https?:\/\//i.test(v?.trim() ?? "") || t('ssoConfig.urlHttpRule')
+    (v: string) => !v?.trim() || /^https?:\/\//i.test(v.trim()) || t('ssoConfig.urlHttpRule'),
+    () => (form.adminServiceUrl?.trim() || form.portalServiceUrl?.trim()) ? true : t('ssoConfig.callbackRequiredHint')
   ],
-  validateUrl: [(v: string) => !!v?.trim() || t('ssoConfig.required')]
+  validateUrl: [
+    (v: string) => !!v?.trim() || t('ssoConfig.required')
+  ]
 }));
 
 /** 属性映射已配置项数（非空字段），收起时在组头徽标提示 */
@@ -159,13 +164,12 @@ async function handleSave() {
   if (!valid) return;
   saving.value = true;
   try {
-    const payload: CasConfig = { ...JSON.parse(JSON.stringify(form)), enabled: enabled.value };
+    const { enabled: _, ...payload } = JSON.parse(JSON.stringify(form)) as CasConfig;
     const result = await saveCasConfigApi(payload);
     if (result.code === 10_000) {
       showToast(t('ssoConfig.saveSuccess'), "positive");
       editing.value = false;
-      snapshot = JSON.parse(JSON.stringify(payload)) as CasConfig;
-      snapshotDirty = validateUrlDirty.value;
+      await loadConfig();
     } else {
       showToast(result.message || t('ssoConfig.saveFail'), "negative");
     }
@@ -246,7 +250,7 @@ onMounted(loadConfig);
       <!-- 表单主体：分组折叠，进入编辑态自动全展开 -->
       <q-form ref="formRef" class="sso-form">
         <SsoSectionGroup>
-          <!-- 基本信息：配置名称/绑定策略 + CAS 服务端连接 + 备注，同属「配置这个 CAS」 -->
+          <!-- 基本信息：绑定策略 + CAS 服务端连接 + 备注，同属「配置这个 CAS」 -->
           <SsoSection
             v-model:open="openSections.basic"
             icon="sym_r_dns"
@@ -277,6 +281,7 @@ onMounted(loadConfig);
                   :label="t('ssoConfig.serverUrlPrefix')"
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space
                   :rules="editing ? rules.serverUrlPrefix : []"
+                  class="required-field"
                   :placeholder="t('ssoConfig.serverUrlPrefixPlaceholder')"
                 />
               </div>
@@ -286,7 +291,6 @@ onMounted(loadConfig);
                   :label="t('ssoConfig.adminServiceUrl')"
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space
                   :rules="editing ? rules.adminServiceUrl : []"
-                  class="required-field"
                   :placeholder="t('ssoConfig.adminServiceUrlPlaceholder')"
                   :hint="t('ssoConfig.adminServiceUrlHint')"
                 />
@@ -297,7 +301,6 @@ onMounted(loadConfig);
                   :label="t('ssoConfig.portalServiceUrl')"
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space
                   :rules="editing ? rules.portalServiceUrl : []"
-                  class="required-field"
                   :placeholder="t('ssoConfig.portalServiceUrlPlaceholder')"
                   :hint="t('ssoConfig.portalServiceUrlHint')"
                 />
@@ -331,6 +334,7 @@ onMounted(loadConfig);
                   :label="t('ssoConfig.validateUrl')"
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space
                   :rules="editing ? rules.validateUrl : []"
+                  class="required-field"
                   :hint="validateUrlDirty
                     ? t('ssoConfig.validateUrlHintManual')
                     : t('ssoConfig.validateUrlHintAuto', { v: form.protocolVersion })"
