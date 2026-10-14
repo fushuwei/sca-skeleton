@@ -66,7 +66,10 @@ const rules = computed(() => ({
   serverUrlPrefix: [
     (v: string) => /^https?:\/\//i.test(v?.trim() ?? "") || t('ssoConfig.urlHttpRule')
   ],
-  serviceUrl: [
+  adminServiceUrl: [
+    (v: string) => /^https?:\/\//i.test(v?.trim() ?? "") || t('ssoConfig.urlHttpRule')
+  ],
+  portalServiceUrl: [
     (v: string) => /^https?:\/\//i.test(v?.trim() ?? "") || t('ssoConfig.urlHttpRule')
   ],
   validateUrl: [(v: string) => !!v?.trim() || t('ssoConfig.required')]
@@ -277,13 +280,26 @@ onMounted(loadConfig);
                   :placeholder="t('ssoConfig.serverUrlPrefixPlaceholder')"
                 />
               </div>
-              <div class="col-12">
+              <div class="col-12 col-md-6">
                 <q-input
-                  v-model.trim="form.serviceUrl"
-                  :label="t('ssoConfig.serviceUrl')"
+                  v-model.trim="form.adminServiceUrl"
+                  :label="t('ssoConfig.adminServiceUrl')"
                   filled square :disable="!editing" :readonly="!editing" hide-bottom-space
-                  :rules="editing ? rules.serviceUrl : []"
-                  :placeholder="t('ssoConfig.serviceUrlPlaceholder')"
+                  :rules="editing ? rules.adminServiceUrl : []"
+                  class="required-field"
+                  :placeholder="t('ssoConfig.adminServiceUrlPlaceholder')"
+                  :hint="t('ssoConfig.adminServiceUrlHint')"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model.trim="form.portalServiceUrl"
+                  :label="t('ssoConfig.portalServiceUrl')"
+                  filled square :disable="!editing" :readonly="!editing" hide-bottom-space
+                  :rules="editing ? rules.portalServiceUrl : []"
+                  class="required-field"
+                  :placeholder="t('ssoConfig.portalServiceUrlPlaceholder')"
+                  :hint="t('ssoConfig.portalServiceUrlHint')"
                 />
               </div>
               <div class="col-12 col-md-6">
@@ -431,6 +447,12 @@ onMounted(loadConfig);
 /* 头部操作按钮统一最小宽度，对齐「添加用户」抽屉底部按钮 */
 .sso-action-btn {
   min-width: 72px;
+}
+
+/* 必填字段标签后追加红色星号 */
+.required-field :deep(.q-field__label::after) {
+  content: " *";
+  color: var(--q-negative);
 }
 
 /* 启用开关做成药丸控件，避免「文字 + 裸开关」的松散感 */

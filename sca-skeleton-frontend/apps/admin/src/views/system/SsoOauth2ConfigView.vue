@@ -64,7 +64,10 @@ const manualEndpoints = computed(() => !form.useDiscovery);
 
 const rules = computed(() => ({
   clientId: [(v: string) => !!v?.trim() || t('ssoConfig.required')],
-  redirectUri: [
+  adminRedirectUri: [
+    (v: string) => /^https?:\/\//i.test(v?.trim() ?? "") || t('ssoConfig.urlHttpRule')
+  ],
+  portalRedirectUri: [
     (v: string) => /^https?:\/\//i.test(v?.trim() ?? "") || t('ssoConfig.urlHttpRule')
   ],
   issuer: [
@@ -272,8 +275,11 @@ onMounted(loadConfig);
                   {{ t('ssoConfig.clientSecretMaskedHint') }}
                 </div>
               </div>
-              <div class="col-12">
-                <q-input v-model.trim="form.redirectUri" :label="t('ssoConfig.redirectUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.redirectUri : []" class="required-field" :placeholder="t('ssoConfig.redirectUriPlaceholder')" />
+              <div class="col-12 col-md-6">
+                <q-input v-model.trim="form.adminRedirectUri" :label="t('ssoConfig.adminRedirectUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.adminRedirectUri : []" class="required-field" :placeholder="t('ssoConfig.adminRedirectUriPlaceholder')" :hint="t('ssoConfig.adminRedirectUriHint')" />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input v-model.trim="form.portalRedirectUri" :label="t('ssoConfig.portalRedirectUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :rules="editing ? rules.portalRedirectUri : []" class="required-field" :placeholder="t('ssoConfig.portalRedirectUriPlaceholder')" :hint="t('ssoConfig.portalRedirectUriHint')" />
               </div>
               <div class="col-12">
                 <q-input v-model.trim="form.logoutUri" :label="t('ssoConfig.logoutUri')" filled square :disable="!editing" :readonly="!editing" hide-bottom-space :placeholder="t('ssoConfig.logoutUriPlaceholder')" :hint="t('ssoConfig.logoutUriHint')" />

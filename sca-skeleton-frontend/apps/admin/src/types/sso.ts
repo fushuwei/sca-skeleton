@@ -4,6 +4,8 @@
  * 约定：
  * - CAS 与 OAuth2/OIDC 为两套彼此独立的单例配置，各自对应一个「只读表单 + 编辑保存」页面；
  * - 生产环境两种 SSO 互斥，至多启用其一（可以都不启用，此时仅走系统本地登录）；
+ * - 系统包含 Admin 管理后台和 Portal 前台门户两个入口，各自有独立的回调地址；
+ *   IdP 侧同一 client_id 可注册多个 redirect_uri / service，后端根据回调路径判断入口；
  * - clientSecret 等敏感字段后端回显为掩码，前端凭 clientSecretMasked 判断是否需重新提交明文。
  */
 
@@ -62,8 +64,10 @@ export interface CasConfig {
   // ── 服务端连接参数 ──
   /** CAS 服务器地址前缀，如 https://cas.university.edu/cas */
   serverUrlPrefix: string;
-  /** 本系统服务回调地址（Service / ticket 回调 URL） */
-  serviceUrl: string;
+  /** Admin 管理后台回调地址（Service / ticket 回调 URL） */
+  adminServiceUrl: string;
+  /** Portal 前台门户回调地址（Service / ticket 回调 URL） */
+  portalServiceUrl: string;
   /** 登录端点路径（默认 /login） */
   loginUrl: string;
   /** 登出端点路径（默认 /logout） */
@@ -110,8 +114,10 @@ export interface Oauth2Config {
   userInfoUri: string;
   /** JWK Set 端点（id_token 验签，OIDC 场景） */
   jwkSetUri?: string;
-  /** 回调地址 */
-  redirectUri: string;
+  /** Admin 管理后台回调地址（授权码回调 URL） */
+  adminRedirectUri: string;
+  /** Portal 前台门户回调地址（授权码回调 URL） */
+  portalRedirectUri: string;
   /** 登出端点（全局退出 / end_session_endpoint） */
   logoutUri: string;
 
@@ -146,7 +152,8 @@ export function defaultCasConfig(): CasConfig {
     name: "",
     enabled: false,
     serverUrlPrefix: "",
-    serviceUrl: "",
+    adminServiceUrl: "",
+    portalServiceUrl: "",
     loginUrl: "/login",
     logoutUrl: "/logout",
     protocolVersion: "V3",
@@ -181,7 +188,8 @@ export function defaultOauth2Config(): Oauth2Config {
     tokenUri: "",
     userInfoUri: "",
     jwkSetUri: "",
-    redirectUri: "",
+    adminRedirectUri: "",
+    portalRedirectUri: "",
     logoutUri: "",
     scope: "",
     responseType: "code",
