@@ -164,7 +164,10 @@ async function handleSave() {
   if (!valid) return;
   saving.value = true;
   try {
-    const { enabled: _, ...payload } = JSON.parse(JSON.stringify(form)) as CasConfig;
+    // enabled 由独立开关接口单点管理，保存配置时不提交，避免携带页面陈旧值绕过互斥
+    const clone = JSON.parse(JSON.stringify(form)) as Partial<CasConfig>;
+    delete clone.enabled;
+    const payload = clone as Omit<CasConfig, "enabled">;
     const result = await saveCasConfigApi(payload);
     if (result.code === 10_000) {
       showToast(t('ssoConfig.saveSuccess'), "positive");

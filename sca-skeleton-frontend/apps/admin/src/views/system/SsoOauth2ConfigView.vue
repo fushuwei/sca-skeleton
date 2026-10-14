@@ -135,7 +135,10 @@ async function handleSave() {
   if (!valid) return;
   saving.value = true;
   try {
-    const { enabled: _, ...copy } = JSON.parse(JSON.stringify(form)) as Oauth2Config;
+    // enabled 由独立开关接口单点管理，保存配置时不提交，避免携带页面陈旧值绕过互斥
+    const clone = JSON.parse(JSON.stringify(form)) as Partial<Oauth2Config>;
+    delete clone.enabled;
+    const copy = clone as Omit<Oauth2Config, "enabled">;
     // clientSecret 仍为掩码（用户未改）时剔除，交由服务端保留原值
     if (copy.clientSecretMasked) {
       copy.clientSecret = "";
